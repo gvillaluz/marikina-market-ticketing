@@ -1,0 +1,45 @@
+.table {
+  background: #fff;
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.header,
+.row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+}
+
+.header {
+  background: var(--neutral-50);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--neutral-600);
+  letter-spacing: 0.03em;
+}
+
+.row {
+  border-top: 1px solid var(--neutral-100);
+  font-size: 0.875rem;
+  color: var(--neutral-800);
+}
+
+.desc {
+  color: var(--neutral-600);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.state {
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  color: var(--neutral-500);
+  background: #fff;
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-md);
+}

@@ -1,0 +1,166 @@
+.sidebar {
+  width: 240px;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.25rem 0.875rem 1rem;
+  flex-shrink: 0;
+  z-index: 200;
+}
+
+.backdrop {
+  display: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.25rem;
+}
+
+.seal {
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.brandText {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+
+.brandSub {
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.125rem;
+}
+
+.section {
+  margin-top: 1.5rem;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-on-primary);
+}
+
+.active {
+  background-color: var(--text-on-primary);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.linkIcon {
+  font-size: 1.125rem;
+  width: 22px;
+  text-align: center;
+}
+
+.footer {
+  padding: 0.25rem;
+}
+
+.userPill {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.userAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  background-color: var(--accent);
+  color: var(--text-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  flex-shrink: 0;
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logoutBtn {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  background-color: var(--text-on-primary);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: background-color 0.12s ease;
+}
+
+.logoutBtn:hover {
+  background-color: var(--bg-page);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: 0 12px 32px rgba(30, 34, 43, 0.12);
+  }
+
+  .open {
+    transform: translateX(0);
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 34, 43, 0.5);
+    z-index: 190;
+  }
+}

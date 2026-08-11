@@ -1,0 +1,89 @@
+.card {
+  background: #fff;
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ticketNo {
+  font-family: monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary-600);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.typeTag {
+  background: var(--primary-50);
+  color: var(--primary-700);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.severity {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.title {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.description {
+  color: var(--neutral-500);
+  font-size: 0.8125rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--neutral-600);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--neutral-400);
+  border-top: 1px solid var(--neutral-100);
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.amount {
+  color: var(--success);
+  font-weight: 700;
+}
