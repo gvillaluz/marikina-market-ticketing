@@ -2,10 +2,7 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import env from '@/config/env';
 import { useAuthStore } from '@/store/store';
 
-/**
- * Axios instance configured for the ASP.NET backend.
- * Interceptors attach the JWT token and normalize errors.
- */
+
 const client: AxiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
   timeout: 15000,

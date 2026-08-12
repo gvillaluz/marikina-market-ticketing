@@ -16,7 +16,7 @@ import VendorRegistrationPage from '@/features/vendors/pages/VendorRegistrationP
 import PenaltiesPage from '@/features/penalties/pages/PenaltiesPage';
 import CompliancePage from '@/features/compliance/pages/CompliancePage';
 
-/** Roles permitted to reach the admin dashboard shell. */
+
 const ADMIN_ENFORCER_ROLES: UserRole[] = ['admin', 'enforcer'];
 
 /** Only admins may view the dashboard itself. */
@@ -31,7 +31,7 @@ const AppRoutes = () => {
       <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
       <Route path={ROUTES.register} element={<VendorRegistrationPage />} />
 
-      {/* Protected admin/enforcer app routes */}
+      {}
       <Route
         element={
           <ProtectedRoute roles={ADMIN_ENFORCER_ROLES}>
@@ -47,7 +47,7 @@ const AppRoutes = () => {
         <Route path={ROUTES.performance} element={<AdminPlaceholderPage title="Performance" />} />
       </Route>
 
-      {/* Protected routes for other staff (vendors, enforcers, admins) */}
+      {}
       <Route
         element={
           <ProtectedRoute>
@@ -62,7 +62,7 @@ const AppRoutes = () => {
         <Route path={ROUTES.compliance} element={<CompliancePage />} />
       </Route>
 
-      {/* Fallback */}
+      {}
       <Route path="*" element={<Navigate to={ROUTES.adminLogin} replace />} />
     </Routes>
   );

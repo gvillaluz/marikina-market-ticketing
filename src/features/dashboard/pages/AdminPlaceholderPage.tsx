@@ -5,10 +5,7 @@ interface AdminPlaceholderPageProps {
   title: string;
 }
 
-/**
- * Reusable placeholder for admin-facing modules that are not yet implemented
- * (Inspections, Analytics, Performance). Renders within the DashboardLayout shell.
- */
+
 const AdminPlaceholderPage: FC<AdminPlaceholderPageProps> = ({ title }) => {
   return (
     <div>

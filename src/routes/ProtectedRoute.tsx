@@ -18,8 +18,7 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
   }
 
   if (roles && user && !roles.includes(user.role)) {
-    // Authenticated but with the wrong role for this area — send them to the
-    // admin login (which only admits admins) or their own dashboard.
+    
     return <Navigate to={ROUTES.adminLogin} replace />;
   }
 

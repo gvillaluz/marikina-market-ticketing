@@ -1,4 +1,4 @@
-/** Central route constants. */
+
 export const ROUTES = {
   login: '/login',
   adminLogin: '/admin/login',

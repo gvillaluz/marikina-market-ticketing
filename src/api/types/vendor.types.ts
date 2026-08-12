@@ -36,11 +36,7 @@ export interface VendorRegistrationInput {
   phone: string;
 }
 
-/**
- * Payload built by the 4-step vendor registration wizard.
- * Aggregates personal info, business details, required documents, and the
- * account credentials into a single submit payload.
- */
+
 export interface VendorRegistrationWizardInput {
   // Personal information
   lastName: string;

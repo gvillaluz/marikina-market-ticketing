@@ -3,7 +3,6 @@ import type { Vendor, VendorRegistrationInput } from '@/api/types/vendor.types';
 import type { ApiResponse, PaginatedResponse, PaginationParams } from '@/api/types/common.types';
 import type { Status } from '@/api/types/common.types';
 
-/** Vendor API endpoints for the ASP.NET backend. */
 export const vendorsApi = {
   async list(params: PaginationParams & { status?: Status } = {}): Promise<PaginatedResponse<Vendor>> {
     const { data } = await client.get<ApiResponse<PaginatedResponse<Vendor>>>('/vendors', { params });

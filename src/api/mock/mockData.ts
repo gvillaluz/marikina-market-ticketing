@@ -370,7 +370,6 @@ export const mockComplianceScores: ComplianceScore[] = [
   },
 ];
 
-// Dashboard analytics mock
 export const mockAnalytics = {
   stats: {
     totalTickets: 1284,

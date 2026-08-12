@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import mockAdapter from '@/api/mock/mockAdapter';
 import type { ComplianceScore } from '@/api/endpoints/compliance.api';
 
-/** Loads compliance scores for all vendors (admin view). */
+
 export function useCompliance() {
   const [scores, setScores] = useState<ComplianceScore[]>([]);
   const [loading, setLoading] = useState(true);

@@ -6,7 +6,7 @@ import LoginForm from '@/features/auth/components/LoginForm';
 
 const AdminLoginPage: FC = () => {
   const { isAuthenticated, user } = useAuth();
-  // If already signed in as an admin, go straight to the dashboard.
+ 
   if (isAuthenticated && user?.role === 'admin') {
     return <Navigate to="/dashboard" replace />;
   }

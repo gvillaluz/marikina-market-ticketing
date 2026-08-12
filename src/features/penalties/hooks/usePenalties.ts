@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import mockAdapter from '@/api/mock/mockAdapter';
 import type { Penalty, PenaltySummary } from '@/api/endpoints/penalties.api';
 
-/** Loads a paginated list of penalties plus summary stats. */
+
 export function usePenalties(status?: string) {
   const [penalties, setPenalties] = useState<Penalty[]>([]);
   const [summary, setSummary] = useState<PenaltySummary | null>(null);

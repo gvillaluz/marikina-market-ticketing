@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthState>()(
   ),
 );
 
-// Global mock users for demo (no backend required)
+
 export const DEMO_USERS: User[] = [
   {
     id: 'u-admin',

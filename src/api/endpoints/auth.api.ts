@@ -2,11 +2,6 @@ import client from '@/api/client';
 import type { AuthResponse, LoginInput, RegisterInput } from '@/features/auth/auth.types';
 import type { ApiResponse } from '@/api/types/common.types';
 
-/**
- * Authentication API endpoints.
- * These call the ASP.NET backend. When a backend is not available,
- * the auth hook falls back to mock demo users.
- */
 export const authApi = {
   async login(input: LoginInput): Promise<AuthResponse> {
     const { data } = await client.post<ApiResponse<AuthResponse>>('/auth/login', input);

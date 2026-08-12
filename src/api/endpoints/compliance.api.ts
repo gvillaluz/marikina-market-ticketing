@@ -20,7 +20,6 @@ export interface ComplianceScore {
   updatedAt: string;
 }
 
-/** Compliance API endpoints. */
 export const complianceApi = {
   async getVendorCompliance(vendorId: string): Promise<ComplianceScore> {
     const { data } = await client.get<ApiResponse<ComplianceScore>>(`/compliance/${vendorId}`);

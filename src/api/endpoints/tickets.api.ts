@@ -3,7 +3,7 @@ import type { CreateTicketInput, Ticket, TicketHistoryEntry } from '@/api/types/
 import type { ApiResponse, PaginatedResponse, PaginationParams } from '@/api/types/common.types';
 import type { Status } from '@/api/types/common.types';
 
-/** Ticket API endpoints for the ASP.NET backend. */
+
 export const ticketsApi = {
   async list(params: PaginationParams & { status?: Status; type?: string } = {}): Promise<PaginatedResponse<Ticket>> {
     const { data } = await client.get<ApiResponse<PaginatedResponse<Ticket>>>('/tickets', { params });

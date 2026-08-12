@@ -96,21 +96,18 @@ Login
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Section 2 — Hero                                                    */
-/* ------------------------------------------------------------------ */
 
 function Hero() {
   return (
     <section className="relative" id="top">
-      {/* Scene background (market building with palms) */}
+      {}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage: `linear-gradient(180deg, #0B2D5B 0%, #3a6aa5 45%, #7fb3d5 70%, #c9b98a 100%)`,
         }}
       >
-        {/* arched colonial facade */}
+        {}
         <div
           className="absolute inset-0"
           style={{
@@ -118,7 +115,7 @@ function Hero() {
               'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.18) 0%, transparent 55%), repeating-linear-gradient(90deg, rgba(255,255,255,0.10) 0 2px, transparent 2px 90px)',
           }}
         />
-        {/* palm silhouettes */}
+        {}
         <div
           className="absolute inset-0"
           style={{
@@ -128,7 +125,7 @@ function Hero() {
         />
       </div>
 
-      {/* white overlay ~70% */}
+      {}
       <div className="absolute inset-0 bg-white/70" />
 
       <div className="relative max-w-[1200px] mx-auto px-4 md:px-8 py-24 md:py-28 min-h-[400px] flex items-center">
@@ -146,9 +143,6 @@ function Hero() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Section 3 — System Features                                         */
-/* ------------------------------------------------------------------ */
 
 const featureCards = [
   {
@@ -189,9 +183,7 @@ function Features() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Section 4 — Process                                                 */
-/* ------------------------------------------------------------------ */
+
 
 const processSteps = [
   {
@@ -247,9 +239,6 @@ function Process() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Section 5 — Analytics Dashboard preview                             */
-/* ------------------------------------------------------------------ */
 
 const bars = [
   { label: 'Sanitation', width: '100%' },
@@ -346,9 +335,6 @@ function AnalyticsPreview() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Section 6 — Who it's for                                            */
-/* ------------------------------------------------------------------ */
 
 const roles = [
   {
@@ -416,9 +402,6 @@ function WhoItsFor() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Section 7 — Closing CTA                                             */
-/* ------------------------------------------------------------------ */
 
 function ClosingCta() {
   return (
@@ -442,9 +425,6 @@ function ClosingCta() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Page                                                                */
-/* ------------------------------------------------------------------ */
 
 export default function LandingPage() {
   return (

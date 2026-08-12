@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import useLogin from '@/features/auth/hooks/useLogin';
 
 interface LoginFormProps {
-  /** Whether to show the "Don't have an account?" register link. Admin login hides it. */
+  
   showRegisterLink?: boolean;
-  /** Optional role restriction forwarded to useLogin. */
+  
   role?: 'admin' | 'enforcer' | 'vendor';
 }
 

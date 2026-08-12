@@ -2,18 +2,14 @@ import { FC, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 interface AuthLayoutProps {
-  /** Subtext shown under the heading on the left navy panel. */
+
   subtext: string;
-  /** Whether to show the "← Back Home" button in the top-left corner. */
+
   showBackHome?: boolean;
   children: ReactNode;
 }
 
-/**
- * Shared split-panel auth shell used by the vendor Login screen and the
- * Admin Login screen. Renders a navy left panel (seal logo, system title,
- * access subtext) and a white right panel containing the provided form.
- */
+
 const AuthLayout: FC<AuthLayoutProps> = ({ subtext, showBackHome = true, children }) => {
   return (
     <div className="min-h-screen bg-page flex flex-col">
