@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { penaltiesApi } from '@/api/endpoints/penalties.api';
 import type { Penalty, PenaltySummary } from '@/api/endpoints/penalties.api';
 
 
@@ -14,8 +14,8 @@ export function usePenalties(status?: string) {
     setError(null);
     try {
       const [list, sum] = await Promise.all([
-        mockAdapter.listPenalties({ page: 1, pageSize: 50, status }),
-        mockAdapter.getPenaltySummary(),
+        penaltiesApi.list({ page: 1, pageSize: 50, status }),
+        penaltiesApi.getSummary(),
       ]);
       setPenalties(list.items);
       setSummary(sum);

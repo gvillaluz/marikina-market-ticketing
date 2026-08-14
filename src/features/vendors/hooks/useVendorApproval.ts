@@ -1,12 +1,8 @@
 import { useState } from 'react';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { vendorApi } from '@/api/endpoints/vendor.api';
 import type { Vendor } from '@/api/types/vendor.types';
 import type { Status } from '@/api/types/common.types';
 
-/**
- * Admin-only hook for approving / rejecting / suspending vendors.
- * Returns an action function and loading/error state.
- */
 export function useVendorApproval() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,7 +11,16 @@ export function useVendorApproval() {
     setLoading(true);
     setError(null);
     try {
-      return await mockAdapter.updateVendorStatus(vendorId, status);
+      if (status === 'approved' || status === 'active') {
+        return await vendorApi.approve(vendorId);
+      }
+      if (status === 'rejected') {
+        return await vendorApi.reject(vendorId);
+      }
+      if (status === 'suspended') {
+        return await vendorApi.suspend(vendorId);
+      }
+      throw new Error(`Unsupported status action: ${status}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Action failed.');
       throw err;

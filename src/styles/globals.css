@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   Marikina Ticketing System — Global Styles
-   ============================================================ */
 
 :root {
   --primary: #0b2d5b;

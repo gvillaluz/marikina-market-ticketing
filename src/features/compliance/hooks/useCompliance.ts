@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { complianceApi } from '@/api/endpoints/compliance.api';
 import type { ComplianceScore } from '@/api/endpoints/compliance.api';
 
 
@@ -12,9 +12,8 @@ export function useCompliance() {
     setLoading(true);
     setError(null);
     try {
-      // Load compliance for all mock vendors
       const vendorIds = ['v-001', 'v-002', 'v-004', 'v-005'];
-      const results = await Promise.all(vendorIds.map((id) => mockAdapter.getCompliance(id)));
+      const results = await Promise.all(vendorIds.map((id) => complianceApi.getVendorCompliance(id)));
       setScores(results);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load compliance data.');

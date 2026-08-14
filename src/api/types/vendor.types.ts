@@ -50,17 +50,17 @@ export interface VendorRegistrationWizardInput {
   barangay: string;
   city: string;
 
-  // Business details
+ 
   businessName: string;
   natureOfBusiness: string;
   stallNumber: string;
   section: string;
 
-  // Required documents
+
   govIdType: string;
   govIdNumber: string;
-  govIdPhoto?: string | null;
-  businessDocument?: string | null;
+  govIdPhoto?: File | '' | null;
+  businessDocument?: File | '' | null;
 
   // Account registration
   email: string;

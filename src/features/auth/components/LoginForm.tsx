@@ -1,6 +1,6 @@
 import { FC, useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import useLogin from '@/features/auth/hooks/useLogin';
+import useLogin, { resolveLoginIdentifier } from '@/features/auth/hooks/useLogin';
 
 interface LoginFormProps {
   
@@ -18,8 +18,20 @@ const LoginForm: FC<LoginFormProps> = ({ showRegisterLink = true, role }) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const errs: { username?: string; password?: string } = {};
-    if (username.trim().length < 3) errs.username = 'Enter your username or email.';
-    if (password.length < 6) errs.password = 'Password must be at least 6 characters.';
+    const isAdminLogin = role === 'admin';
+
+    if (!username.trim()) {
+      errs.username = 'Enter your username.';
+    } else if (!isAdminLogin && !resolveLoginIdentifier(username)) {
+      errs.username = 'Enter your username or email.';
+    }
+
+    if (!password.trim()) {
+      errs.password = 'Enter your password.';
+    } else if (!isAdminLogin && password.length < 6) {
+      errs.password = 'Password must be at least 6 characters.';
+    }
+
     setFieldErrors(errs);
     if (Object.keys(errs).length > 0) return;
 

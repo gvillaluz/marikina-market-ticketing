@@ -10,7 +10,7 @@ import DashboardPage from '@/features/dashboard/pages/DashboardPage';
 import AdminPlaceholderPage from '@/features/dashboard/pages/AdminPlaceholderPage';
 import TicketsPage from '@/features/tickets/pages/TicketsPage';
 import TicketDetailPage from '@/features/tickets/pages/TicketDetailPage';
-import VendorsPage from '@/features/vendors/pages/VendorsPage';
+import VendorsPage from '@/features/vendors/pages/VendorPage';
 import VendorDetailPage from '@/features/vendors/pages/VendorDetailPage';
 import VendorRegistrationPage from '@/features/vendors/pages/VendorRegistrationPage';
 import PenaltiesPage from '@/features/penalties/pages/PenaltiesPage';

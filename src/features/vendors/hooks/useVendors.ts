@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { vendorApi } from '@/api/endpoints/vendor.api';
 import type { Vendor } from '@/api/types/vendor.types';
 import type { Status } from '@/api/types/common.types';
 
@@ -9,7 +9,6 @@ interface UseVendorsOptions {
   pageSize?: number;
 }
 
-/** Loads a paginated list of vendors (admin view). */
 export function useVendors(options: UseVendorsOptions = {}) {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +21,7 @@ export function useVendors(options: UseVendorsOptions = {}) {
     setLoading(true);
     setError(null);
     try {
-      const res = await mockAdapter.listVendors({
+      const res = await vendorApi.list({
         page,
         pageSize: options.pageSize ?? 10,
         status: options.status,

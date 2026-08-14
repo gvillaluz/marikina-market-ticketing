@@ -1,7 +1,7 @@
 import { FC, FormEvent, useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { ticketsApi } from '@/api/endpoints/tickets.api';
 import { TICKET_TYPES, TICKET_SEVERITIES, MARIKINA_BARANGAYS } from '@/utils/constants';
 import { TICKET_TYPE_LABELS, SEVERITY_LABELS } from '@/utils/constants';
 import { isRequired } from '@/utils/validators';
@@ -37,7 +37,7 @@ const CreateTicketModal: FC<CreateTicketModalProps> = ({ open, onClose, onCreate
     setLoading(true);
     setError(null);
     try {
-      await mockAdapter.createTicket(form);
+      await ticketsApi.create(form);
       onCreated();
       onClose();
       setForm({ type: 'violation', title: '', description: '', severity: 'medium', location: MARIKINA_BARANGAYS[0] });

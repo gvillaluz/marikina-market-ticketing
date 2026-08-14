@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { ticketsApi } from '@/api/endpoints/tickets.api';
 import type { Ticket } from '@/api/types/ticket.types';
 import type { Status } from '@/api/types/common.types';
 
@@ -23,7 +23,7 @@ export function useTickets(options: UseTicketsOptions = {}) {
     setLoading(true);
     setError(null);
     try {
-      const res = await mockAdapter.listTickets({
+      const res = await ticketsApi.list({
         page,
         pageSize: options.pageSize ?? 10,
         status: options.status,

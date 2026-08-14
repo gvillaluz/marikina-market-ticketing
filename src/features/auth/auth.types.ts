@@ -9,7 +9,7 @@ export interface User {
 }
 
 export interface LoginInput {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -22,5 +22,12 @@ export interface RegisterInput {
 
 export interface AuthResponse {
   user: User;
-  token: string;
+  must_change_password: boolean;  
+  access_token: string;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  role: 'admin' | 'enforcer' | 'vendor';
 }

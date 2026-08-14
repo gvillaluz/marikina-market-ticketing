@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Loader from '@/components/feedback/Loader';
 import Button from '@/components/ui/Button';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { vendorApi } from '@/api/endpoints/vendor.api';
 import VendorProfile from '@/features/vendors/components/VendorProfile';
 import VendorQRCode from '@/features/vendors/components/VendorQRCode';
 import { useAuth } from '@/context/AuthContext';
@@ -21,7 +21,7 @@ const VendorDetailPage: FC = () => {
     if (!id) return;
     (async () => {
       try {
-        const data = await mockAdapter.getVendor(id);
+        const data = await vendorApi.getById(id);
         setVendor(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load vendor.');

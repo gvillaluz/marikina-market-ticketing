@@ -62,12 +62,14 @@ interface FileUploadProps {
   label: string;
   error?: string;
   required?: boolean;
-  fileName?: string | null;
-  onChange: (file: string | null) => void;
+  fileName?: File | string | null;
+  onChange: (file: File | null) => void;
 }
 
-/** Dashed upload box that stores a placeholder file name. */
+/** Dashed upload box that stores a file object. */
 export const FileUpload: FC<FileUploadProps> = ({ label, error, required, fileName, onChange }) => {
+  const fileDisplayName = typeof fileName === 'string' ? '' : fileName?.name ?? 'Click to upload';
+
   return (
     <div>
       <label className="block text-xs font-semibold uppercase tracking-wider text-bodygray mb-1.5">
@@ -84,14 +86,14 @@ export const FileUpload: FC<FileUploadProps> = ({ label, error, required, fileNa
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            onChange(file ? file.name : null);
+            onChange(file ?? null);
           }}
         />
         <span className="text-primary text-xl leading-none" aria-hidden>
           ⬆
         </span>
         <span className="text-sm font-medium text-primary">
-          {fileName ?? 'Click to upload'}
+          {fileDisplayName}
         </span>
         {!fileName && (
           <span className="text-xs text-bodygray">JPG, PNG or PDF, max 5MB</span>

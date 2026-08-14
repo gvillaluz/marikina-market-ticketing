@@ -3,7 +3,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import PenaltySummaryCards from '@/features/penalties/components/PenaltySummaryCards';
 import PenaltyList from '@/features/penalties/components/PenaltyList';
 import usePenalties from '@/features/penalties/hooks/usePenalties';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { penaltiesApi } from '@/api/endpoints/penalties.api';
 import type { Penalty } from '@/api/endpoints/penalties.api';
 import styles from './PenaltiesPage.module.css';
 
@@ -12,7 +12,7 @@ const PenaltiesPage: FC = () => {
   const { penalties, summary, loading, refresh } = usePenalties(status === 'all' ? undefined : status);
 
   const handleMarkPaid = async (penalty: Penalty) => {
-    await mockAdapter.markPenaltyPaid(penalty.id);
+    await penaltiesApi.markPaid(penalty.id);
     refresh();
   };
 

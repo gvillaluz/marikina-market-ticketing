@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { CATEGORY_LABELS } from '@/utils/constants';
 import { formatDate } from '@/utils/formatters';
 import StatusBadge from '@/components/ui/StatusBadge';
-import styles from './VendorsPage.module.css';
+import styles from './VendorPage.module.css';
 import type { Vendor } from '@/api/types/vendor.types';
 import type { Status } from '@/api/types/common.types';
 

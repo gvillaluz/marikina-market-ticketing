@@ -1,18 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { ticketsApi } from '@/api/endpoints/tickets.api';
 import type { TicketHistoryEntry } from '@/api/types/ticket.types';
 
-/** Loads the history for a single ticket. */
 export function useTicketHistory(ticketId: string) {
   const [history, setHistory] = useState<TicketHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!ticketId) return;
+    if (!ticketId) {
+      setHistory([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
+    setError(null);
+
     try {
-      const data = await mockAdapter.getTicketHistory(ticketId);
-      setHistory(data);
+      const data = await ticketsApi.getHistory(ticketId); 
+      setHistory(data ?? []); // fallback to empty array if API returns null/undefined
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load ticket history');
+      setHistory([]);
     } finally {
       setLoading(false);
     }
@@ -22,7 +32,7 @@ export function useTicketHistory(ticketId: string) {
     load();
   }, [load]);
 
-  return { history, loading, refresh: load };
+  return { history, loading, error, refresh: load };
 }
 
 export default useTicketHistory;

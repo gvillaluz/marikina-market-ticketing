@@ -1,17 +1,18 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import { useAuthStore } from '@/store/store';
-import type { User } from '@/features/auth/auth.types';
-import type { LoginInput, RegisterInput } from '@/features/auth/auth.types';
-import mockAdapter from '@/api/mock/mockAdapter';
+import type { User, LoginInput, RegisterInput } from '@/features/auth/auth.types';
+import { authApi } from '@/api/endpoints/auth.api';
 
 interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isVendor: boolean;
-  login: (input: LoginInput) => Promise<User | null>;
+  mustChangePassword: boolean;
+  login: (input: LoginInput) => Promise<{ user: User; mustChangePassword: boolean }>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => void;
+  clearMustChangePassword: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -19,37 +20,48 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated, setAuth, logout: storeLogout } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
-const login = useCallback(
-    async (input: LoginInput) => {
-      setLoading(true);
-      try {
-        const res = await mockAdapter.login(input.email, input.password);
-        setAuth(res.user, res.token);
-        return res.user;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [setAuth],
-  );
+  const login = useCallback(
+  async (input: LoginInput) => {
+    setLoading(true);
+    try {
+      const res = await authApi.login(input);
+      const profile = await authApi.getMe(res.access_token);
+      setAuth(profile, res.access_token);
+      setMustChangePassword(res.must_change_password);
 
-  const register = useCallback(
-    async (input: RegisterInput) => {
-      setLoading(true);
-      try {
-        const res = await mockAdapter.register(input);
-        setAuth(res.user, res.token);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [setAuth],
-  );
+      return { user: profile, mustChangePassword: res.must_change_password };
+    } finally {
+      setLoading(false);
+    }
+  },
+  [setAuth],
+);
+
+const register = useCallback(
+  async (input: RegisterInput) => {
+    setLoading(true);
+    try {
+      const res = await authApi.register(input);
+      const profile = await authApi.getMe(res.access_token);
+      setAuth(profile, res.access_token);
+      setMustChangePassword(res.must_change_password);
+    } finally {
+      setLoading(false);
+    }
+  },
+  [setAuth],
+);
 
   const logout = useCallback(() => {
+    setMustChangePassword(false);
     storeLogout();
   }, [storeLogout]);
+
+  const clearMustChangePassword = useCallback(() => {
+    setMustChangePassword(false);
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -57,11 +69,13 @@ const login = useCallback(
       isAuthenticated,
       isAdmin: user?.role === 'admin',
       isVendor: user?.role === 'vendor',
+      mustChangePassword,
       login,
       register,
       logout,
+      clearMustChangePassword,
     }),
-    [user, isAuthenticated, login, register, logout],
+    [user, isAuthenticated, mustChangePassword, login, register, logout, clearMustChangePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

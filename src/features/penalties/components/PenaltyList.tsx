@@ -2,7 +2,6 @@ import { FC } from 'react';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Button from '@/components/ui/Button';
 import { formatDate, formatCurrency } from '@/utils/formatters';
-import mockAdapter from '@/api/mock/mockAdapter';
 import type { Penalty } from '@/api/endpoints/penalties.api';
 import styles from './PenaltyList.module.css';
 

@@ -1,14 +1,11 @@
 import { useState } from 'react';
 import type { VendorRegistrationWizardInput } from '@/api/types/vendor.types';
 import { isValidEmail, isValidPhone } from '@/utils/validators';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { vendorApi } from '@/api/endpoints/vendor.api';
 
-/** Number of steps in the wizard. */
+
 export const TOTAL_STEPS = 4;
 
-/**
- * Initial empty wizard state.
- */
 export const initialWizardState: VendorRegistrationWizardInput = {
   lastName: '',
   firstName: '',
@@ -28,8 +25,8 @@ export const initialWizardState: VendorRegistrationWizardInput = {
 
   govIdType: '',
   govIdNumber: '',
-  govIdPhoto: null,
-  businessDocument: null,
+  govIdPhoto: '',
+  businessDocument: '',
 
   email: '',
   password: '',
@@ -40,10 +37,7 @@ export interface StepErrors {
   [key: string]: string;
 }
 
-/**
- * Per-step validation rules. Returns a partial map of field -> error message.
- * Empty object means the step is valid.
- */
+
 function validateStep(step: number, form: VendorRegistrationWizardInput): StepErrors {
   const errs: StepErrors = {};
 
@@ -82,11 +76,6 @@ function validateStep(step: number, form: VendorRegistrationWizardInput): StepEr
   return errs;
 }
 
-/**
- * Owner of the 4-step vendor registration wizard.
- * Handles step navigation, per-step validation, and final submission through
- * the mock/API adapter.
- */
 export function useVendorRegistration() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<VendorRegistrationWizardInput>(initialWizardState);
@@ -100,7 +89,7 @@ export function useVendorRegistration() {
     value: VendorRegistrationWizardInput[K],
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
-    // Clear a field error as the user types.
+    
     setErrors((prev) => {
       if (!prev[key]) return prev;
       const next = { ...prev };
@@ -130,7 +119,6 @@ export function useVendorRegistration() {
   };
 
   const submit = async () => {
-    // Validate the final step (account registration) before sending.
     const errs = validateStep(4, form);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
@@ -138,7 +126,7 @@ export function useVendorRegistration() {
     setLoading(true);
     setSubmitError(null);
     try {
-      await mockAdapter.registerVendorWizard(form);
+      await vendorApi.register(form as any);
       setSubmitted(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Registration failed.');

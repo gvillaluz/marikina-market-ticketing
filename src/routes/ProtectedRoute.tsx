@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, mustChangePassword } = useAuth();
   const location = useLocation();
 
   if (!isAuthenticated) {
@@ -18,8 +18,14 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
   }
 
   if (roles && user && !roles.includes(user.role)) {
-    
     return <Navigate to={ROUTES.adminLogin} replace />;
+  }
+
+  const isAdmin = user?.role === 'admin';
+  const onChangePasswordPage = location.pathname === ROUTES.changePassword;
+
+  if (isAdmin && mustChangePassword && !onChangePasswordPage) {
+    return <Navigate to={ROUTES.changePassword} replace />;
   }
 
   return <>{children}</>;

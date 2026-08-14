@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Loader from '@/components/feedback/Loader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Button from '@/components/ui/Button';
-import mockAdapter from '@/api/mock/mockAdapter';
+import { ticketsApi } from '@/api/endpoints/tickets.api';
 import { formatDate, formatCurrency } from '@/utils/formatters';
 import { TICKET_TYPE_LABELS, SEVERITY_LABELS } from '@/utils/constants';
 import type { Ticket } from '@/api/types/ticket.types';
@@ -23,8 +23,8 @@ const TicketDetailPage: FC = () => {
     (async () => {
       try {
         const [t, h] = await Promise.all([
-          mockAdapter.getTicket(id),
-          mockAdapter.getTicketHistory(id),
+          ticketsApi.getById(id),
+          ticketsApi.getHistory(id),
         ]);
         setTicket(t);
         setHistory(h);
@@ -38,7 +38,7 @@ const TicketDetailPage: FC = () => {
 
   const handleResolve = async () => {
     if (!ticket) return;
-    const updated = await mockAdapter.updateTicketStatus(ticket.id, 'resolved');
+    const updated = await ticketsApi.updateStatus(ticket.id, 'resolved');
     setTicket(updated);
   };
 
