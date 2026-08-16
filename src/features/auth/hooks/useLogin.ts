@@ -58,12 +58,6 @@ export function useLogin(options: UseLoginOptions = {}) {
         return;
       }
       
-      // console.log(mustChangePassword, 'mustChangePassword');
-      // if (mustChangePassword && decoded.role === 'Admin') {
-      //   navigate(ROUTES.changePassword, { replace: true });
-      //   console.log('Redirecting to change password page');
-      //   return;
-      // }
       console.log('Redirecting to:', from);
       navigate(from, { replace: true });
       console.log('Navigation complete'); 

@@ -29,6 +29,17 @@ const AppRoutes = () => {
       <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
       <Route path={ROUTES.register} element={<VendorRegistrationPage />} />
 
+      {/* Standalone change-password route — NOT nested in DashboardLayout,
+          so it renders full-screen without the sidebar, like the login pages */}
+      <Route
+        path={ROUTES.changePassword}
+        element={
+          <ProtectedRoute roles={ADMIN_ENFORCER_ROLES}>
+            <ChangePasswordPage />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Admin/Enforcer protected routes */}
       <Route
         element={
@@ -38,7 +49,6 @@ const AppRoutes = () => {
         }
       >
         <Route path={ROUTES.dashboard} element={<DashboardPage />} />
-        <Route path={ROUTES.changePassword} element={<ChangePasswordPage />} />
         <Route path={ROUTES.inspections} element={<AdminPlaceholderPage title="Inspections" />} />
         <Route path={ROUTES.tickets} element={<TicketsPage />} />
         <Route path={ROUTES.ticketDetail(':id')} element={<TicketDetailPage />} />
