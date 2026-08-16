@@ -19,7 +19,7 @@ const initial: FormState = {
   email: '',
   password: '',
   confirmPassword: '',
-  role: 'vendor',
+  role: 'Vendor',
 };
 
 const RegisterForm: FC = () => {
@@ -115,8 +115,8 @@ const RegisterForm: FC = () => {
             value={form.role}
             onChange={(e) => setField('role', e.target.value as UserRole)}
           >
-            <option value="vendor">Vendor</option>
-            <option value="admin">Administrator</option>
+            <option value="Vendor">Vendor</option>
+            <option value="Admin">Administrator</option>
           </select>
         </div>
 

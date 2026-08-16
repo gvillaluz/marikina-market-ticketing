@@ -28,19 +28,19 @@ export const useAuthStore = create<AuthState>()(
 );
 
 
-export const DEMO_USERS: User[] = [
-  {
-    id: 'u-admin',
-    name: 'Marikina Administrator',
-    email: 'admin@marikina.gov.ph',
-    role: 'admin',
-    avatar: 'MA',
-  },
-  {
-    id: 'u-vendor',
-    name: 'Juan Dela Cruz',
-    email: 'vendor@marikina.gov.ph',
-    role: 'vendor',
-    avatar: 'JD',
-  },
-];
+// export const DEMO_USERS: User[] = [
+//   {
+//     id: 'u-admin',
+//     name: 'Marikina Administrator',
+//     email: 'admin@marikina.gov.ph',
+//     role: 'admin',
+//     avatar: 'MA',
+//   },
+//   {
+//     id: 'u-vendor',
+//     name: 'Juan Dela Cruz',
+//     email: 'vendor@marikina.gov.ph',
+//     role: 'vendor',
+//     avatar: 'JD',
+//   },
+// ];

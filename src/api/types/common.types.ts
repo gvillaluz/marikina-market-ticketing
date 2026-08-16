@@ -24,7 +24,7 @@ export interface PaginationParams {
 }
 
 
-export type UserRole = 'admin' | 'vendor' | 'enforcer';
+export type UserRole = 'Admin' | 'Vendor' | 'Enforcer';
 
 /** Status badges used across the app. */
 export type Status = 'pending' | 'approved' | 'rejected' | 'resolved' | 'active' | 'suspended' | 'paid' | 'unpaid';

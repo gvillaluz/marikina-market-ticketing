@@ -29,5 +29,5 @@ export interface AuthResponse {
 export interface User {
   id: string;
   username: string;
-  role: 'admin' | 'enforcer' | 'vendor';
+  role: 'Admin'| 'Enforcer' | 'Vendor';
 }

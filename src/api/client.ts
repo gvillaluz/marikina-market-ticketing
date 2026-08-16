@@ -26,11 +26,11 @@ client.interceptors.request.use(
 
 
 client.interceptors.response.use(
-  
   (response) => response,
   (error: AxiosError) => {
     console.log('API Error:', error.response?.status, error.response?.data);
-    if (error.response?.status === 401) {
+    const isChangePasswordCall = error.config?.url?.includes('mandatory-change-password');
+    if (error.response?.status === 401 && !isChangePasswordCall) {
       useAuthStore.getState().logout();
     }
     const message =

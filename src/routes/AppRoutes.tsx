@@ -6,6 +6,7 @@ import type { UserRole } from '@/api/types/common.types';
 import LandingPage from '@/features/landing/pages/LandingPage';
 import LoginPage from '@/features/auth/pages/LoginPage';
 import AdminLoginPage from '@/features/auth/pages/AdminLoginPage';
+import ChangePasswordPage from '@/features/auth/pages/ChangePasswordPage';
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
 import AdminPlaceholderPage from '@/features/dashboard/pages/AdminPlaceholderPage';
 import TicketsPage from '@/features/tickets/pages/TicketsPage';
@@ -16,11 +17,8 @@ import VendorRegistrationPage from '@/features/vendors/pages/VendorRegistrationP
 import PenaltiesPage from '@/features/penalties/pages/PenaltiesPage';
 import CompliancePage from '@/features/compliance/pages/CompliancePage';
 
-
-const ADMIN_ENFORCER_ROLES: UserRole[] = ['admin', 'enforcer'];
-
-/** Only admins may view the dashboard itself. */
-const ADMIN_ONLY_ROLES: UserRole[] = ['admin'];
+const ADMIN_ENFORCER_ROLES: UserRole[] = ['Admin', 'Enforcer'];
+const ADMIN_ONLY_ROLES: UserRole[] = ['Admin'];
 
 const AppRoutes = () => {
   return (
@@ -31,7 +29,7 @@ const AppRoutes = () => {
       <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
       <Route path={ROUTES.register} element={<VendorRegistrationPage />} />
 
-      {}
+      {/* Admin/Enforcer protected routes */}
       <Route
         element={
           <ProtectedRoute roles={ADMIN_ENFORCER_ROLES}>
@@ -40,6 +38,7 @@ const AppRoutes = () => {
         }
       >
         <Route path={ROUTES.dashboard} element={<DashboardPage />} />
+        <Route path={ROUTES.changePassword} element={<ChangePasswordPage />} />
         <Route path={ROUTES.inspections} element={<AdminPlaceholderPage title="Inspections" />} />
         <Route path={ROUTES.tickets} element={<TicketsPage />} />
         <Route path={ROUTES.ticketDetail(':id')} element={<TicketDetailPage />} />
@@ -47,7 +46,7 @@ const AppRoutes = () => {
         <Route path={ROUTES.performance} element={<AdminPlaceholderPage title="Performance" />} />
       </Route>
 
-      {}
+      {/* General authenticated routes (any role) */}
       <Route
         element={
           <ProtectedRoute>
@@ -62,7 +61,7 @@ const AppRoutes = () => {
         <Route path={ROUTES.compliance} element={<CompliancePage />} />
       </Route>
 
-      {}
+      {/* Catch-all */}
       <Route path="*" element={<Navigate to={ROUTES.adminLogin} replace />} />
     </Routes>
   );

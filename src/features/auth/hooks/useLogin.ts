@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes/routePaths';
 import type { LoginInput } from '@/features/auth/auth.types';
+import { jwtDecode } from 'jwt-decode';
 
 export interface LoginFormValues {
   username: string;
@@ -27,7 +28,7 @@ export function resolveLoginIdentifier(username: string): string | null {
 }
 
 interface UseLoginOptions {
-  role?: 'admin' | 'enforcer' | 'vendor';
+  role?: 'Admin' | 'Enforcer' | 'Vendor';
   redirectTo?: string;
 }
 
@@ -50,21 +51,22 @@ export function useLogin(options: UseLoginOptions = {}) {
         password: values.password,
       };
 
-      const { user, mustChangePassword } = await login(input);
-
-      if (role && user.role !== role) {
+      const { user, mustChangePassword, } = await login(input);
+      if (!user.role) {
         setError('not access');
         setLoading(false);
         return;
       }
-
       
-      if (mustChangePassword && user.role === 'admin') {
-        navigate(ROUTES.changePassword, { replace: true });
-        return;
-      }
-
+      // console.log(mustChangePassword, 'mustChangePassword');
+      // if (mustChangePassword && decoded.role === 'Admin') {
+      //   navigate(ROUTES.changePassword, { replace: true });
+      //   console.log('Redirecting to change password page');
+      //   return;
+      // }
+      console.log('Redirecting to:', from);
       navigate(from, { replace: true });
+      console.log('Navigation complete'); 
     } catch (err) {
       console.log('Login error:', err);
       setError(err instanceof Error ? err.message : 'Login failed.');

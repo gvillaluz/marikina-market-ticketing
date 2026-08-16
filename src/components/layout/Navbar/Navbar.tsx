@@ -36,7 +36,7 @@ const Navbar: FC<NavbarProps> = ({ onMenuClick }) => {
           <div className={styles.avatar}>{user?.avatar ?? user?.name?.charAt(0) ?? 'U'}</div>
           <div className={styles.userMeta}>
             <span className={styles.userName}>{user?.name}</span>
-            <span className={styles.userRole}>{user?.role === 'admin' ? 'Administrator' : 'Vendor'}</span>
+            <span className={styles.userRole}>{user?.role === 'Admin' ? 'Administrator' : 'Vendor'}</span>
           </div>
         </div>
         <button className={styles.logoutBtn} onClick={logout} title="Sign out">

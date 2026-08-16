@@ -6,7 +6,7 @@ interface LoginFormProps {
   
   showRegisterLink?: boolean;
   
-  role?: 'admin' | 'enforcer' | 'vendor';
+  role?: 'Admin' | 'Enforcer' | 'Vendor';
 }
 
 const LoginForm: FC<LoginFormProps> = ({ showRegisterLink = true, role }) => {
@@ -18,7 +18,7 @@ const LoginForm: FC<LoginFormProps> = ({ showRegisterLink = true, role }) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const errs: { username?: string; password?: string } = {};
-    const isAdminLogin = role === 'admin';
+    const isAdminLogin = role === 'Admin';
 
     if (!username.trim()) {
       errs.username = 'Enter your username.';

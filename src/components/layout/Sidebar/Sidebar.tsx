@@ -7,7 +7,7 @@ interface NavItem {
   to: string;
   label: string;
   icon: JSX.Element;
-  allowedRoles: ('admin' | 'enforcer' | 'vendor')[];
+  allowedRoles: ('Admin' | 'Enforcer' | 'Vendor')[];
 }
 
 const HouseIcon = (
@@ -50,11 +50,11 @@ const ChartIcon = (
 );
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard', label: 'Dashboard', icon: HouseIcon, allowedRoles: ['admin', 'enforcer'] },
-  { to: '/inspections', label: 'Inspections', icon: DocumentIcon, allowedRoles: ['admin', 'enforcer'] },
-  { to: '/tickets', label: 'Tickets', icon: TicketIcon, allowedRoles: ['admin', 'enforcer'] },
-  { to: '/analytics', label: 'Analytics', icon: BarChartIcon, allowedRoles: ['admin', 'enforcer'] },
-  { to: '/performance', label: 'Performance', icon: ChartIcon, allowedRoles: ['admin', 'enforcer'] },
+  { to: '/dashboard', label: 'Dashboard', icon: HouseIcon, allowedRoles: ['Admin', 'Enforcer'] },
+  { to: '/inspections', label: 'Inspections', icon: DocumentIcon, allowedRoles: ['Admin', 'Enforcer'] },
+  { to: '/tickets', label: 'Tickets', icon: TicketIcon, allowedRoles: ['Admin', 'Enforcer'] },
+  { to: '/analytics', label: 'Analytics', icon: BarChartIcon, allowedRoles: ['Admin', 'Enforcer'] },
+  { to: '/performance', label: 'Performance', icon: ChartIcon, allowedRoles: ['Admin', 'Enforcer'] },
 ];
 
 interface SidebarProps {

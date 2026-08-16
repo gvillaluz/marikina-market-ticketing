@@ -13,18 +13,28 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
   const { isAuthenticated, user, mustChangePassword } = useAuth();
   const location = useLocation();
 
+  console.log('[ProtectedRoute]', {
+    path: location.pathname,
+    isAuthenticated,
+    userRole: user?.role,
+    requiredRoles: roles,
+    mustChangePassword,
+  });
+
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.adminLogin} state={{ from: location }} replace />;
   }
 
   if (roles && user && !roles.includes(user.role)) {
+    console.log('[ProtectedRoute] role mismatch, redirecting to login');
     return <Navigate to={ROUTES.adminLogin} replace />;
   }
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'Admin';
   const onChangePasswordPage = location.pathname === ROUTES.changePassword;
 
   if (isAdmin && mustChangePassword && !onChangePasswordPage) {
+    console.log('[ProtectedRoute] must change password, redirecting');
     return <Navigate to={ROUTES.changePassword} replace />;
   }
 

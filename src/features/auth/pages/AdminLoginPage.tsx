@@ -6,14 +6,14 @@ import LoginForm from '@/features/auth/components/LoginForm';
 
 const AdminLoginPage: FC = () => {
   const { isAuthenticated, user } = useAuth();
- 
-  if (isAuthenticated && user?.role === 'admin') {
+
+  if (isAuthenticated && user?.role === 'Admin') {
     return <Navigate to="/dashboard" replace />;
   }
 
   return (
     <AuthLayout subtext="Admin Access" showBackHome={false}>
-      <LoginForm role="admin" showRegisterLink={false} />
+      <LoginForm role="Admin" showRegisterLink={false} />
     </AuthLayout>
   );
 };
