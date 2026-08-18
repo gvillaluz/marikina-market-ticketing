@@ -473,7 +473,6 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnName("community_service_hours");
 
                     b.Property<string>("ControlNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("control_number");
 
@@ -500,11 +499,6 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                     b.Property<int>("MarketSectionId")
                         .HasColumnType("integer")
                         .HasColumnName("market_section_id");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("payment_status");
 
                     b.Property<string>("PenaltyType")
                         .HasColumnType("text")
@@ -537,6 +531,12 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                     b.Property<int>("VendorId")
                         .HasColumnType("integer")
                         .HasColumnName("vendor_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id")
                         .HasName("pk_tickets");
@@ -637,6 +637,18 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("access_failed_count");
 
+                    b.Property<string>("Barangay")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("barangay");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text")
@@ -647,6 +659,10 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("timezone('utc', now())");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
 
                     b.Property<string>("Email")
                         .HasMaxLength(255)
@@ -662,6 +678,12 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("first_name");
+
+                    b.Property<string>("HouseNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("house_number");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -682,9 +704,9 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("middle_name");
 
-                    b.Property<bool>("MustChangedPassword")
+                    b.Property<bool>("MustChangePassword")
                         .HasColumnType("boolean")
-                        .HasColumnName("must_changed_password");
+                        .HasColumnName("must_change_password");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -716,6 +738,12 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("status");
 
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("street");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("two_factor_enabled");
@@ -724,6 +752,12 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
                         .HasColumnName("user_name");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id")
                         .HasName("pk_asp_net_users");
@@ -740,6 +774,50 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasDatabaseName("ix_asp_net_users_user_name");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.UserDeviceToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("DeviceToken")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("device_token");
+
+                    b.Property<DateTime>("LastUsedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_device_tokens");
+
+                    b.HasIndex("DeviceToken")
+                        .IsUnique()
+                        .HasDatabaseName("ix_user_device_tokens_device_token");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_user_device_tokens_user_id");
+
+                    b.ToTable("user_device_tokens", (string)null);
                 });
 
             modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.VendorProfile", b =>
@@ -824,20 +902,42 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Age")
+                        .HasColumnType("integer")
+                        .HasColumnName("age");
+
+                    b.Property<string>("Barangay")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("barangay");
+
                     b.Property<string>("BusinessDocumentPhotoUrl")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("business_document_photo_url");
 
                     b.Property<string>("BusinessName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
                         .HasColumnName("business_name");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("City")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("email");
 
                     b.Property<string>("FirstName")
@@ -860,8 +960,15 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
 
                     b.Property<string>("GovernmentIdType")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
                         .HasColumnName("government_id_type");
+
+                    b.Property<string>("HouseNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("house_number");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -878,11 +985,27 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("middle_name");
 
+                    b.Property<string>("NatureOfBusiness")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nature_of_business");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("password");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone_number");
+
+                    b.Property<string>("RemarksOrReason")
+                        .HasColumnType("text")
+                        .HasColumnName("remarks_or_reason");
 
                     b.Property<DateTime>("RequestedAt")
                         .ValueGeneratedOnAdd()
@@ -898,22 +1021,29 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("reviewed_by");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("row_version");
-
                     b.Property<string>("StallNumber")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("stall_number");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("status");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("street");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id")
                         .HasName("pk_vendor_registration_requests");
@@ -1203,6 +1333,18 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                     b.Navigation("Ordinance");
 
                     b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.UserDeviceToken", b =>
+                {
+                    b.HasOne("MarikinaMarket.API.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_device_tokens_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.VendorProfile", b =>
