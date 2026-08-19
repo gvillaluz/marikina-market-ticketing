@@ -1,18 +1,37 @@
-import { FC } from 'react';
-import PageHeader from '@/components/ui/PageHeader';
-import { useAuth } from '@/context/AuthContext';
+import styles from './DashboardPage.module.css';
+import { useDashboardSummary } from '../hooks/useDashboardSummary';
 
-const DashboardPage: FC = () => {
-  const { user, isAdmin } = useAuth();
+const CARD_DEFS = [
+  { key: 'totalInspectionsToday', label: "Today's Inspections" },
+  { key: 'totalWarnings', label: 'Total Warnings' },
+  { key: 'totalTickets', label: 'Total Tickets' },
+  { key: 'totalPendingFines', label: 'Pending Fines (₱)' },
+  { key: 'complianceRate', label: 'Compliance Rate (%)' },
+] as const;
+
+export function DashboardPage() {
+  const { data, isLoading, isError } = useDashboardSummary();
 
   return (
     <div>
-      <PageHeader
-        title={`Welcome back, ${user?.name?.split(' ')[0] ?? 'User'}`}
-        subtitle={isAdmin ? 'City-wide ticketing overview and analytics.' : 'Your business compliance and ticket summary.'}
-      />
+      <div className={styles.header}>
+        <h1 className={styles.title}>Dashboard</h1>
+      </div>
+
+      {isError && <p className={styles.errorState}>Unable to load dashboard summary.</p>}
+
+      <div className={styles.grid}>
+        {CARD_DEFS.map((card) => (
+          <div className={styles.card} key={card.key}>
+            <p className={styles.cardLabel}>{card.label}</p>
+            {isLoading ? (
+              <div className={styles.skeleton} />
+            ) : (
+              <p className={styles.cardValue}>{data ? data[card.key] : '—'}</p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
-};
-
-export default DashboardPage;
+}

@@ -84,3 +84,19 @@ export const APP_CONSTANTS = {
   province: 'Metro Manila, Philippines',
   currency: '₱',
 };
+
+export const INSPECTION_TYPE_OPTIONS = [
+  { value: 'all', label: 'All Records' },
+  { value: 'warning', label: 'Warning' },
+  { value: 'ticket', label: 'Ticket' },
+] as const;
+
+export const PRINT_COLUMN_OPTIONS = [
+  { value: 'controlNumber', label: 'Control #' },
+  { value: 'vendor', label: 'Vendor' },
+  { value: 'section', label: 'Section' },
+  { value: 'type', label: 'Type' },
+  { value: 'status', label: 'Status' },
+  { value: 'issuedAt', label: 'Issued At' },
+  { value: 'severity', label: 'Severity' },
+] as const;

@@ -1,8 +1,94 @@
-import type { Status } from './common.types';
+import type { MarketSection, OffenseLevel, RecordStatus, Severity, Status } from './common.types';
 
 export type TicketType = 'violation' | 'complaint' | 'inspection' | 'renewal';
-
 export type TicketSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export interface InspectionRecord {
+  id: string;
+  controlNumber: string;
+  type: 'warning' | 'ticket';
+  enforcer: string;
+  stallNo: string;
+  tradeName: string;
+  section: MarketSection;
+  issuedAt: string;
+  status: RecordStatus;
+}
+
+export interface ViolationLine {
+  id: string;
+  ordinanceName: string;
+  description: string;
+  offenseLevel: OffenseLevel;
+  amount: number;
+}
+
+export interface PenaltyDetails {
+  severity: Severity;
+  penaltyType: string;
+  dueDate: string;
+  totalFineDue: number;
+}
+
+interface BaseRecordDetail {
+  id: string;
+  controlNumber: string;
+  stallNo: string;
+  tradeName: string;
+  violatorName: string;
+  dateTime: string;
+  location: string;
+  violationCommitted: string;
+  description: string;
+  issuedByName: string;
+  issuedByTitle: string;
+  issuedByOffice: string;
+  issuedToDate: string;
+}
+
+export interface WarningRecord extends BaseRecordDetail {
+  type: 'warning';
+  ordinanceNumber: string;
+  ordinanceSeries: string;
+  ordinanceCategory: string;
+}
+
+export interface TicketRecord extends BaseRecordDetail {
+  type: 'ticket';
+  status: RecordStatus;
+  address: string;
+  violations: ViolationLine[];
+  penalty: PenaltyDetails;
+  photoEvidenceUrl?: string;
+}
+
+type PrintColumn = 'controlNumber' | 'type' | 'issuedAt' | 'vendor' | 'status' | 'section' | 'severity';
+
+export interface PrintConfigPayload {
+  types: Array<'warning' | 'ticket'>;
+  columns: PrintColumn[];
+  startDate: string;
+  endDate: string;
+}
+
+export interface ExportResult {
+  fileUrl: string;
+  fileName: string;
+}
+
+export interface CreateTicketPayload {
+  stallNo: string;
+  tradeName: string;
+  violatorName: string;
+  dateTime: string;
+  location: string;
+  address: string;
+  violationCommitted: string;
+  description: string;
+  violations: Omit<ViolationLine, 'id'>[];
+  penalty: Omit<PenaltyDetails, 'totalFineDue'>;
+  photoEvidenceUrl?: string;
+}
 
 export interface Ticket {
   id: string;

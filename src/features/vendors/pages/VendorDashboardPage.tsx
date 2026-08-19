@@ -4,7 +4,7 @@ import StatCard from '@/features/dashboard/components/StatCard';
 import VendorProfile from '@/features/vendors/components/VendorProfile';
 import VendorQRCode from '@/features/vendors/components/VendorQRCode';
 import useVendorProfile from '@/features/vendors/hooks/useVendorProfile';
-import Loader from '@/components/feedback/Loader';
+import Loader from '@/components/feedback/Loader/Loader';
 import styles from './VendorDashboardPage.module.css';
 
 /** Vendor-facing dashboard with profile and QR code. */

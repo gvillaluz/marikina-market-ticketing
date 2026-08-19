@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import useRegister from '@/features/auth/hooks/useRegister';
 import Button from '@/components/ui/Button';
 import { isValidEmail, hasMinLength } from '@/utils/validators';
+import citySeal from '@/assets/icons/Marikina_City_Seal.svg (1).webp';
 import type { UserRole } from '@/api/types/common.types';
 import styles from '@/features/auth/pages/AuthPage.module.css';
 
@@ -46,7 +47,7 @@ const RegisterForm: FC = () => {
   return (
     <div className={styles.card}>
       <div className={styles.logo}>
-        <div className={styles.logoMark}>MK</div>
+        <img className={styles.logoMark} src={citySeal} alt="Marikina City seal" />
         <div className={styles.logoText}>
           Marikina City
           <br />

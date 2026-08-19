@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import Loader from '@/components/feedback/Loader';
+import Loader from '@/components/feedback/Loader/Loader';
 import Button from '@/components/ui/Button';
 import { vendorApi } from '@/api/endpoints/vendor.api';
 import VendorProfile from '@/features/vendors/components/VendorProfile';

@@ -1,32 +1,66 @@
-import client from '@/api/client';
-import type { CreateTicketInput, Ticket, TicketHistoryEntry } from '@/api/types/ticket.types';
-import type { ApiResponse, PaginatedResponse, PaginationParams } from '@/api/types/common.types';
-import type { Status } from '@/api/types/common.types';
+import apiClient from '../client';
+import type { PaginatedResponse } from '../types/common.types';
+import type {
+  InspectionRecord,
+  WarningRecord,
+  TicketRecord,
+  PrintConfigPayload,
+  ExportResult,
+  CreateTicketPayload,
+} from '../types/ticket.types';
 
+export interface GetInspectionsParams {
+  search?: string;
+  type?: 'all' | 'warning' | 'ticket';
+  section?: string;
+  page?: number;
+  pageSize?: number;
+}
 
 export const ticketsApi = {
-  async list(params: PaginationParams & { status?: Status; type?: string } = {}): Promise<PaginatedResponse<Ticket>> {
-    const { data } = await client.get<ApiResponse<PaginatedResponse<Ticket>>>('/tickets', { params });
-    return data.data;
+  list(params: GetInspectionsParams): Promise<PaginatedResponse<TicketRecord>> {
+    return apiClient.get('/inspections/tickets', { params }) as unknown as Promise<PaginatedResponse<TicketRecord>>;
   },
 
-  async getById(id: string): Promise<Ticket> {
-    const { data } = await client.get<ApiResponse<Ticket>>(`/tickets/${id}`);
-    return data.data;
+  getById(id: string): Promise<TicketRecord> {
+    return apiClient.get(`/inspections/tickets/${id}`) as unknown as Promise<TicketRecord>;
   },
 
-  async create(input: CreateTicketInput): Promise<Ticket> {
-    const { data } = await client.post<ApiResponse<Ticket>>('/tickets', input);
-    return data.data;
+  create(payload: CreateTicketPayload): Promise<TicketRecord> {
+    return apiClient.post('/inspections/tickets', payload) as unknown as Promise<TicketRecord>;
   },
 
-  async updateStatus(id: string, status: Status): Promise<Ticket> {
-    const { data } = await client.patch<ApiResponse<Ticket>>(`/tickets/${id}/status`, { status });
-    return data.data;
+  updateStatus(id: string, status: string): Promise<TicketRecord> {
+    return apiClient.patch(`/inspections/tickets/${id}/status`, { status }) as unknown as Promise<TicketRecord>;
   },
 
-  async getHistory(id: string): Promise<TicketHistoryEntry[]> {
-    const { data } = await client.get<ApiResponse<TicketHistoryEntry[]>>(`/tickets/${id}/history`);
-    return data.data;
+  getHistory(ticketId: string): Promise<unknown[]> {
+    return apiClient.get(`/inspections/tickets/${ticketId}/history`) as unknown as Promise<unknown[]>;
   },
 };
+
+export function getInspections(
+  params: GetInspectionsParams
+): Promise<PaginatedResponse<InspectionRecord>> {
+  return apiClient.get('/inspections', { params }) as unknown as Promise<PaginatedResponse<InspectionRecord>>;
+}
+
+export function getInspectionById(id: string): Promise<InspectionRecord> {
+  return apiClient.get(`/inspections/${id}`) as unknown as Promise<InspectionRecord>;
+}
+
+export function getWarningById(id: string): Promise<WarningRecord> {
+  return apiClient.get(`/inspections/warnings/${id}`) as unknown as Promise<WarningRecord>;
+}
+
+export function getTicketById(id: string): Promise<TicketRecord> {
+  return apiClient.get(`/inspections/tickets/${id}`) as unknown as Promise<TicketRecord>;
+}
+
+export function exportInspections(
+  payload: PrintConfigPayload
+): Promise<Blob | ExportResult> {
+  return apiClient.post('/inspections/export', payload, {
+    responseType: 'blob',
+  }) as unknown as Promise<Blob | ExportResult>;
+}

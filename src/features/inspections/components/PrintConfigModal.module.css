@@ -1,0 +1,25 @@
+.section { margin-bottom: 1.25rem; }
+.sectionTitle { margin: 0 0 0.5rem; color: #6b7280; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.checkGrid { display: grid; gap: 0.625rem; padding: 0.75rem; border-radius: 8px; background: #f5f6f8; }
+.typePanel { display: flex; align-items: center; gap: 1.5rem; }
+.columnsPanel { grid-template-columns: repeat(3, 1fr); }
+.checkItem { display: flex; align-items: center; gap: 0.45rem; min-width: 0; color: #374151; font-size: 0.75rem; }
+.checkItem input { width: 15px; height: 15px; margin: 0; accent-color: #1e3a5f; }
+.formatGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.formatCard { position: relative; min-height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; padding: 0.65rem 0.35rem 0.45rem; border: 1px solid #d9dee7; border-radius: 8px; background: #fff; color: #4b5563; font: inherit; font-size: 0.6875rem; cursor: pointer; }
+.formatCard:hover { border-color: #8aa8c7; }
+.selectedFormat { border-color: #1e3a5f; background: #f2f6fb; color: #1e3a5f; }
+.radio { position: absolute; top: 0.45rem; left: 0.45rem; width: 12px; height: 12px; border: 1px solid #9ca3af; border-radius: 50%; }
+.selectedFormat .radio { border: 4px solid #1e3a5f; }
+.csvIcon { color: #2563eb; }
+.excelIcon { color: #16803c; }
+.pdfIcon { color: #c24141; }
+.dateGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.field { display: flex; flex-direction: column; gap: 0.35rem; }
+.label { color: #6b7280; font-size: 0.6875rem; font-weight: 600; }
+.input { width: 100%; height: 34px; border: 1px solid #d1d5db; border-radius: 6px; padding: 0.4rem 0.55rem; color: #374151; font-size: 0.75rem; }
+.footer { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
+.exportDataButton { background: #1e3a5f; color: #fff; border-radius: 4px; }
+.exportDataButton:hover:not(:disabled) { background: #16304f; }
+.errorText { margin: 0 0 0.75rem; color: #b91c1c; font-size: 0.75rem; }
+@media (max-width: 480px) { .columnsPanel, .formatGrid { grid-template-columns: repeat(2, 1fr); } }

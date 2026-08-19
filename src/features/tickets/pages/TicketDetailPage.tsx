@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import Loader from '@/components/feedback/Loader';
+import Loader from '@/components/feedback/Loader/Loader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Button from '@/components/ui/Button';
 import { ticketsApi } from '@/api/endpoints/tickets.api';

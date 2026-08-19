@@ -1,29 +1,23 @@
-import { useMemo, useState } from 'react';
-
-interface UsePaginationOptions {
-  totalItems: number;
-  initialPage?: number;
-  pageSize?: number;
-}
+import { useState } from 'react';
 
 /** Returns pagination state and helpers for a table or list. */
-export function usePagination({ totalItems, initialPage = 1, pageSize = 10 }: UsePaginationOptions) {
+export function usePagination(initialPage = 1, pageSize = 10) {
   const [page, setPage] = useState(initialPage);
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
-  const changePage = (next: number) => {
-    setPage(Math.min(Math.max(1, next), totalPages));
+  const goToPage = (next: number, totalPages: number) => {
+    setPage(Math.min(Math.max(1, next), Math.max(1, totalPages)));
   };
 
-  const range = useMemo(() => {
-    const pages: number[] = [];
-    const start = Math.max(1, page - 2);
-    const end = Math.min(totalPages, page + 2);
-    for (let i = start; i <= end; i += 1) pages.push(i);
-    return pages;
-  }, [page, totalPages]);
+  const totalPages = (total: number) => Math.max(1, Math.ceil(total / pageSize));
 
-  return { page, totalPages, pageSize, range, changePage, setPage };
+  const getRange = (total: number) => {
+    if (total === 0) return { from: 0, to: 0 };
+    const from = (page - 1) * pageSize + 1;
+    const to = Math.min(page * pageSize, total);
+    return { from, to };
+  };
+
+  return { page, pageSize, setPage, goToPage, getRange, totalPages };
 }
 
 export default usePagination;

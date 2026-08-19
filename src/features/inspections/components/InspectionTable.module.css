@@ -1,0 +1,17 @@
+.viewButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0b4f91;
+  cursor: pointer;
+}
+
+.viewButton:hover {
+  background: #eef4f8;
+}

@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import citySeal from '@/assets/icons/Marikina_City_Seal.svg (1).webp';
 import styles from './Sidebar.module.css';
 
 interface NavItem {
@@ -59,10 +60,11 @@ const NAV_ITEMS: NavItem[] = [
 
 interface SidebarProps {
   open: boolean;
+  collapsed: boolean;
   onClose: () => void;
 }
 
-const Sidebar: FC<SidebarProps> = ({ open, onClose }) => {
+const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
 
@@ -73,11 +75,11 @@ const Sidebar: FC<SidebarProps> = ({ open, onClose }) => {
   return (
     <>
       {open && <div className={styles.backdrop} onClick={onClose} />}
-      <aside className={`${styles.sidebar} ${open ? styles.open : ''}`}>
+      <aside className={`${styles.sidebar} ${open ? styles.open : ''} ${collapsed ? styles.collapsed : ''}`}>
         {/* Brand / seal */}
         <div>
           <div className={styles.brand}>
-            <div className={styles.seal}>MK</div>
+            <img className={styles.seal} src={citySeal} alt="Marikina City seal" />
             <div>
               <div className={styles.brandText}>Marikina Public Market Inspection System</div>
               <div className={styles.brandSub}>Admin Access</div>
@@ -95,9 +97,10 @@ const Sidebar: FC<SidebarProps> = ({ open, onClose }) => {
                     to={item.to}
                     className={`${styles.link} ${isActive ? styles.active : ''}`}
                     onClick={onClose}
+                    title={item.label}
                   >
                     <span className={styles.linkIcon}>{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className={styles.linkLabel}>{item.label}</span>
                   </NavLink>
                 );
               })}
