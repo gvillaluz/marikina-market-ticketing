@@ -19,17 +19,27 @@ function getTypeBadge(row: InspectionRecord): { label: string; tone: BadgeTone; 
   if (row.status === 'CLEARED') {
     return { label: 'CLEARED', tone: 'success', icon: <CheckCircle2 size={12} strokeWidth={2} /> };
   }
-  return row.type === 'warning'
+  return row.type.toLowerCase() === 'warning'
     ? { label: 'WARNING', tone: 'warning', icon: <AlertTriangle size={12} strokeWidth={2} /> }
     : { label: 'TICKET', tone: 'ticket', icon: <Ticket size={12} strokeWidth={2} /> };
 }
 
 export function InspectionTable({ rows, isLoading, isError, onView }: InspectionTableProps) {
+  const displayValue = (value: unknown, fallback = '—') => {
+    const text = String(value ?? '').trim();
+    return text || fallback;
+  };
+
+  const getEnforcerName = (row: InspectionRecord) => displayValue(
+    row.enforcer,
+    `${row.enforcer_first_name ?? ''} ${row.enforcer_last_name ?? ''}`.trim() || '—',
+  );
+
   const columns: Column<InspectionRecord>[] = [
-    { key: 'enforcer', header: 'Enforcer', render: (row) => row.enforcer },
-    { key: 'stallNo', header: 'Stall No.', render: (row) => row.stallNo },
-    { key: 'tradeName', header: 'Trade Name', render: (row) => row.tradeName },
-    { key: 'section', header: 'Section', render: (row) => MARKET_SECTION_LABELS[row.section] },
+    { key: 'enforcer', header: 'Enforcer', render: getEnforcerName },
+    { key: 'stallNo', header: 'Stall No.', render: (row) => displayValue(row.stallNo, row.stall_number) },
+    { key: 'tradeName', header: 'Trade Name', render: (row) => displayValue(row.tradeName, row.business_name) },
+    { key: 'section', header: 'Section', render: (row) => displayValue(row.market_section_name, MARKET_SECTION_LABELS[row.section]) },
     {
       key: 'type',
       header: 'Type',
@@ -38,12 +48,12 @@ export function InspectionTable({ rows, isLoading, isError, onView }: Inspection
         return <Badge tone={tone}>{icon}{label}</Badge>;
       },
     },
-    { key: 'issuedAt', header: 'Issued At', render: (row) => formatDateTime(row.issuedAt) },
+    { key: 'issuedAt', header: 'Issued At', render: (row) => formatDateTime(row.issuedAt ?? row.issued_at ?? row.dateTime) },
     {
       key: 'actions',
       header: 'Actions',
       render: (row) => (
-        <button className={styles.viewButton} onClick={() => onView(row)}>
+        <button className={styles.viewButton} onClick={(event) => { event.stopPropagation(); console.log('Viewing inspection record:', row); onView(row); }}>
           <Eye size={14} strokeWidth={1.8} aria-hidden="true" />
           View
         </button>
@@ -66,7 +76,6 @@ export function InspectionTable({ rows, isLoading, isError, onView }: Inspection
       keyExtractor={(row) => row.id}
       loading={isLoading}
       emptyMessage="No inspection records match your filters."
-      onRowClick={onView}
     />
   );
 }

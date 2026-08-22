@@ -1,7 +1,8 @@
 import { APP_CONSTANTS } from './constants';
 
 /** Format a date string to a readable local format. */
-export function formatDate(value: string | Date, options?: Intl.DateTimeFormatOptions): string {
+export function formatDate(value: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions): string {
+  if (!value) return '—';
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat('en-PH', {

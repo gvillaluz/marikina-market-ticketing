@@ -1,0 +1,9 @@
+import { FC } from 'react';
+import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
+import type { TicketRecord } from '@/api/types/ticket.types';
+import { formatCurrency, formatDate } from '@/utils/formatters';
+import styles from './TicketExportModal.module.css';
+
+const TicketExportModal: FC<{ ticket: TicketRecord; open: boolean; onClose: () => void }> = ({ ticket, open, onClose }) => <Modal open={open} onClose={onClose} title="Ticket Record" size="lg"><div className={styles.layout}><article className={styles.document}><h2>City of Marikina</h2><h3>Violation Ticket</h3><p>Control No. <strong>{ticket.controlNumber}</strong></p><hr /><h4>Violator Details</h4><p>Stall/Unit: {ticket.stallNo}<br />Trade Name: {ticket.tradeName}<br />Name: {ticket.violatorName}<br />Address: {ticket.address}</p><h4>Violation Details</h4>{ticket.violations.map((violation) => <p key={violation.id}>{violation.ordinanceName} · {violation.offenseLevel} · {formatCurrency(violation.amount)}</p>)}<p>Date & Time: {formatDate(ticket.dateTime)}<br />Location: {ticket.location}<br />Violation: {ticket.violationCommitted}</p><p>{ticket.description}</p><h4>Penalty Details</h4><p>{ticket.penalty.severity} · {ticket.penalty.penaltyType}<br />Due: {formatDate(ticket.penalty.dueDate)}</p><strong className={styles.total}>Total Fine Due: {formatCurrency(ticket.penalty.totalFineDue)}</strong><div className={styles.signatures}><span>Issued by</span><span>Issued to</span></div></article><aside className={styles.actions}><h3>Export Ticket</h3><Button variant="outline" onClick={() => window.print()}>Export as PNG</Button><Button variant="outline" onClick={() => window.print()}>Export as PDF</Button><Button variant="outline" onClick={() => window.print()}>Print</Button></aside></div></Modal>;
+export default TicketExportModal;

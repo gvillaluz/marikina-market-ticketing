@@ -66,8 +66,19 @@ export const MARKET_SECTION_LABELS: Record<MarketSection, string> = {
 
 export type InspectionType = 'all' | 'warning' | 'ticket';
 
-export type RecordStatus = 'PENDING' | 'CLEARED' | 'SETTLED' | 'CONTESTED';
+export type RecordStatus = 'PENDING' | 'CLEARED' | 'SETTLED' | 'CONTESTED' | 'PAID' | 'OVERDUE' | 'WAIVED';
 
 export type OffenseLevel = '1st offense' | '2nd offense' | '3rd offense';
 
 export type Severity = 'minor' | 'major' | 'grave';
+
+export interface PaginationSummary {
+  totalTickets: number;
+  pendingPayments: number;
+  resolvedViolations: number;
+  resolutionRate: number;
+  criticalSeverities: number;
+  totalTicketsChange?: number;
+  pendingPaymentsChange?: number;
+  criticalSeveritiesChange?: number;
+}

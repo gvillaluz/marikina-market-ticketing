@@ -49,8 +49,8 @@ const AppRoutes = () => {
         }
       >
      <Route path={ROUTES.dashboard} element={<DashboardPage />} />
-        <Route path={ROUTES.tickets} element={<TicketsPage />} />
-        <Route path={ROUTES.ticketDetail(':id')} element={<TicketDetailPage />} />
+    <Route path={ROUTES.tickets} element={<TicketsPage />} />
+    <Route path={ROUTES.ticketDetail(':id')} element={<TicketDetailPage />} />
         <Route path={ROUTES.analytics} element={<AdminPlaceholderPage title="Analytics" />} />
         <Route path={ROUTES.inspections} element={<InspectionsPage />} />
         <Route path={ROUTES.performance} element={<AdminPlaceholderPage title="Performance" />} />

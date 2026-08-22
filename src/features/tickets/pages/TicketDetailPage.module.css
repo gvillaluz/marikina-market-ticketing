@@ -43,6 +43,13 @@
   gap: 1.25rem;
 }
 
+.detailCards { display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem; margin-bottom:1rem; }
+.infoCard,.contentCard,.historyCard { padding:1.25rem; margin-bottom:1rem; }
+.infoCard h3,.contentCard h3,.historyCard h3 { margin:0 0 1rem; font-size:1rem; }
+.detail { display:flex; flex-direction:column; gap:.2rem; margin-bottom:.8rem; }.detail strong { color:var(--neutral-800); }.detailLabel { color:var(--neutral-500); font-size:.72rem; text-transform:uppercase; }.highlight { color:var(--primary-600) !important; font-size:1.2rem; }.infoBanner { padding:.7rem; background:#eff6ff; color:#1e40af; font-size:.8rem; }.contentCard .description { white-space:pre-wrap; }.evidence { margin-top:1rem; }.evidence p,.historyCard p { color:var(--neutral-500); font-size:.85rem; }.thumbs { display:flex; gap:.6rem; flex-wrap:wrap; margin-top:.6rem; }.thumbs img { width:84px; height:64px; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--neutral-200); }.statusOptions { display:grid; grid-template-columns:repeat(5,1fr); gap:.6rem; }.statusOption { text-align:left; padding:.8rem; border:1px solid var(--neutral-200); background:#fff; border-radius:var(--radius-sm); cursor:pointer; }.statusOption strong,.statusOption span { display:block; }.statusOption strong { font-size:.78rem; }.statusOption span { color:var(--neutral-500); font-size:.7rem; margin-top:.35rem; }.selected { border-color:var(--primary-500); background:#eff6ff; box-shadow:0 0 0 2px #bfdbfe; }.detailFooter { display:flex; justify-content:flex-end; gap:.6rem; margin-top:1rem; }.confirmOverlay { position:fixed; inset:0; background:rgba(15,23,42,.45); display:grid; place-items:center; z-index:20; }.confirm { background:#fff; width:min(420px,calc(100% - 2rem)); padding:1.5rem; border-radius:var(--radius-md); box-shadow:0 18px 50px rgba(15,23,42,.2); }.confirm h2 { font-size:1.1rem; }.confirm p { color:var(--neutral-600); line-height:1.5; font-size:.9rem; }
+@media (max-width:900px) { .detailCards { grid-template-columns:1fr 1fr; }.statusOptions { grid-template-columns:repeat(3,1fr); } }
+@media (max-width:600px) { .detailCards { grid-template-columns:1fr; }.statusOptions { grid-template-columns:1fr 1fr; }.detailFooter { flex-wrap:wrap; } }
+
 .card {
   background: #fff;
   border: 1px solid var(--neutral-100);

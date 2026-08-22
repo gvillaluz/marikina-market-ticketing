@@ -1,4 +1,4 @@
-import type { MarketSection, OffenseLevel, RecordStatus, Severity, Status } from './common.types';
+import type { MarketSection, OffenseLevel, RecordStatus, Severity, Status, PaginationSummary } from './common.types';
 
 export type TicketType = 'violation' | 'complaint' | 'inspection' | 'renewal';
 export type TicketSeverity = 'low' | 'medium' | 'high' | 'critical';
@@ -12,7 +12,15 @@ export interface InspectionRecord {
   tradeName: string;
   section: MarketSection;
   issuedAt: string;
+  issued_at?: string;
+  dateTime?: string;
   status: RecordStatus;
+  enforcer_first_name?: string;
+  enforcer_last_name?: string;
+  stall_number?: string;
+  business_name?: string;
+  market_section_name?: string;
+  market_section_id?: number;
 }
 
 export interface ViolationLine {
@@ -60,6 +68,23 @@ export interface TicketRecord extends BaseRecordDetail {
   violations: ViolationLine[];
   penalty: PenaltyDetails;
   photoEvidenceUrl?: string;
+  photoEvidenceUrls?: string[];
+  settlementEvidenceUrls?: string[];
+  enforcer?: string;
+  enforcerName?: string;
+  marketSection?: MarketSection | string;
+  controlType?: string;
+  appealsPeriod?: string;
+  title?: string;
+}
+
+export interface TicketListResponse {
+  items: TicketRecord[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages?: number;
+  summary?: PaginationSummary;
 }
 
 type PrintColumn = 'controlNumber' | 'type' | 'issuedAt' | 'vendor' | 'status' | 'section' | 'severity';

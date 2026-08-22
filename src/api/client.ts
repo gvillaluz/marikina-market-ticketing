@@ -8,6 +8,7 @@ const client: AxiosInstance = axios.create({
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
   },
 });
 
@@ -26,7 +27,15 @@ client.interceptors.request.use(
 
 
 client.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', {
+      url: response.config.url,
+      status: response.status,
+      params: response.config.params,
+      data: response.data,
+    });
+    return response;
+  },
   (error: AxiosError) => {
     console.log('API Error:', error.response?.status, error.response?.data);
     const isChangePasswordCall = error.config?.url?.includes('mandatory-change-password');

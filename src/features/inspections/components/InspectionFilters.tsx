@@ -49,7 +49,6 @@ export function InspectionFilters({
         <Dropdown
           ariaLabel="Filter by Type"
           triggerLabel={INSPECTION_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? 'All Records'}
-          defaultOpen
           value={type}
           onChange={(value) => onTypeChange(value as InspectionType)}
           options={INSPECTION_TYPE_OPTIONS}
@@ -57,6 +56,7 @@ export function InspectionFilters({
 
         <Dropdown
           ariaLabel="Market Section"
+          triggerLabel={SECTION_OPTIONS.find((option) => option.value === section)?.label ?? 'Market Section'}
           value={section}
           onChange={onSectionChange}
           options={SECTION_OPTIONS}

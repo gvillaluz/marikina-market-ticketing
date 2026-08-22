@@ -1,6 +1,31 @@
 .header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #d5dce5;
+}
+
+.document {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e1e7ef;
+  border-radius: 7px;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.08);
+}
+
+.warningHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
 .seal {
@@ -19,37 +44,42 @@
 }
 
 .city {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   margin: 0;
 }
 
 .office {
-  font-size: 12px;
+  font-size: 9px;
   color: var(--color-text-secondary);
-  margin: 0 0 8px;
+  margin: 0 0 11px;
 }
 
 .docTitle {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 800;
   color: var(--color-warning);
   margin: 0;
 }
 
 .sectionTitle {
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  margin: 20px 0 10px;
+  margin: 18px 0 9px;
 }
+
+.sectionTitle svg { color: #12549a; }
 
 .detailGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 9px 14px;
 }
 
 .detailItem {
@@ -59,37 +89,42 @@
 }
 
 .detailLabel {
-  font-size: 11px;
+  font-size: 8px;
   color: var(--color-text-secondary);
   text-transform: uppercase;
 }
 
 .detailValue {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 600;
 }
 
 .ordinanceBox {
-  background: var(--color-warning-bg);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  margin-bottom: 12px;
+  background: #f7f9fc;
+  border: 1px solid #a8c1df;
+  border-radius: 4px;
+  padding: 9px 10px;
+  margin-bottom: 11px;
 }
 
 .ordinanceTitle {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 700;
   margin: 0;
 }
 
 .ordinanceSubtitle {
-  font-size: 12px;
+  font-size: 9px;
   color: #8a6300;
   margin: 2px 0 0;
 }
 
 .description {
-  font-size: 13px;
+  background: #f7f8fb;
+  border: 1px solid #edf0f5;
+  border-radius: 3px;
+  padding: 8px 9px;
+  font-size: 9px;
   line-height: 1.5;
 }
 
@@ -97,9 +132,9 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-  margin-top: 24px;
-  border-top: 1px solid var(--color-border);
-  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px dashed #d5dce5;
+  padding-top: 14px;
 }
 
 .issuedLabel {
@@ -109,7 +144,7 @@
 }
 
 .issuedValue {
-  font-size: 13px;
+  font-size: 9px;
   font-weight: 600;
 }
 
@@ -117,6 +152,11 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+  .document { padding: 15px; }
+  .detailGrid { gap: 8px; }
 }
 
 .errorText {

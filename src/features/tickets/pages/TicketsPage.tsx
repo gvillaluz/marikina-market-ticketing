@@ -1,26 +1,25 @@
 import { FC, useState } from 'react';
 import PageHeader from '@/components/ui/PageHeader';
-import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import TicketList from '@/features/tickets/components/TicketList';
-import CreateTicketModal from '@/features/tickets/components/CreateTicketModal';
 import useTickets from '@/features/tickets/hooks/useTickets';
 import useDebounce from '@/hooks/useDebounce';
-import { useAuth } from '@/context/AuthContext';
-import type { Status } from '@/api/types/common.types';
+import { formatCurrency, formatNumber } from '@/utils/formatters';
+import { MARKET_SECTION_LABELS } from '@/api/types/common.types';
 import styles from './TicketsPage.module.css';
 
-const FILTERS: (Status | 'all')[] = ['all', 'pending', 'approved', 'resolved'];
+const FILTERS: string[] = ['all', 'pending', 'paid', 'contested', 'overdue'];
 
 const TicketsPage: FC = () => {
-  const { isAdmin } = useAuth();
-  const [status, setStatus] = useState<Status | 'all'>('all');
+  const [status, setStatus] = useState<string>('all');
   const [search, setSearch] = useState('');
-  const [createOpen, setCreateOpen] = useState(false);
+  const [marketSection, setMarketSection] = useState('');
 
   const debouncedSearch = useDebounce(search, 400);
-  const { tickets, loading, page, totalPages, setPage, refresh } = useTickets({
+  const { tickets, loading, page, totalPages, setPage, total, summary } = useTickets({
     status: status === 'all' ? undefined : status,
     search: debouncedSearch,
+    marketSection: marketSection || undefined,
     pageSize: 9,
   });
 
@@ -29,13 +28,14 @@ const TicketsPage: FC = () => {
       <PageHeader
         title="Tickets"
         subtitle="Manage violations, complaints, inspections, and renewals."
-        actions={
-          isAdmin && (
-            <Button onClick={() => setCreateOpen(true)}>+ New Ticket</Button>
-          )
-        }
       />
 
+      <div className={styles.stats}>
+        <Stat label="Total Tickets" value={summary ? formatNumber(summary.totalTickets) : '—'} change={summary?.totalTicketsChange} />
+        <Stat label="Pending Payments" value={summary ? formatCurrency(summary.pendingPayments) : '—'} change={summary?.pendingPaymentsChange} />
+        <Stat label="Resolved Violations" value={summary ? formatNumber(summary.resolvedViolations) : '—'} progress={summary?.resolutionRate} />
+        <Stat label="Critical Severities" value={summary ? formatNumber(summary.criticalSeverities) : '—'} change={summary?.criticalSeveritiesChange} />
+      </div>
       <div className={styles.toolbar}>
         <div className={styles.filters}>
           {FILTERS.map((f) => (
@@ -47,6 +47,10 @@ const TicketsPage: FC = () => {
               {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
+          <select className={styles.filterBtn} value={marketSection} onChange={(event) => setMarketSection(event.target.value)} aria-label="Market Section">
+            <option value="">Market Section</option>
+            {Object.entries(MARKET_SECTION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
         </div>
         <input
           className={styles.search}
@@ -57,6 +61,8 @@ const TicketsPage: FC = () => {
       </div>
 
       <TicketList tickets={tickets} loading={loading} />
+
+      <div className={styles.entryInfo}>Showing {total === 0 ? 0 : (page - 1) * 9 + 1} to {Math.min(page * 9, total)} of {total} entries</div>
 
       {totalPages > 1 && (
         <div className={styles.paginationRow}>
@@ -78,13 +84,12 @@ const TicketsPage: FC = () => {
         </div>
       )}
 
-      <CreateTicketModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreated={refresh}
-      />
     </div>
   );
 };
+
+const Stat: FC<{ label: string; value: string; change?: number; progress?: number }> = ({ label, value, change, progress }) => (
+  <Card className={styles.stat}><span className={styles.statLabel}>{label}</span><strong className={styles.statValue}>{value}</strong>{change !== undefined && <span className={styles.change}>{change >= 0 ? '+' : ''}{change}% vs last month</span>}{progress !== undefined && <div className={styles.progress}><span style={{ width: `${progress}%` }} /></div>}</Card>
+);
 
 export default TicketsPage;

@@ -1,52 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ticketsApi } from '@/api/endpoints/tickets.api';
-import type { Ticket } from '@/api/types/ticket.types';
-import type { Status } from '@/api/types/common.types';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useState } from 'react';
+import { getTickets } from '@/api/endpoints/tickets.api';
+import type { TicketRecord } from '@/api/types/ticket.types';
+import type { PaginationSummary } from '@/api/types/common.types';
 
-interface UseTicketsOptions {
-  status?: Status;
-  type?: string;
-  search?: string;
-  pageSize?: number;
-}
+export interface TicketFilters { search?: string; status?: string; marketSection?: string; pageSize?: number }
 
 /** Loads and manages a paginated list of tickets. */
-export function useTickets(options: UseTicketsOptions = {}) {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useTickets(filters: TicketFilters = {}) {
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-
-  const fetchTickets = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await ticketsApi.list({
-        page,
-        pageSize: options.pageSize ?? 10,
-        status: options.status,
-        type: options.type,
-        search: options.search,
-      });
-      setTickets(res.items);
-      setTotal(res.total);
-      setTotalPages(res.totalPages);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load tickets.');
-    } finally {
-      setLoading(false);
-    }
-  }, [page, options.status, options.type, options.search, options.pageSize]);
-
-  useEffect(() => {
-    fetchTickets();
-  }, [fetchTickets]);
-
-  const refresh = useCallback(() => fetchTickets(), [fetchTickets]);
-
-  return { tickets, loading, error, page, total, totalPages, setPage, refresh };
+  const pageSize = filters.pageSize ?? 10;
+  const query = useQuery({ queryKey: ['tickets', filters, page, pageSize], queryFn: () => getTickets({ ...filters, type: 'ticket', page, pageSize, offset: (page - 1) * pageSize }), enabled: false, placeholderData: keepPreviousData });
+  const summary: PaginationSummary | undefined = query.data?.summary;
+  const tickets = (query.data?.items ?? []).filter((ticket) => {
+    const backendTicket = ticket as TicketRecord & { type?: unknown; ticket_type?: unknown };
+    const type = String(backendTicket.type ?? backendTicket.ticket_type ?? '').trim().toLowerCase();
+    return type === 'ticket';
+  }) as TicketRecord[];
+  return { tickets, summary, isLoading: query.isLoading, loading: query.isLoading, error: query.error, page, setPage, filters, total: tickets.length, totalPages: Math.max(1, Math.ceil(tickets.length / pageSize)), refetch: query.refetch, refresh: query.refetch };
 }
 
 export default useTickets;

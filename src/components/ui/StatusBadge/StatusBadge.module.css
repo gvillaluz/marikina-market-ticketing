@@ -57,3 +57,7 @@
   background-color: #fee2e2;
   color: #991b1b;
 }
+
+.contested { background: #fce7f3; color: #9d174d; }
+.overdue { background: #fee2e2; color: #991b1b; }
+.cleared, .waived { background: #dcfce7; color: #166534; }

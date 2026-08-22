@@ -121,14 +121,16 @@ export function InspectionsPage() {
       <PrintConfigModal isOpen={isPrintModalOpen} onClose={() => setIsPrintModalOpen(false)} />
 
       <WrittenWarningModal
-        isOpen={Boolean(activeRecord && activeRecord.type === 'warning')}
-        recordId={activeRecord?.type === 'warning' ? activeRecord.id : null}
+        isOpen={Boolean(activeRecord && activeRecord.type.toLowerCase() === 'warning')}
+        recordId={activeRecord && activeRecord.type.toLowerCase() === 'warning' ? activeRecord.id : null}
+        initialRecord={activeRecord}
         onClose={() => setActiveRecord(null)}
       />
 
       <TicketRecordModal
-        isOpen={Boolean(activeRecord && activeRecord.type === 'ticket')}
-        recordId={activeRecord?.type === 'ticket' ? activeRecord.id : null}
+        isOpen={Boolean(activeRecord && activeRecord.type.toLowerCase() !== 'warning')}
+        recordId={activeRecord && activeRecord.type.toLowerCase() !== 'warning' ? activeRecord.id : null}
+        initialRecord={activeRecord}
         onClose={() => setActiveRecord(null)}
       />
     </div>

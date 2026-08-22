@@ -4,6 +4,12 @@
   gap: 1rem;
 }
 
+.actions { display: flex; gap: .25rem; white-space: nowrap; }
+.severity { display: inline-block; border-radius: 999px; padding: .2rem .5rem; font-size: .72rem; text-transform: capitalize; font-weight: 600; }
+.minor { color: #166534; background: #dcfce7; }
+.major { color: #92400e; background: #fef3c7; }
+.grave { color: #991b1b; background: #fee2e2; }
+
 .empty {
   display: flex;
   flex-direction: column;
