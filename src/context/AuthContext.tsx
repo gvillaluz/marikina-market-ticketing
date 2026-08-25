@@ -29,17 +29,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const res = await authApi.login(input);
-      const profile = await authApi.getMe(res.access_token);
+      const profile = await authApi.getMe(res.accessToken);
 
       if (profile.role) {
         profile.role = (profile.role.charAt(0).toUpperCase() + profile.role.slice(1).toLowerCase()) as UserRole;
       }
 
       console.log('normalized role:', profile.role);
-      setAuth(profile, res.access_token);
-      setMustChangePassword(res.must_change_password);
+      setAuth(profile, res.accessToken);
+      setMustChangePassword(res.mustChangePassword);
 
-      return { user: profile, mustChangePassword: res.must_change_password, access_token: res.access_token };
+      return { user: profile, mustChangePassword: res.mustChangePassword, access_token: res.accessToken };
     } finally {
       setLoading(false);
     }
@@ -52,10 +52,10 @@ const register = useCallback(
     setLoading(true);
     try {
       const res = await authApi.register(input);
-      const profile = await authApi.getMe(res.access_token);
-      setAuth(profile, res.access_token);
+      const profile = await authApi.getMe(res.accessToken);
+      setAuth(profile, res.accessToken);
       console.log('role after login:', profile.role);
-      setMustChangePassword(res.must_change_password);
+      setMustChangePassword(res.mustChangePassword);
     } finally {
       setLoading(false);
     }

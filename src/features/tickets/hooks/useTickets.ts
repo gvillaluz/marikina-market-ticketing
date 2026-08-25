@@ -1,23 +1,52 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { useState } from 'react';
-import { getTickets } from '@/api/endpoints/tickets.api';
-import type { TicketRecord } from '@/api/types/ticket.types';
-import type { PaginationSummary } from '@/api/types/common.types';
+  import { ticketsApi } from '@/api/endpoints/tickets.api';
+  import type { RecordStatus} from '@/api/types/common.types';
+  import { TicketSummary } from '@/api/types/ticket.types';
+  import { keepPreviousData, useQuery } from '@tanstack/react-query';
+  import { useEffect, useState } from 'react';
 
-export interface TicketFilters { search?: string; status?: string; marketSection?: string; pageSize?: number }
+  export interface TicketFilters { 
+    search?: string; 
+    status?: RecordStatus; 
+    marketSection?: string;
+  }
 
-/** Loads and manages a paginated list of tickets. */
-export function useTickets(filters: TicketFilters = {}) {
-  const [page, setPage] = useState(1);
-  const pageSize = filters.pageSize ?? 10;
-  const query = useQuery({ queryKey: ['tickets', filters, page, pageSize], queryFn: () => getTickets({ ...filters, type: 'ticket', page, pageSize, offset: (page - 1) * pageSize }), enabled: false, placeholderData: keepPreviousData });
-  const summary: PaginationSummary | undefined = query.data?.summary;
-  const tickets = (query.data?.items ?? []).filter((ticket) => {
-    const backendTicket = ticket as TicketRecord & { type?: unknown; ticket_type?: unknown };
-    const type = String(backendTicket.type ?? backendTicket.ticket_type ?? '').trim().toLowerCase();
-    return type === 'ticket';
-  }) as TicketRecord[];
-  return { tickets, summary, isLoading: query.isLoading, loading: query.isLoading, error: query.error, page, setPage, filters, total: tickets.length, totalPages: Math.max(1, Math.ceil(tickets.length / pageSize)), refetch: query.refetch, refresh: query.refetch };
-}
+  const PAGE_SIZE = 10;
 
-export default useTickets;
+  export function useTickets(filters: TicketFilters = {}) {
+    const [page, setPage] = useState(1);
+
+    useEffect(() => {
+      setPage(1)
+    }, [filters.search, filters.status, filters.marketSection]);
+
+    const offset = (page - 1) * PAGE_SIZE;
+
+    const query = useQuery({
+      queryKey: ['tickets', filters, page, PAGE_SIZE],
+      queryFn: () => ticketsApi.ticketList({
+        ...filters,
+        offset
+      }),
+      placeholderData: keepPreviousData
+    });
+
+    const ticketSummary: TicketSummary[] = query.data?.items ?? [];
+    const total = query.data?.total ?? 0;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+    return {
+      ticketSummary,
+      page,
+      setPage,
+      total: total,
+      totalPages: totalPages,
+      pageSize: PAGE_SIZE,
+      isLoading: query.isLoading,
+      isFetching: query.isFetching,
+      isError: query.isError,
+      error: query.error,
+      refetch: query.refetch
+    }
+  }
+
+  export default useTickets;

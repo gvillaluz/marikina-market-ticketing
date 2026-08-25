@@ -3,34 +3,127 @@ import { useNavigate } from 'react-router-dom';
 import Table from '@/components/ui/Table';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Button from '@/components/ui/Button';
-import type { TicketRecord } from '@/api/types/ticket.types';
+import type { TicketSummary } from '@/api/types/ticket.types';
 import { formatCurrency, formatDateTime } from '@/utils/formatters';
-import { MARKET_SECTION_LABELS } from '@/api/types/common.types';
 import styles from './TicketList.module.css';
+import { Eye, Recycle, RefreshCw, Repeat, Ticket } from 'lucide-react';
 
 interface TicketListProps {
-  tickets: TicketRecord[];
+  tickets: TicketSummary[];
   loading?: boolean;
 }
 
 const TicketList: FC<TicketListProps> = ({ tickets, loading }) => {
   const navigate = useNavigate();
-  const value = (primary: unknown, fallback?: unknown) => String(primary ?? fallback ?? '—');
-  const backendValue = (ticket: TicketRecord) => ticket as TicketRecord & Record<string, unknown>;
-  return <Table loading={loading} data={tickets} keyExtractor={(ticket) => ticket.id} emptyMessage="No tickets found."
-    columns={[
-      { key: 'id', header: 'ID', render: (ticket) => value(ticket.id, backendValue(ticket).ticket_id) },
-      { key: 'controlNumber', header: 'Control No.', render: (ticket) => value(ticket.controlNumber, backendValue(ticket).control_number ?? backendValue(ticket).ticket_id) },
-      { key: 'enforcer', header: 'Enforcer', render: (ticket) => value(ticket.enforcerName ?? ticket.enforcer, `${backendValue(ticket).enforcer_first_name ?? ''} ${backendValue(ticket).enforcer_last_name ?? ''}`.trim()) },
-      { key: 'vendor', header: 'Vendor', render: (ticket) => value(ticket.tradeName, backendValue(ticket).business_name) },
-      { key: 'section', header: 'Market Section', render: (ticket) => value((ticket.marketSection && MARKET_SECTION_LABELS[ticket.marketSection as keyof typeof MARKET_SECTION_LABELS]) ?? ticket.marketSection, backendValue(ticket).market_section_name) },
-      { key: 'status', header: 'Status', render: (ticket) => <StatusBadge status={value(ticket.status, backendValue(ticket).status)} /> },
-      { key: 'severity', header: 'Severity', render: (ticket) => { const severity = value(ticket.penalty?.severity, backendValue(ticket).severity).toLowerCase(); return <span className={`${styles.severity} ${styles[severity]}`}>{severity}</span>; } },
-      { key: 'penaltyType', header: 'Penalty Type', render: (ticket) => value(ticket.penalty?.penaltyType, backendValue(ticket).penalty_type) },
-      { key: 'amount', header: 'Total Payment', align: 'right', render: (ticket) => formatCurrency(ticket.penalty?.totalFineDue ?? Number(backendValue(ticket).fine_amount ?? 0)) },
-      { key: 'issuedAt', header: 'Issued At', render: (ticket) => formatDateTime(ticket.dateTime ?? String(backendValue(ticket).issued_at ?? '')) },
-      { key: 'actions', header: 'Action', render: (ticket) => <div className={styles.actions}><Button size="sm" variant="ghost" onClick={() => navigate(`/tickets/${ticket.id}`)}>View</Button><Button size="sm" variant="outline" onClick={() => navigate(`/tickets/${ticket.id}#status`)}>Change</Button></div> },
-    ]} />;
+
+  return (
+    <Table
+      loading={loading}
+      data={tickets}
+      keyExtractor={(ticket) => ticket.id.toString()}
+      emptyMessage="No tickets found."
+      columns={[
+        { 
+          key: 'ticketId', 
+          header: 'ID', 
+          render: (ticket) => ticket.id ?? '—' 
+        },
+        { 
+          key: 'controlNumber', 
+          header: 'Control No.', 
+          render: (ticket) => '#' + ticket.controlNumber || '—' 
+        },
+        {
+          key: 'enforcer',
+          header: 'Enforcer',
+          render: (ticket) => 
+            `${ticket.enforcerFirstName ?? ''} ${ticket.enforcerLastName ?? ''}`.trim() || '—'
+        },
+        {
+          key: 'vendor',
+          header: 'Vendor',
+          render: (ticket) => 
+            `${ticket.vendorFirstName ?? ''} ${ticket.vendorLastName ?? ''}`.trim() || '—'
+        },
+        { 
+          key: 'section', 
+          header: 'Market Section', 
+          render: (ticket) => ticket.marketSectionName || '—' 
+        },
+        {
+          key: 'status',
+          header: 'Status',
+          render: (ticket) => {
+            const status = (ticket.status || '').toLowerCase();
+            return (
+              <div className={`${styles.status} ${styles[status] || ''}`}>
+                <Ticket size={20} className={`${styles.statusIcon} ${styles[status]}`} />
+                <span className={styles.span}>{ticket.status || '—'}</span>
+              </div>
+            );
+          },
+          align: 'center'
+        },
+        { 
+          key: 'penaltyType', 
+          header: 'Penalty Type', 
+          render: (ticket) => ticket.penaltyType || '—' ,
+          align: 'center'
+        },
+        {
+          key: 'amount',
+          header: 'Total Payment',
+          align: 'left',
+          render: (ticket) => formatCurrency(ticket.totalPaymentAmount ?? 0)
+        },
+        {
+          key: 'severity',
+          header: 'Severity',
+          render: (ticket) => {
+            const severity = (ticket.severity || '').toLowerCase();
+            return (
+              <div className={`${styles.severity} ${styles[severity] || ''}`}>
+                <span className={styles.span}>{ticket.severity || '—'}</span>
+              </div>
+            );
+          },
+          align: 'center'
+        },
+        {
+          key: 'issuedAt',
+          header: 'Issued At',
+          render: (ticket) => formatDateTime(ticket.issuedAt)
+        },
+        {
+          key: 'actions',
+          header: 'Action',
+          render: (ticket) => (
+            <div className={styles.actions}>
+              <Button 
+                icon={<Eye size={14} strokeWidth={3} aria-hidden="true" />}
+                className={`${styles.actionBtn} ${styles.view}`}
+                size="sm" 
+                variant="ghost" 
+                onClick={() => navigate(`/tickets/${ticket.id}`)}
+              >
+                View
+              </Button>
+              <Button 
+                icon={<RefreshCw size={14} strokeWidth={3} aria-hidden="true" />}
+                className={`${styles.actionBtn} ${styles.change}`}
+                size="sm" 
+                variant="outline" 
+                onClick={() => navigate(`/tickets/${ticket.id}#status`)}
+              >
+                Change
+              </Button>
+            </div>
+          ),
+          align: 'center'
+        },
+      ]}
+    />
+  );
 };
 
 export default TicketList;

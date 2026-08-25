@@ -5,10 +5,56 @@
 }
 
 .actions { display: flex; gap: .25rem; white-space: nowrap; }
-.severity { display: inline-block; border-radius: 999px; padding: .2rem .5rem; font-size: .72rem; text-transform: capitalize; font-weight: 600; }
-.minor { color: #166534; background: #dcfce7; }
-.major { color: #92400e; background: #fef3c7; }
-.grave { color: #991b1b; background: #fee2e2; }
+
+.status {
+  border-width: 2px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 5px 15px;
+}
+
+.pending { color: #D97706; background-color: #FFFBEB; border-color: #F4D3A6; }
+.paid { color: #3B82F6; background-color: #DBEAFE; border-color: #ABCBFC; }
+.overdue { color: #EF4444; background-color: #FEF2F2; border-color: #FABEBE; }
+.contested { color: #EA580C; background-color: #FFF7ED; border-color: #F9C7AA; }
+.waived { color: #9333EA; background-color: #FAF5FF; border-color: #DBBBF9; }
+.cleared { color: #8F0058; background-color: #FDF0F8; border-color: #DCA8C8; }
+
+.statusIcon {
+  display: block;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.statusIcon.pending { fill: #D97706; }
+.statusIcon.paid { fill: #3B82F6; }
+.statusIcon.overdue { fill: #EF4444; }
+.statusIcon.contested { fill: #EA580C; }
+.statusIcon.waived { fill: #9333EA; }
+.statusIcon.cleared { fill: #8F0058; }
+
+.severity { 
+  display: flex; 
+  border-radius: 999px; 
+  padding: .5em 1em; 
+  font-size: .72rem; 
+  text-transform: capitalize; 
+  font-weight: 600; 
+  justify-content: center;
+  align-items: center;
+}
+.minor { color: #3F8F0A; background-color: #DFF3CC; }
+.moderate { color: #A66F00; background-color: #FFEBB0; }
+.high { color: #D6001C; background-color: #FFD3D8; }
+
+.span {
+  font-weight: bold;
+}
 
 .empty {
   display: flex;
@@ -30,6 +76,16 @@
   animation: shimmer 1.2s infinite;
   border-radius: var(--radius-md);
 }
+
+.actionBtn {
+  border: 2px solid;
+  border-radius: 3px;
+  color: #00488F;
+  padding: 9px 10px;
+}
+
+.view { border-color: #B8D7F5; background-color: #F4F8FE; }
+.change { border-color: #00488F; background-color: #00488F; color: #F4F8FE; }
 
 @keyframes shimmer {
   0% {

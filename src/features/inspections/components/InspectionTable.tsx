@@ -16,8 +16,8 @@ interface InspectionTableProps {
 }
 
 function getTypeBadge(row: InspectionRecord): { label: string; tone: BadgeTone; icon: JSX.Element } {
-  if (row.status === 'CLEARED') {
-    return { label: 'CLEARED', tone: 'success', icon: <CheckCircle2 size={12} strokeWidth={2} /> };
+  if (row.status === 'Cleared') {
+    return { label: 'Cleared', tone: 'success', icon: <CheckCircle2 size={12} strokeWidth={2} /> };
   }
   return row.type.toLowerCase() === 'warning'
     ? { label: 'WARNING', tone: 'warning', icon: <AlertTriangle size={12} strokeWidth={2} /> }

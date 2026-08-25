@@ -1,6 +1,8 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import env from '@/config/env';
 import { useAuthStore } from '@/store/store';
+import snakecaseKeys from 'snakecase-keys';
+import camelcaseKeys from 'camelcase-keys';
 
 
 const client: AxiosInstance = axios.create({
@@ -20,6 +22,14 @@ client.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (config.data && typeof config.data === 'object' && !(config.data instanceof FormData)) {
+      config.data = snakecaseKeys(config.data, { deep: true });
+    }
+
+    if (config.params && typeof config.params === 'object') {
+      config.params = snakecaseKeys(config.params, { deep: true });
+    }
     return config;
   },
   (error) => Promise.reject(error),
@@ -28,6 +38,10 @@ client.interceptors.request.use(
 
 client.interceptors.response.use(
   (response) => {
+    if (response.data && typeof response.data === 'object') {
+      response.data = camelcaseKeys(response.data, { deep: true });
+    }
+
     console.log('API Response:', {
       url: response.config.url,
       status: response.status,

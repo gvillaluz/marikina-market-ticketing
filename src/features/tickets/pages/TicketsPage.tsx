@@ -5,23 +5,37 @@ import TicketList from '@/features/tickets/components/TicketList';
 import useTickets from '@/features/tickets/hooks/useTickets';
 import useDebounce from '@/hooks/useDebounce';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
-import { MARKET_SECTION_LABELS } from '@/api/types/common.types';
+import { MARKET_SECTION_LABELS, RecordStatus } from '@/api/types/common.types';
 import styles from './TicketsPage.module.css';
+import useTicketAnalytics from '../hooks/useTicketAnalytics';
+import StatCard from '@/features/dashboard/components/StatCard';
+import TicketAnalyticsCard from '../components/TicketAnalyticsCard';
 
-const FILTERS: string[] = ['all', 'pending', 'paid', 'contested', 'overdue'];
+type TicketStatusFilter = 'All' | RecordStatus;
+
+const FILTERS: TicketStatusFilter[] = [
+  'All', 
+  'Pending', 
+  'Contested', 
+  'Paid', 
+  'Overdue',
+  'Waived'
+] as const;
 
 const TicketsPage: FC = () => {
-  const [status, setStatus] = useState<string>('all');
+  const [status, setStatus] = useState<TicketStatusFilter>('All');
   const [search, setSearch] = useState('');
   const [marketSection, setMarketSection] = useState('');
 
   const debouncedSearch = useDebounce(search, 400);
-  const { tickets, loading, page, totalPages, setPage, total, summary } = useTickets({
-    status: status === 'all' ? undefined : status,
+
+  const { ticketSummary, page, setPage, total, totalPages, isLoading } = useTickets({
+    status: status === 'All' ? undefined : status,
     search: debouncedSearch,
     marketSection: marketSection || undefined,
-    pageSize: 9,
   });
+
+  const { stats } = useTicketAnalytics();
 
   return (
     <div>
@@ -31,22 +45,17 @@ const TicketsPage: FC = () => {
       />
 
       <div className={styles.stats}>
-        <Stat label="Total Tickets" value={summary ? formatNumber(summary.totalTickets) : '—'} change={summary?.totalTicketsChange} />
-        <Stat label="Pending Payments" value={summary ? formatCurrency(summary.pendingPayments) : '—'} change={summary?.pendingPaymentsChange} />
-        <Stat label="Resolved Violations" value={summary ? formatNumber(summary.resolvedViolations) : '—'} progress={summary?.resolutionRate} />
-        <Stat label="Critical Severities" value={summary ? formatNumber(summary.criticalSeverities) : '—'} change={summary?.criticalSeveritiesChange} />
+        <TicketAnalyticsCard label="Total Tickets" value={stats ? formatNumber(stats.totalTicketsThisMonth) : '—'} change={stats?.ticketChangePercentage} />
+        <TicketAnalyticsCard label="Pending Payments" value={stats ? formatCurrency(stats.pendingPaymentsThisMonth) : '—'} change={stats?.paymentsChangePercentage} />
+        <TicketAnalyticsCard label="Resolved Violations" value={stats ? formatNumber(stats.resolvedViolationsThisMonth) : '—'} progress={stats?.resolutionRate} />
+        <TicketAnalyticsCard label="Critical Severities" value={stats ? formatNumber(stats.highSeveritiesThisMonth) : '—'} change={stats?.highSeveritiesChangePercentage} />
       </div>
       <div className={styles.toolbar}>
         <div className={styles.filters}>
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              className={`${styles.filterBtn} ${status === f ? styles.active : ''}`}
-              onClick={() => setStatus(f)}
-            >
-              {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
+          <select className={styles.filterBtn} value={status} onChange={(event) => setStatus(event.target.value as TicketStatusFilter)}>
+            <option value="All">All</option>
+            {FILTERS.map((filter) => <option key={filter} value={filter}>{filter}</option>)}
+          </select>
           <select className={styles.filterBtn} value={marketSection} onChange={(event) => setMarketSection(event.target.value)} aria-label="Market Section">
             <option value="">Market Section</option>
             {Object.entries(MARKET_SECTION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -60,7 +69,7 @@ const TicketsPage: FC = () => {
         />
       </div>
 
-      <TicketList tickets={tickets} loading={loading} />
+      <TicketList tickets={ticketSummary} loading={isLoading} />
 
       <div className={styles.entryInfo}>Showing {total === 0 ? 0 : (page - 1) * 9 + 1} to {Math.min(page * 9, total)} of {total} entries</div>
 
@@ -87,9 +96,5 @@ const TicketsPage: FC = () => {
     </div>
   );
 };
-
-const Stat: FC<{ label: string; value: string; change?: number; progress?: number }> = ({ label, value, change, progress }) => (
-  <Card className={styles.stat}><span className={styles.statLabel}>{label}</span><strong className={styles.statValue}>{value}</strong>{change !== undefined && <span className={styles.change}>{change >= 0 ? '+' : ''}{change}% vs last month</span>}{progress !== undefined && <div className={styles.progress}><span style={{ width: `${progress}%` }} /></div>}</Card>
-);
 
 export default TicketsPage;

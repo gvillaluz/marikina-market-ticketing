@@ -1,3 +1,4 @@
+import { TicketSummary } from "./ticket.types";
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -23,10 +24,8 @@ export interface PaginationParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-
 export type UserRole = 'Admin' | 'Vendor' | 'Enforcer';
 
-/** Status badges used across the app. */
 export type Status = 'pending' | 'approved' | 'rejected' | 'resolved' | 'active' | 'suspended' | 'paid' | 'unpaid';
 
 export interface PaginatedResponse<T> {
@@ -66,11 +65,11 @@ export const MARKET_SECTION_LABELS: Record<MarketSection, string> = {
 
 export type InspectionType = 'all' | 'warning' | 'ticket';
 
-export type RecordStatus = 'PENDING' | 'CLEARED' | 'SETTLED' | 'CONTESTED' | 'PAID' | 'OVERDUE' | 'WAIVED';
+export type RecordStatus = 'Pending' | 'Cleared' | 'Contested' | 'Paid' | 'Overdue' | 'Waived';
 
 export type OffenseLevel = '1st offense' | '2nd offense' | '3rd offense';
 
-export type Severity = 'minor' | 'major' | 'grave';
+export type Severity = 'Minor' | 'Moderate' | 'High';
 
 export interface PaginationSummary {
   totalTickets: number;
@@ -81,4 +80,10 @@ export interface PaginationSummary {
   totalTicketsChange?: number;
   pendingPaymentsChange?: number;
   criticalSeveritiesChange?: number;
+}
+
+export interface TicketPagination {
+  tickets: TicketSummary[],
+  total: number,
+  page: number
 }

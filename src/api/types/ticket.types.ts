@@ -152,3 +152,35 @@ export interface TicketHistoryEntry {
   performedBy: string;
   timestamp: string;
 }
+
+export type PenaltyType = 'CashFine' | 'BloodDonation' | 'CommunityService'
+
+export interface TicketSummary {
+  id: number,
+  controlNumber: string,
+  enforcerId: number,
+  enforcerFirstName: string,
+  enforcerLastName: string,
+  vendorId: number,
+  vendorFirstName: string,
+  vendorLastName: string,
+  stallNumber: string,
+  marketSectionId: number,
+  marketSectionName: string,
+  status: RecordStatus,
+  severity: Severity,
+  penaltyType: PenaltyType,
+  totalPaymentAmount: number,
+  issuedAt: Date
+}
+
+export interface TicketStats {
+  totalTicketsThisMonth: number,
+  ticketChangePercentage: number,
+  pendingPaymentsThisMonth: number, 
+  paymentsChangePercentage: number,
+  resolvedViolationsThisMonth: number,
+  resolutionRate: number,
+  highSeveritiesThisMonth: number,
+  highSeveritiesChangePercentage: number
+}

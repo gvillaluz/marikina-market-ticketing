@@ -22,8 +22,8 @@ export interface RegisterInput {
 
 export interface AuthResponse {
   user: User;
-  must_change_password: boolean;  
-  access_token: string;
+  mustChangePassword: boolean;  
+  accessToken: string;
 }
 
 export interface User {

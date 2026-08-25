@@ -1,5 +1,5 @@
 import apiClient from '../client';
-import type { PaginatedResponse } from '../types/common.types';
+import type { PaginatedResponse, RecordStatus } from '../types/common.types';
 import type {
   InspectionRecord,
   WarningRecord,
@@ -9,6 +9,8 @@ import type {
   CreateTicketPayload,
   TicketListResponse,
   TicketHistoryEntry,
+  TicketSummary,
+  TicketStats,
 } from '../types/ticket.types';
 
 export interface GetInspectionsParams {
@@ -21,6 +23,12 @@ export interface GetInspectionsParams {
   status?: string;
   market_section?: string;
   market_section_id?: number;
+}
+
+export interface GetTicketsParams {
+  search?: string,
+  status?: RecordStatus
+  market_section_id?: number
 }
 
 export interface GetTicketsParams extends GetInspectionsParams { marketSection?: string }
@@ -45,8 +53,16 @@ export function updateTicketStatus(id: string, status: string): Promise<TicketRe
 }
 
 export const ticketsApi = {
-  list(params: GetInspectionsParams): Promise<PaginatedResponse<TicketRecord>> {
+  inspectionList(params: GetInspectionsParams): Promise<PaginatedResponse<TicketRecord>> {
     return apiClient.get('/ticket/admin/inspections', { params }).then((response) => response.data as PaginatedResponse<TicketRecord>);
+  },
+
+  ticketList(params: GetTicketsParams): Promise<PaginatedResponse<TicketSummary>> {
+    return apiClient.get('/ticket/admin/tickets', { params }).then((response) => response.data as PaginatedResponse<TicketSummary>);
+  },
+
+  getTicketAnalytics(): Promise<TicketStats> {
+    return apiClient.get('/ticket/admin/tickets/analytics').then((response) => response.data as TicketStats);
   },
 
   getById(id: string): Promise<TicketRecord> {

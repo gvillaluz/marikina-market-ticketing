@@ -1,0 +1,7 @@
+.stat { padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: .35rem; }
+.statLabel { color: var(--neutral-500); font-size: .8rem; }
+.statValue { font-size: 1.45rem; color: var(--neutral-800); }
+.change { color: #16803c; font-size: .75rem; }
+.progress { height: 5px; background: var(--bg-card); border-radius: 4px; overflow: hidden; margin-top: .3rem; }
+.progress span { display: block; height: 100%; background: var(--primary-500); }
+.entryInfo { color: var(--neutral-500); font-size: .8rem; margin-top: 1rem; }
