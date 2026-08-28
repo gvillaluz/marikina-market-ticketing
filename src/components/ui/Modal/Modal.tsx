@@ -8,7 +8,7 @@ export interface ModalProps {
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xlg';
 }
 
 const Modal: FC<ModalProps> = ({ open, title, subtitle, onClose, children, footer, size = 'md' }) => {

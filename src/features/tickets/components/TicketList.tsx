@@ -11,9 +11,10 @@ import { Eye, Recycle, RefreshCw, Repeat, Ticket } from 'lucide-react';
 interface TicketListProps {
   tickets: TicketSummary[];
   loading?: boolean;
+  onView: (ticketId: number) => void;
 }
 
-const TicketList: FC<TicketListProps> = ({ tickets, loading }) => {
+const TicketList: FC<TicketListProps> = ({ tickets, loading, onView }) => {
   const navigate = useNavigate();
 
   return (
@@ -104,7 +105,7 @@ const TicketList: FC<TicketListProps> = ({ tickets, loading }) => {
                 className={`${styles.actionBtn} ${styles.view}`}
                 size="sm" 
                 variant="ghost" 
-                onClick={() => navigate(`/tickets/${ticket.id}`)}
+                onClick={() => onView(ticket.id)}
               >
                 View
               </Button>

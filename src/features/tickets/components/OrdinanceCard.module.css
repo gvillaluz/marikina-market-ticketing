@@ -1,0 +1,48 @@
+.card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--neutral-200);
+    border-radius: 6px;
+    padding: 10px 14px;
+    background: #fff;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1A1C1E;
+}
+
+.subtitle {
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+}
+
+.offenseBadge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #BA1A1A;
+    background: #FBE9E7;
+    border-radius: 4px;
+    padding: 2px 8px;
+}
+
+.price {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1A1C1E;
+    white-space: nowrap;
+}

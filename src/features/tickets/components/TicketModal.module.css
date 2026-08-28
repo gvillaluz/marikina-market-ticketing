@@ -1,3 +1,83 @@
 .layout {
-    
+  display: flex;
+  height: 100%;
+  min-height: 0;
+}
+
+.leftColumn {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+  min-height: 0;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.ticketPaper {
+  border: 1px solid #C3C6D2;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+.ticketHeader {
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.ticketHeader h4 { 
+    margin: 0; 
+    color: #002753; 
+    font-size: 1.1rem; 
+
+}
+.ticketHeader p { 
+    margin: 0.2rem 0 0; 
+    font-size: 0.875rem; 
+    color: var(--neutral-500); 
+}
+
+.ticketTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo {
+    height: 55px;
+    width: 55px;
+}
+
+.violationLabel {
+    font-size: 1.10rem;
+    color: #002753;
+    font-weight: bold;
+}
+
+.controlNo {
+    text-align: right;
+}
+
+.controlLabel {
+    display: block;
+    font-size: 0.7rem;
+}
+
+.controlValue {
+    color: #BA1A1A;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.divider {
+    border-top: 1px dashed #C3C6D2;
+    margin: 1rem 0;
 }

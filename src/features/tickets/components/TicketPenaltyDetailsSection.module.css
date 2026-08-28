@@ -1,0 +1,47 @@
+.penaltySection {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.severityBadge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #8A5300;
+    background: #FCE7B5;
+    border-radius: 4px;
+    padding: 2px 10px;
+}
+
+.fineBox {
+    grid-column: 1 / -1;
+    background: #E8F0FE;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 4px;
+}
+
+.fineHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fineLabel {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #002753;
+}
+
+.fineValue {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #002753;
+}
+
+.fineNote {
+    margin: 6px 0 0;
+    font-size: 0.7rem;
+    color: var(--neutral-500);
+}

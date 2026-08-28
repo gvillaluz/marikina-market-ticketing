@@ -1,0 +1,27 @@
+.signatureSection {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 30px;
+    margin-top: 2rem;
+}
+
+.signatureBlock {
+    display: flex;
+    flex-direction: column;
+}
+
+.line {
+    border-top: 1px solid var(--neutral-300, #C3C6D2);
+    margin-bottom: 6px;
+}
+
+.name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1A1C1E;
+}
+
+.caption {
+    font-size: 0.7rem;
+    color: var(--neutral-500);
+}
