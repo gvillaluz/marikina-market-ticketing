@@ -1,0 +1,16 @@
+.header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 2rem 0  1rem;
+}
+
+.headerIcon {
+    color: #002753;
+}
+
+.title {
+    color: #002753;
+    font-size: 0.7rem;
+    font-weight: bold;
+}

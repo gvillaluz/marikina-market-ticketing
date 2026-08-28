@@ -1,0 +1,14 @@
+.row {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #c3c6d265;
+}
+
+.rowLabel {
+    font-size: 0.875rem;
+}
+
+.rowValue {
+    color: #1A1C1E;
+}

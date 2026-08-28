@@ -10,6 +10,7 @@ import styles from './TicketsPage.module.css';
 import useTicketAnalytics from '../hooks/useTicketAnalytics';
 import StatCard from '@/features/dashboard/components/StatCard';
 import TicketAnalyticsCard from '../components/TicketAnalyticsCard';
+import { TicketModal } from '../components/TicketModal';
 
 type TicketStatusFilter = 'All' | RecordStatus;
 
@@ -26,6 +27,7 @@ const TicketsPage: FC = () => {
   const [status, setStatus] = useState<TicketStatusFilter>('All');
   const [search, setSearch] = useState('');
   const [marketSection, setMarketSection] = useState('');
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
 
   const debouncedSearch = useDebounce(search, 400);
 
@@ -69,7 +71,7 @@ const TicketsPage: FC = () => {
         />
       </div>
 
-      <TicketList tickets={ticketSummary} loading={isLoading} />
+      <TicketList tickets={ticketSummary} loading={isLoading} onView={(ticketId) => setSelectedTicketId(ticketId)} />
 
       <div className={styles.entryInfo}>Showing {total === 0 ? 0 : (page - 1) * 9 + 1} to {Math.min(page * 9, total)} of {total} entries</div>
 
@@ -93,6 +95,11 @@ const TicketsPage: FC = () => {
         </div>
       )}
 
+      <TicketModal
+        isOpen={selectedTicketId != null}
+        ticketId={selectedTicketId}
+        onClose={() => setSelectedTicketId(null)}
+      />
     </div>
   );
 };

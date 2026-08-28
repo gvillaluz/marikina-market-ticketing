@@ -11,6 +11,7 @@ import type {
   TicketHistoryEntry,
   TicketSummary,
   TicketStats,
+  TicketDetail,
 } from '../types/ticket.types';
 
 export interface GetInspectionsParams {
@@ -63,6 +64,10 @@ export const ticketsApi = {
 
   getTicketAnalytics(): Promise<TicketStats> {
     return apiClient.get('/ticket/admin/tickets/analytics').then((response) => response.data as TicketStats);
+  },
+
+  getTicketDetailById(id: number): Promise<TicketDetail> {
+    return apiClient.get(`/ticket/${id}`).then((response) => response.data as TicketDetail);
   },
 
   getById(id: string): Promise<TicketRecord> {

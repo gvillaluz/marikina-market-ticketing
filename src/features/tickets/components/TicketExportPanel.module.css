@@ -1,0 +1,78 @@
+.panel {
+    width: 260px;
+    flex-shrink: 0;
+    border-left: 2px solid #C3C6D2;
+    padding: 20px;
+    flex: 1;
+}
+
+.title {
+    margin: 0 0 4px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #002753;
+}
+
+.subtitle {
+    margin: 0 0 16px;
+    font-size: 0.8rem;
+    color: var(--neutral-500);
+}
+
+.optionList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.optionCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    background: #fff;
+    border: 1px solid var(--neutral-200);
+    border-radius: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.optionCard:hover {
+    border-color: #002753;
+}
+
+.optionCardActive {
+    border-color: #0B57D0;
+    background: #EAF1FE;
+}
+
+.optionIcon {
+    color: #002753;
+    flex-shrink: 0;
+}
+
+.optionText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.optionTitle {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1A1C1E;
+}
+
+.optionSubtitle {
+    font-size: 0.7rem;
+    color: var(--neutral-500);
+}
+
+.chevron {
+    color: var(--neutral-400, #9AA0A6);
+    flex-shrink: 0;
+}

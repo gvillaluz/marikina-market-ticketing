@@ -2,6 +2,7 @@ import type { MarketSection, OffenseLevel, RecordStatus, Severity, Status, Pagin
 
 export type TicketType = 'violation' | 'complaint' | 'inspection' | 'renewal';
 export type TicketSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type TicketCategories = 'Traffic' | 'Obstruction' | 'Sanitation' | 'Licensing' | 'Noise' | 'WeightMeasures';
 
 export interface InspectionRecord {
   id: string;
@@ -183,4 +184,37 @@ export interface TicketStats {
   resolutionRate: number,
   highSeveritiesThisMonth: number,
   highSeveritiesChangePercentage: number
+}
+
+export interface Violation {
+  ticketViolationId: number,
+  ticketId: number,
+  ordinanceId: number,
+  ordinanceNo: string,
+  ordinanceCode: string,
+  offenseCount: number,
+  penaltyAmount?: number
+}
+
+export interface TicketDetail {
+  ticketId: number,
+  enforderId: number,
+  vendorId: number,
+  controlNumber?: string
+  type: 'Warning' | 'Ticket',
+  stallNumber: string,
+  businessName: string,
+  lastName: string,
+  firstName: string,
+  address: string,
+  violations: Violation[],
+  issuedAt: Date,
+  marketSectionName: string,
+  categories: TicketCategories,
+  description: string,
+  severity?: Severity,
+  penaltyType?: PenaltyType,
+  dueDate?: Date,
+  totalFineAmount?: number,
+  ticketEvidences: string[]
 }
