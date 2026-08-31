@@ -65,3 +65,53 @@ export function timeAgo(value: string | Date): string {
 export function currencySymbol(): string {
   return APP_CONSTANTS.currency;
 }
+
+/** Format a number into an ordinal string (e.g. 1st, 2nd, 3rd, 4th). */
+export function formatOrdinal(value: number): string {
+  if (!Number.isFinite(value)) return '—';
+
+  const n = Math.abs(Math.floor(value));
+  const mod100 = n % 100;
+
+  // Handle teens (11th, 12th, 13th)
+  if (mod100 >= 11 && mod100 <= 13) {
+    return `${value}th`;
+  }
+
+  const mod10 = n % 10;
+  switch (mod10) {
+    case 1:
+      return `${value}st`;
+    case 2:
+      return `${value}nd`;
+    case 3:
+      return `${value}rd`;
+    default:
+      return `${value}th`;
+  }
+}
+
+/** Format remaining days until due date (e.g. "14 days left", "Due today", "Overdue by 3 days"). */
+export function daysLeft(value: string | Date): string {
+  const targetDate = new Date(value);
+
+  if (isNaN(targetDate.getTime())) {
+    return 'Invalid date';
+  }
+
+  // Normalize both dates to midnight (start of day) to avoid time-of-day offsets
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const startOfTarget = new Date(targetDate);
+  startOfTarget.setHours(0, 0, 0, 0);
+
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const diffDays = Math.round((startOfTarget.getTime() - startOfToday.getTime()) / msPerDay);
+
+  if (diffDays > 1) return `${diffDays} days left`;
+  if (diffDays === 1) return '1 day left';
+  if (diffDays === 0) return 'Due today';
+  if (diffDays === -1) return 'Overdue by 1 day';
+  return `Overdue by ${Math.abs(diffDays)} days`;
+}

@@ -1,0 +1,38 @@
+.status {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid;
+  padding: 5px 10px;
+  border-width: 2px;
+  border-radius: 10px;
+}
+
+.pill {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 999px; 
+  padding: .5em 1em;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pending { color: #D97706; background-color: #FFFBEB; border-color: #F4D3A6; }
+.paid { color: #3B82F6; background-color: #DBEAFE; border-color: #ABCBFC; }
+.overdue { color: #EF4444; background-color: #FEF2F2; border-color: #FABEBE; }
+.contested { color: #EA580C; background-color: #FFF7ED; border-color: #F9C7AA; }
+.waived { color: #9333EA; background-color: #FAF5FF; border-color: #DBBBF9; }
+.cleared { color: #8F0058; background-color: #FDF0F8; border-color: #DCA8C8; }
+
+.minor { color: #3F8F0A; background-color: #DFF3CC; }
+.moderate { color: #A66F00; background-color: #FFEBB0; }
+.high { color: #D6001C; background-color: #FFD3D8; }

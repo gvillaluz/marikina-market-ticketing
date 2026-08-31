@@ -1,7 +1,6 @@
 .photoSection {
     border: 1px solid var(--neutral-200);
     border-radius: 8px;
-    padding: 1.25rem 1.5rem;
 }
 
 .title {
@@ -15,12 +14,4 @@
     margin: 0 0 12px;
     font-size: 0.8rem;
     color: var(--neutral-500);
-}
-
-.thumbnail {
-    width: 90px;
-    height: 90px;
-    border-radius: 6px;
-    background: var(--neutral-100, #E9EBEF);
-    border: 1px solid var(--neutral-200);
 }

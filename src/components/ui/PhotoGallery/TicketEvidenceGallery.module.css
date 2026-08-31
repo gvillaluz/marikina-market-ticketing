@@ -1,0 +1,25 @@
+.evidence {
+    width: 90px;
+    height: 90px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.imageContainer {
+    width: 100%;
+    background-color: #F9F9FC;
+    border: 1px solid #C3C6D2;
+    border-radius: 10px;
+    min-height: 7rem;
+    height: auto;
+    padding: 10px;
+}
+
+.gallery {
+    z-index: 9999999;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+}

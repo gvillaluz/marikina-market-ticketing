@@ -87,6 +87,10 @@
 .view { border-color: #B8D7F5; background-color: #F4F8FE; }
 .change { border-color: #00488F; background-color: #00488F; color: #F4F8FE; }
 
+.actionBtn.change:hover {
+  background-color: #00488fcc;
+}
+
 @keyframes shimmer {
   0% {
     background-position: 200% 0;

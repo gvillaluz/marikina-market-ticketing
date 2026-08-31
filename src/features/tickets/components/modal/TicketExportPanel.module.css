@@ -44,7 +44,7 @@
 }
 
 .optionCardActive {
-    border-color: #0B57D0;
+    border: 1px solid #0060A8;
     background: #EAF1FE;
 }
 

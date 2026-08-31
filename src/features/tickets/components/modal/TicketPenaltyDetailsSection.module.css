@@ -2,17 +2,20 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    text-align: center;
 }
 
 .severityBadge {
     display: inline-block;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: #8A5300;
-    background: #FCE7B5;
-    border-radius: 4px;
-    padding: 2px 10px;
+    border-radius: 20px;
+    padding: 5px 15px;
 }
+
+.minor { color: #3F8F0A; background-color: #DFF3CC; }
+.moderate { color: #A66F00; background-color: #FFEBB0; }
+.high { color: #D6001C; background-color: #FFD3D8; }
 
 .fineBox {
     grid-column: 1 / -1;
@@ -41,7 +44,6 @@
 }
 
 .fineNote {
-    margin: 6px 0 0;
     font-size: 0.7rem;
     color: var(--neutral-500);
 }

@@ -105,7 +105,7 @@ const TicketList: FC<TicketListProps> = ({ tickets, loading, onView }) => {
                 className={`${styles.actionBtn} ${styles.view}`}
                 size="sm" 
                 variant="ghost" 
-                onClick={() => onView(ticket.id)}
+                onClick={() => onView(ticket.id ?? 0)}
               >
                 View
               </Button>
@@ -114,7 +114,7 @@ const TicketList: FC<TicketListProps> = ({ tickets, loading, onView }) => {
                 className={`${styles.actionBtn} ${styles.change}`}
                 size="sm" 
                 variant="outline" 
-                onClick={() => navigate(`/tickets/${ticket.id}#status`)}
+                onClick={() => navigate(`/tickets/${ticket.id}`)}
               >
                 Change
               </Button>

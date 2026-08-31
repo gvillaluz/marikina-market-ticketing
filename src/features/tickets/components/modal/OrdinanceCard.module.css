@@ -2,22 +2,16 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid var(--neutral-200);
+    border: 1px solid #C3C6D2;
     border-radius: 6px;
     padding: 10px 14px;
-    background: #fff;
+    background: #F9F9FC;
 }
 
 .info {
     display: flex;
     flex-direction: column;
     gap: 4px;
-}
-
-.titleRow {
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
 .title {
@@ -31,13 +25,21 @@
     color: var(--neutral-500);
 }
 
+.offenseContainer {
+    display: flex;
+    align-items: center;
+}
+
 .offenseBadge {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: #BA1A1A;
-    background: #FBE9E7;
     border-radius: 4px;
     padding: 2px 8px;
+}
+
+.priceRow {
+    display: flex;
+    gap: 10px;
 }
 
 .price {
@@ -46,3 +48,7 @@
     color: #1A1C1E;
     white-space: nowrap;
 }
+
+.minor { color: #3B82F6; background-color: #DBEAFE; }
+.moderate { color: #D97706; background-color: #FFFBEB; }
+.high { color: #BA1A1A; background-color: #FFA7A7; }
