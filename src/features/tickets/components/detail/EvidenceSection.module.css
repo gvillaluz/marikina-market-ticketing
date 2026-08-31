@@ -1,0 +1,22 @@
+.imageContainer {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.evidence {
+    height: 8rem;
+    width: 8rem;
+    object-fit: cover;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.gallery {
+    z-index: 9999999;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+}

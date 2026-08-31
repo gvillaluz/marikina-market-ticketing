@@ -2,9 +2,71 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: 10px;
+  margin-bottom: 0;
+  padding: 0 0.75rem 0.75rem;
   flex-wrap: wrap;
+}
+
+.recordsContainer {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 0.75rem 0 0;
+}
+
+.filters {
+  width: 100%;
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 0 1 360px;
+  width: 360px;
+  min-width: 220px;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+@media (max-width: 560px) {
+  .searchWrapper {
+    width: 100%;
+    flex-basis: 100%;
+    margin-right: 0;
+  }
+
+  .filterGroup {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #5b6472;
+}
+
+.searchInput {
+  width: 100%;
+  height: 30px;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 6px 10px 6px 30px;
+  font-size: 0.75rem;
+  color: var(--text-body);
+}
+
+.searchInput:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
 }
 
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
@@ -81,4 +143,88 @@
 .pageInfo {
   font-size: 0.875rem;
   color: var(--neutral-500);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0;
+  padding: 0.625rem 0.75rem;
+  border-top: 1px solid var(--border-default);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.entries {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exportButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  color: var(--text-body);
+  font-size: 0.75rem;
+  gap: 0.35rem;
+}
+
+.pageButton {
+  border: 1px solid var(--border-default);
+  background: #fff;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.printButton {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--text-body);
+}
+
+.printButton:hover,
+.pageButton:hover:not(:disabled) {
+  background: #f5f7fa;
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.currentPage {
+  background: #0b2d5b;
+  border-color: #0b2d5b;
+  color: #fff;
+}
+
+.ellipsis {
+  color: var(--text-body);
+  font-size: 0.8125rem;
+}
+
+.pageLabel {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  padding: 0 4px;
 }

@@ -25,3 +25,8 @@
     font-size: 0.7rem;
     color: var(--neutral-500);
 }
+
+.nameValue {
+    color: #1A1C1E;
+    font-size: 16px;
+}

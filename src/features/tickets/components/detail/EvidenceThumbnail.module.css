@@ -1,0 +1,26 @@
+.wrapper {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--neutral-200);
+  overflow: hidden;
+  height: auto;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  background: #F5F6F8;
+  font-size: 0.75rem;
+  color: #6B7280;
+  border: none;
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='8' ry='8' stroke='%23C3C6D2' stroke-width='1.5' stroke-dasharray='12%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+  border-radius: 10px;
+  padding: 35px;
+}
+
+.placeholderIcon {
+  color: var(--neutral-400);
+}

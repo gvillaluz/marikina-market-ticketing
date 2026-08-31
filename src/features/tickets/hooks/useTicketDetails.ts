@@ -4,8 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 export function useTicketDetails(ticketId: number) {
     const query = useQuery({
         queryKey: ['ticket', 'detail', ticketId],
-        queryFn: () => ticketsApi.getTicketDetailById(ticketId)
+        queryFn: () => ticketsApi.getTicketDetailById(ticketId),
     });
+
+    console.log(query.data)
 
     return {
         ticket: query.data,

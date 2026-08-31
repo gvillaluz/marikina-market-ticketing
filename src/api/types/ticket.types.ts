@@ -1,7 +1,7 @@
-import type { MarketSection, OffenseLevel, RecordStatus, Severity, Status, PaginationSummary } from './common.types';
+import { TicketStatus } from '@/features/tickets/tickets.types';
+import type { MarketSection, OffenseLevel, RecordStatus, Severity, PaginationSummary } from './common.types';
 
 export type TicketType = 'violation' | 'complaint' | 'inspection' | 'renewal';
-export type TicketSeverity = 'low' | 'medium' | 'high' | 'critical';
 export type TicketCategories = 'Traffic' | 'Obstruction' | 'Sanitation' | 'Licensing' | 'Noise' | 'WeightMeasures';
 
 export interface InspectionRecord {
@@ -116,35 +116,6 @@ export interface CreateTicketPayload {
   photoEvidenceUrl?: string;
 }
 
-export interface Ticket {
-  id: string;
-  ticketNumber: string;
-  type: TicketType;
-  title: string;
-  description: string;
-  status: Status;
-  severity: TicketSeverity;
-  vendorId?: string;
-  vendorName?: string;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  dueDate?: string;
-  assignedTo?: string;
-  amount?: number;
-  location?: string;
-}
-
-export interface CreateTicketInput {
-  type: TicketType;
-  title: string;
-  description: string;
-  severity: TicketSeverity;
-  vendorId?: string;
-  location?: string;
-  dueDate?: string;
-}
-
 export interface TicketHistoryEntry {
   id: string;
   ticketId: string;
@@ -157,64 +128,70 @@ export interface TicketHistoryEntry {
 export type PenaltyType = 'CashFine' | 'BloodDonation' | 'CommunityService'
 
 export interface TicketSummary {
-  id: number,
-  controlNumber: string,
-  enforcerId: number,
-  enforcerFirstName: string,
-  enforcerLastName: string,
-  vendorId: number,
-  vendorFirstName: string,
-  vendorLastName: string,
-  stallNumber: string,
-  marketSectionId: number,
-  marketSectionName: string,
-  status: RecordStatus,
-  severity: Severity,
-  penaltyType: PenaltyType,
-  totalPaymentAmount: number,
+  id: number;
+  controlNumber: string;
+  enforcerId: number;
+  enforcerFirstName: string;
+  enforcerLastName: string;
+  vendorId: number;
+  vendorFirstName: string;
+  vendorLastName: string;
+  stallNumber: string;
+  marketSectionId: number;
+  marketSectionName: string;
+  status: RecordStatus;
+  severity: Severity;
+  penaltyType: PenaltyType;
+  totalPaymentAmount: number;
   issuedAt: Date
 }
 
 export interface TicketStats {
-  totalTicketsThisMonth: number,
-  ticketChangePercentage: number,
-  pendingPaymentsThisMonth: number, 
-  paymentsChangePercentage: number,
-  resolvedViolationsThisMonth: number,
-  resolutionRate: number,
-  highSeveritiesThisMonth: number,
+  totalTicketsThisMonth: number;
+  ticketChangePercentage: number;
+  pendingPaymentsThisMonth: number; 
+  paymentsChangePercentage: number;
+  resolvedViolationsThisMonth: number;
+  resolutionRate: number;
+  highSeveritiesThisMonth: number;
   highSeveritiesChangePercentage: number
 }
 
 export interface Violation {
-  ticketViolationId: number,
-  ticketId: number,
-  ordinanceId: number,
-  ordinanceNo: string,
-  ordinanceCode: string,
-  offenseCount: number,
+  ticketViolationId: number;
+  ticketId: number;
+  ordinanceId: number;
+  ordinanceNo: string;
+  ordinanceCode: string;
+  offenseCount: number;
   penaltyAmount?: number
 }
 
 export interface TicketDetail {
-  ticketId: number,
-  enforderId: number,
-  vendorId: number,
+  ticketId: number;
+  enforderId: number;
+  enforcerLastName: string;
+  enforcerFirstName: string;
+  vendorId: number;
   controlNumber?: string
-  type: 'Warning' | 'Ticket',
-  stallNumber: string,
-  businessName: string,
-  lastName: string,
-  firstName: string,
-  address: string,
-  violations: Violation[],
-  issuedAt: Date,
-  marketSectionName: string,
-  categories: TicketCategories,
-  description: string,
-  severity?: Severity,
-  penaltyType?: PenaltyType,
-  dueDate?: Date,
-  totalFineAmount?: number,
-  ticketEvidences: string[]
+  type: 'Warning' | 'Ticket';
+  stallNumber: string;
+  businessName: string;
+  lastName: string;
+  firstName: string;
+  address: string;
+  violations: Violation[];
+  issuedAt: Date;
+  updatedAt: Date;
+  marketSectionName: string;
+  categories: TicketCategories;
+  description: string;
+  severity?: Severity;
+  status?: RecordStatus;
+  penaltyType?: PenaltyType;
+  dueDate?: Date;
+  totalFineAmount?: number;
+  ticketEvidences: string[];
+  ticketReceipts: string[];
+  version: number;
 }
