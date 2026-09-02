@@ -7,7 +7,7 @@
   export interface TicketFilters { 
     search?: string; 
     status?: RecordStatus; 
-    marketSection?: string;
+    marketSectionId?: number;
   }
 
   const PAGE_SIZE = 10;
@@ -17,7 +17,7 @@
 
     useEffect(() => {
       setPage(1)
-    }, [filters.search, filters.status, filters.marketSection]);
+    }, [filters.search, filters.status, filters.marketSectionId]);
 
     const offset = (page - 1) * PAGE_SIZE;
 

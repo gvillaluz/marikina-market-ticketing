@@ -1,0 +1,38 @@
+.item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.iconContainer {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #F9DCA4;
+  border-radius: 20px;
+}
+
+.icon {
+  color: #8A5300;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1A1C1E;
+}
+
+.note {
+  font-size: 0.75rem;
+  color: var(--neutral-500);
+  line-height: 1.4;
+}

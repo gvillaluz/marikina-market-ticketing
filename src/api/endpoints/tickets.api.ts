@@ -17,35 +17,22 @@ import type {
 
 export interface GetInspectionsParams {
   search?: string;
-  type?: 'all' | 'warning' | 'ticket';
-  section?: string;
-  page?: number;
-  pageSize?: number;
+  type?: 'Warning' | 'Ticket' | undefined;
   offset?: number;
-  status?: string;
-  market_section?: string;
   market_section_id?: number;
 }
 
 export interface GetTicketsParams {
-  search?: string,
-  status?: RecordStatus
-  market_section_id?: number
+  offset?: number;
+  search?: string;
+  status?: RecordStatus;
+  marketSectionId?: number;
 }
 
 interface UpdateStatusParams {
   ticketId: number;
   newStatus: RecordStatus;
   version: number;
-}
-
-export interface GetTicketsParams extends GetInspectionsParams { marketSection?: string }
-
-export function getTickets(params: GetTicketsParams): Promise<TicketListResponse> {
-  return apiClient.get('/admin/tickets/inspections', { params: { offset: 0, ...params } }).then((response) => {
-    console.log('Tickets API data:', response.data);
-    return response.data as TicketListResponse;
-  });
 }
 
 export function getTicketById(id: string): Promise<TicketRecord> {
@@ -56,16 +43,13 @@ export function getTicketById(id: string): Promise<TicketRecord> {
   });
 }
 
-export function updateTicketStatus(id: string, status: string): Promise<TicketRecord> {
-  return apiClient.patch(`/admin/tickets/inspections/${id}/status`, { status }).then((response) => response.data as TicketRecord);
-}
-
 export const ticketsApi = {
   inspectionList(params: GetInspectionsParams): Promise<PaginatedResponse<TicketRecord>> {
     return apiClient.get('/admin/inspections', { params }).then((response) => response.data as PaginatedResponse<TicketRecord>);
   },
 
   ticketList(params: GetTicketsParams): Promise<PaginatedResponse<TicketSummary>> {
+    console.log(params)
     return apiClient.get('/admin/tickets', { params }).then((response) => response.data as PaginatedResponse<TicketSummary>);
   },
 

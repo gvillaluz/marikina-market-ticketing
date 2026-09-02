@@ -1,0 +1,82 @@
+.panel {
+  width: 380px;
+  flex-shrink: 0;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #C3C6D2;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #002753;
+}
+
+.subtitle {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  color: var(--neutral-500);
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.statBox {
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #F1F6FA;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #002753;
+}
+
+.statLabel {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--neutral-500);
+  letter-spacing: 0.02em;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  display: block;
+  font-size: .9rem;
+  font-weight: 700;
+  color: #002753;
+  letter-spacing: 0.02em;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #C3C6D2;
+}
+
+.highlightList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.issuerList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.divider {
+    border-top: 1px solid #C3C6D2;
+}

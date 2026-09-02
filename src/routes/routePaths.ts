@@ -7,6 +7,7 @@ export const ROUTES = {
   dashboard: '/dashboard',
   inspections: '/inspections',
   tickets: '/tickets',
+  enforcers: '/enforcers',
   analytics: '/analytics',
   performance: '/performance',
   ticketDetail: (id: string) => `/tickets/${id}`,
