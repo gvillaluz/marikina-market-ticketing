@@ -4,7 +4,7 @@ import TicketList from '@/features/tickets/components/TicketList';
 import useTickets from '@/features/tickets/hooks/useTickets';
 import useDebounce from '@/hooks/useDebounce';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
-import { MARKET_SECTION_LABELS, RecordStatus } from '@/api/types/common.types';
+import { MARKET_SECTION_LABELS, MarketSection, RecordStatus } from '@/api/types/common.types';
 import styles from './TicketsPage.module.css';
 import useTicketAnalytics from '../hooks/useTicketAnalytics';
 import TicketAnalyticsCard from '../components/TicketAnalyticsCard';
@@ -12,8 +12,7 @@ import { TicketModal } from '../components/TicketModal';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { Download, Printer, Search } from 'lucide-react';
 import Button from '@/components/ui/Button';
-
-type TicketStatusFilter = 'All' | RecordStatus;
+import { TicketStatusFilter, useTicketFilters } from '../hooks/useTicketFilters';
 
 const FILTERS: TicketStatusFilter[] = [
   'All',
@@ -25,20 +24,15 @@ const FILTERS: TicketStatusFilter[] = [
 ] as const;
 
 const TicketsPage: FC = () => {
-  const [status, setStatus] = useState<TicketStatusFilter>('All');
-  const [search, setSearch] = useState('');
-  const [marketSection, setMarketSection] = useState('');
+  const { 
+    setFilters,
+    filters,
+    queryParams
+  } = useTicketFilters()
   const [selectedTicketId, setSelectedTicketId] = useState<number>(0);
-
-  const debouncedSearch = useDebounce(search, 400);
-
-  const { ticketSummary, page, setPage, total, totalPages, isLoading } = useTickets({
-    status: status === 'All' ? undefined : status,
-    search: debouncedSearch,
-    marketSection: marketSection || undefined,
-  });
-
   const { stats } = useTicketAnalytics();
+
+  const { ticketSummary, page, setPage, total, totalPages, isLoading, isFetching } = useTickets(queryParams);
 
   const goToPage = (target: number) => {
     setPage(Math.min(Math.max(target, 1), totalPages));
@@ -66,31 +60,31 @@ const TicketsPage: FC = () => {
               <input
                 className={styles.searchInput}
                 placeholder="Search tickets…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={filters.search}
+                onChange={(e) => setFilters.setSearch(e.target.value)}
               />
             </div>
 
             <div className={styles.filterGroup}>
               <Dropdown
                 ariaLabel="Filter by Status"
-                triggerLabel={status}
-                value={status}
-                onChange={(value) => setStatus(value as TicketStatusFilter)}
+                triggerLabel={filters.status}
+                value={filters.status}
+                onChange={(value) => setFilters.setStatus(value as TicketStatusFilter)}
                 options={FILTERS.map((filter) => ({ value: filter, label: filter }))}
               />
               <Dropdown
                 ariaLabel="Filter by Market Section"
-                triggerLabel={marketSection || 'Market Section'}
-                value={marketSection}
-                onChange={(value) => setMarketSection(value)}
+                triggerLabel={filters.marketSection || 'Market Section'}
+                value={filters.marketSection}
+                onChange={(value) => setFilters.setMarketSection(value as MarketSection)}
                 options={Object.entries(MARKET_SECTION_LABELS).map(([value, label]) => ({ value, label }))}
               />
             </div>
           </div>
         </div>
 
-        <TicketList tickets={ticketSummary} loading={isLoading} onView={(ticketId) => setSelectedTicketId(ticketId)} />
+        <TicketList tickets={ticketSummary} loading={isLoading || isFetching} onView={(ticketId) => setSelectedTicketId(ticketId)} />
 
         <div className={styles.footer}>
           <span className={styles.entries}>

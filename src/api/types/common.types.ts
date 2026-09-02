@@ -63,6 +63,17 @@ export const MARKET_SECTION_LABELS: Record<MarketSection, string> = {
   miscellaneous: 'Miscellaneous Section',
 };
 
+export const MARKET_SECTION_IDS: Record<MarketSection, number> = {
+  fishAndSeafood: 1,
+  meat: 2,
+  dryGoods: 3,
+  vegetable: 4,
+  groceries: 5,
+  eatery: 6,
+  specialStalls: 7,
+  miscellaneous: 8,
+};
+
 export type InspectionType = 'all' | 'warning' | 'ticket';
 
 export type RecordStatus = 'Pending' | 'Cleared' | 'Contested' | 'Paid' | 'Overdue' | 'Waived';

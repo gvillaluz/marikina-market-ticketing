@@ -1,0 +1,22 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+}
+
+.rank {
+  width: 16px;
+  color: var(--neutral-400);
+  font-weight: 600;
+}
+
+.name {
+  flex: 1;
+  color: #1A1C1E;
+}
+
+.count {
+  color: var(--neutral-500);
+  font-size: 0.75rem;
+}

@@ -20,6 +20,8 @@ import EvidenceSection from '../components/detail/EvidenceSection';
 import { useUpdateStatus } from '../hooks/useUpdateStatus';
 import { TicketModal } from '../components/TicketModal';
 import Modal from '@/components/ui/Modal';
+import { useTicketStatusSelection } from '../hooks/useTicketStatusSelection';
+import { useDisclosure } from '../hooks/useDisclosure';
 
 
 const STATUS_OPTIONS = [
@@ -32,18 +34,14 @@ const STATUS_OPTIONS = [
 
 const TicketDetailPage: FC = () => {
   const { id } = useParams();
-  const { ticket } = useTicketDetails(Number.parseInt(id || ''));
-  const [selectedStatus, setSelectedStatus] = useState<RecordStatus>(ticket?.status || 'Pending');
-  const [isOpen, setIsOpen] = useState(false);
-  const [openConfirmModal, setOpenConfirmModal] = useState(false);
-  const { mutate: updateStatus } = useUpdateStatus(Number(id));
+  const { ticket, refetch, isLoading, isError, error } = useTicketDetails(Number.parseInt(id || ''));
+  const { selectedStatus, setSelectedStatus } = useTicketStatusSelection(ticket);
+  const { mutateAsync: updateStatus, isPending } = useUpdateStatus(Number(id));
 
-  const isLoading = false;
-  const error: string | null = null;
+  const recordModal = useDisclosure();
+  const confirmModal = useDisclosure();
 
-  const handleRetry = () => {
-    // TODO: call refetch() from the real data-fetching hook once it exists.
-  };
+  const handleRetry = () => refetch();
 
   if (isLoading) {
     return (
@@ -53,10 +51,10 @@ const TicketDetailPage: FC = () => {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className={styles.page}>
-        <TicketDetailError message={error} onRetry={handleRetry} />
+        <TicketDetailError message={error?.message} onRetry={handleRetry} />
       </div>
     );
   }
@@ -162,28 +160,37 @@ const TicketDetailPage: FC = () => {
       </div>
 
       <TicketDetailFooter
-        onViewFullRecord={() => setIsOpen(true)}
-        onChangeStatus={() => setOpenConfirmModal(true)}
+        onViewFullRecord={recordModal.open}
+        onChangeStatus={() => {
+          if (selectedStatus == ticket?.status) return;
+          confirmModal.open();
+        }}
       />
 
-      {(isOpen && ticket != null) && <TicketModal isOpen={isOpen} ticketId={ticket?.ticketId} onClose={() => setIsOpen(false)} />}
+      {(recordModal.isOpen && ticket != null) && <TicketModal isOpen={recordModal.isOpen} ticketId={ticket?.ticketId} onClose={recordModal.close} />}
 
-      {openConfirmModal && 
+      {confirmModal.isOpen && 
         <Modal 
-          open={openConfirmModal} 
-          onClose={() => setOpenConfirmModal(false)}
+          open={confirmModal.isOpen} 
+          onClose={confirmModal.close}
           footer={
             <>
-              <button className={styles.modalCancel} onClick={() => setOpenConfirmModal(false)}>
+              <button className={styles.modalCancel} onClick={confirmModal.close}>
                 Cancel
               </button>
-              <button className={styles.modalConfirm} onClick={() => {
-                updateStatus({ newStatus: selectedStatus, version: ticket?.version ?? 0 });
-                setOpenConfirmModal(false);
-
-                // TODO: add error handling and user feedback
-              }}>
-                Confirm Update
+              <button
+                className={styles.modalConfirm}
+                disabled={isPending}
+                onClick={async () => {
+                  try {
+                    await updateStatus({ newStatus: selectedStatus!, version: ticket?.version ?? 0 });
+                    confirmModal.close();
+                  } catch {
+                    // stays open, error toast already shown via onError in the hook
+                  }
+                }}
+              >
+                {isPending ? 'Updating…' : 'Confirm Update'}
               </button>
             </>
           }
