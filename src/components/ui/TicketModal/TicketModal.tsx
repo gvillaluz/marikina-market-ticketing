@@ -7,12 +7,13 @@ import TicketPenaltyDetailsSection from "./modal/TicketPenaltyDetailsSection";
 import TicketSignatureSection from "./modal/TicketSignatureSection";
 import TicketPhotoEvidenceSection from "./modal/TicketPhotoEvidenceSection";
 import TicketExportPanel from "./modal/TicketExportPanel";
-import { useTicketDetails } from "../hooks/useTicketDetails";
+import { useTicketDetails } from "../../../features/tickets/hooks/useTicketDetails";
 import { toPng } from "html-to-image";
 import { useRef } from "react";
 import jsPDF from "jspdf";
 import { useReactToPrint } from "react-to-print";
 import { TicketDetail } from "@/api/types/ticket.types";
+import TicketModalSkeleton from "./modal/TicketModalSkeleton";
 
 interface TicketModalProps {
     isOpen: boolean;
@@ -23,6 +24,8 @@ interface TicketModalProps {
 export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
     const { ticket, isLoading, isError, error } = useTicketDetails(ticketId);
     const ticketPaperRef = useRef<HTMLDivElement>(null);
+
+    const isTicket = ticket?.type === 'Ticket';
 
     const handleExportPNG = async () => {
     if (!ticketPaperRef.current) return;
@@ -112,37 +115,46 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
             <div className={styles.layout}>
                 <div className={styles.leftColumn}>
                     <div ref={ticketPaperRef} className={styles.ticketPaper}>
-                        <div className={styles.ticketHeader}>
-                            <h4>City of Marikina</h4>
-                            <p>Marikina City Public Market</p>
-                        </div>
-                        <div className={styles.ticketTop}>
-                            <div className={styles.brand}>
-                                <img
-                                    className={styles.logo}
-                                    src={brandLogo}
-                                    alt="Marikina City Public Market Seal"
+                        {isLoading ? (
+                            <TicketModalSkeleton />
+                        ) : (
+                            <>
+                                <div className={styles.ticketHeader}>
+                                    <h4>City of Marikina</h4>
+                                    <p>Marikina City Public Market</p>
+                                </div>
+                                <div className={styles.ticketTop}>
+                                    <div className={styles.brand}>
+                                        <img
+                                            className={styles.logo}
+                                            src={brandLogo}
+                                            alt="Marikina City Public Market Seal"
+                                        />
+                                        <span className={styles.violationLabel}>{isTicket ? 'VIOLATION TICKET' : 'WRITTEN WARNING TICKET'}</span>
+                                    </div>
+                                    {isTicket &&
+                                    <div className={styles.controlNo}>
+                                        <span className={styles.controlLabel}>CONTROL NO.</span>
+                                        <span className={styles.controlValue}>{`#${ticket?.controlNumber}`}</span>
+                                    </div>}
+                                </div>
+
+                                <hr className={styles.divider} />
+
+                                <TicketViolationInfoSection detail={ticket} />
+                                <TicketViolationDetailsSection detail={ticket} />
+                                
+                                {ticket?.type == 'Ticket' && <TicketPenaltyDetailsSection detail={ticket} />}
+
+                                <TicketSignatureSection
+                                    enforcerName={`${ticket?.enforcerLastName}, ${ticket?.enforcerFirstName}`}
+                                    vendorName={`${ticket?.lastName}, ${ticket?.firstName}`}
                                 />
-                                <span className={styles.violationLabel}>VIOLATION TICKET</span>
-                            </div>
-                            <div className={styles.controlNo}>
-                                <span className={styles.controlLabel}>CONTROL NO.</span>
-                                <span className={styles.controlValue}>{`#${ticket?.controlNumber}`}</span>
-                            </div>
-                        </div>
-
-                        <hr className={styles.divider} />
-
-                        <TicketViolationInfoSection detail={ticket} />
-                        <TicketViolationDetailsSection detail={ticket} />
-                        <TicketPenaltyDetailsSection detail={ticket} />
-                        <TicketSignatureSection
-                            enforcerName={`${ticket?.enforcerLastName}, ${ticket?.enforcerFirstName}`}
-                            vendorName={`${ticket?.lastName}, ${ticket?.firstName}`}
-                        />
+                            </>
+                        )}
                     </div>
 
-                    <TicketPhotoEvidenceSection images={ticket?.ticketEvidences || []} />
+                    {isTicket && <TicketPhotoEvidenceSection images={ticket?.ticketEvidences || []} />}
                 </div>
 
                 <TicketExportPanel

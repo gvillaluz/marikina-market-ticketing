@@ -1,6 +1,6 @@
 import { FileWarning } from 'lucide-react';
 import TicketSectionHeader from './TicketSectionHeader';
-import TicketDetailRow from '../TicketDetailRow';
+import TicketDetailRow from '../../../../features/tickets/components/TicketDetailRow';
 import OrdinanceCard from './OrdinanceCard';
 import styles from './TicketViolationDetailsSection.module.css';
 import TicketInfoRow from './TicketInfoRow';
@@ -18,7 +18,7 @@ function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail }) {
                         title={violation.ordinanceNo}
                         subtitle={violation.ordinanceCode}
                         offense={formatOrdinal(violation.offenseCount)}
-                        price={formatCurrency(violation.penaltyAmount || 0)}
+                        price={violation.penaltyAmount ? formatCurrency(violation.penaltyAmount) : undefined}
                     />
                 ))}
             </div>

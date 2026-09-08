@@ -5,7 +5,7 @@ type OrdinanceCardProps = {
     title: string;
     subtitle: string;
     offense: string;
-    price: string;
+    price?: string;
 }
 
 function OrdinanceCard({ title, subtitle, offense, price }: OrdinanceCardProps) {
@@ -25,10 +25,10 @@ function OrdinanceCard({ title, subtitle, offense, price }: OrdinanceCardProps) 
             </div>
             <div className={styles.priceRow}>
                 <div className={`${styles.offenseContainer} ${getSeverityClass()}`}>
-                    <History size={17} />
+                    <History size={15} />
                     <span className={styles.offenseBadge}>{`${offense} offense`}</span>
                 </div>
-                <span className={styles.price}>{price}</span>
+                {price && <span className={styles.price}>{price}</span>}
             </div>
         </div>
     );

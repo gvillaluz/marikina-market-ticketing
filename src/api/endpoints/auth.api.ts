@@ -2,9 +2,9 @@ import client from '@/api/client';
 import type { AuthResponse, LoginInput, RegisterInput, User } from '@/features/auth/auth.types';
 
 export interface MandatoryChangePasswordInput {
-  current_password: string;
-  new_password: string;
-  confirm_new_password: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
 }
 
 export const authApi = {

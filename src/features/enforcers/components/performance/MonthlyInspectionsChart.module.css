@@ -1,0 +1,54 @@
+.card {
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  background: #fff;
+  padding: 1.25rem;
+}
+
+.title {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #002753;
+  letter-spacing: 0.02em;
+  margin-bottom: 1rem;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 100px;
+}
+
+.barColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 4px;
+}
+
+.count {
+  font-size: 0.6rem;
+  color: var(--neutral-500);
+}
+
+.bar {
+  width: 100%;
+  max-width: 22px;
+  background: var(--neutral-200);
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+}
+
+.barHighlight {
+  background: #002753;
+}
+
+.month {
+  font-size: 0.6rem;
+  color: var(--neutral-500);
+}

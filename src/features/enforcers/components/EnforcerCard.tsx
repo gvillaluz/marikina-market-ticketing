@@ -6,6 +6,7 @@ import styles from './EnforcerCard.module.css';
 interface EnforcerCardProps {
   name: string;
   initials: string;
+  profileUrl: string;
   badgeNo: string;
   status: 'Active' | 'Inactive';
   warnings: number;
@@ -16,6 +17,7 @@ interface EnforcerCardProps {
 const EnforcerCard: FC<EnforcerCardProps> = ({
   name,
   initials,
+  profileUrl,
   badgeNo,
   status,
   warnings,
@@ -25,7 +27,11 @@ const EnforcerCard: FC<EnforcerCardProps> = ({
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <div className={styles.avatar}>{initials}</div>
+        {profileUrl != '' ? (
+          <img src={profileUrl} alt='profile' /> 
+        ) : (
+          <div className={styles.avatar}>{initials}</div>
+        )}
         <div className={styles.identity}>
           <span className={styles.name}>{name}</span>
           <span className={styles.badgeNo}>ID: {badgeNo}</span>

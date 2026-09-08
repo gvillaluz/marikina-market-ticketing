@@ -56,7 +56,7 @@ export function InspectionFilters({
 
         <Dropdown
           ariaLabel="Market Section"
-          triggerLabel={SECTION_OPTIONS.find((option) => option.value === section)?.label ?? 'Market Section'}
+          triggerLabel={SECTION_OPTIONS.find((option) => option.value === section)?.label ?? 'All Sections'}
           value={section}
           onChange={onSectionChange}
           options={SECTION_OPTIONS}

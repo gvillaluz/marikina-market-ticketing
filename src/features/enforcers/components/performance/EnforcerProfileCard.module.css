@@ -1,0 +1,105 @@
+.card {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  gap: 10px;
+  padding: 0 0 20px 0;
+  border-bottom: 1px solid #c3c6d2;
+}
+
+.headerTitle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  background: #1e40af;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.info {
+  display: flex;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.employeeId {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #00488f;
+  background: #ddedff;
+  width: fit-content;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.tags {
+  display: flex;
+  justify-content: space-between;
+  background: #e8eff6;
+  padding: 10px 20px;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.tagContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.tagLabel {
+  font-size: 0.75rem;
+}
+
+.tag {
+  color: #0f172a;
+  font-size: 0.875rem;
+}
+
+.icon {
+  background: #ddedff;
+  padding: 10px;
+  border-radius: 50px;
+  color: #00488f;
+}

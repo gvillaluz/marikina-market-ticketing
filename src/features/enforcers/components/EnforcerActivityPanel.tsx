@@ -2,6 +2,10 @@ import { FC } from 'react';
 import EnforcerHighlightItem from './EnforcerHighlightItem';
 import TopIssuerRow from './TopIssuerRow';
 import styles from './EnforcerActivityPanel.module.css';
+import { TopIssuer } from '@/api/types/enforcer.types';
+import EnforcerActivitySkeleton from './EnforcerActivitySkeleton';
+import EnforcerActivityError from './EnforcerActivityError';
+import { Trophy } from 'lucide-react';
 
 // STATIC DATA — replace with useEnforcerAnalytics() once the endpoint exists.
 const ACTIVITY_STATS = {
@@ -24,43 +28,80 @@ const TOP_ISSUERS = [
   { id: 't5', name: 'Lee, Angelo P.', count: 31 },
 ];
 
-const EnforcerActivityPanel: FC = () => {
+type EnforcerActivityProps = {
+  averageTicket: number;
+  averageWarning: number;
+  topEnforcers: TopIssuer[];
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+};
+
+
+const EnforcerActivityPanel: FC<EnforcerActivityProps> = ({ 
+  averageTicket, 
+  averageWarning,
+  topEnforcers,
+  isLoading,
+  isError,
+  onRetry
+ }) => {
   return (
     <aside className={styles.panel}>
       <h5 className={styles.title}>Enforcer activity</h5>
       <p className={styles.subtitle}>Enforcer performance metrics.</p>
 
-      <div className={styles.statsRow}>
-        <div className={styles.statBox}>
-          <span className={styles.statValue}>{ACTIVITY_STATS.avgWarningsPerDay}</span>
-          <span className={styles.statLabel}>AVG WARNINGS/DAY</span>
-        </div>
-        <div className={styles.statBox}>
-          <span className={styles.statValue}>{ACTIVITY_STATS.avgTicketsPerDay}</span>
-          <span className={styles.statLabel}>AVG TICKETS/DAY</span>
-        </div>
-      </div>
+      {isLoading ? (
+        <EnforcerActivitySkeleton />
+      ) : isError ? (
+        <EnforcerActivityError onRetry={onRetry} />
+      ) : (
+        <>
+          <div className={styles.statsRow}>
+            <div className={styles.statBox}>
+              <span className={styles.statValue}>{averageWarning}</span>
+              <span className={styles.statLabel}>AVG WARNINGS/DAY</span>
+            </div>
+            <div className={styles.statBox}>
+              <span className={styles.statValue}>{averageTicket}</span>
+              <span className={styles.statLabel}>AVG TICKETS/DAY</span>
+            </div>
+          </div>
 
-      <div className={styles.section}>
-        <span className={styles.sectionTitle}>Enforcer Highlights</span>
-        <div className={styles.highlightList}>
-          {HIGHLIGHTS.map((highlight) => (
-            <EnforcerHighlightItem key={highlight.id} name={highlight.name} note={highlight.note} />
-          ))}
-        </div>
-      </div>
+          {/* <div className={styles.section}>
+            <span className={styles.sectionTitle}>Enforcer Highlights</span>
+            <div className={styles.highlightList}>
+              {topEnforcers.map((highlight) => (
+                <EnforcerHighlightItem key={highlight.enforcerId} name={highlight.enforcerName} note={highlight.} />
+              ))}
+            </div>
+          </div> */}
 
-      <div className={styles.section}>
-        <span className={styles.sectionTitle}>Top Issuers this month</span>
-        <div className={styles.issuerList}>
-          {TOP_ISSUERS.map((issuer, index) => (
-            <>
-                <TopIssuerRow key={issuer.id} rank={index + 1} name={issuer.name} count={issuer.count} />
-                <div className={styles.divider}></div>
-            </>
-          ))}
-        </div>
-      </div>
+          <div className={styles.section}>
+            <span className={styles.sectionTitle}>Top Issuers this month</span>
+            <div className={styles.issuerList}>
+              {topEnforcers.length === 0 ? (
+                <div className={styles.emptyIssuers}>
+                  <div className={styles.emptyIssuersIconWrap}>
+                    <Trophy size={20} className={styles.emptyIssuersIcon} />
+                  </div>
+                  <span className={styles.emptyIssuersTitle}>No activity yet</span>
+                  <span className={styles.emptyIssuersText}>
+                    Ticket rankings will appear here once enforcers start logging violations this month.
+                  </span>
+                </div>
+              ) : (
+                topEnforcers.map((issuer, index) => (
+                  <div key={issuer.enforcerId}>
+                    <TopIssuerRow rank={index + 1} name={issuer.enforcerName} count={issuer.totalTickets} />
+                    {index < topEnforcers.length - 1 && <div className={styles.divider} />}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </aside>
   );
 };

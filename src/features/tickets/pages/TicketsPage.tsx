@@ -1,21 +1,21 @@
 import { FC, useState } from 'react';
 import PageHeader from '@/components/ui/PageHeader';
 import TicketList from '@/features/tickets/components/TicketList';
-import useTickets from '@/features/tickets/hooks/useTickets';
 import useDebounce from '@/hooks/useDebounce';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
 import { MARKET_SECTION_LABELS, MarketSection, RecordStatus } from '@/api/types/common.types';
 import styles from './TicketsPage.module.css';
 import useTicketAnalytics from '../hooks/useTicketAnalytics';
 import TicketAnalyticsCard from '../components/TicketAnalyticsCard';
-import { TicketModal } from '../components/TicketModal';
+import { TicketModal } from '../../../components/ui/TicketModal/TicketModal';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { Download, Printer, Search } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { TicketStatusFilter, useTicketFilters } from '../hooks/useTicketFilters';
+import { useTickets } from '../hooks/useTickets';
 
 const FILTERS: TicketStatusFilter[] = [
-  'All',
+  'All Status',
   'Pending',
   'Contested',
   'Paid',
@@ -75,10 +75,16 @@ const TicketsPage: FC = () => {
               />
               <Dropdown
                 ariaLabel="Filter by Market Section"
-                triggerLabel={filters.marketSection || 'Market Section'}
+                triggerLabel={filters.marketSection === 'All Sections'
+                    ? 'All Sections'
+                    : MARKET_SECTION_LABELS[filters.marketSection]
+                }
                 value={filters.marketSection}
                 onChange={(value) => setFilters.setMarketSection(value as MarketSection)}
-                options={Object.entries(MARKET_SECTION_LABELS).map(([value, label]) => ({ value, label }))}
+                options={[
+                  { value: 'All Sections', label: 'All Sections' },
+                  ...Object.entries(MARKET_SECTION_LABELS).map(([value, label]) => ({ value, label })),
+                ]}
               />
             </div>
           </div>
@@ -86,56 +92,58 @@ const TicketsPage: FC = () => {
 
         <TicketList tickets={ticketSummary} loading={isLoading || isFetching} onView={(ticketId) => setSelectedTicketId(ticketId)} />
 
-        <div className={styles.footer}>
-          <span className={styles.entries}>
-            Showing {total === 0 ? 0 : (page - 1) * 9 + 1} to {Math.min(page * 9, total)} of {total} entries
-          </span>
+        {ticketSummary.length !== 0 && 
+          <div className={styles.footer}>
+            <span className={styles.entries}>
+              Showing {total === 0 ? 0 : (page - 1) * 9 + 1} to {Math.min(page * 9, total)} of {total} entries
+            </span>
 
-          <div className={styles.footerActions}>
-            <Button
-              className={styles.exportButton}
-              variant="outline"
-              icon={<Download size={14} strokeWidth={1.8} aria-hidden="true" />}
-            >
-              Export
-            </Button>
-            <button
-              className={styles.printButton}
-              onClick={() => window.print()}
-              aria-label="Print inspection records"
-              title="Print inspection records"
-            >
-              <Printer size={15} strokeWidth={1.8} aria-hidden="true" />
-            </button>
-            <button
-              className={styles.pageButton}
-              disabled={page <= 1}
-              onClick={() => goToPage(page - 1)}
-              aria-label="Previous page"
-            >
-              ‹
-            </button>
-            {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map((p) => (
-              <button
-                key={p}
-                className={`${styles.pageButton} ${page === p ? styles.currentPage : ''}`}
-                onClick={() => goToPage(p)}
-                aria-label={`Go to page ${p}`}
+            <div className={styles.footerActions}>
+              <Button
+                className={styles.exportButton}
+                variant="outline"
+                icon={<Download size={14} strokeWidth={1.8} aria-hidden="true" />}
               >
-                {p}
+                Export
+              </Button>
+              <button
+                className={styles.printButton}
+                onClick={() => window.print()}
+                aria-label="Print inspection records"
+                title="Print inspection records"
+              >
+                <Printer size={15} strokeWidth={1.8} aria-hidden="true" />
               </button>
-            ))}
-            {totalPages > 3 && <span className={styles.ellipsis}>...</span>}
-            <button
-              className={styles.pageButton}
-              disabled={page >= totalPages}
-              onClick={() => goToPage(page + 1)}
-              aria-label="Next page"
-            >
-              ›
-            </button>
+              <button
+                className={styles.pageButton}
+                disabled={page <= 1}
+                onClick={() => goToPage(page - 1)}
+                aria-label="Previous page"
+              >
+                ‹
+              </button>
+              {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map((p) => (
+                <button
+                  key={p}
+                  className={`${styles.pageButton} ${page === p ? styles.currentPage : ''}`}
+                  onClick={() => goToPage(p)}
+                  aria-label={`Go to page ${p}`}
+                >
+                  {p}
+                </button>
+              ))}
+              {totalPages > 3 && <span className={styles.ellipsis}>...</span>}
+              <button
+                className={styles.pageButton}
+                disabled={page >= totalPages}
+                onClick={() => goToPage(page + 1)}
+                aria-label="Next page"
+              >
+                ›
+              </button>
+            </div>
           </div>
-        </div>
+        }
       </section>
 
       {selectedTicketId != 0 &&

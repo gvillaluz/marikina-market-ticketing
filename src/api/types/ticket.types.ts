@@ -55,6 +55,24 @@ interface BaseRecordDetail {
   issuedToDate: string;
 }
 
+export interface InspectionSummary {
+  ticketId: number;
+  enforcerId: number;
+  enforcerFirstName: string;
+  enforcerLastName: string;
+  vendorId: number;
+  vendorFirstName: string;
+  vendorLastName: string;
+  stallNumber: string;
+  businessName: string;
+  marketSectionId: number;
+  marketSectionName: string;
+  status: RecordStatus;
+  type: 'Warning' | 'Ticket';
+  issuedAt: Date;
+  updatedAt: Date;
+}
+
 export interface WarningRecord extends BaseRecordDetail {
   type: 'warning';
   ordinanceNumber: string;

@@ -1,20 +1,20 @@
-import { MARKET_SECTION_IDS, MarketSection, RecordStatus } from "@/api/types/common.types";
+import { MARKET_SECTION_IDS, MarketSection, MarketSectionFilter, RecordStatus } from "@/api/types/common.types";
 import useDebounce from "@/hooks/useDebounce";
 import { useState } from "react";
 
-export type TicketStatusFilter = 'All' | RecordStatus;
+export type TicketStatusFilter = 'All Status' | RecordStatus;
 
 export function useTicketFilters() {
-    const [status, setStatus] = useState<TicketStatusFilter>('All')
+    const [status, setStatus] = useState<TicketStatusFilter>('All Status')
     const [search, setSearch] = useState('')
-    const [marketSection, setMarketSection] = useState<MarketSection | ''>('');
+    const [marketSection, setMarketSection] = useState<MarketSectionFilter>('All Sections');
 
     const debouncedSearch = useDebounce(search, 400);
 
     const queryParams = {
-        status: status === 'All' ? undefined : status,
+        status: status === 'All Status' ? undefined : status,
         search: debouncedSearch,
-        marketSectionId: marketSection ? MARKET_SECTION_IDS[marketSection] : undefined
+        marketSectionId: marketSection == 'All Sections' ? undefined : MARKET_SECTION_IDS[marketSection]
     }
 
     return {

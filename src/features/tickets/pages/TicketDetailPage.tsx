@@ -18,7 +18,7 @@ import TicketDetailError from '../components/detail/TicketDetailError';
 import { useTicketDetails } from '../hooks/useTicketDetails';
 import EvidenceSection from '../components/detail/EvidenceSection';
 import { useUpdateStatus } from '../hooks/useUpdateStatus';
-import { TicketModal } from '../components/TicketModal';
+import { TicketModal } from '../../../components/ui/TicketModal/TicketModal';
 import Modal from '@/components/ui/Modal';
 import { useTicketStatusSelection } from '../hooks/useTicketStatusSelection';
 import { useDisclosure } from '../hooks/useDisclosure';

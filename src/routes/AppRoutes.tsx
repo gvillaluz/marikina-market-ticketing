@@ -1,25 +1,27 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import ProtectedRoute from './ProtectedRoute';
-import { ROUTES } from './routePaths';
-import type { UserRole } from '@/api/types/common.types';
-import LandingPage from '@/features/landing/pages/LandingPage';
-import LoginPage from '@/features/auth/pages/LoginPage';
-import AdminLoginPage from '@/features/auth/pages/AdminLoginPage';
-import ChangePasswordPage from '@/features/auth/pages/ChangePasswordPage';
-import { DashboardPage } from '../features/dashboard/pages/DashboardPage';import AdminPlaceholderPage from '@/features/dashboard/pages/AdminPlaceholderPage';
-import TicketsPage from '@/features/tickets/pages/TicketsPage';
-import TicketDetailPage from '@/features/tickets/pages/TicketDetailPage';
-import VendorsPage from '@/features/vendors/pages/VendorPage';
-import VendorDetailPage from '@/features/vendors/pages/VendorDetailPage';
-import VendorRegistrationPage from '@/features/vendors/pages/VendorRegistrationPage';
-import PenaltiesPage from '@/features/penalties/pages/PenaltiesPage';
-import CompliancePage from '@/features/compliance/pages/CompliancePage';
-import { InspectionsPage } from '../features/inspections/pages/InspectionsPage';
-import EnforcersPage from '@/features/enforcers/pages/EnforcersPage';
+import { Routes, Route, Navigate } from "react-router-dom";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import ProtectedRoute from "./ProtectedRoute";
+import { ROUTES } from "./routePaths";
+import type { UserRole } from "@/api/types/common.types";
+import LandingPage from "@/features/landing/pages/LandingPage";
+import LoginPage from "@/features/auth/pages/LoginPage";
+import AdminLoginPage from "@/features/auth/pages/AdminLoginPage";
+import ChangePasswordPage from "@/features/auth/pages/ChangePasswordPage";
+import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
+import AdminPlaceholderPage from "@/features/dashboard/pages/AdminPlaceholderPage";
+import TicketsPage from "@/features/tickets/pages/TicketsPage";
+import TicketDetailPage from "@/features/tickets/pages/TicketDetailPage";
+import VendorsPage from "@/features/vendors/pages/VendorPage";
+import VendorDetailPage from "@/features/vendors/pages/VendorDetailPage";
+import VendorRegistrationPage from "@/features/vendors/pages/VendorRegistrationPage";
+import PenaltiesPage from "@/features/penalties/pages/PenaltiesPage";
+import CompliancePage from "@/features/compliance/pages/CompliancePage";
+import { InspectionsPage } from "../features/inspections/pages/InspectionsPage";
+import EnforcersPage from "@/features/enforcers/pages/EnforcersPage";
+import EnforcerPerformancePage from "@/features/enforcers/pages/EnforcerPerformancePage";
 
-const ADMIN_ENFORCER_ROLES: UserRole[] = ['Admin', 'Enforcer'];
-const ADMIN_ONLY_ROLES: UserRole[] = ['Admin'];
+const ADMIN_ENFORCER_ROLES: UserRole[] = ["Admin", "Enforcer"];
+const ADMIN_ONLY_ROLES: UserRole[] = ["Admin"];
 
 const AppRoutes = () => {
   return (
@@ -51,11 +53,24 @@ const AppRoutes = () => {
       >
         <Route path={ROUTES.dashboard} element={<DashboardPage />} />
         <Route path={ROUTES.tickets} element={<TicketsPage />} />
-        <Route path={ROUTES.ticketDetail(':id')} element={<TicketDetailPage />} />
+        <Route
+          path={ROUTES.ticketDetail(":id")}
+          element={<TicketDetailPage />}
+        />
         <Route path={ROUTES.enforcers} element={<EnforcersPage />} />
-        <Route path={ROUTES.analytics} element={<AdminPlaceholderPage title="Analytics" />} />
+        <Route
+          path={ROUTES.enforcerPerformancePage(":id")}
+          element={<EnforcerPerformancePage />}
+        />
+        <Route
+          path={ROUTES.analytics}
+          element={<AdminPlaceholderPage title="Analytics" />}
+        />
         <Route path={ROUTES.inspections} element={<InspectionsPage />} />
-        <Route path={ROUTES.performance} element={<AdminPlaceholderPage title="Performance" />} />
+        <Route
+          path={ROUTES.performance}
+          element={<AdminPlaceholderPage title="Performance" />}
+        />
       </Route>
 
       {/* General authenticated routes (any role) */}
@@ -67,8 +82,14 @@ const AppRoutes = () => {
         }
       >
         <Route path={ROUTES.vendors} element={<VendorsPage />} />
-        <Route path={ROUTES.vendorDetail(':id')} element={<VendorDetailPage />} />
-        <Route path={ROUTES.vendorRegister} element={<VendorRegistrationPage />} />
+        <Route
+          path={ROUTES.vendorDetail(":id")}
+          element={<VendorDetailPage />}
+        />
+        <Route
+          path={ROUTES.vendorRegister}
+          element={<VendorRegistrationPage />}
+        />
         <Route path={ROUTES.penalties} element={<PenaltiesPage />} />
         <Route path={ROUTES.compliance} element={<CompliancePage />} />
       </Route>

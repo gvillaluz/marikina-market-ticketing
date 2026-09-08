@@ -1,0 +1,51 @@
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.span {
+  line-height: 1;
+}
+
+.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.resolved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.paid {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.escalated {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.waived {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+}
+
+.actionBtn {
+  font-size: 0.8rem;
+}
+
+.view {
+  color: #1e40af;
+}
