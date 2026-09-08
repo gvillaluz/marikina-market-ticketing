@@ -1,20 +1,12 @@
 import { TicketSummary } from "./ticket.types";
 
+export type AccountStatus = 'Active' | 'Inactive';
+
 export interface ApiResponse<T> {
   success: boolean;
   message?: string;
   data: T;
 }
-
-
-export interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
 
 export interface PaginationParams {
   page?: number;
@@ -30,9 +22,8 @@ export type Status = 'pending' | 'approved' | 'rejected' | 'resolved' | 'active'
 
 export interface PaginatedResponse<T> {
   items: T[];
+  hasMore: boolean;
   total: number;
-  page: number;
-  pageSize: number;
 }
 
 export interface ApiError {
@@ -62,6 +53,8 @@ export const MARKET_SECTION_LABELS: Record<MarketSection, string> = {
   specialStalls: 'Special Stalls',
   miscellaneous: 'Miscellaneous Section',
 };
+
+export type MarketSectionFilter = 'All Sections' | MarketSection;
 
 export const MARKET_SECTION_IDS: Record<MarketSection, number> = {
   fishAndSeafood: 1,

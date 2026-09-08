@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './Dropdown.module.css';
+import { ChevronDown } from 'lucide-react';
 
 export interface DropdownOption<T extends string = string> {
   value: T;
@@ -46,7 +47,7 @@ export function Dropdown<T extends string = string>({
         onClick={() => setOpen((prev) => !prev)}
       >
         <span className={styles.triggerLabel}>{triggerLabel ?? ariaLabel}</span>
-        <span className={styles.chevron} aria-hidden="true">▾</span>
+        <ChevronDown className={styles.chevron} size={15} />
       </button>
 
       {open && (

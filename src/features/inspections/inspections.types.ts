@@ -8,7 +8,8 @@ export type MarketSection =
   | 'Special Stalls'
   | 'Miscellaneous Section';
 
-export type InspectionType = 'Warning' | 'Ticket' | 'Cleared';
+export type InspectionType = 'Warning' | 'Ticket';
+export type ViolationTypeFilter  = 'All Type' | 'Warning' | 'Ticket';
 
 export type Severity = 'Low' | 'Medium' | 'High';
 

@@ -1,11 +1,26 @@
 .card {
   border: 1px solid #C3C6D2;
-  border-radius: 8px;
+  border-radius: 15px;
   padding: 1rem;
   background: #fff;
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  transition: 
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    filter 0.3s ease;
+}
+
+.card:hover, .card:focus-visible {
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card:hover, .card:focus-visible {
+    transform: scale(1) translateY(-2px);
+  }
 }
 
 .header {
@@ -112,13 +127,14 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 2px solid #00488F;
   color: #00488F;
-  border-radius: 6px;
+  border-radius: 10px;
   padding: 10px;
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
+  background: #F3F6F9;
+  border: 1px solid #cbddf5;
   transition: .1s ease-in-out background;
 }
 

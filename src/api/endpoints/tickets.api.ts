@@ -13,16 +13,17 @@ import type {
   TicketSummary,
   TicketStats,
   TicketDetail,
+  InspectionSummary,
 } from '../types/ticket.types';
 
-export interface GetInspectionsParams {
+interface GetInspectionsParams {
   search?: string;
-  type?: 'Warning' | 'Ticket' | undefined;
+  type?: 'Warning' | 'Ticket';
   offset?: number;
-  market_section_id?: number;
+  marketSectionId?: number;
 }
 
-export interface GetTicketsParams {
+interface GetTicketsParams {
   offset?: number;
   search?: string;
   status?: RecordStatus;
@@ -44,12 +45,11 @@ export function getTicketById(id: string): Promise<TicketRecord> {
 }
 
 export const ticketsApi = {
-  inspectionList(params: GetInspectionsParams): Promise<PaginatedResponse<TicketRecord>> {
-    return apiClient.get('/admin/inspections', { params }).then((response) => response.data as PaginatedResponse<TicketRecord>);
+  inspectionList(params: GetInspectionsParams): Promise<PaginatedResponse<InspectionSummary>> {
+    return apiClient.get('/admin/tickets/inspections', { params }).then((response) => response.data as PaginatedResponse<InspectionSummary>);
   },
 
   ticketList(params: GetTicketsParams): Promise<PaginatedResponse<TicketSummary>> {
-    console.log(params)
     return apiClient.get('/admin/tickets', { params }).then((response) => response.data as PaginatedResponse<TicketSummary>);
   },
 

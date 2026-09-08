@@ -25,13 +25,8 @@ const TicketList: FC<TicketListProps> = ({ tickets, loading, onView }) => {
       emptyMessage="No tickets found."
       columns={[
         { 
-          key: 'ticketId', 
-          header: 'ID', 
-          render: (ticket) => ticket.id ?? '—' 
-        },
-        { 
           key: 'controlNumber', 
-          header: 'Control No.', 
+          header: 'Ctrl No.', 
           render: (ticket) => '#' + ticket.controlNumber || '—' 
         },
         {

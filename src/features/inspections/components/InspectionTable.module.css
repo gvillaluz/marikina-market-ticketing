@@ -1,17 +1,29 @@
-.viewButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+.type {
   padding: 5px 10px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #0b4f91;
-  cursor: pointer;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  gap: 7px;
+  border-radius: 7px;
 }
 
-.viewButton:hover {
-  background: #eef4f8;
+.warning { color: #D97706; background-color: #FFFBEB; border-color: #F4D3A6; }
+.ticket { color: #EF4444; background-color: #FEF2F2; border-color: #FABEBE; }
+
+.actionBtn {
+  border: 2px solid;
+  border-radius: 10px;
+  color: #00488F;
+  padding: 9px 10px;
+  border-color: #B8D7F5;
+  background: #F4F8FE;
+  transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out, border-color 0.1s ease-in-out;
+}
+
+.actionBtn:hover {
+  color: #fff;
+  border-color: #00488F;
+  background: #00488F !important;
 }

@@ -1,8 +1,8 @@
 .wrapper {
   overflow-x: auto;
-  border-top: 1px solid var(--border-default);
-  border-bottom: 1px solid var(--border-default);
   background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(15, 52, 96, 0.08);
 }
 
 .table {
@@ -12,13 +12,13 @@
 }
 
 .table thead th {
-  background-color: #f0f1f4;
-  color: #4b5563;
+  background-color: #EBF2FC;
+  color: #00488F;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.625rem;
   letter-spacing: 0.03em;
-  padding: 0.625rem 0.75rem;
+  padding: 1rem 1.2rem;
   border-bottom: 1px solid var(--border-default);
   white-space: nowrap;
 }

@@ -2,28 +2,35 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 0;
-  padding: 0 0.75rem 0.75rem;
-  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .recordsContainer {
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--border-default);
-  border-radius: 6px;
-  padding: 0.75rem 0 0;
+  background: #F8FAFD;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #C3C6D2;
 }
 
 .filters {
   width: 100%;
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
 }
 
 .searchWrapper {
   position: relative;
+  display: flex;
+  align-items: center;
   flex: 0 1 360px;
   width: 360px;
   min-width: 220px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #C3C6D2;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .filterGroup {
@@ -56,10 +63,9 @@
 
 .searchInput {
   width: 100%;
-  height: 30px;
-  border: 1px solid var(--border-default);
-  border-radius: 4px;
-  padding: 6px 10px 6px 30px;
+  border-radius: 10px;
+  height: 36px;
+  padding: 6px 30px;
   font-size: 0.75rem;
   color: var(--text-body);
 }
@@ -72,12 +78,6 @@
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
 @media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 520px) { .stats { grid-template-columns: 1fr; } }
-
-.filters {
-  display: flex;
-  gap: 0.375rem;
-  flex-wrap: wrap;
-}
 
 .filterBtn {
   background: #fff;
@@ -149,22 +149,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0;
-  padding: 0.625rem 0.75rem;
-  border-top: 1px solid var(--border-default);
-  flex-wrap: wrap;
-  gap: 12px;
+  margin-top: 1.5rem;
 }
 
 .entries {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
 
 .footerActions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .exportButton {
@@ -181,13 +177,14 @@
 }
 
 .pageButton {
-  border: 1px solid var(--border-default);
+  min-width: 28px;
+  height: 28px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
   background: #fff;
-  border-radius: 4px;
-  width: 32px;
-  height: 32px;
+  font-size: 0.8125rem;
+  color: var(--neutral-600);
   cursor: pointer;
-  font-size: 13px;
 }
 
 .printButton {
@@ -202,8 +199,7 @@
   color: var(--text-body);
 }
 
-.printButton:hover,
-.pageButton:hover:not(:disabled) {
+.printButton:hover {
   background: #f5f7fa;
 }
 
@@ -213,8 +209,8 @@
 }
 
 .currentPage {
-  background: #0b2d5b;
-  border-color: #0b2d5b;
+  background: #002753;
+  border-color: #002753;
   color: #fff;
 }
 

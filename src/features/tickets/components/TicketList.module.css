@@ -79,9 +79,10 @@
 
 .actionBtn {
   border: 2px solid;
-  border-radius: 3px;
+  border-radius: 10px;
   color: #00488F;
   padding: 9px 10px;
+  transition: .1s ease-in-out background;
 }
 
 .view { border-color: #B8D7F5; background-color: #F4F8FE; }

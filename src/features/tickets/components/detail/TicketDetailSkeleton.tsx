@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import SkeletonBlock from './SkeletonBlock';
+import SkeletonBlock from '../../../../components/ui/Skeleton/SkeletonBlock';
 import styles from './TicketDetailSkeleton.module.css';
 
 // Shown while ticket detail data is being fetched. Deliberately mirrors the

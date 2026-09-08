@@ -7,8 +7,6 @@ export function useTicketDetails(ticketId: number) {
         queryFn: () => ticketsApi.getTicketDetailById(ticketId),
     });
 
-    console.log(query.data)
-
     return {
         ticket: query.data,
         isLoading: query.isLoading,
