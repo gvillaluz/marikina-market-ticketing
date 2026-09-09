@@ -44,8 +44,12 @@
 
 .actionBtn {
   font-size: 0.8rem;
+  color: #00488f;
+  border: 1px solid #b8d7f5;
 }
 
-.view {
-  color: #1e40af;
+.actionBtn:hover {
+  background: #00488f !important;
+  border-color: #00488f;
+  color: #fff;
 }

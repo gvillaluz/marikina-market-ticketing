@@ -8,6 +8,9 @@ import PerformanceStatCard from "../components/performance/PerformanceStatCard";
 import MonthlyInspectionsChart from "../components/performance/MonthlyInspectionsChart";
 import EnforcerInspectionList from "../components/performance/EnforcerInspectionList";
 import styles from "./EnforcerPerformancePage.module.css";
+import { useFetchProfile } from "../hooks/useFetchProfile";
+import { useFetchPerformance } from "../hooks/useFetchPerformance";
+import { useFetchHistory } from "../hooks/useFetchHistory";
 
 /* ============================================================
    TEMPORARY STATIC DATA
@@ -99,19 +102,18 @@ const STATIC_INSPECTIONS = [
 /* ============================================================ */
 
 const EnforcerPerformancePage: FC = () => {
-  const { enforcerId } = useParams<{ enforcerId: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const id = Number(enforcerId) || 0;
+  const enforcerId = Number(id) || 0;
 
-  // Using static data for now
-  const profile = STATIC_PROFILE;
-  const stats = STATIC_STATS;
-  const monthlyInspections = STATIC_MONTHLY;
-  const inspections = STATIC_INSPECTIONS;
+  const { profile, isLoading, isFetching, isError, error } =
+    useFetchProfile(enforcerId);
+
+  const { performance } = useFetchPerformance(enforcerId);
+  const { inspections, page, setPage } = useFetchHistory(enforcerId);
 
   const [selectedInspectionId, setSelectedInspectionId] = useState<number>(0);
-  const [page, setPage] = useState(1);
-  const pageSize = 4;
+  const pageSize = 10;
   const total = inspections.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const paginatedRecords = inspections.slice(
@@ -123,6 +125,18 @@ const EnforcerPerformancePage: FC = () => {
     setPage(Math.min(Math.max(target, 1), totalPages));
   };
 
+  if (isLoading) {
+    return <div className={styles.page}>Loading enforcer profile...</div>;
+  }
+
+  if (isError || !profile) {
+    return (
+      <div className={styles.page}>
+        <p>Failed to load profile. {error?.message}</p>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
       <PageHeader
@@ -132,38 +146,38 @@ const EnforcerPerformancePage: FC = () => {
 
       <div className={styles.statusRow}>
         <span className={`${styles.statusBadge} ${styles.active}`}>
-          {profile.status}
+          {profile?.status}
         </span>
       </div>
 
-      {/* Summary section */}
       <section className={styles.summary}>
-        <EnforcerProfileCard profile={profile} />
+        <EnforcerProfileCard profile={profile!} />
 
         <div className={styles.stats}>
           <div className={styles.statsDrawer}>
             <PerformanceStatCard
               label="Total Inspections"
-              value={formatNumber(stats.totalInspections)}
+              value={formatNumber(performance?.totalInspections || 0)}
             />
             <PerformanceStatCard
               label="Resolution Rate"
-              value={`${stats.resolutionRate}%`}
+              value={`${performance?.resolutionRate}%`}
             />
           </div>
           <PerformanceStatCard
             label="Inspection Ratio"
-            value={`${stats.warningRatio}%`}
+            value={`${performance?.warningRatio}%`}
             subLabel="Warnings"
-            progress={stats.warningRatio}
-            secondaryLabel={`${stats.ticketRatio}% Tickets`}
+            progress={performance?.warningRatio}
+            secondaryLabel={`${performance?.ticketRatio}% Tickets`}
           />
         </div>
 
-        <MonthlyInspectionsChart data={monthlyInspections} />
+        <MonthlyInspectionsChart
+          inspections={performance?.monthlyInspections!}
+        />
       </section>
 
-      {/* Inspection history */}
       <section className={styles.history}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Enforcer Inspection History</h2>
@@ -174,16 +188,14 @@ const EnforcerPerformancePage: FC = () => {
 
         <div className={styles.recordsContainer}>
           <div className={styles.toolbar}>
-            <div>
-              <h3 className={styles.activityTitle}>Activity Records</h3>
-              <p className={styles.activitySubtitle}>
-                Complete activity log for this enforcer.
-              </p>
-            </div>
+            <h3 className={styles.activityTitle}>Activity Records</h3>
+            <p className={styles.activitySubtitle}>
+              Complete activity log for this enforcer.
+            </p>
           </div>
 
           <EnforcerInspectionList
-            records={paginatedRecords}
+            records={inspections}
             onView={(recordId) => setSelectedInspectionId(recordId)}
           />
 
@@ -236,7 +248,6 @@ const EnforcerPerformancePage: FC = () => {
         </div>
       </section>
 
-      {/* Bottom actions */}
       <div className={styles.bottomActions}>
         <Button
           variant="outline"

@@ -1,11 +1,11 @@
-import { FC } from 'react';
-import EnforcerHighlightItem from './EnforcerHighlightItem';
-import TopIssuerRow from './TopIssuerRow';
-import styles from './EnforcerActivityPanel.module.css';
-import { TopIssuer } from '@/api/types/enforcer.types';
-import EnforcerActivitySkeleton from './EnforcerActivitySkeleton';
-import EnforcerActivityError from './EnforcerActivityError';
-import { Trophy } from 'lucide-react';
+import { FC } from "react";
+import EnforcerHighlightItem from "./EnforcerHighlightItem";
+import TopIssuerRow from "./TopIssuerRow";
+import styles from "./EnforcerActivityPanel.module.css";
+import { TopIssuer } from "@/api/types/enforcer.types";
+import EnforcerActivitySkeleton from "./EnforcerActivitySkeleton";
+import EnforcerActivityError from "./EnforcerActivityError";
+import { Trophy } from "lucide-react";
 
 // STATIC DATA — replace with useEnforcerAnalytics() once the endpoint exists.
 const ACTIVITY_STATS = {
@@ -15,17 +15,25 @@ const ACTIVITY_STATS = {
 
 // STATIC DATA — highlight callouts, likely derived server-side (biggest change week over week, etc.)
 const HIGHLIGHTS = [
-  { id: 'h1', name: 'Villanueva, Mark', note: '5 warnings with no fine, this week.' },
-  { id: 'h2', name: 'Ramos, Benigno P.', note: 'Top issuer this week, 9 warnings and 1 ticket.' },
+  {
+    id: "h1",
+    name: "Villanueva, Mark",
+    note: "5 warnings with no fine, this week.",
+  },
+  {
+    id: "h2",
+    name: "Ramos, Benigno P.",
+    note: "Top issuer this week, 9 warnings and 1 ticket.",
+  },
 ];
 
 // STATIC DATA — top issuers this month leaderboard
 const TOP_ISSUERS = [
-  { id: 't1', name: 'Lee, Angelo P.', count: 31 },
-  { id: 't2', name: 'Lee, Angelo P.', count: 31 },
-  { id: 't3', name: 'Lee, Angelo P.', count: 31 },
-  { id: 't4', name: 'Lee, Angelo P.', count: 31 },
-  { id: 't5', name: 'Lee, Angelo P.', count: 31 },
+  { id: "t1", name: "Lee, Angelo P.", count: 31 },
+  { id: "t2", name: "Lee, Angelo P.", count: 31 },
+  { id: "t3", name: "Lee, Angelo P.", count: 31 },
+  { id: "t4", name: "Lee, Angelo P.", count: 31 },
+  { id: "t5", name: "Lee, Angelo P.", count: 31 },
 ];
 
 type EnforcerActivityProps = {
@@ -37,15 +45,14 @@ type EnforcerActivityProps = {
   onRetry: () => void;
 };
 
-
-const EnforcerActivityPanel: FC<EnforcerActivityProps> = ({ 
-  averageTicket, 
+const EnforcerActivityPanel: FC<EnforcerActivityProps> = ({
+  averageTicket,
   averageWarning,
   topEnforcers,
   isLoading,
   isError,
-  onRetry
- }) => {
+  onRetry,
+}) => {
   return (
     <aside className={styles.panel}>
       <h5 className={styles.title}>Enforcer activity</h5>
@@ -68,15 +75,6 @@ const EnforcerActivityPanel: FC<EnforcerActivityProps> = ({
             </div>
           </div>
 
-          {/* <div className={styles.section}>
-            <span className={styles.sectionTitle}>Enforcer Highlights</span>
-            <div className={styles.highlightList}>
-              {topEnforcers.map((highlight) => (
-                <EnforcerHighlightItem key={highlight.enforcerId} name={highlight.enforcerName} note={highlight.} />
-              ))}
-            </div>
-          </div> */}
-
           <div className={styles.section}>
             <span className={styles.sectionTitle}>Top Issuers this month</span>
             <div className={styles.issuerList}>
@@ -85,16 +83,25 @@ const EnforcerActivityPanel: FC<EnforcerActivityProps> = ({
                   <div className={styles.emptyIssuersIconWrap}>
                     <Trophy size={20} className={styles.emptyIssuersIcon} />
                   </div>
-                  <span className={styles.emptyIssuersTitle}>No activity yet</span>
+                  <span className={styles.emptyIssuersTitle}>
+                    No activity yet
+                  </span>
                   <span className={styles.emptyIssuersText}>
-                    Ticket rankings will appear here once enforcers start logging violations this month.
+                    Ticket rankings will appear here once enforcers start
+                    logging violations this month.
                   </span>
                 </div>
               ) : (
                 topEnforcers.map((issuer, index) => (
                   <div key={issuer.enforcerId}>
-                    <TopIssuerRow rank={index + 1} name={issuer.enforcerName} count={issuer.totalTickets} />
-                    {index < topEnforcers.length - 1 && <div className={styles.divider} />}
+                    <TopIssuerRow
+                      rank={index + 1}
+                      name={issuer.enforcerName}
+                      count={issuer.totalTickets}
+                    />
+                    {index < topEnforcers.length - 1 && (
+                      <div className={styles.divider} />
+                    )}
                   </div>
                 ))
               )}
