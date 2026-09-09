@@ -106,11 +106,11 @@ const EnforcerPerformancePage: FC = () => {
   const navigate = useNavigate();
   const enforcerId = Number(id) || 0;
 
-  const { profile, isLoading, isFetching, isError, error } =
-    useFetchProfile(enforcerId);
+  const { profile, profileProcess } = useFetchProfile(enforcerId);
 
-  const { performance } = useFetchPerformance(enforcerId);
-  const { inspections, page, setPage } = useFetchHistory(enforcerId);
+  const { performance, performanceProcess } = useFetchPerformance(enforcerId);
+  const { inspections, page, setPage, historyProcess } =
+    useFetchHistory(enforcerId);
 
   const [selectedInspectionId, setSelectedInspectionId] = useState<number>(0);
   const pageSize = 10;
@@ -125,14 +125,14 @@ const EnforcerPerformancePage: FC = () => {
     setPage(Math.min(Math.max(target, 1), totalPages));
   };
 
-  if (isLoading) {
+  if (profileProcess.isLoading) {
     return <div className={styles.page}>Loading enforcer profile...</div>;
   }
 
-  if (isError || !profile) {
+  if (profileProcess.isError || !profile) {
     return (
       <div className={styles.page}>
-        <p>Failed to load profile. {error?.message}</p>
+        <p>Failed to load profile. {profileProcess.error?.message}</p>
       </div>
     );
   }
@@ -150,33 +150,35 @@ const EnforcerPerformancePage: FC = () => {
         </span>
       </div>
 
-      <section className={styles.summary}>
-        <EnforcerProfileCard profile={profile!} />
+      {performance && (
+        <section className={styles.summary}>
+          <EnforcerProfileCard profile={profile!} />
 
-        <div className={styles.stats}>
-          <div className={styles.statsDrawer}>
+          <div className={styles.stats}>
+            <div className={styles.statsDrawer}>
+              <PerformanceStatCard
+                label="Total Inspections"
+                value={formatNumber(performance?.totalInspections || 0)}
+              />
+              <PerformanceStatCard
+                label="Resolution Rate"
+                value={`${performance?.resolutionRate}%`}
+              />
+            </div>
             <PerformanceStatCard
-              label="Total Inspections"
-              value={formatNumber(performance?.totalInspections || 0)}
-            />
-            <PerformanceStatCard
-              label="Resolution Rate"
-              value={`${performance?.resolutionRate}%`}
+              label="Inspection Ratio"
+              value={`${performance?.warningRatio}%`}
+              subLabel="Warnings"
+              progress={performance?.warningRatio}
+              secondaryLabel={`${performance?.ticketRatio}% Tickets`}
             />
           </div>
-          <PerformanceStatCard
-            label="Inspection Ratio"
-            value={`${performance?.warningRatio}%`}
-            subLabel="Warnings"
-            progress={performance?.warningRatio}
-            secondaryLabel={`${performance?.ticketRatio}% Tickets`}
-          />
-        </div>
 
-        <MonthlyInspectionsChart
-          inspections={performance?.monthlyInspections!}
-        />
-      </section>
+          <MonthlyInspectionsChart
+            inspections={performance?.monthlyInspections!}
+          />
+        </section>
+      )}
 
       <section className={styles.history}>
         <div className={styles.sectionHeader}>

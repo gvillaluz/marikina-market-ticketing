@@ -14,9 +14,11 @@ export function useFetchProfile(enforcerId: number) {
 
   return {
     profile: query.data,
-    isLoading: query.isLoading,
-    isFetching: query.isFetching,
-    isError: query.isError,
-    error: query.error,
+    profileProcess: {
+      isLoading: query.isLoading,
+      isFetching: query.isFetching,
+      isError: query.isError,
+      error: query.error,
+    },
   };
 }
