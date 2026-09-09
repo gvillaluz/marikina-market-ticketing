@@ -9,9 +9,11 @@ export function useFetchPerformance(enforcerId: number) {
 
   return {
     performance: query.data,
-    isLoading: query.isLoading,
-    isFetching: query.isFetching,
-    isError: query.isError,
-    error: query.error,
+    performanceProcess: {
+        isLoading: query.isLoading,
+        isFetching: query.isFetching,
+        isError: query.isError,
+        error: query.error,
+    }
   };
 }

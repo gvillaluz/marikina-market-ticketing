@@ -25,9 +25,11 @@ export function useFetchHistory(enforcerId: number) {
     inspections,
     page,
     setPage,
-    isLoading: query.isLoading,
-    isFetching: query.isFetching,
-    isError: query.isError,
-    error: query.error,
+    historyProcess: {
+      isLoading: query.isLoading,
+      isFetching: query.isFetching,
+      isError: query.isError,
+      error: query.error,
+    },
   };
 }
