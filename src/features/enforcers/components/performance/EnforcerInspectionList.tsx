@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import { Eye } from "lucide-react";
 import { formatDateTime } from "@/utils/formatters";
 import styles from "./EnforcerInspectionList.module.css";
+import { InspectionHistorySummary } from "@/api/types/enforcer.types";
 
 interface InspectionRecord {
   id: number;
@@ -18,7 +19,7 @@ interface InspectionRecord {
 }
 
 interface EnforcerInspectionListProps {
-  records: InspectionRecord[];
+  records: InspectionHistorySummary[];
   loading?: boolean;
   onView: (id: number) => void;
 }
@@ -32,13 +33,14 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
     <Table
       loading={loading}
       data={records}
-      keyExtractor={(record) => record.id.toString()}
+      keyExtractor={(record) => record.ticketId.toString()}
       emptyMessage="No inspection records found."
       columns={[
         {
           key: "controlNumber",
           header: "Control #",
-          render: (record) => `#${record.controlNumber}`,
+          render: (record) =>
+            record.controlNumber ? `#${record.controlNumber}` : "N/A",
         },
         {
           key: "issuedAt",
@@ -54,7 +56,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
         {
           key: "stallNo",
           header: "Stall No.",
-          render: (record) => record.stallNo || "—",
+          render: (record) => record.stallNumber || "—",
         },
         {
           key: "section",
@@ -90,7 +92,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
                 className={`${styles.actionBtn} ${styles.view}`}
                 size="sm"
                 variant="ghost"
-                onClick={() => onView(record.id)}
+                onClick={() => onView(record.ticketId)}
               >
                 View
               </Button>

@@ -1,5 +1,6 @@
 import { FC } from "react";
 import styles from "./PerformanceStatCard.module.css";
+import { ClipboardCheck, UserRoundSearch } from "lucide-react";
 
 interface PerformanceStatCardProps {
   label: string;
@@ -18,9 +19,26 @@ const PerformanceStatCard: FC<PerformanceStatCardProps> = ({
 }) => {
   return (
     <div className={styles.card}>
-      <p className={styles.label}>{label}</p>
-      <p className={styles.value}>{value}</p>
-      {subLabel && <p className={styles.subLabel}>{subLabel}</p>}
+      {progress == null ? (
+        <>
+          <div className={styles.icon}>
+            {label.toLowerCase() == "total inspections" ? (
+              <ClipboardCheck />
+            ) : (
+              <UserRoundSearch />
+            )}
+          </div>
+          <span className={styles.value}>{value}</span>
+          <span className={styles.label}>{label}</span>
+        </>
+      ) : (
+        <>
+          <span className={styles.label}>{label}</span>
+          <span className={styles.value}>
+            {value} <span className={styles.subLabel}>{subLabel}</span>
+          </span>
+        </>
+      )}
 
       {typeof progress === "number" && (
         <>
