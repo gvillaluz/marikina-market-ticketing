@@ -10,8 +10,6 @@ export function useFetchProfile(enforcerId: number) {
     staleTime: 1000 * 60 * 5,
   });
 
-  console.log(query.data);
-
   return {
     profile: query.data,
     profileProcess: {
