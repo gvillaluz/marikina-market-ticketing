@@ -1,7 +1,6 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
 }
 
 .statusRow {
@@ -47,13 +46,14 @@
 .history {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  padding: 30px 0;
 }
 
 .sectionHeader {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  color: #00488f;
 }
 
 .sectionTitle {
@@ -141,6 +141,10 @@
   background: #1e40af;
   border-color: #1e40af;
   color: #ffffff;
+}
+
+.currentPage:hover {
+  background-color: #00488f !important;
 }
 
 .ellipsis {

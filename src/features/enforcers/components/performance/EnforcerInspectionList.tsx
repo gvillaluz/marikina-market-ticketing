@@ -76,7 +76,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
             const status = (record.status || "").toLowerCase();
             return (
               <div className={`${styles.status} ${styles[status] || ""}`}>
-                <span className={styles.span}>{record.status || "—"}</span>
+                <span className={styles.span}>{record.status || "N/A"}</span>
               </div>
             );
           },
