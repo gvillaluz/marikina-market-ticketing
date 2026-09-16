@@ -611,11 +611,11 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("EvidenceUrl")
+                    b.Property<string>("FileKey")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
-                        .HasColumnName("evidence_url");
+                        .HasColumnName("file_key");
 
                     b.Property<int>("TicketId")
                         .HasColumnType("integer")
