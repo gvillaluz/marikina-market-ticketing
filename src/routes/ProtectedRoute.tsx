@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTES } from './routePaths';
 import type { UserRole } from '@/api/types/common.types';
+import styles from './ProtectedRoute.module.css';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -10,23 +11,22 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
-  const { isAuthenticated, user, mustChangePassword } = useAuth();
+  const { isAuthenticated, isAuthReady, user, mustChangePassword } = useAuth();
   const location = useLocation();
 
-  console.log('[ProtectedRoute]', {
-    path: location.pathname,
-    isAuthenticated,
-    userRole: user?.role,
-    requiredRoles: roles,
-    mustChangePassword,
-  });
+  if (!isAuthReady) {
+    return (
+      <div role="status" aria-live="polite" className={styles.loading}>
+        Restoring your session...
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.adminLogin} state={{ from: location }} replace />;
   }
 
-  if (roles && user && !roles.includes(user.role)) {
-    console.log('[ProtectedRoute] role mismatch, redirecting to login');
+  if (roles && (!user?.role || !roles.includes(user.role))) {
     return <Navigate to={ROUTES.adminLogin} replace />;
   }
 
@@ -34,7 +34,6 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
   const onChangePasswordPage = location.pathname === ROUTES.changePassword;
 
   if (isAdmin && mustChangePassword && !onChangePasswordPage) {
-    console.log('[ProtectedRoute] must change password, redirecting');
     return <Navigate to={ROUTES.changePassword} replace />;
   }
 

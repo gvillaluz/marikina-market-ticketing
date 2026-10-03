@@ -7,41 +7,13 @@ import EnforcerActivitySkeleton from "./EnforcerActivitySkeleton";
 import EnforcerActivityError from "./EnforcerActivityError";
 import { Trophy } from "lucide-react";
 
-// STATIC DATA — replace with useEnforcerAnalytics() once the endpoint exists.
-const ACTIVITY_STATS = {
-  avgWarningsPerDay: 6.1,
-  avgTicketsPerDay: 3.1,
-};
-
-// STATIC DATA — highlight callouts, likely derived server-side (biggest change week over week, etc.)
-const HIGHLIGHTS = [
-  {
-    id: "h1",
-    name: "Villanueva, Mark",
-    note: "5 warnings with no fine, this week.",
-  },
-  {
-    id: "h2",
-    name: "Ramos, Benigno P.",
-    note: "Top issuer this week, 9 warnings and 1 ticket.",
-  },
-];
-
-// STATIC DATA — top issuers this month leaderboard
-const TOP_ISSUERS = [
-  { id: "t1", name: "Lee, Angelo P.", count: 31 },
-  { id: "t2", name: "Lee, Angelo P.", count: 31 },
-  { id: "t3", name: "Lee, Angelo P.", count: 31 },
-  { id: "t4", name: "Lee, Angelo P.", count: 31 },
-  { id: "t5", name: "Lee, Angelo P.", count: 31 },
-];
-
 type EnforcerActivityProps = {
   averageTicket: number;
   averageWarning: number;
   topEnforcers: TopIssuer[];
   isLoading: boolean;
   isError: boolean;
+  errorMessage: string;
   onRetry: () => void;
 };
 
@@ -51,6 +23,7 @@ const EnforcerActivityPanel: FC<EnforcerActivityProps> = ({
   topEnforcers,
   isLoading,
   isError,
+  errorMessage,
   onRetry,
 }) => {
   return (
@@ -61,7 +34,7 @@ const EnforcerActivityPanel: FC<EnforcerActivityProps> = ({
       {isLoading ? (
         <EnforcerActivitySkeleton />
       ) : isError ? (
-        <EnforcerActivityError onRetry={onRetry} />
+        <EnforcerActivityError message={errorMessage} onRetry={onRetry} />
       ) : (
         <>
           <div className={styles.statsRow}>

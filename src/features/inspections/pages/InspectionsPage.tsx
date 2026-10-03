@@ -1,26 +1,21 @@
 import { useState } from "react";
 import { Download, Printer, Search } from "lucide-react";
 import styles from "./InspectionsPage.module.css";
-import { InspectionFilters } from "../components/InspectionFilters";
 import { InspectionTable } from "../components/InspectionTable";
 import { PrintConfigModal } from "../components/PrintConfigModal";
-import { WrittenWarningModal } from "../components/WrittenWarningModal";
-import { TicketRecordModal } from "../components/TicketRecordModal";
 import { Button } from "../../../components/ui/Button";
-import { useDebounce } from "../../../hooks/useDebounce";
-import { usePagination } from "../../../hooks/usePagination";
 import { useInspections } from "../hooks/useInspections";
 import {
   MARKET_SECTION_LABELS,
-  type InspectionType,
   type MarketSection,
 } from "../../../api/types/common.types";
-import type { InspectionRecord } from "../../../api/types/ticket.types";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { useInspectionFilters } from "../hooks/useInspectionFilters";
 import { ViolationTypeFilter } from "../inspections.types";
-import { label } from "yet-another-react-lightbox";
 import { TicketModal } from "@/components/ui/TicketModal/TicketModal";
+import PageHeader from "@/components/ui/PageHeader";
+import { usePrintConfigForm } from "../hooks/usePrintConfigForm";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 
 const VIOLATION_FILTER: ViolationTypeFilter[] = [
   "All Type",
@@ -32,8 +27,10 @@ export function InspectionsPage() {
   const { queryParams, filters, setFilters } = useInspectionFilters();
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<number>(0);
-  const pagination = usePagination(1, 10);
-
+  const printConfig = usePrintConfigForm(
+    ["warning", "ticket"],
+    () => setIsPrintModalOpen(false),
+  );
   const {
     inspections,
     total,
@@ -44,6 +41,8 @@ export function InspectionsPage() {
     isFetching,
     isError,
     error,
+    pageSize,
+    refetch,
   } = useInspections(queryParams);
 
   const goToPage = (target: number) => {
@@ -52,14 +51,19 @@ export function InspectionsPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageIntro}>
-        <h1 className={styles.title}>Inspection Records</h1>
-        <p className={styles.subtitle}>
-          Overview and administration of all conducted market inspections.
-        </p>
-      </div>
+      <PageHeader
+        title="Inspection Records"
+        subtitle="Review market inspections, warnings, and violation tickets."
+      />
 
       <section className={styles.recordsContainer}>
+        <div className={styles.recordsHeading}>
+          <div>
+            <h2 className={styles.recordsTitle}>Inspection register</h2>
+            <p className={styles.recordsSubtitle}>Search and filter issued records</p>
+          </div>
+          <span className={styles.totalBadge}>{total} records</span>
+        </div>
         <div className={styles.toolbar}>
           <div className={styles.searchWrapper}>
             <Search
@@ -114,15 +118,17 @@ export function InspectionsPage() {
 
         <InspectionTable
           rows={inspections}
-          isLoading={isLoading && isFetching}
+          isLoading={isLoading || isFetching}
           isError={isError}
+          errorMessage={getApiErrorMessage(error, "Couldn't load inspection records.")}
+          onRetry={() => void refetch()}
           onView={(ticketId) => setSelectedTicketId(ticketId)}
         />
 
         <div className={styles.footer}>
           <span className={styles.entries}>
-            Showing {total === 0 ? 0 : (page - 1) * 9 + 1} to{" "}
-            {Math.min(page * 9, total)} of {total} entries
+            Showing {total === 0 ? 0 : (page - 1) * pageSize + 1} to{" "}
+            {Math.min(page * pageSize, total)} of {total} records
           </span>
 
           <div className={styles.footerActions}>
@@ -144,29 +150,31 @@ export function InspectionsPage() {
             </button>
             <button
               className={styles.pageButton}
-              disabled={pagination.page <= 1}
+              disabled={page <= 1}
               onClick={() => goToPage(page - 1)}
               aria-label="Previous page"
             >
               ‹
             </button>
+            {totalPages > 3 && page > 2 && <span className={styles.ellipsis}>...</span>}
             {Array.from(
               { length: Math.min(totalPages, 3) },
-              (_, index) => index + 1,
-            ).map((page) => (
+              (_, index) => Math.min(Math.max(page - 1, 1), Math.max(1, totalPages - 2)) + index,
+            ).map((pageNumber) => (
               <button
-                key={page}
-                className={`${styles.pageButton} ${pagination.page === page ? styles.currentPage : ""}`}
-                onClick={() => goToPage(page)}
-                aria-label={`Go to page ${page}`}
+              key={pageNumber}
+              className={`${styles.pageButton} ${page === pageNumber ? styles.currentPage : ""}`}
+              onClick={() => goToPage(pageNumber)}
+              aria-label={`Go to page ${pageNumber}`}
+              aria-current={page === pageNumber ? "page" : undefined}
               >
-                {page}
+              {pageNumber}
               </button>
             ))}
-            {totalPages > 3 && <span className={styles.ellipsis}>...</span>}
+            {totalPages > 3 && page + 1 < totalPages && <span className={styles.ellipsis}>...</span>}
             <button
               className={styles.pageButton}
-              disabled={pagination.page >= totalPages}
+              disabled={page >= totalPages}
               onClick={() => goToPage(page + 1)}
               aria-label="Next page"
             >
@@ -176,10 +184,13 @@ export function InspectionsPage() {
         </div>
       </section>
 
-      <PrintConfigModal
-        isOpen={isPrintModalOpen}
-        onClose={() => setIsPrintModalOpen(false)}
-      />
+      {isPrintModalOpen && (
+        <PrintConfigModal
+          isOpen={isPrintModalOpen}
+          onClose={() => setIsPrintModalOpen(false)}
+          form={printConfig}
+        />
+      )}
 
       {selectedTicketId != 0 && (
         <TicketModal

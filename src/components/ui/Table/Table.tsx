@@ -14,8 +14,11 @@ interface TableProps<T> {
   data: T[];
   keyExtractor: (row: T) => string;
   loading?: boolean;
+  loadingMessage?: string;
   emptyMessage?: string;
   onRowClick?: (row: T) => void;
+  className?: string;
+  tableClassName?: string;
 }
 
 export function Table<T>({
@@ -23,12 +26,15 @@ export function Table<T>({
   data,
   keyExtractor,
   loading = false,
+  loadingMessage = 'Loading...',
   emptyMessage = 'No records found.',
   onRowClick,
+  className = '',
+  tableClassName = '',
 }: TableProps<T>) {
   return (
-    <div className={styles.wrapper}>
-      <table className={styles.table}>
+    <div className={`${styles.wrapper} ${className}`}>
+      <table className={`${styles.table} ${tableClassName}`}>
         <thead>
           <tr>
             {columns.map((col) => (
@@ -46,7 +52,7 @@ export function Table<T>({
             <tr>
               <td colSpan={columns.length} className={styles.placeholder}>
                 <span className={styles.spinner} aria-hidden="true" />
-                Loading...
+                {loadingMessage}
               </td>
             </tr>
           ) : data.length === 0 ? (

@@ -1,0 +1,81 @@
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: stepEnter 220ms ease both;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.groupTitle {
+  margin: 0;
+  color: #213c5a;
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.grid {
+  display: grid;
+  gap: 14px;
+  align-items: start;
+}
+
+.twoColumns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.threeColumns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.documentGroup {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.documentNote {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid #dce5ee;
+  border-radius: 5px;
+  background: #f5f8fb;
+  color: #5a6d81;
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+
+@keyframes stepEnter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .threeColumns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 540px) {
+  .twoColumns,
+  .threeColumns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .formStack {
+    animation: none;
+  }
+}

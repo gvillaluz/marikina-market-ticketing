@@ -10,7 +10,7 @@ interface TopIssuerRowProps {
 const TopIssuerRow: FC<TopIssuerRowProps> = ({ rank, name, count }) => {
   return (
     <div className={styles.row}>
-      <span className={styles.rank}>{rank}</span>
+      <span className={styles.rank}>#{rank}</span>
       <span className={styles.name}>{name}</span>
       <span className={styles.count}>{count} tickets</span>
     </div>

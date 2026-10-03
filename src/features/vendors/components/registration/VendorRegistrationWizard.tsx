@@ -1,140 +1,224 @@
-import { FC } from 'react';
-import { Link } from 'react-router-dom';
-import { useVendorRegistration, TOTAL_STEPS } from '@/features/vendors/hooks/useVendorRegistration';
-import RegistrationStepper from './RegistrationStepper';
-import Step1PersonalInfo from './Step1PersonalInfo';
-import Step2BusinessDetails from './Step2BusinessDetails';
-import Step3RequiredDocuments from './Step3RequiredDocuments';
-import Step4AccountRegistration from './Step4AccountRegistration';
+import {
+  Bell,
+  Check,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  Clock3,
+  LoaderCircle,
+  Store,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { TOTAL_STEPS } from "@/features/vendors/registration.constants";
+import type { UseVendorRegistration } from "@/features/vendors/hooks/useVendorRegistration";
+import RegistrationStepper from "./RegistrationStepper";
+import Step1PersonalInfo from "./Step1PersonalInfo";
+import Step2BusinessDetails from "./Step2BusinessDetails";
+import Step3RequiredDocuments from "./Step3RequiredDocuments";
+import Step4AccountRegistration from "./Step4AccountRegistration";
+import styles from "./VendorRegistrationWizard.module.css";
 
-const STEP_HEADINGS: Record<number, string> = {
-  1: 'PERSONAL INFO',
-  2: 'BUSINESS DETAILS',
-  3: 'REQUIRED DOCUMENTS',
-  4: 'ACCOUNT REGISTRATION',
-};
+const STEP_CONTENT = {
+  1: {
+    title: "Personal Information",
+    description: "Tell us about yourself so we can create your vendor record.",
+  },
+  2: {
+    title: "Business Details",
+    description: "Tell us about your business so we can complete your vendor record.",
+  },
+  3: {
+    title: "Required Documents",
+    description: "Upload the documents we need to verify your business.",
+  },
+  4: {
+    title: "Account Registration",
+    description: "Create your account to sign in.",
+  },
+} as const;
 
-const VendorRegistrationWizard: FC = () => {
-  const {
-    step,
-    form,
-    errors,
-    loading,
-    submitted,
-    submitError,
-    update,
-    next,
-    back,
-    cancel,
-    submit,
-    setStep,
-  } = useVendorRegistration();
-
+export default function VendorRegistrationWizard({
+  step,
+  form,
+  errors,
+  loading,
+  submitted,
+  submitError,
+  update,
+  next,
+  back,
+  goToStep,
+  cancel,
+  submit,
+}: UseVendorRegistration) {
   if (submitted) {
     return (
-      <div className="w-full max-w-4xl mx-auto rounded-xl shadow-lg overflow-hidden bg-surface">
-        <div className="px-8 md:px-12 py-16 text-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 text-green-700 flex items-center justify-center mx-auto">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
+      <section className={`${styles.successCard} motion-enter`} aria-live="polite">
+        <span className={styles.successIcon}>
+          <Check size={34} strokeWidth={2.5} aria-hidden="true" />
+        </span>
+        <p className={styles.successEyebrow}>Vendor registration received</p>
+        <h1>Thank you for registering</h1>
+        <p className={styles.successMessage}>
+          Your application has been saved successfully. An administrator will
+          review your details and documents before your account is approved.
+        </p>
+        <div className={styles.applicationSummary}>
+          <div className={styles.summaryIcon}>
+            <Store size={20} aria-hidden="true" />
           </div>
-          <h2 className="mt-6 font-mono font-bold text-2xl text-primary">Registration Submitted!</h2>
-          <p className="mt-3 text-bodygray text-sm max-w-md mx-auto">
-            Your application is now pending review. The Administrator will verify your
-            documents against the existing vendor registry and notify you once approved.
-          </p>
-          <Link
-            to="/"
-            className="mt-8 inline-block px-6 py-2.5 rounded-md bg-primary text-on-primary font-bold text-sm hover:bg-primary-hover transition-colors"
-          >
-            Back to Home
-          </Link>
+          <div className={styles.summaryText}>
+            <span>Registration submitted for</span>
+            <strong>{form.businessName || "Your vendor business"}</strong>
+            <small>
+              {[form.firstName, form.middleName, form.lastName]
+                .filter(Boolean)
+                .join(" ")}
+            </small>
+          </div>
+          <span className={styles.pendingBadge}>
+            <Clock3 size={14} aria-hidden="true" />
+            Pending review
+          </span>
         </div>
-      </div>
+        <div className={styles.nextSteps}>
+          <h2>What happens next?</h2>
+          <ol className={styles.timeline}>
+            <li className={styles.timelineStep}>
+              <span className={`${styles.timelineIcon} ${styles.stepComplete}`}>
+                <CheckCircle2 size={19} aria-hidden="true" />
+              </span>
+              <div>
+                <strong>Application received</strong>
+                <span>Your registration and documents are saved.</span>
+              </div>
+            </li>
+            <li className={styles.timelineStep}>
+              <span className={`${styles.timelineIcon} ${styles.stepCurrent}`}>
+                <ClipboardCheck size={19} aria-hidden="true" />
+              </span>
+              <div>
+                <strong>Administrator review</strong>
+                <span>Your information and documents are being checked.</span>
+              </div>
+            </li>
+            <li className={styles.timelineStep}>
+              <span className={`${styles.timelineIcon} ${styles.stepWaiting}`}>
+                <Bell size={18} aria-hidden="true" />
+              </span>
+              <div>
+                <strong>Approval update</strong>
+                <span>You will be notified when a decision is made.</span>
+              </div>
+            </li>
+          </ol>
+        </div>
+        <Link to="/" className={styles.homeButton}>
+          Return to landing page
+        </Link>
+      </section>
     );
   }
 
+  const content = STEP_CONTENT[step as keyof typeof STEP_CONTENT];
+
   return (
-    <div className="w-full max-w-4xl mx-auto rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row bg-surface">
-      {/* Left — navy sidebar + stepper */}
-      <aside className="bg-primary md:w-[260px] px-6 py-8 md:py-10 flex-shrink-0">
-        <h2 className="font-mono font-bold text-on-primary text-lg leading-snug">
-          Join the Market Registry
-        </h2>
-        <p className="mt-2 text-on-primary/80 text-xs leading-relaxed">
-          Complete the 4-step form to register your stall. Review each section carefully.
+    <section className={`${styles.wizard} motion-enter`} aria-label="Vendor registration">
+      <aside className={styles.sidebar}>
+        <h1>Join the Market Registry</h1>
+        <p>
+          Register your stall to access and manage your inspection history and
+          compliance records all in one digital platform.
         </p>
-        <RegistrationStepper currentStep={step} onStepClick={setStep} />
+        <RegistrationStepper currentStep={step} onStepClick={goToStep} />
       </aside>
 
-      {/* Right — form + nav */}
-      <div className="flex-1 px-6 md:px-10 py-8 md:py-10">
-        <div className="pb-4 border-b border-default">
-          <h3 className="font-mono font-bold text-xl text-primary">
-            {STEP_HEADINGS[step]}
-          </h3>
-        </div>
+      <div className={styles.main}>
+        <header className={styles.heading}>
+          <h2>{content.title}</h2>
+          <p>{content.description}</p>
+        </header>
 
-        <div className="mt-6 min-h-[320px]">
-          {step === 1 && <Step1PersonalInfo form={form} errors={errors} update={update} />}
-          {step === 2 && <Step2BusinessDetails form={form} errors={errors} update={update} />}
-          {step === 3 && <Step3RequiredDocuments form={form} errors={errors} update={update} />}
-          {step === 4 && <Step4AccountRegistration form={form} errors={errors} update={update} />}
+        <div className={styles.stepContent} key={step}>
+          {step === 1 && (
+            <Step1PersonalInfo form={form} errors={errors} update={update} />
+          )}
+          {step === 2 && (
+            <Step2BusinessDetails form={form} errors={errors} update={update} />
+          )}
+          {step === 3 && (
+            <Step3RequiredDocuments form={form} errors={errors} update={update} />
+          )}
+          {step === 4 && (
+            <Step4AccountRegistration form={form} errors={errors} update={update} />
+          )}
         </div>
 
         {submitError && (
-          <div className="mt-4 bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm">
-            {submitError}
-          </div>
+          <p className={styles.submitError} role="alert">{submitError}</p>
         )}
 
-        {/* Nav buttons */}
-        <div className="mt-8 flex items-center justify-between gap-3">
-          <div className="flex gap-3">
-            {step === 1 ? (
-              <button
-                type="button"
-                onClick={cancel}
-                className="px-5 py-2.5 rounded-md border-2 border-primary text-primary font-bold text-sm hover:bg-primary/5 transition-colors"
-              >
-                Cancel
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={back}
-                className="px-5 py-2.5 rounded-md border-2 border-primary text-primary font-bold text-sm hover:bg-primary/5 transition-colors"
-              >
-                Back
-              </button>
-            )}
-          </div>
+        <footer className={styles.footer}>
+          {step === 1 ? (
+            <Link to="/login" className={styles.secondaryButton}>
+              <ChevronLeft size={16} aria-hidden="true" />
+              Back
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={back}
+              disabled={loading}
+            >
+              <ChevronLeft size={16} aria-hidden="true" />
+              Back
+            </button>
+          )}
 
-          <div>
+          <div className={styles.footerActions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={cancel}
+              disabled={loading}
+            >
+              Cancel
+            </button>
             {step < TOTAL_STEPS ? (
               <button
                 type="button"
+                className={styles.primaryButton}
                 onClick={next}
-                className="px-6 py-2.5 rounded-md bg-primary text-on-primary font-bold text-sm hover:bg-primary-hover transition-colors"
+                disabled={loading}
               >
-                Next →
+                Next
+                <ChevronRight size={16} aria-hidden="true" />
               </button>
             ) : (
               <button
                 type="button"
+                className={styles.primaryButton}
                 onClick={submit}
                 disabled={loading}
-                className="px-6 py-2.5 rounded-md bg-accent text-on-primary font-bold text-sm hover:bg-accent-hover transition-colors disabled:opacity-60"
               >
-                {loading ? 'Submitting…' : 'Submit Registration'}
+                {loading ? (
+                  <>
+                    <LoaderCircle className={styles.spinner} size={16} aria-hidden="true" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Submit registration
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </>
+                )}
               </button>
             )}
           </div>
-        </div>
+        </footer>
       </div>
-    </div>
+    </section>
   );
-};
-
-export default VendorRegistrationWizard;
+}

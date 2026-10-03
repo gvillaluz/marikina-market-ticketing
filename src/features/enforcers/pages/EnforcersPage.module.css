@@ -1,16 +1,48 @@
 .layout {
   display: flex;
-  align-items: flex-start;
-  gap: 1.25rem;
+  align-items: stretch;
+  gap: 1rem;
 }
 
 .recordsContainer {
   flex: 1;
   min-width: 0;
-  background: #F8FAFD;
-  padding: 20px; 
-  border-radius: 20px;
-  border: 1px solid #C3C6D2;
+  padding: 1.25rem;
+  border: 1px solid #e1e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(19, 45, 75, 0.045);
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.125rem;
+}
+
+.sectionTitle {
+  color: var(--primary);
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.sectionSubtitle {
+  margin-top: 0.2rem;
+  color: var(--text-body);
+  font-size: 0.75rem;
+}
+
+.totalBadge {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #dbe6f3;
+  border-radius: 999px;
+  background: #f0f5fb;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .toolbar {
@@ -26,10 +58,10 @@
   flex: 0 1 360px;
   width: 360px;
   min-width: 220px;
+  border: 1px solid #d9e1ec;
+  border-radius: 9px;
   background: #fff;
-  border-radius: 10px;
-  border: 1px solid #C3C6D2;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .searchIcon {
@@ -42,39 +74,44 @@
 
 .searchInput {
   width: 100%;
-  height: 30px;
-  border-radius: 10px;
-  padding: 6px 10px 6px 30px;
-  font-size: 0.75rem;
-  color: var(--text-body);
+  height: 38px;
+  border-radius: 9px;
+  padding: 6px 10px 6px 34px;
+  color: #263b53;
+  font-size: 0.8125rem;
 }
 
 .searchInput:focus {
-  outline: none;
-  border-color: var(--primary-400, #0B57D0);
+  outline: 3px solid rgba(37, 99, 235, 0.14);
+  border-color: #7d9cbe;
 }
 
 .filterGroup {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 1.5rem;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e8edf4;
 }
 
 .entries {
   font-size: 0.8125rem;
-  color: var(--neutral-500);
+  color: var(--text-body);
 }
 
 .pagination {
@@ -84,14 +121,21 @@
 }
 
 .pageButton {
-  min-width: 28px;
-  height: 28px;
-  border: 1px solid var(--neutral-200);
-  border-radius: 6px;
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
   background: #fff;
-  font-size: 0.8125rem;
-  color: var(--neutral-600);
+  color: #43566d;
+  font-size: 0.8rem;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  border-color: #a9bfd9;
+  background: #f3f7fc;
+  color: var(--primary);
 }
 
 .pageButton:disabled {
@@ -100,8 +144,8 @@
 }
 
 .currentPage {
-  background: #002753;
-  border-color: #002753;
+  background: var(--primary);
+  border-color: var(--primary);
   color: #fff;
 }
 
@@ -114,12 +158,23 @@
   .layout {
     flex-direction: column;
   }
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 @media (max-width: 700px) {
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .searchWrapper {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .filterGroup {
+    justify-content: flex-start;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
@@ -151,14 +206,30 @@
 }
 
 .emptyStateTitle {
+  color: #1a1c1e;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #1A1C1E;
 }
 
 .emptyStateText {
-  font-size: 0.8125rem;
-  color: var(--neutral-500);
   max-width: 280px;
+  color: var(--neutral-500);
+  font-size: 0.8125rem;
   line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .recordsContainer {
+    padding: 0.9rem;
+  }
+
+  .sectionHeading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

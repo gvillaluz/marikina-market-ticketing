@@ -1,23 +1,25 @@
 .panel {
   width: 350px;
   flex-shrink: 0;
+  align-self: flex-start;
   background: #fff;
-  padding: 20px;
-  border-radius: 20px;
-  border: 1px solid #C3C6D2;
+  padding: 1.25rem;
+  border-radius: 16px;
+  border: 1px solid #e1e8f0;
+  box-shadow: 0 5px 18px rgba(19, 45, 75, 0.045);
 }
 
 .title {
   margin: 0 0 4px;
   font-size: 1rem;
   font-weight: 700;
-  color: #002753;
+  color: var(--primary);
 }
 
 .subtitle {
   margin: 0 0 1rem;
   font-size: 0.8125rem;
-  color: var(--neutral-500);
+  color: var(--text-body);
 }
 
 .statsRow {
@@ -28,13 +30,13 @@
 }
 
 .statBox {
-  border: 1px solid var(--neutral-200);
-  border-radius: 8px;
+  border: 1px solid #e3eaf2;
+  border-radius: 10px;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: #F1F6FA;
+  background: linear-gradient(145deg, #f7faff, #edf3fa);
 }
 
 .statValue {
@@ -77,8 +79,29 @@
   gap: 8px;
 }
 
+.skeletonIssuer {
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 5px 0;
+}
+
+.skeletonIssuerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .divider {
-    border-top: 1px solid #C3C6D2;
+  border-top: 1px solid #e8edf4;
+}
+
+@media (max-width: 1200px) {
+  .panel {
+    width: 100%;
+  }
 }
 
 .emptyIssuers {

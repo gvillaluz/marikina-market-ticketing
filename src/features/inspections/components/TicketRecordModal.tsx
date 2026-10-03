@@ -3,13 +3,14 @@ import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { Loader } from '../../../components/feedback/Loader';
-import { formatDateTime, formatDate, formatCurrency } from '../../../utils/formatters';
-import { useInspectionDetail } from '../hooks/useInspectionDetail';
+import { formatControlNumber, formatDateTime, formatDate, formatCurrency } from '../../../utils/formatters';
 import type { BadgeTone } from '../../../components/ui/Badge';
 import type { TicketRecord } from '../../../api/types/ticket.types';
 import type { InspectionRecord } from '../../../api/types/ticket.types';
 import { BadgeDollarSign, Camera, TriangleAlert, UserRound } from 'lucide-react';
 import marikinaSeal from '../../../assets/icons/Marikina_City_Seal.svg (1).webp';
+import { useInspectionDetail } from '../hooks/useInspectionDetail';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 interface TicketRecordModalProps {
   isOpen: boolean;
@@ -35,10 +36,13 @@ function severityTone(severity: string): BadgeTone {
 }
 
 export function TicketRecordModal ({ isOpen, recordId, initialRecord, onClose }: TicketRecordModalProps) {
-  const { data, isLoading, isError } = useInspectionDetail(recordId, 'ticket');
+  const { data, isLoading, isError, error } = useInspectionDetail(recordId, 'ticket', isOpen);
   const record = (data ?? initialRecord) as TicketRecord | undefined;
   const backendRecord = record as TicketRecord & Record<string, unknown> | undefined;
   const value = (primary: unknown, fallback?: unknown) => String(primary ?? fallback ?? '—');
+  const controlNumber =
+    record?.controlNumber ??
+    (typeof backendRecord?.ticket_id === 'number' ? backendRecord.ticket_id : null);
   const penalty = record?.penalty;
   const violations = record?.violations ?? [];
 
@@ -52,7 +56,7 @@ export function TicketRecordModal ({ isOpen, recordId, initialRecord, onClose }:
       footer={<Button variant="secondary" onClick={onClose}>Close</Button>}
     >
       {isLoading && <Loader label="Loading ticket record…" />}
-      {isError && <p className={styles.errorText}>Unable to load this ticket record.</p>}
+      {isError && <p className={styles.errorText}>{getApiErrorMessage(error, "Unable to load this ticket record.")}</p>}
 
       {record && (
         <>
@@ -67,7 +71,7 @@ export function TicketRecordModal ({ isOpen, recordId, initialRecord, onClose }:
           <div className={styles.ticketMeta}>
             <p className={styles.docTitle}>VIOLATION TICKET</p>
             <div className={styles.titleBlock}>
-              <p className={styles.controlNumber}>CONTROL NO. {value(record.controlNumber, backendRecord?.ticket_id)}</p>
+              <p className={styles.controlNumber}>CONTROL NO. {formatControlNumber(controlNumber)}</p>
               <Badge tone={statusTone(value(record.status, backendRecord?.status))}>{value(record.status, backendRecord?.status)}</Badge>
             </div>
           </div>

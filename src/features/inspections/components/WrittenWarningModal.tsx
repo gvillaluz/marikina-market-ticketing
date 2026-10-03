@@ -2,10 +2,11 @@ import styles from './WrittenWarningModal.module.css';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import Loader from '../../../components/feedback/Loader/Loader';import { formatDateTime, formatDate } from '../../../utils/formatters';
-import { useInspectionDetail } from '../hooks/useInspectionDetail';
 import type { InspectionRecord, WarningRecord } from '../../../api/types/ticket.types';
 import marikinaSeal from '../../../assets/icons/Marikina_City_Seal.svg (1).webp';
 import { TriangleAlert, UserRound } from 'lucide-react';
+import { useInspectionDetail } from '../hooks/useInspectionDetail';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 interface WrittenWarningModalProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ interface WrittenWarningModalProps {
 }
 
 export function WrittenWarningModal({ isOpen, recordId, initialRecord, onClose }: WrittenWarningModalProps) {
-  const { data, isLoading, isError } = useInspectionDetail(recordId, 'warning');
+  const { data, isLoading, isError, error } = useInspectionDetail(recordId, 'warning', isOpen);
   const record = (data ?? initialRecord) as WarningRecord | undefined;
   const backendRecord = record as WarningRecord & Record<string, unknown> | undefined;
   const value = (primary: unknown, fallback?: unknown) => String(primary ?? fallback ?? '—');
@@ -30,7 +31,7 @@ export function WrittenWarningModal({ isOpen, recordId, initialRecord, onClose }
       onClose={onClose}
     >
       {isLoading && <Loader label="Loading warning record…" />}
-      {isError && <p className={styles.errorText}>Unable to load this warning record.</p>}
+      {isError && <p className={styles.errorText}>{getApiErrorMessage(error, "Unable to load this warning record.")}</p>}
 
       {record && (
         <>

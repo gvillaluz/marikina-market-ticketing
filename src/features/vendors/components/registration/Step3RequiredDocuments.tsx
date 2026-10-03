@@ -1,60 +1,72 @@
-import { FC } from 'react';
-import type { VendorRegistrationWizardInput } from '@/api/types/vendor.types';
-import { TextInput, SelectInput, FileUpload } from './FormField';
+import type { VendorRegistrationForm } from "@/api/types/vendor.types";
+import type { RegistrationFieldErrors } from "@/features/vendors/hooks/useVendorRegistration";
+import { GOVERNMENT_ID_OPTIONS } from "@/features/vendors/registration.constants";
+import { FileUpload, SelectInput, TextInput } from "./FormField";
+import styles from "./RegistrationForm.module.css";
 
 interface Step3Props {
-  form: VendorRegistrationWizardInput;
-  errors: Record<string, string>;
-  update: <K extends keyof VendorRegistrationWizardInput>(key: K, value: VendorRegistrationWizardInput[K]) => void;
+  form: VendorRegistrationForm;
+  errors: RegistrationFieldErrors;
+  update: <K extends keyof VendorRegistrationForm>(
+    key: K,
+    value: VendorRegistrationForm[K],
+  ) => void;
 }
 
-const ID_TYPES = [
-  'Passport',
-  'Driver\'s License',
-  'UMID',
-  'PhilHealth ID',
-  'SSS ID',
-  'PRC ID',
-  'Postal ID',
-  'Voter\'s ID',
-];
-
-const Step3RequiredDocuments: FC<Step3Props> = ({ form, errors, update }) => {
+export default function Step3RequiredDocuments({
+  form,
+  errors,
+  update,
+}: Step3Props) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <SelectInput
-        label="Government ID Type"
-        required
-        options={ID_TYPES}
-        placeholder="Select ID Type"
-        value={form.govIdType || ''}
-        onChange={(e) => update('govIdType', e.target.value)}
-        error={errors.govIdType}
-      />
-      <TextInput
-        label="Government ID Number"
-        required
-        value={form.govIdNumber}
-        onChange={(e) => update('govIdNumber', e.target.value)}
-        placeholder="1234-5678-9012"
-        error={errors.govIdNumber}
-      />
-      <FileUpload
-        label="Upload ID Photo"
-        required
-        fileName={form.govIdPhoto}
-        onChange={(file) => update('govIdPhoto', file)}
-        error={errors.govIdPhoto}
-      />
-      <FileUpload
-        label="Upload Permit Photo"
-        required
-        fileName={form.businessDocument}
-        onChange={(file) => update('businessDocument', file)}
-        error={errors.businessDocument}
-      />
+    <div className={styles.formStack}>
+      <div className={`${styles.grid} ${styles.twoColumns}`}>
+        <section className={styles.documentGroup}>
+          <h4 className={styles.groupTitle}>Government ID</h4>
+          <SelectInput
+            label="Government ID type"
+            required
+            options={GOVERNMENT_ID_OPTIONS}
+            placeholder="Select an ID type"
+            value={form.governmentIdType}
+            onChange={(event) => update("governmentIdType", event.target.value)}
+            error={errors.governmentIdType}
+          />
+          <FileUpload
+            label="Government ID photo"
+            description="Upload the front of your government ID"
+            required
+            file={form.governmentIdPhoto}
+            onChange={(file) => update("governmentIdPhoto", file)}
+            error={errors.governmentIdPhoto}
+          />
+        </section>
+
+        <section className={styles.documentGroup}>
+          <h4 className={styles.groupTitle}>Business document</h4>
+          <TextInput
+            label="Business ID number"
+            required
+            value={form.businessId}
+            onChange={(event) => update("businessId", event.target.value)}
+            placeholder="Enter ID number"
+            error={errors.businessId}
+            maxLength={20}
+          />
+          <FileUpload
+            label="Business document photo"
+            description="Upload your business permit or supporting document"
+            required
+            file={form.businessDocumentPhoto}
+            onChange={(file) => update("businessDocumentPhoto", file)}
+            error={errors.businessDocumentPhoto}
+          />
+        </section>
+      </div>
+      <p className={styles.documentNote}>
+        Use clear photos and choose files that are easy to read. We will review
+        them before you continue to access your account.
+      </p>
     </div>
   );
-};
-
-export default Step3RequiredDocuments;
+}

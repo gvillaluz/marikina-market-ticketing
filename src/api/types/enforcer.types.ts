@@ -6,7 +6,7 @@ export interface EnforcerSummary {
   username: string;
   firstName: string;
   lastName: string;
-  profileUrl: string;
+  profileUrl: string | null;
   status: AccountStatus;
   warningViolationCount: number;
   ticketViolationCount: number;

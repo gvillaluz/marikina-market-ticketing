@@ -107,9 +107,30 @@
   gap: 10px;
 }
 
+.statusOptionsPanel {
+  animation: revealStatusOptions 180ms ease both;
+}
+
+@keyframes revealStatusOptions {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 1100px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .statusOptionsPanel {
+      animation: none;
+    }
   }
   .statusOptions {
     grid-template-columns: repeat(2, 1fr);

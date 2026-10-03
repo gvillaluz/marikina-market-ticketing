@@ -1,21 +1,20 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Button from '@/components/ui/Button';
-import useVendorApproval from '@/features/vendors/hooks/useVendorApproval';
 import type { Vendor } from '@/api/types/vendor.types';
 import styles from './VendorApprovalCard.module.css';
 
 interface VendorApprovalCardProps {
   vendor: Vendor;
+  loading: boolean;
+  updateVendor: (vendorId: string, status: 'approved' | 'rejected' | 'suspended') => Promise<Vendor>;
   onAction: (updated: Vendor) => void;
 }
 
 /** Admin-only card for pending vendor approvals. */
-const VendorApprovalCard: FC<VendorApprovalCardProps> = ({ vendor, onAction }) => {
-  const { act, loading } = useVendorApproval();
-
+const VendorApprovalCard: FC<VendorApprovalCardProps> = ({ vendor, loading, updateVendor, onAction }) => {
   const handleAction = async (status: 'approved' | 'rejected' | 'suspended') => {
-    const updated = await act(vendor.id, status);
+    const updated = await updateVendor(vendor.id, status);
     onAction(updated);
   };
 

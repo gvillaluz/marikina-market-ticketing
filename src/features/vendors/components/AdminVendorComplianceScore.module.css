@@ -1,0 +1,187 @@
+.scoreCard {
+  display: flex;
+  min-width: 0;
+  min-height: 236px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px 16px 13px;
+  border: 1px solid #e0e4e9;
+  border-radius: 7px;
+  background: #fff;
+  width: 27rem;
+}
+
+.cardTitle {
+  margin: 0;
+  color: #3e4651;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.045em;
+}
+
+.scoreContent {
+  display: grid;
+  grid-template-columns: 126px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 4px 0;
+}
+
+.scoreRing {
+  display: grid;
+  width: 116px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  --vendor-score-angle: 0deg;
+  background: conic-gradient(
+    #075298 var(--vendor-score-angle),
+    #dce7f0 var(--vendor-score-angle)
+  );
+  animation: score-ring-enter 1100ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.scoreInner {
+  display: flex;
+  width: 96px;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #075298;
+}
+
+.scoreInner strong {
+  font-size: 1.18rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreInner span {
+  padding-top: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.metrics {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.metrics > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  color: #505762;
+  font-size: 0.7rem;
+}
+
+.metrics > div > span {
+  white-space: nowrap;
+}
+
+.metrics strong {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.levelLow {
+  padding: 3px 7px;
+  border: 1px solid #d3e9d5;
+  border-radius: 999px;
+  background: #eff9f0;
+  color: #23843b;
+}
+
+.metricGood {
+  color: #23843b;
+}
+
+.levelModerate {
+  padding: 3px 7px;
+  border: 1px solid #ffe2c3;
+  border-radius: 999px;
+  background: #fff5e9;
+  color: #c45a08;
+}
+
+.levelHigh {
+  padding: 3px 7px;
+  border: 1px solid #f1d0d0;
+  border-radius: 999px;
+  background: #fff0f0;
+  color: #c23030;
+}
+
+.scoreFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.scoreFooter strong {
+  padding: 3px 7px;
+  border: 1px solid #d3e9d5;
+  border-radius: 999px;
+  background: #eff9f0;
+  color: #23843b;
+  font-size: 0.64rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.scoreFooter span {
+  color: #7a8795;
+  font-size: 0.62rem;
+  white-space: nowrap;
+}
+
+@keyframes score-ring-enter {
+  from {
+    --vendor-score-angle: 0deg;
+  }
+  to {
+    --vendor-score-angle: var(--vendor-score-target);
+  }
+}
+
+@media (max-width: 480px) {
+  .scoreCard {
+    min-height: 220px;
+  }
+
+  .scoreContent {
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .scoreRing {
+    width: 96px;
+  }
+
+  .scoreInner {
+    width: 80px;
+  }
+
+  .metrics > div {
+    font-size: 0.64rem;
+  }
+
+  .metrics strong {
+    font-size: 0.62rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scoreRing {
+    animation: none;
+    --vendor-score-angle: var(--vendor-score-target);
+  }
+}

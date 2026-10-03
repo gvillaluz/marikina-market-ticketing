@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { vendorApi } from '@/api/endpoints/vendor.api';
 import type { Vendor } from '@/api/types/vendor.types';
 import type { Status } from '@/api/types/common.types';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 interface UseVendorsOptions {
   status?: Status;
@@ -31,7 +32,7 @@ export function useVendors(options: UseVendorsOptions = {}) {
       setTotal(res.total);
       setTotalPages(res.totalPages);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load vendors.');
+      setError(getApiErrorMessage(err, 'Failed to load vendors.'));
     } finally {
       setLoading(false);
     }

@@ -1,18 +1,20 @@
-import { useState } from "react";
-import { Download, FileSpreadsheet, FileText } from "lucide-react";
+import { Download } from "lucide-react";
 import styles from "./PrintConfigModal.module.css";
 import { Modal } from "../../../components/ui/Modal";
 import { Button } from "../../../components/ui/Button";
 import { PRINT_COLUMN_OPTIONS } from "../../../utils/constants";
 import type { PrintConfigPayload } from "../../../api/types/ticket.types";
-import { usePrintConfigForm } from "../hooks/usePrintConfigForm";
+import type { PrintConfigFormState } from "../hooks/usePrintConfigForm";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 
 interface PrintConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
+  form: PrintConfigFormState;
+  title?: string;
 }
 
-const RECORD_TYPES: Array<"warning" | "ticket"> = ["warning", "ticket"];
+const RECORD_TYPES: PrintConfigPayload["types"] = ["warning", "ticket"];
 const COLUMN_ORDER: PrintConfigPayload["columns"] = [
   "controlNumber",
   "type",
@@ -22,13 +24,13 @@ const COLUMN_ORDER: PrintConfigPayload["columns"] = [
   "section",
   "severity",
 ];
-const EXPORT_FORMATS = [
-  { value: "csv", label: "CSV", icon: FileText },
-  { value: "xlsx", label: "Excel (XLSX)", icon: FileSpreadsheet },
-  { value: "pdf", label: "PDF", icon: FileText },
-] as const;
 
-export function PrintConfigModal({ isOpen, onClose }: PrintConfigModalProps) {
+export function PrintConfigModal({
+  isOpen,
+  onClose,
+  form,
+  title = "Export Inspection Records",
+}: PrintConfigModalProps) {
   const {
     fields,
     setFields,
@@ -37,24 +39,27 @@ export function PrintConfigModal({ isOpen, onClose }: PrintConfigModalProps) {
     handleGenerate,
     isPending,
     isError,
-  } = usePrintConfigForm();
+    error,
+    validationError,
+  } = form;
 
   return (
-    <Modal
-      open={isOpen}
-      title="Export Configuration"
-      onClose={onClose}
-      size="md"
-    >
+    <Modal open={isOpen} title={title} onClose={onClose} size="md">
       <div className={styles.modalContent}>
-        {isError && (
-          <p className={styles.errorText}>
-            Unable to generate the print view. Please try again.
+        <p className={styles.description}>
+          Choose the records and fields to include. The export file type is
+          provided by the export service.
+        </p>
+
+        {(validationError || isError) && (
+          <p className={styles.errorText} role="alert">
+            {validationError ||
+              getApiErrorMessage(error, "Unable to generate the export. Please try again.")}
           </p>
         )}
 
-        <div className={styles.section}>
-          <p className={styles.sectionTitle}>Select Type</p>
+        <fieldset className={styles.section}>
+          <legend className={styles.sectionTitle}>Record type</legend>
           <div className={`${styles.checkGrid} ${styles.typePanel}`}>
             {RECORD_TYPES.map((value) => (
               <label className={styles.checkItem} key={value}>
@@ -67,10 +72,10 @@ export function PrintConfigModal({ isOpen, onClose }: PrintConfigModalProps) {
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        <div className={styles.section}>
-          <p className={styles.sectionTitle}>Select Columns to Print</p>
+        <fieldset className={styles.section}>
+          <legend className={styles.sectionTitle}>Columns to include</legend>
           <div className={`${styles.checkGrid} ${styles.columnsPanel}`}>
             {COLUMN_ORDER.map((value) => {
               const column = PRINT_COLUMN_OPTIONS.find(
@@ -89,74 +94,42 @@ export function PrintConfigModal({ isOpen, onClose }: PrintConfigModalProps) {
               );
             })}
           </div>
-        </div>
+        </fieldset>
 
-        <div className={styles.section}>
-          <p className={styles.sectionTitle}>Export Format</p>
-          <div
-            className={styles.formatGrid}
-            role="radiogroup"
-            aria-label="Export format"
-          >
-            {EXPORT_FORMATS.map(({ value, label, icon: Icon }) => (
-              <button
-                type="button"
-                key={value}
-                className={`${styles.formatCard} ${fields.format === value ? styles.selectedFormat : ""}`}
-                onClick={() => setFields.setFormat(value)}
-                role="radio"
-                aria-checked={fields.format === value}
-              >
-                <span className={styles.radio} aria-hidden="true" />
-                <Icon
-                  className={
-                    value === "pdf"
-                      ? styles.pdfIcon
-                      : value === "xlsx"
-                        ? styles.excelIcon
-                        : styles.csvIcon
-                  }
-                  size={22}
-                  strokeWidth={1.8}
-                />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.section}>
-          <p className={styles.sectionTitle}>Date Range Filter</p>
+        <fieldset className={styles.section}>
+          <legend className={styles.sectionTitle}>Date range (optional)</legend>
           <div className={styles.dateGrid}>
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="startDate">
-                Start Date
+              <label className={styles.label} htmlFor="export-start-date">
+                Start date
               </label>
               <input
-                id="startDate"
+                id="export-start-date"
                 type="date"
                 className={styles.input}
                 value={fields.startDate}
-                onChange={(e) => setFields.setStartDate(e.target.value)}
+                onChange={(event) =>
+                  setFields.setStartDate(event.target.value)
+                }
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="endDate">
-                End Date
+              <label className={styles.label} htmlFor="export-end-date">
+                End date
               </label>
               <input
-                id="endDate"
+                id="export-end-date"
                 type="date"
                 className={styles.input}
                 value={fields.endDate}
-                onChange={(e) => setFields.setEndDate(e.target.value)}
+                onChange={(event) => setFields.setEndDate(event.target.value)}
               />
             </div>
           </div>
-        </div>
+        </fieldset>
 
         <div className={styles.footer}>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isPending}>
             Cancel
           </Button>
           <Button
@@ -165,7 +138,7 @@ export function PrintConfigModal({ isOpen, onClose }: PrintConfigModalProps) {
             onClick={handleGenerate}
             loading={isPending}
           >
-            Export Data
+            Download export
           </Button>
         </div>
       </div>

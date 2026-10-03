@@ -32,8 +32,9 @@
 .avatar {
   width: 55px;
   height: 55px;
+  border: 2px solid #fff;
   border-radius: 50%;
-  background: #E8F0FE;
+  background: linear-gradient(135deg, #e8f0fe, #d7e6fb);
   color: #002753;
   font-size: 1.2rem;
   font-weight: 700;
@@ -41,6 +42,16 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.profileImage {
+  width: 55px;
+  height: 55px;
+  flex: 0 0 55px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--border-default);
 }
 
 .identity {
@@ -96,6 +107,7 @@
 }
 
 .active { background: #2e7d3228; color: #2E7D32; }
+.inactive { background: #6670851a; color: #667085; }
 
 .statHeader {
     display: flex;

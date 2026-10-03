@@ -1,0 +1,295 @@
+.historyCard {
+  min-width: 0;
+  padding: 14px 12px 8px;
+  overflow: hidden;
+}
+
+.recordsHeading {
+  padding: 1px 2px 10px;
+}
+
+.recordsHeading h2 {
+  color: #1d4b78;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+}
+
+.recordsHeading p {
+  margin-top: 2px;
+  color: #6b7786;
+  font-size: 0.63rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 2px 9px;
+}
+
+.searchBox {
+  display: flex;
+  height: 32px;
+  width: 420px;
+  max-width: 42%;
+  flex: 0 1 420px;
+  min-width: 220px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid #d8e0e9;
+  border-radius: 4px;
+  color: #8290a0;
+}
+
+.searchBox:focus-within {
+  border-color: #8bb2da;
+  box-shadow: 0 0 0 2px rgba(20, 83, 145, 0.08);
+}
+
+.searchBox input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: #334155;
+  font-size: 0.76rem;
+}
+
+.searchBox input::placeholder {
+  color: #8793a1;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.tableWrapper {
+  border: 1px solid #d9e0e8;
+  border-radius: 4px;
+}
+
+.inspectionTable {
+  table-layout: fixed;
+  min-width: 680px;
+}
+
+.inspectionTable :global(thead th) {
+  padding: 9px 10px;
+  background: #f1f3f6;
+  color: #485463;
+  font-size: 0.57rem;
+  font-weight: 750;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.inspectionTable :global(tbody td) {
+  padding: 10px 10px;
+  border-bottom: 1px solid #e0e5eb;
+  color: #303a46;
+  font-size: 0.78rem;
+  vertical-align: middle;
+}
+
+.inspectionTable :global(tbody tr:last-child td) {
+  border-bottom: 0;
+}
+
+.inspectionTable :global(tbody tr:hover) {
+  background: #f8fbff;
+}
+
+.inspectionTable :global(tbody tr) {
+  animation: inspection-row-enter 220ms ease-out both;
+}
+
+.inspectionTable :global(tbody tr:nth-child(2)) {
+  animation-delay: 25ms;
+}
+
+.inspectionTable :global(tbody tr:nth-child(3)) {
+  animation-delay: 50ms;
+}
+
+.inspectionTable :global(tbody tr:nth-child(4)) {
+  animation-delay: 75ms;
+}
+
+.inspectionTable :global(tbody tr:nth-child(5)) {
+  animation-delay: 100ms;
+}
+
+.controlNumber {
+  color: #26384b;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.typeBadge {
+  display: inline-flex;
+  min-width: 64px;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+.ticketType {
+  background: #e4efff;
+  color: #145391;
+}
+
+.warningType {
+  background: #fff1d8;
+  color: #98500c;
+}
+
+.viewButton {
+  min-width: 68px;
+  min-height: 30px;
+  justify-content: center;
+  padding: 5px 10px !important;
+  border-color: #c5d8eb !important;
+  background: #f4f9ff !important;
+  color: #145391 !important;
+  font-size: 0.71rem !important;
+}
+
+.viewButton:hover {
+  border-color: #0b4f91 !important;
+  background: #0b4f91 !important;
+  color: #fff !important;
+}
+
+.footer {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 2px 0;
+}
+
+.footer > span {
+  color: #697789;
+  font-size: 0.7rem;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footerActions :global(button) {
+  min-height: 26px;
+  font-size: 0.7rem;
+}
+
+.printButton {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid #dce5ef;
+  border-radius: 4px;
+  background: #fff;
+  color: #52657a;
+}
+
+.pagination {
+  gap: 3px;
+  margin: 0;
+}
+
+.pagination :global(button) {
+  width: 24px;
+  height: 25px;
+  min-height: 25px;
+  padding: 0;
+  border-radius: 3px;
+  font-size: 0.62rem;
+}
+
+.pagination :global(button[aria-current="page"]) {
+  border-color: #0b4f91;
+  background: #0b4f91;
+  color: #fff;
+}
+
+.pagination :global(button:disabled) {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.errorState {
+  display: flex;
+  min-height: 160px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #657487;
+  font-size: 0.75rem;
+}
+
+.errorState button {
+  border: 0;
+  background: transparent;
+  color: #145391;
+  font-size: inherit;
+  font-weight: 700;
+}
+
+@media (max-width: 650px) {
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .searchBox {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .filters {
+    justify-content: flex-start;
+  }
+
+  .footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .footerActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media print {
+  .toolbar,
+  .footer,
+  .viewButton {
+    display: none !important;
+  }
+
+  @keyframes inspection-row-enter {
+    from {
+      opacity: 0;
+      transform: translateY(3px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

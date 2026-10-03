@@ -1,19 +1,34 @@
 import { FC, useState, FormEvent } from 'react';
-import { Link } from 'react-router-dom';
-import useLogin, { resolveLoginIdentifier } from '@/features/auth/hooks/useLogin';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/routes/routePaths';
+import { resolveLoginIdentifier } from '@/features/auth/auth.utils';
+import type { LoginFormValues } from '@/features/auth/hooks/useLogin';
 
 interface LoginFormProps {
   
   showRegisterLink?: boolean;
   
   role?: 'Admin' | 'Enforcer' | 'Vendor';
+  submit: (values: LoginFormValues) => Promise<void>;
+  loading: boolean;
+  error: string | null;
 }
 
-const LoginForm: FC<LoginFormProps> = ({ showRegisterLink = true, role }) => {
-  const { submit, loading, error } = useLogin({ role });
+const LoginForm: FC<LoginFormProps> = ({ showRegisterLink = true, role, submit, loading, error }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string }>({});
+  const passwordReset = (location.state as { passwordReset?: boolean } | null)?.passwordReset;
+  const loginPath = role === 'Admin' ? ROUTES.adminLogin : ROUTES.login;
+
+  const handleForgotPassword = () => {
+    const nextStep = username.trim() ? 'options' : 'find-account';
+    navigate(`${ROUTES.forgotPassword(role === 'Admin' ? 'Admin' : 'Vendor')}/${nextStep}`, {
+      state: { username: username.trim() },
+    });
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -41,6 +56,12 @@ const LoginForm: FC<LoginFormProps> = ({ showRegisterLink = true, role }) => {
   return (
     <div>
       <h2 className="text-center font-mono font-bold text-2xl text-primary">LOGIN</h2>
+
+      {passwordReset && (
+        <div className="mt-4 rounded-md bg-green-50 px-4 py-3 text-sm text-green-700" role="status">
+          Your password has been changed. Please log in with your new password.
+        </div>
+      )}
 
       {error && (
         <div className="mt-4 bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm">
@@ -100,11 +121,19 @@ const LoginForm: FC<LoginFormProps> = ({ showRegisterLink = true, role }) => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 rounded-md bg-primary text-on-primary font-bold text-sm hover:bg-primary-hover transition-colors disabled:opacity-60"
+          className="w-full py-2.5 rounded-md bg-primary text-on-primary font-bold text-sm hover:bg-primary-hover hover:text-on-primary transition-colors disabled:opacity-60"
         >
           {loading ? 'Signing in…' : 'LOGIN'}
         </button>
       </form>
+
+      <button
+        type="button"
+        onClick={handleForgotPassword}
+        className="mt-4 block w-full text-center text-sm font-semibold text-primary underline"
+      >
+        Forgot password?
+      </button>
 
       {showRegisterLink && (
         <p className="text-center text-sm text-bodygray mt-6">
@@ -119,4 +148,3 @@ const LoginForm: FC<LoginFormProps> = ({ showRegisterLink = true, role }) => {
 };
 
 export default LoginForm;
-

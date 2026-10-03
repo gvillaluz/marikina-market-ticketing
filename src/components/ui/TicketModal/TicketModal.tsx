@@ -7,13 +7,28 @@ import TicketPenaltyDetailsSection from "./modal/TicketPenaltyDetailsSection";
 import TicketSignatureSection from "./modal/TicketSignatureSection";
 import TicketPhotoEvidenceSection from "./modal/TicketPhotoEvidenceSection";
 import TicketExportPanel from "./modal/TicketExportPanel";
-import { useTicketDetails } from "../../../features/tickets/hooks/useTicketDetails";
 import { toPng } from "html-to-image";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import jsPDF from "jspdf";
 import { useReactToPrint } from "react-to-print";
-import { TicketDetail } from "@/api/types/ticket.types";
 import TicketModalSkeleton from "./modal/TicketModalSkeleton";
+import Button from "@/components/ui/Button";
+import { RefreshCw } from "lucide-react";
+import { useTicketDetails } from "@/features/tickets/hooks/useTicketDetails";
+import { getApiErrorMessage } from "@/utils/apiErrors";
+
+type ExportAction = "png" | "pdf" | "print";
+
+function getErrorMessage(error: unknown): string {
+    return getApiErrorMessage(error, "An unexpected error occurred.");
+}
+
+function getRecordFileName(ticket: { type: string; controlNumber?: string }, ticketId: number) {
+    const recordName = ticket.type === "Ticket" ? "Violation-Ticket" : "Written-Warning";
+    const controlNumber = ticket.controlNumber?.replace(/[^\w-]/g, "-") || ticketId;
+    return `${recordName}-${controlNumber}`;
+}
 
 interface TicketModalProps {
     isOpen: boolean;
@@ -21,14 +36,22 @@ interface TicketModalProps {
     onClose: () => void;
 }
 
-export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
-    const { ticket, isLoading, isError, error } = useTicketDetails(ticketId);
+export function TicketModal({
+    isOpen,
+    ticketId,
+    onClose,
+}: TicketModalProps) {
+    const { ticket, isLoading, isError, error, refetch } = useTicketDetails(ticketId, isOpen);
     const ticketPaperRef = useRef<HTMLDivElement>(null);
+    const [busyAction, setBusyAction] = useState<ExportAction | null>(null);
+    const [exportError, setExportError] = useState<string | null>(null);
 
     const isTicket = ticket?.type === 'Ticket';
 
     const handleExportPNG = async () => {
-    if (!ticketPaperRef.current) return;
+        if (!ticketPaperRef.current || !ticket) return;
+        setBusyAction("png");
+        setExportError(null);
         try {
             const dataUrl = await toPng(ticketPaperRef.current, {
                 quality: 0.95,
@@ -37,16 +60,22 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
             });
 
             const link = document.createElement('a');
-            link.download = `Violation-Ticket-${ticket?.controlNumber || ticketId}.png`;
+            link.download = `${getRecordFileName(ticket, ticketId)}.png`;
             link.href = dataUrl;
+            document.body.appendChild(link);
             link.click();
+            link.remove();
         } catch (err) {
-            console.error('Failed to export PNG:', err);
+            setExportError(`Could not create the PNG export. ${getErrorMessage(err)}`);
+        } finally {
+            setBusyAction(null);
         }
     };
 
     const handleExportPDF = async () => {
-        if (!ticketPaperRef.current) return;
+        if (!ticketPaperRef.current || !ticket) return;
+        setBusyAction("pdf");
+        setExportError(null);
         try {
             const dataUrl = await toPng(ticketPaperRef.current, {
                 quality: 0.95,
@@ -71,52 +100,77 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
             const y = (pdfHeight - imgHeight) / 2;
 
             pdf.addImage(dataUrl, 'PNG', x, y, imgWidth, imgHeight);
-            pdf.save(`Violation-Ticket-${ticket?.controlNumber || ticketId}.pdf`);
+            pdf.save(`${getRecordFileName(ticket, ticketId)}.pdf`);
         } catch (err) {
-            console.error('Failed to export PDF:', err);
+            setExportError(`Could not create the PDF export. ${getErrorMessage(err)}`);
+        } finally {
+            setBusyAction(null);
         }
-        };
+    };
 
     const handlePrint = useReactToPrint({
         contentRef: ticketPaperRef,
         pageStyle: `
             @page {
                 size: A4 portrait;
-                margin: 0;
+                margin: 10mm;
             }
             @media print {
-            body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            html, body {
-                height: 100%;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: hidden;
-            }
-            /* Scale the ticket container to fit within the printable page height */
-            div {
-                max-height: 100vh !important;
-                box-sizing: border-box !important;
-            }
+                body {
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+                [data-ticket-paper] {
+                    width: 100% !important;
+                    border: 0 !important;
+                    border-radius: 0 !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                }
             }
         `,
-        });
+        onAfterPrint: () => setBusyAction(null),
+        onPrintError: (_location, printError) => {
+            setExportError(`Could not print this record. ${getErrorMessage(printError)}`);
+            setBusyAction(null);
+        },
+    });
 
-    return (
+    const startPrint = () => {
+        setBusyAction("print");
+        setExportError(null);
+        handlePrint();
+    };
+
+    return createPortal((
         <Modal
             open={isOpen}
-            title="Ticket Record"
-            subtitle="Here is the record of the collected violation ticket. You can review the details below."
+            title="Inspection Record"
+            subtitle="Review the record details, evidence, and available export options."
             onClose={onClose}
             size="xlg"
         >
             <div className={styles.layout}>
                 <div className={styles.leftColumn}>
-                    <div ref={ticketPaperRef} className={styles.ticketPaper}>
+                    <div ref={ticketPaperRef} className={styles.ticketPaper} data-ticket-paper>
                         {isLoading ? (
                             <TicketModalSkeleton />
+                        ) : isError ? (
+                            <div className={styles.ticketError} role="alert">
+                                <span>{getApiErrorMessage(error, "Unable to load this inspection record.")}</span>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    icon={<RefreshCw size={14} />}
+                                    onClick={() => void refetch()}
+                                >
+                                    Try again
+                                </Button>
+                            </div>
+                        ) : !ticket ? (
+                            <div className={styles.ticketError} role="status">
+                                Ticket details are not available.
+                            </div>
                         ) : (
                             <>
                                 <div className={styles.ticketHeader}>
@@ -135,7 +189,7 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
                                     {isTicket &&
                                     <div className={styles.controlNo}>
                                         <span className={styles.controlLabel}>CONTROL NO.</span>
-                                        <span className={styles.controlValue}>{`#${ticket?.controlNumber}`}</span>
+                                        <span className={styles.controlValue}>{ticket?.controlNumber || "N/A"}</span>
                                     </div>}
                                 </div>
 
@@ -160,9 +214,12 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
                 <TicketExportPanel
                     onExportPNG={handleExportPNG}
                     onExportPDF={handleExportPDF}
-                    onPrint={handlePrint}
+                    onPrint={startPrint}
+                    disabled={isLoading || isError || !ticket}
+                    busyAction={busyAction}
+                    error={exportError}
                 />
             </div>
         </Modal>
-    );
+    ), document.body);
 }

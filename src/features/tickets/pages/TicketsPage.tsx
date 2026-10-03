@@ -1,9 +1,8 @@
 import { FC, useState } from 'react';
 import PageHeader from '@/components/ui/PageHeader';
 import TicketList from '@/features/tickets/components/TicketList';
-import useDebounce from '@/hooks/useDebounce';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
-import { MARKET_SECTION_LABELS, MarketSection, RecordStatus } from '@/api/types/common.types';
+import { MARKET_SECTION_LABELS, MarketSection } from '@/api/types/common.types';
 import styles from './TicketsPage.module.css';
 import useTicketAnalytics from '../hooks/useTicketAnalytics';
 import TicketAnalyticsCard from '../components/TicketAnalyticsCard';
@@ -13,6 +12,9 @@ import { Download, Printer, Search } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { TicketStatusFilter, useTicketFilters } from '../hooks/useTicketFilters';
 import { useTickets } from '../hooks/useTickets';
+import { PrintConfigModal } from '@/features/inspections/components/PrintConfigModal';
+import { usePrintConfigForm } from '@/features/inspections/hooks/usePrintConfigForm';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 const FILTERS: TicketStatusFilter[] = [
   'All Status',
@@ -30,16 +32,33 @@ const TicketsPage: FC = () => {
     queryParams
   } = useTicketFilters()
   const [selectedTicketId, setSelectedTicketId] = useState<number>(0);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const printConfig = usePrintConfigForm(
+    ["ticket"],
+    () => setIsExportOpen(false),
+  );
   const { stats } = useTicketAnalytics();
 
-  const { ticketSummary, page, setPage, total, totalPages, isLoading, isFetching } = useTickets(queryParams);
+  const {
+    ticketSummary,
+    page,
+    setPage,
+    total,
+    totalPages,
+    pageSize,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  } = useTickets(queryParams);
 
   const goToPage = (target: number) => {
     setPage(Math.min(Math.max(target, 1), totalPages));
   };
 
   return (
-    <div>
+    <div className={styles.page}>
       <PageHeader
         title="Tickets"
         subtitle="Manage violations, complaints, inspections, and renewals."
@@ -53,15 +72,23 @@ const TicketsPage: FC = () => {
       </div>
 
       <section className={styles.recordsContainer}>
+        <div className={styles.recordsHeading}>
+          <div>
+            <h2 className={styles.recordsTitle}>Ticket register</h2>
+            <p className={styles.recordsSubtitle}>Search, filter, and review issued tickets</p>
+          </div>
+          <span className={styles.totalBadge}>{total} tickets</span>
+        </div>
         <div className={styles.toolbar}>
           <div className={styles.filters}>
             <div className={styles.searchWrapper}>
               <Search className={styles.searchIcon} size={14} strokeWidth={1.8} aria-hidden="true" />
               <input
                 className={styles.searchInput}
-                placeholder="Search tickets…"
+                placeholder="Search by control number or vendor..."
                 value={filters.search}
                 onChange={(e) => setFilters.setSearch(e.target.value)}
+                aria-label="Search tickets"
               />
             </div>
 
@@ -90,12 +117,25 @@ const TicketsPage: FC = () => {
           </div>
         </div>
 
-        <TicketList tickets={ticketSummary} loading={isLoading || isFetching} onView={(ticketId) => setSelectedTicketId(ticketId)} />
+        {isError ? (
+          <div className={styles.errorState} role="alert">
+            <span>{getApiErrorMessage(error, "Couldn't load tickets.")}</span>
+            <Button size="sm" variant="outline" onClick={() => void refetch()}>
+              Try again
+            </Button>
+          </div>
+        ) : (
+          <TicketList
+            tickets={ticketSummary}
+            loading={isLoading || isFetching}
+            onView={(ticketId) => setSelectedTicketId(ticketId)}
+          />
+        )}
 
-        {ticketSummary.length !== 0 && 
+        {ticketSummary.length !== 0 && !isError &&
           <div className={styles.footer}>
             <span className={styles.entries}>
-              Showing {total === 0 ? 0 : (page - 1) * 9 + 1} to {Math.min(page * 9, total)} of {total} entries
+              Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, total)} of {total} tickets
             </span>
 
             <div className={styles.footerActions}>
@@ -103,14 +143,15 @@ const TicketsPage: FC = () => {
                 className={styles.exportButton}
                 variant="outline"
                 icon={<Download size={14} strokeWidth={1.8} aria-hidden="true" />}
+                onClick={() => setIsExportOpen(true)}
               >
                 Export
               </Button>
               <button
                 className={styles.printButton}
                 onClick={() => window.print()}
-                aria-label="Print inspection records"
-                title="Print inspection records"
+                aria-label="Print ticket records"
+                title="Print ticket records"
               >
                 <Printer size={15} strokeWidth={1.8} aria-hidden="true" />
               </button>
@@ -122,17 +163,22 @@ const TicketsPage: FC = () => {
               >
                 ‹
               </button>
-              {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map((p) => (
+              {totalPages > 3 && page > 2 && <span className={styles.ellipsis}>...</span>}
+              {Array.from(
+                { length: Math.min(totalPages, 3) },
+                (_, index) => Math.min(Math.max(page - 1, 1), Math.max(1, totalPages - 2)) + index,
+              ).map((p) => (
                 <button
                   key={p}
                   className={`${styles.pageButton} ${page === p ? styles.currentPage : ''}`}
                   onClick={() => goToPage(p)}
                   aria-label={`Go to page ${p}`}
+                  aria-current={page === p ? 'page' : undefined}
                 >
                   {p}
                 </button>
               ))}
-              {totalPages > 3 && <span className={styles.ellipsis}>...</span>}
+              {totalPages > 3 && page + 1 < totalPages && <span className={styles.ellipsis}>...</span>}
               <button
                 className={styles.pageButton}
                 disabled={page >= totalPages}
@@ -152,6 +198,15 @@ const TicketsPage: FC = () => {
           ticketId={selectedTicketId}
           onClose={() => setSelectedTicketId(0)}
         />}
+
+      {isExportOpen && (
+        <PrintConfigModal
+          isOpen={isExportOpen}
+          title="Export Ticket Records"
+          onClose={() => setIsExportOpen(false)}
+          form={printConfig}
+        />
+      )}
     </div>
   );
 };

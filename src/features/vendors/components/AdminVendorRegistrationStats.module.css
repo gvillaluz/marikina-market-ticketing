@@ -1,0 +1,61 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.card {
+  min-height: 116px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  border-top: 3px solid transparent;
+}
+
+.pending { border-top-color: #2563eb; }
+.info { border-top-color: #d97706; }
+.approved { border-top-color: #16803c; }
+.rejected { border-top-color: #dc2626; }
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--primary);
+}
+
+.value {
+  color: var(--text-heading);
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.label {
+  margin-top: 12px;
+  color: var(--text-heading);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.helper {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .grid { grid-template-columns: 1fr; }
+}

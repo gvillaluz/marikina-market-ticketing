@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import type { RegisterInput } from '@/features/auth/auth.types';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 
 export function useRegister() {
@@ -17,7 +18,7 @@ export function useRegister() {
       await register(input);
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed.');
+      setError(getApiErrorMessage(err, 'Registration failed.'));
     } finally {
       setLoading(false);
     }

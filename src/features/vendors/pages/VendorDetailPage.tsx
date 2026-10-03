@@ -8,6 +8,7 @@ import VendorQRCode from '@/features/vendors/components/VendorQRCode';
 import { useAuth } from '@/context/AuthContext';
 import type { Vendor } from '@/api/types/vendor.types';
 import styles from './VendorDetailPage.module.css';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 const VendorDetailPage: FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +25,7 @@ const VendorDetailPage: FC = () => {
         const data = await vendorApi.getById(id);
         setVendor(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load vendor.');
+        setError(getApiErrorMessage(err, 'Failed to load vendor.'));
       } finally {
         setLoading(false);
       }

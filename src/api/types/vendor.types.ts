@@ -26,43 +26,24 @@ export interface Vendor {
   ownerId?: string;
 }
 
-export interface VendorRegistrationInput {
-  businessName: string;
-  category: VendorCategory;
-  address: string;
-  barangay: string;
-  contactPerson: string;
-  email: string;
-  phone: string;
-}
-
-
-export interface VendorRegistrationWizardInput {
-  // Personal information
-  lastName: string;
+export interface VendorRegistrationForm {
   firstName: string;
   middleName: string;
+  lastName: string;
   dateOfBirth: string;
-  age: string;
-  mobileNumber: string;
-  houseNo: string;
+  phoneNumber: string;
+  houseNumber: string;
   street: string;
   barangay: string;
   city: string;
-
- 
+  businessId: string;
   businessName: string;
   natureOfBusiness: string;
   stallNumber: string;
-  section: string;
-
-
-  govIdType: string;
-  govIdNumber: string;
-  govIdPhoto?: File | '' | null;
-  businessDocument?: File | '' | null;
-
-  // Account registration
+  marketSectionId: string;
+  governmentIdType: string;
+  governmentIdPhoto: File | null;
+  businessDocumentPhoto: File | null;
   email: string;
   password: string;
   confirmPassword: string;

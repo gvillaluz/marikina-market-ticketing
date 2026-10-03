@@ -1,101 +1,128 @@
-import { FC } from 'react';
-import type { VendorRegistrationWizardInput } from '@/api/types/vendor.types';
-import { TextInput } from './FormField';
+import type { VendorRegistrationForm } from "@/api/types/vendor.types";
+import type { RegistrationFieldErrors } from "@/features/vendors/hooks/useVendorRegistration";
+import { TextInput } from "./FormField";
+import styles from "./RegistrationForm.module.css";
 
 interface Step1Props {
-  form: VendorRegistrationWizardInput;
-  errors: Record<string, string>;
-  update: <K extends keyof VendorRegistrationWizardInput>(key: K, value: VendorRegistrationWizardInput[K]) => void;
+  form: VendorRegistrationForm;
+  errors: RegistrationFieldErrors;
+  update: <K extends keyof VendorRegistrationForm>(
+    key: K,
+    value: VendorRegistrationForm[K],
+  ) => void;
 }
 
-const Step1PersonalInfo: FC<Step1Props> = ({ form, errors, update }) => {
+export default function Step1PersonalInfo({ form, errors, update }: Step1Props) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <TextInput
-        label="Last Name"
-        required
-        value={form.lastName}
-        onChange={(e) => update('lastName', e.target.value)}
-        placeholder="Dela Cruz"
-        error={errors.lastName}
-      />
-      <TextInput
-        label="First Name"
-        required
-        value={form.firstName}
-        onChange={(e) => update('firstName', e.target.value)}
-        placeholder="Juan"
-        error={errors.firstName}
-      />
-      <TextInput
-        label="Middle Name"
-        value={form.middleName}
-        onChange={(e) => update('middleName', e.target.value)}
-        placeholder="Santos"
-      />
-      <TextInput
-        label="Date of Birth"
-        required
-        type="date"
-        value={form.dateOfBirth}
-        onChange={(e) => update('dateOfBirth', e.target.value)}
-        error={errors.dateOfBirth}
-      />
-      <TextInput
-        label="Age"
-        required
-        type="number"
-        value={form.age}
-        onChange={(e) => update('age', e.target.value)}
-        placeholder="35"
-        error={errors.age}
-      />
-      <TextInput
-        label="Mobile Number"
-        required
-        type="tel"
-        value={form.mobileNumber}
-        onChange={(e) => update('mobileNumber', e.target.value)}
-        placeholder="0917 123 4567"
-        error={errors.mobileNumber}
-      />
+    <div className={styles.formStack}>
+      <section className={styles.group}>
+        <h4 className={styles.groupTitle}>Full name</h4>
+        <div className={`${styles.grid} ${styles.threeColumns}`}>
+          <TextInput
+            label="First name"
+            required
+            autoComplete="given-name"
+            value={form.firstName}
+            onChange={(event) => update("firstName", event.target.value)}
+            placeholder="Enter first name"
+            error={errors.firstName}
+            maxLength={50}
+          />
+          <TextInput
+            label="Middle name (optional)"
+            autoComplete="additional-name"
+            value={form.middleName}
+            onChange={(event) => update("middleName", event.target.value)}
+            placeholder="Enter middle name"
+            error={errors.middleName}
+          />
+          <TextInput
+            label="Last name"
+            required
+            autoComplete="family-name"
+            value={form.lastName}
+            onChange={(event) => update("lastName", event.target.value)}
+            placeholder="Enter last name"
+            error={errors.lastName}
+            maxLength={50}
+          />
+        </div>
+      </section>
 
-      {/* Address block spans full width on mobile, 2 cols on sm+ */}
-      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <TextInput
-          label="House No."
-          required
-          value={form.houseNo}
-          onChange={(e) => update('houseNo', e.target.value)}
-          placeholder="123"
-          error={errors.houseNo}
-        />
-        <TextInput
-          label="Street"
-          required
-          value={form.street}
-          onChange={(e) => update('street', e.target.value)}
-          placeholder="J.P. Rizal St."
-          error={errors.street}
-        />
-        <TextInput
-          label="Barangay"
-          required
-          value={form.barangay}
-          onChange={(e) => update('barangay', e.target.value)}
-          placeholder="San Roque"
-          error={errors.barangay}
-        />
-      </div>
+      <section className={styles.group}>
+        <h4 className={styles.groupTitle}>Contact details</h4>
+        <div className={`${styles.grid} ${styles.twoColumns}`}>
+          <TextInput
+            label="Phone number"
+            required
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel-national"
+            value={form.phoneNumber}
+            onChange={(event) =>
+              update("phoneNumber", event.target.value.replace(/\D/g, "").slice(0, 11))
+            }
+            placeholder="09XXXXXXXXX"
+            error={errors.phoneNumber}
+            maxLength={11}
+          />
+          <TextInput
+            label="Date of birth"
+            required
+            type="date"
+            autoComplete="bday"
+            max={new Date().toISOString().slice(0, 10)}
+            value={form.dateOfBirth}
+            onChange={(event) => update("dateOfBirth", event.target.value)}
+            error={errors.dateOfBirth}
+          />
+        </div>
+      </section>
 
-      <TextInput
-        label="City"
-        value={form.city}
-        onChange={(e) => update('city', e.target.value)}
-        placeholder="Marikina City"
-      />
+      <section className={styles.group}>
+        <h4 className={styles.groupTitle}>Home address</h4>
+        <div className={`${styles.grid} ${styles.threeColumns}`}>
+          <TextInput
+            label="House number"
+            required
+            autoComplete="address-line1"
+            value={form.houseNumber}
+            onChange={(event) => update("houseNumber", event.target.value)}
+            placeholder="Enter house number"
+            error={errors.houseNumber}
+            maxLength={50}
+          />
+          <TextInput
+            label="Street"
+            required
+            value={form.street}
+            onChange={(event) => update("street", event.target.value)}
+            placeholder="Enter street"
+            error={errors.street}
+            maxLength={50}
+          />
+          <TextInput
+            label="Barangay"
+            required
+            autoComplete="address-level3"
+            value={form.barangay}
+            onChange={(event) => update("barangay", event.target.value)}
+            placeholder="Enter barangay"
+            error={errors.barangay}
+            maxLength={60}
+          />
+          <TextInput
+            label="City"
+            required
+            autoComplete="address-level2"
+            value={form.city}
+            onChange={(event) => update("city", event.target.value)}
+            placeholder="Enter city"
+            error={errors.city}
+            maxLength={100}
+          />
+        </div>
+      </section>
     </div>
   );
-};
-
-export default Step1PersonalInfo;
+}

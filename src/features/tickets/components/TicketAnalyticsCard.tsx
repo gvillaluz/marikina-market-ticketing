@@ -8,7 +8,6 @@ const TicketAnalyticsCard: FC<{
   change?: number;
   progress?: number;
 }> = ({ label, value, change, progress }) => {
-  console.log(progress);
   return (
     <Card className={styles.stat}>
       <span className={styles.statLabel}>{label}</span>

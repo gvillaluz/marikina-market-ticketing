@@ -1,0 +1,142 @@
+.panel {
+  grid-column: span 6;
+  min-height: 235px;
+}
+
+.content {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(110px, 0.9fr) minmax(0, 1.4fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 150px;
+}
+
+.donut {
+  display: grid;
+  width: 128px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  place-items: center;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: var(--distribution-gradient);
+  animation: donut-enter 650ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.panel > .content {
+  min-height: 180px;
+}
+
+@keyframes donut-enter {
+  from {
+    opacity: 0.65;
+    transform: scale(0.88) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+.donutCenter {
+  display: flex;
+  width: 67%;
+  aspect-ratio: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.donutCenter strong {
+  color: #354358;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.donutCenter span {
+  color: #818c9b;
+  font-size: 0.68rem;
+}
+
+.categoryList {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+  list-style: none;
+}
+
+.categoryList li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px 27px;
+  align-items: center;
+  gap: 5px;
+  color: #5b6572;
+  font-size: 0.7rem;
+  transition: transform 140ms ease, color 140ms ease;
+}
+
+.categoryList li:hover {
+  color: #263c56;
+  transform: translateX(2px);
+}
+
+.categoryName {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoryName i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+}
+
+.categoryList strong {
+  color: #3e4b5d;
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+.categoryList li > span:last-child {
+  color: #6d7888;
+  text-align: right;
+}
+
+.categoryList .empty {
+  display: block;
+  color: #7b8797;
+}
+
+@media (max-width: 900px) {
+  .panel {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    grid-template-columns: 112px minmax(0, 1fr);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .donut,
+    .categoryList li {
+      animation: none;
+      transition: none;
+    }
+  }
+
+  .donut {
+    width: 108px;
+  }
+}

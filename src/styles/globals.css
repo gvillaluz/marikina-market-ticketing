@@ -37,6 +37,12 @@
   --navbar-height: 64px;
 }
 
+@property --vendor-score-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -47,6 +53,16 @@ html,
 body,
 #root {
   height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 1rem;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 76px;
 }
 
 body {
@@ -70,6 +86,47 @@ a:hover {
 button {
   font-family: inherit;
   cursor: pointer;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role='button'] {
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.route-motion {
+  width: 100%;
+  animation: route-enter 220ms ease-out both;
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 input,
@@ -168,4 +225,3 @@ h4 {
 .flex-1 {
   flex: 1;
 }
-

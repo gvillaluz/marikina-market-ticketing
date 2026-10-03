@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, KeyRound, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -38,7 +38,7 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
+    <div className="route-motion min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
       <button type="button" onClick={() => navigate(-1)} className="mb-10 inline-flex items-center gap-2 rounded-md bg-blue-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-800">
         <ArrowLeft className="h-4 w-4" />
         Back Home

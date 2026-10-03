@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { penaltiesApi } from '@/api/endpoints/penalties.api';
 import type { Penalty, PenaltySummary } from '@/api/endpoints/penalties.api';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 
 export function usePenalties(status?: string) {
@@ -20,7 +21,7 @@ export function usePenalties(status?: string) {
       setPenalties(list.items);
       setSummary(sum);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load penalties.');
+      setError(getApiErrorMessage(err, 'Failed to load penalties.'));
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@ import { ticketsApi } from "@/api/endpoints/tickets.api";
 import { RecordStatus } from "@/api/types/common.types";
 import { useToast } from "@/components/ui/Toast/useToast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 
 interface UpdateStatusProps {
     newStatus: RecordStatus;
@@ -30,7 +31,10 @@ export function useUpdateStatus(ticketId: number) {
         onError: (error: Error) => {
             showToast({
                 title: 'Update failed',
-                description: error.message || 'Something went wrong while updating the ticket status.',
+                description: getApiErrorMessage(
+                    error,
+                    'Something went wrong while updating the ticket status.',
+                ),
                 variant: 'error',
             });
         },

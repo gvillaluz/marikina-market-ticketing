@@ -1,62 +1,61 @@
-import { FC } from 'react';
-import type { VendorRegistrationWizardInput } from '@/api/types/vendor.types';
-import { TextInput, SelectInput } from './FormField';
+import type { VendorRegistrationForm } from "@/api/types/vendor.types";
+import type { RegistrationFieldErrors } from "@/features/vendors/hooks/useVendorRegistration";
+import { MARKET_SECTION_OPTIONS } from "@/features/vendors/registration.constants";
+import { SelectInput, TextInput } from "./FormField";
+import styles from "./RegistrationForm.module.css";
 
 interface Step2Props {
-  form: VendorRegistrationWizardInput;
-  errors: Record<string, string>;
-  update: <K extends keyof VendorRegistrationWizardInput>(key: K, value: VendorRegistrationWizardInput[K]) => void;
+  form: VendorRegistrationForm;
+  errors: RegistrationFieldErrors;
+  update: <K extends keyof VendorRegistrationForm>(
+    key: K,
+    value: VendorRegistrationForm[K],
+  ) => void;
 }
 
-const SECTION_OPTIONS = [
-  'Dry Goods Section A',
-  'Dry Goods Section B',
-  'Wet Section A',
-  'Wet Section B',
-  'Meat & Poultry Section',
-  'Produce Section',
-  'Fish Section',
-  'Other',
-];
-
-const Step2BusinessDetails: FC<Step2Props> = ({ form, errors, update }) => {
+export default function Step2BusinessDetails({
+  form,
+  errors,
+  update,
+}: Step2Props) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className={styles.formStack}>
       <TextInput
-        label="Business Name"
+        label="Business name"
         required
         value={form.businessName}
-        onChange={(e) => update('businessName', e.target.value)}
-        placeholder="Juan's Fresh Produce"
+        onChange={(event) => update("businessName", event.target.value)}
+        placeholder="Enter your business name"
         error={errors.businessName}
+        maxLength={100}
       />
       <TextInput
-        label="Nature of Business"
+        label="Nature of business"
         required
         value={form.natureOfBusiness}
-        onChange={(e) => update('natureOfBusiness', e.target.value)}
-        placeholder="Fruits & Vegetables Retail"
+        onChange={(event) => update("natureOfBusiness", event.target.value)}
+        placeholder="e.g., Services, fruit, meat, dry goods"
         error={errors.natureOfBusiness}
+        maxLength={100}
       />
-      <TextInput
-        label="Stall Number"
-        required
-        value={form.stallNumber}
-        onChange={(e) => update('stallNumber', e.target.value)}
-        placeholder="A-123"
-        error={errors.stallNumber}
-      />
-      <SelectInput
-        label="Market Section"
-        required
-        options={SECTION_OPTIONS}
-        placeholder="Select Market Section"
-        value={form.section || ''}
-        onChange={(e) => update('section', e.target.value)}
-        error={errors.section}
-      />
+      <div className={`${styles.grid} ${styles.twoColumns}`}>
+        <SelectInput
+          label="Market section"
+          required
+          options={MARKET_SECTION_OPTIONS}
+          placeholder="Select your market section"
+          value={form.marketSectionId}
+          onChange={(event) => update("marketSectionId", event.target.value)}
+          error={errors.marketSectionId}
+        />
+        <TextInput
+          label="Stall number (optional)"
+          value={form.stallNumber}
+          onChange={(event) => update("stallNumber", event.target.value)}
+          placeholder="Leave blank if private"
+          error={errors.stallNumber}
+        />
+      </div>
     </div>
   );
-};
-
-export default Step2BusinessDetails;
+}

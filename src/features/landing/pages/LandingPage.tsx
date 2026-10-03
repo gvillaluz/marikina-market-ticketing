@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import citySeal from '@/assets/icons/Marikina_City_Seal.svg (1).webp';
+import styles from './LandingPage.module.css';
 
 /* ------------------------------------------------------------------ */
 /* Shared building blocks                                              */
@@ -55,41 +57,25 @@ function SectionHeading({ eyebrow, title, subtext, light = false, className = ''
 
 function Navbar() {
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-        <button
-          className="text-left font-mono font-bold text-primary text-sm md:text-base leading-tight"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        >
-          Marikina Public Market
-          <span className="block">Inspection System</span>
-        </button>
+    <header className={styles.navbar}>
+      <div className={styles.navContainer}>
+        <Link to="/" className={styles.brand}>
+          <img src={citySeal} alt="" />
+          <span>
+            <strong>Marikina Public Market</strong>
+            <small>Inspection System</small>
+          </span>
+        </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="#top" className="text-primary font-medium border-b-2 border-primary pb-0.5">
-            Home
-          </a>
-          <a href="#features" className="text-bodygray hover:text-primary transition-colors">
-            About
-          </a>
-          <a href="#contact" className="text-bodygray hover:text-primary transition-colors">
-            Contact
-          </a>
+        <nav className={styles.navLinks} aria-label="Main navigation">
+          <a href="#top" className={styles.activeNavLink}>Home</a>
+          <a href="#features">About</a>
+          <a href="#contact">Contact</a>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <Link
-            to="/login"
-            className="px-4 py-2 rounded-md border border-primary text-primary font-medium text-sm hover:bg-primary/5 transition-colors"
-          >
-Login
-          </Link>
-          <Link
-            to="/register"
-            className="px-4 py-2 rounded-md bg-primary text-white font-medium text-sm hover:bg-primary/90 transition-colors"
-          >
-            Vendor Registration
-          </Link>
+        <div className={styles.navActions}>
+          <Link to="/login" className={styles.loginLink}>Login</Link>
+          <Link to="/register" className={styles.registerLink}>Vendor Registration</Link>
         </div>
       </div>
     </header>
@@ -99,44 +85,41 @@ Login
 
 function Hero() {
   return (
-    <section className="relative" id="top">
-      {}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `linear-gradient(180deg, #0B2D5B 0%, #3a6aa5 45%, #7fb3d5 70%, #c9b98a 100%)`,
-        }}
-      >
-        {}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.18) 0%, transparent 55%), repeating-linear-gradient(90deg, rgba(255,255,255,0.10) 0 2px, transparent 2px 90px)',
-          }}
-        />
-        {}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              'radial-gradient(ellipse at 12% 78%, rgba(11,45,91,0.28) 0%, transparent 30%), radial-gradient(ellipse at 88% 78%, rgba(11,45,91,0.28) 0%, transparent 30%)',
-          }}
-        />
-      </div>
-
-      {}
-      <div className="absolute inset-0 bg-white/70" />
-
-      <div className="relative max-w-[1200px] mx-auto px-4 md:px-8 py-24 md:py-28 min-h-[400px] flex items-center">
-        <div className="max-w-2xl">
-          <h1 className="font-mono text-4xl md:text-5xl lg:text-6xl font-bold text-primary leading-[1.05]">
+    <section className={styles.hero} id="top">
+      <div className={styles.heroBackdrop} aria-hidden="true" />
+      <div className={styles.heroContainer}>
+        <div className={styles.heroContent}>
+          <span className={styles.heroEyebrow}>MARIKINA CITY · PUBLIC MARKET</span>
+          <h1 className={styles.heroTitle}>
             A Smarter Public Market for a Better Marikina.
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-bodygray max-w-xl">
-            Empowering Marikina with smart technology by analyzing ticketing patterns to
-            automatically optimize inspection allocations.
+          <p className={styles.heroCopy}>
+            Bringing vendors, market enforcers, and administrators together through clearer
+            inspections, accessible records, and accountable service.
           </p>
+          <div className={styles.heroActions}>
+            <Link to="/register" className={styles.heroPrimary}>Register as a vendor</Link>
+            <Link to="/admin/login" className={styles.heroSecondary}>Administrator login <span aria-hidden>→</span></Link>
+          </div>
+          <div className={styles.heroTrust}>
+            <span aria-hidden>✓</span> A more connected market community
+          </div>
+        </div>
+        <div className={styles.heroPanel} aria-label="Market system overview">
+          <div className={styles.heroPanelTop}>
+            <div className={styles.heroPanelBrand}>
+              <img src={citySeal} alt="" />
+              <span><strong>Market operations</strong><small>One connected system</small></span>
+            </div>
+            <span className={styles.liveBadge}><i /> Online</span>
+          </div>
+          <div className={styles.heroPanelBody}>
+            <span className={styles.panelCaption}>BUILT FOR EVERY MARKET ROLE</span>
+            <div className={styles.roleRow}><span className={styles.roleIcon}>V</span><span><strong>Vendors</strong><small>Track tickets and compliance</small></span><span className={styles.roleArrow}>↗</span></div>
+            <div className={styles.roleRow}><span className={styles.roleIcon}>E</span><span><strong>Enforcers</strong><small>Record inspections on the go</small></span><span className={styles.roleArrow}>↗</span></div>
+            <div className={styles.roleRow}><span className={styles.roleIcon}>A</span><span><strong>Administrators</strong><small>Manage records and operations</small></span><span className={styles.roleArrow}>↗</span></div>
+          </div>
+          <div className={styles.heroPanelFoot}><span /> Secure, role-based access</div>
         </div>
       </div>
     </section>
@@ -169,10 +152,7 @@ function Features() {
         />
         <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
           {featureCards.map((c) => (
-            <div
-              key={c.title}
-              className="bg-bglight-card rounded-xl p-8 hover:shadow-lg transition-shadow"
-            >
+            <div key={c.title} className={`${styles.featureCard} bg-bglight-card rounded-xl p-8`}>
               <h3 className="font-mono text-xl font-bold text-primary">{c.title}</h3>
               <p className="mt-4 text-bodygray leading-relaxed">{c.desc}</p>
             </div>
@@ -210,9 +190,9 @@ const processSteps = [
 
 function ProcessStep({ num, title, desc, arrow }: { num: string; title: string; desc: string; arrow: boolean }) {
   return (
-    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+    <div className={styles.processStep}>
       <div className="flex-1 text-center md:text-left">
-        <p className="font-mono text-2xl font-bold text-accent">{num}</p>
+        <p className={`${styles.processNumber} font-mono text-2xl font-bold text-accent`}>{num}</p>
         <h3 className="mt-2 font-mono text-lg font-bold text-primary">{title}</h3>
         <p className="mt-2 text-bodygray text-sm leading-relaxed">{desc}</p>
       </div>
@@ -379,7 +359,7 @@ function WhoItsFor() {
         />
         <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
           {roles.map((r) => (
-            <div key={r.name} className="bg-white rounded-xl p-8 shadow-sm">
+            <div key={r.name} className={`${styles.roleCard} bg-white rounded-xl p-8 shadow-sm`}>
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-mono text-lg font-bold text-primary">{r.name}</h3>
                 <span className="text-xs font-semibold px-3 py-1 rounded-full bg-bglight text-primary">
@@ -428,7 +408,7 @@ function ClosingCta() {
 
 export default function LandingPage() {
   return (
-    <div className="font-sans bg-white">
+    <div className={`route-motion ${styles.landing} font-sans bg-white`}>
       <Navbar />
       <Hero />
       <Features />

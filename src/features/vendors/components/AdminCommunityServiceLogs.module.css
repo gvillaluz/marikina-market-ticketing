@@ -1,0 +1,296 @@
+.logsCard {
+  min-width: 0;
+  width: 100%;
+  margin-top: 0;
+  padding: 14px 12px 10px;
+  border-color: #d4dce7;
+  border-radius: 7px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 2px 10px;
+}
+
+.header h2 {
+  color: #075298;
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.header p {
+  margin-top: 3px;
+  color: #697789;
+  font-size: 0.75rem;
+}
+
+.tableWrapper {
+  max-width: 100%;
+}
+
+.tableWrapper :global(table) {
+  min-width: 1040px;
+  table-layout: fixed;
+}
+
+.controlNumber,
+.businessId {
+  color: #174d83;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vendorName {
+  color: #252c35;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.progressCell {
+  width: 100%;
+  max-width: 205px;
+}
+
+.progressLabels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: #23415f;
+  font-size: 0.7rem;
+}
+
+.progressLabels strong {
+  font-weight: 700;
+}
+
+.progressLabels span {
+  font-size: 0.65rem;
+}
+
+.progressTrack {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #e4e8ee;
+}
+
+.progressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 250ms ease;
+}
+
+.pending .progressTrack > span {
+  background: #1769aa;
+}
+
+.pending .progressLabels span {
+  color: #1769aa;
+}
+
+.overdue .progressTrack > span {
+  background: #c51822;
+}
+
+.overdue .progressLabels span {
+  color: #c51822;
+}
+
+.inProgress .progressTrack > span {
+  background: #f39a17;
+}
+
+.inProgress .progressLabels span {
+  color: #818b98;
+}
+
+.completed .progressTrack > span {
+  background: #32833b;
+}
+
+.completed .progressLabels span {
+  color: #32833b;
+}
+
+.progressCell small {
+  display: block;
+  margin-top: 4px;
+  color: #828b96;
+  font-size: 0.62rem;
+}
+
+.lastUpdated {
+  color: #768190;
+  font-size: 0.69rem;
+  white-space: nowrap;
+}
+
+.documentActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.documentCount,
+.uploadButton {
+  display: inline-flex;
+  min-height: 29px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 9px;
+  border: 1px solid #b9d3ee;
+  border-radius: 4px;
+  background: #f4f9ff;
+  color: #075298;
+  font-size: 0.67rem;
+  font-weight: 650;
+}
+
+.uploadButton {
+  border-color: #075298;
+  background: #075298;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+.uploadButton:disabled {
+  border-color: #aeb7c3;
+  background: #aeb7c3;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.errorState {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #68778a;
+  font-size: 0.75rem;
+}
+
+.errorState button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #075298;
+  font-size: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.footer {
+  display: flex;
+  min-height: 37px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 2px 0;
+}
+
+.summaryText {
+  color: #626f80;
+  font-size: 0.69rem;
+}
+
+.footerContent {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.legend span {
+  padding: 4px 7px;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.pendingLegend {
+  background: #e7f1fc;
+  color: #1769aa;
+}
+
+.overdueLegend {
+  background: #fde9e9;
+  color: #c51822;
+}
+
+.inProgressLegend {
+  background: #fff0dc;
+  color: #ce7200;
+}
+
+.completedLegend {
+  background: #e7f4e8;
+  color: #32833b;
+}
+
+.pagination {
+  justify-content: flex-end;
+  gap: 3px;
+  margin: 0;
+}
+
+.pagination :global(button) {
+  width: 27px;
+  height: 27px;
+  min-height: 27px;
+  padding: 0;
+  font-size: 0.7rem;
+}
+
+.pagination :global(button[aria-current="page"]) {
+  border-color: #075298;
+  background: #075298;
+  color: #fff;
+}
+
+.pagination :global(button:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .footer,
+  .footerContent {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .footerContent {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressTrack > span {
+    transition: none;
+  }
+}

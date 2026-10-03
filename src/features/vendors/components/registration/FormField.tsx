@@ -1,4 +1,10 @@
-import { FC, InputHTMLAttributes, SelectHTMLAttributes } from 'react';
+import { useEffect, useId, useRef, useState } from "react";
+import type {
+  InputHTMLAttributes,
+  SelectHTMLAttributes,
+} from "react";
+import { FileText, Image as ImageIcon, UploadCloud, X } from "lucide-react";
+import styles from "./FormField.module.css";
 
 interface BaseProps {
   label: string;
@@ -8,98 +14,180 @@ interface BaseProps {
 
 type TextInputProps = BaseProps & InputHTMLAttributes<HTMLInputElement>;
 
-/** Shared text/email/password input. */
-export const TextInput: FC<TextInputProps> = ({ label, error, required, ...inputProps }) => {
+export function TextInput({
+  label,
+  error,
+  required,
+  className = "",
+  ...inputProps
+}: TextInputProps) {
+  const inputId = useId();
+  const errorId = `${inputId}-error`;
+
   return (
-    <div>
-      <label className="block text-xs font-semibold uppercase tracking-wider text-bodygray mb-1.5">
+    <div className={`${styles.field} ${className}`}>
+      <label className={styles.label} htmlFor={inputId}>
         {label}
-        {required && <span className="text-accent"> *</span>}
+        {required && <span className={styles.required}> *</span>}
       </label>
       <input
         {...inputProps}
-        className={`w-full px-3 py-2.5 rounded-md border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors ${
-          error ? 'border-red-400 focus:border-red-400' : 'border-gray-300 focus:border-primary'
-        }`}
+        id={inputId}
+        required={required}
+        className={`${styles.input} ${error ? styles.invalid : ""}`}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? errorId : undefined}
       />
-      {error && <span className="text-xs text-red-600 mt-1 block">{error}</span>}
+      {error && <span id={errorId} className={styles.error}>{error}</span>}
     </div>
   );
-};
+}
 
-type SelectProps = BaseProps & SelectHTMLAttributes<HTMLSelectElement> & {
-  options: string[];
-  placeholder?: string;
-};
+interface SelectOption {
+  value: string;
+  label: string;
+}
 
-/** Shared select input. */
-export const SelectInput: FC<SelectProps> = ({ label, error, required, options, placeholder, ...selectProps }) => {
+type SelectProps = BaseProps &
+  SelectHTMLAttributes<HTMLSelectElement> & {
+    options: SelectOption[];
+    placeholder?: string;
+  };
+
+export function SelectInput({
+  label,
+  error,
+  required,
+  options,
+  placeholder,
+  className = "",
+  ...selectProps
+}: SelectProps) {
+  const selectId = useId();
+  const errorId = `${selectId}-error`;
+
   return (
-    <div>
-      <label className="block text-xs font-semibold uppercase tracking-wider text-bodygray mb-1.5">
+    <div className={`${styles.field} ${className}`}>
+      <label className={styles.label} htmlFor={selectId}>
         {label}
-        {required && <span className="text-accent"> *</span>}
+        {required && <span className={styles.required}> *</span>}
       </label>
       <select
         {...selectProps}
-        className={`w-full px-3 py-2.5 rounded-md border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors ${
-          error ? 'border-red-400' : 'border-gray-300 focus:border-primary'
-        }`}
+        id={selectId}
+        required={required}
+        className={`${styles.input} ${styles.select} ${error ? styles.invalid : ""}`}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? errorId : undefined}
       >
         {placeholder && <option value="">{placeholder}</option>}
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
           </option>
         ))}
       </select>
-      {error && <span className="text-xs text-red-600 mt-1 block">{error}</span>}
+      {error && <span id={errorId} className={styles.error}>{error}</span>}
     </div>
   );
-};
+}
 
 interface FileUploadProps {
   label: string;
+  description: string;
   error?: string;
   required?: boolean;
-  fileName?: File | string | null;
+  file: File | null;
   onChange: (file: File | null) => void;
 }
 
-/** Dashed upload box that stores a file object. */
-export const FileUpload: FC<FileUploadProps> = ({ label, error, required, fileName, onChange }) => {
-  const fileDisplayName = typeof fileName === 'string' ? '' : fileName?.name ?? 'Click to upload';
+export function FileUpload({
+  label,
+  description,
+  error,
+  required,
+  file,
+  onChange,
+}: FileUploadProps) {
+  const inputId = useId();
+  const errorId = `${inputId}-error`;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+
+  useEffect(() => {
+    if (!file || !file.type.startsWith("image/")) {
+      setPreviewUrl("");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   return (
-    <div>
-      <label className="block text-xs font-semibold uppercase tracking-wider text-bodygray mb-1.5">
+    <div className={styles.field}>
+      <span className={styles.label}>
         {label}
-        {required && <span className="text-accent"> *</span>}
-      </label>
-      <label
-        className={`flex flex-col items-center justify-center gap-1 border-2 border-dashed rounded-lg px-4 py-6 text-center cursor-pointer transition-colors ${
-          error ? 'border-red-400 bg-red-50/40' : 'border-primary/40 bg-bglight hover:bg-bglight/70'
-        }`}
-      >
-        <input
-          type="file"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            onChange(file ?? null);
-          }}
-        />
-        <span className="text-primary text-xl leading-none" aria-hidden>
-          ⬆
-        </span>
-        <span className="text-sm font-medium text-primary">
-          {fileDisplayName}
-        </span>
-        {!fileName && (
-          <span className="text-xs text-bodygray">JPG, PNG or PDF, max 5MB</span>
-        )}
-      </label>
-      {error && <span className="text-xs text-red-600 mt-1 block">{error}</span>}
+        {required && <span className={styles.required}> *</span>}
+      </span>
+      <input
+        ref={inputRef}
+        id={inputId}
+        className={styles.fileInput}
+        type="file"
+        required={required}
+        aria-label={label}
+        accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? errorId : undefined}
+        onChange={(event) => {
+          onChange(event.currentTarget.files?.[0] ?? null);
+          event.currentTarget.value = "";
+        }}
+      />
+      {file ? (
+        <div className={`${styles.filePreview} ${error ? styles.invalid : ""}`}>
+          {previewUrl ? (
+            <img className={styles.previewImage} src={previewUrl} alt={`${label} preview`} />
+          ) : (
+            <span className={styles.fileIcon}>
+              {file.type === "application/pdf" ? (
+                <FileText size={26} aria-hidden="true" />
+              ) : (
+                <ImageIcon size={26} aria-hidden="true" />
+              )}
+            </span>
+          )}
+          <div className={styles.fileDetails}>
+            <strong title={file.name}>{file.name}</strong>
+            <span>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+          </div>
+          <button
+            type="button"
+            className={styles.removeFile}
+            onClick={() => {
+              onChange(null);
+              if (inputRef.current) inputRef.current.value = "";
+            }}
+            aria-label={`Remove ${label}`}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ) : (
+        <label
+          className={`${styles.uploadBox} ${error ? styles.invalid : ""}`}
+          htmlFor={inputId}
+        >
+          <span className={styles.uploadIcon}>
+            <UploadCloud size={22} aria-hidden="true" />
+          </span>
+          <strong>Upload a clear photo of your {label.toLowerCase()}</strong>
+          <span>{description}</span>
+          <small>JPG, PNG, or PDF · 5 MB max</small>
+        </label>
+      )}
+      {error && <span id={errorId} className={styles.error}>{error}</span>}
     </div>
   );
-};
+}

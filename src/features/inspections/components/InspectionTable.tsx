@@ -1,40 +1,27 @@
 import styles from './InspectionTable.module.css';
-import { AlertTriangle, CheckCircle2, Eye, Gavel, Ticket, TriangleAlert } from 'lucide-react';
+import { Eye, Gavel, Ticket, TriangleAlert, RefreshCw } from 'lucide-react';
 import { Table } from '../../../components/ui/Table';
-import type { Column } from '../../../components/ui/Table';
-import { Badge } from '../../../components/ui/Badge';
-import type { BadgeTone } from '../../../components/ui/Badge';
 import { formatDateTime } from '../../../utils/formatters';
-import { MARKET_SECTION_LABELS } from '../../../api/types/common.types';
-import type { InspectionRecord, InspectionSummary } from '../../../api/types/ticket.types';
+import type { InspectionSummary } from '../../../api/types/ticket.types';
 import Button from '@/components/ui/Button';
 
 interface InspectionTableProps {
   rows: InspectionSummary[];
   isLoading: boolean;
   isError: boolean;
+  errorMessage: string;
+  onRetry: () => void;
   onView: (ticketId: number) => void;
 }
 
-function getTypeBadge(row: InspectionSummary): { label: string; tone: BadgeTone; icon: JSX.Element } {
-  if (row.status === 'Cleared') {
-    return { label: 'Cleared', tone: 'success', icon: <CheckCircle2 size={12} strokeWidth={2} /> };
-  }
-  return row.type.toLowerCase() === 'Warning'
-    ? { label: 'WARNING', tone: 'warning', icon: <AlertTriangle size={12} strokeWidth={2} /> }
-    : { label: 'TICKET', tone: 'ticket', icon: <Ticket size={12} strokeWidth={2} /> };
-}
-
-export function InspectionTable({ rows, isLoading, isError, onView }: InspectionTableProps) {
-  const displayValue = (value: unknown, fallback = '—') => {
-    const text = String(value ?? '').trim();
-    return text || fallback;
-  };
-
+export function InspectionTable({ rows, isLoading, isError, errorMessage, onRetry, onView }: InspectionTableProps) {
   if (isError) {
     return (
       <div className={styles.errorState}>
-        Couldn't load inspection records. Please try again.
+        <span>{errorMessage}</span>
+        <Button size="sm" variant="outline" icon={<RefreshCw size={14} />} onClick={onRetry}>
+          Try again
+        </Button>
       </div>
     );
   }

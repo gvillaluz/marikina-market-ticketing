@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import { getDashboardSummary, type DashboardSummary } from '@/api/endpoints/dashboard.api';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 interface UseDashboardSummaryResult {
   data: DashboardSummary | null;
   isLoading: boolean;
   isError: boolean;
+  errorMessage: string;
 }
 
 export function useDashboardSummary(): UseDashboardSummaryResult {
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -18,6 +21,7 @@ export function useDashboardSummary(): UseDashboardSummaryResult {
     async function fetchSummary() {
       setIsLoading(true);
       setIsError(false);
+      setErrorMessage("");
       try {
         const result = await getDashboardSummary();
         if (!cancelled) {
@@ -27,6 +31,7 @@ export function useDashboardSummary(): UseDashboardSummaryResult {
         console.log('Dashboard summary error:', err);
         if (!cancelled) {
           setIsError(true);
+          setErrorMessage(getApiErrorMessage(err, "Unable to load dashboard summary."));
         }
       } finally {
         if (!cancelled) {
@@ -42,5 +47,5 @@ export function useDashboardSummary(): UseDashboardSummaryResult {
     };
   }, []);
 
-  return { data, isLoading, isError };
+  return { data, isLoading, isError, errorMessage };
 }

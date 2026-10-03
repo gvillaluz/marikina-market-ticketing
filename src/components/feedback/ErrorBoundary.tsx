@@ -6,14 +6,13 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  message?: string;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, message: error.message };
+  static getDerivedStateFromError(): State {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error) {
@@ -46,7 +45,7 @@ class ErrorBoundary extends Component<Props, State> {
             <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>⚠️</div>
             <h2 style={{ marginBottom: '0.5rem' }}>Something went wrong</h2>
             <p style={{ color: 'var(--neutral-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-              {this.state.message || 'An unexpected error occurred.'}
+              An unexpected error occurred. Please reload the page and try again.
             </p>
             <button
               onClick={() => window.location.reload()}

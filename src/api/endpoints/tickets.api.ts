@@ -94,8 +94,69 @@ export function getWarningById(id: string): Promise<WarningRecord> {
 
 export function exportInspections(
   payload: PrintConfigPayload
-): Promise<Blob | ExportResult> {
-  return apiClient.post('/inspections/export', payload, {
+): Promise<ExportResult | ExportBlobResult> {
+  return apiClient.post<Blob>('/inspections/export', payload, {
     responseType: 'blob',
-  }) as unknown as Promise<Blob | ExportResult>;
+  }).then(async (response) => {
+    const contentTypeHeader = response.headers['content-type'];
+    const contentDispositionHeader = response.headers['content-disposition'];
+    const contentType =
+      typeof contentTypeHeader === 'string' ? contentTypeHeader : '';
+    const contentDisposition =
+      typeof contentDispositionHeader === 'string'
+        ? contentDispositionHeader
+        : undefined;
+    if (contentType.includes('json')) {
+      return parseExportResult(JSON.parse(await response.data.text()) as unknown);
+    }
+
+    return {
+      blob: response.data,
+      fileName: getDownloadFileName(contentDisposition, contentType),
+    };
+  });
+}
+
+export interface ExportBlobResult {
+  blob: Blob;
+  fileName: string;
+}
+
+function getDownloadFileName(
+  contentDisposition: string | undefined,
+  contentType: string,
+): string {
+  const encodedName = contentDisposition?.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  const plainName = contentDisposition?.match(/filename="?([^";]+)"?/i)?.[1];
+  let suppliedName = plainName;
+  if (encodedName) {
+    try {
+      suppliedName = decodeURIComponent(encodedName);
+    } catch {
+      suppliedName = encodedName;
+    }
+  }
+  if (suppliedName) return suppliedName.replace(/[\\/:*?"<>|]/g, '_');
+
+  const extension = contentType.includes('pdf')
+    ? 'pdf'
+    : contentType.includes('spreadsheet') || contentType.includes('excel')
+      ? 'xlsx'
+      : contentType.includes('csv')
+        ? 'csv'
+        : 'bin';
+  return `market-records-export-${Date.now()}.${extension}`;
+}
+
+function parseExportResult(value: unknown): ExportResult {
+  if (typeof value !== 'object' || value === null) {
+    throw new Error('The export service returned an invalid download response.');
+  }
+
+  const result = value as Record<string, unknown>;
+  if (typeof result.fileUrl !== 'string' || typeof result.fileName !== 'string') {
+    throw new Error('The export service did not provide a downloadable file.');
+  }
+
+  return { fileUrl: result.fileUrl, fileName: result.fileName };
 }

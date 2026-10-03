@@ -6,7 +6,8 @@ import Button from '@/components/ui/Button';
 import type { TicketSummary } from '@/api/types/ticket.types';
 import { formatCurrency, formatDateTime } from '@/utils/formatters';
 import styles from './TicketList.module.css';
-import { Eye, Recycle, RefreshCw, Repeat, Ticket } from 'lucide-react';
+import { Eye, RefreshCw, Ticket } from 'lucide-react';
+import { formatControlNumber } from '@/utils/formatters';
 
 interface TicketListProps {
   tickets: TicketSummary[];
@@ -27,7 +28,7 @@ const TicketList: FC<TicketListProps> = ({ tickets, loading, onView }) => {
         { 
           key: 'controlNumber', 
           header: 'Ctrl No.', 
-          render: (ticket) => '#' + ticket.controlNumber || '—' 
+          render: (ticket) => formatControlNumber(ticket.controlNumber)
         },
         {
           key: 'enforcer',

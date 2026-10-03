@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import styles from './DashboardLayout.module.css';
@@ -7,6 +7,7 @@ import styles from './DashboardLayout.module.css';
 const DashboardLayout: FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const location = useLocation();
 
   return (
     <div className={styles.layout}>
@@ -27,7 +28,9 @@ const DashboardLayout: FC = () => {
           sidebarCollapsed={sidebarCollapsed}
         />
         <main className={styles.content}>
-          <Outlet />
+          <div key={location.pathname} className="route-motion">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
