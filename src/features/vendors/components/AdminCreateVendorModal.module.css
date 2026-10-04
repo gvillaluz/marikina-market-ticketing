@@ -1,0 +1,224 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 1.75rem 2rem 1rem;
+}
+.form section {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5eaf0;
+}
+.form section:last-of-type {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.form section > .field {
+  margin-bottom: 16px;
+}
+.form section:last-of-type > .gridTwo:last-child {
+  margin-bottom: 0;
+}
+.form h4 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: #263d57;
+  font-size: 0.98rem;
+}
+.form h4 > b {
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: #075298;
+  color: #fff;
+  font-size: 0.76rem;
+}
+.form h4 > span {
+  color: #263d57;
+  font-size: 0.98rem;
+}
+.sectionHint {
+  margin: 6px 0 16px 31px;
+  color: #68788c;
+  font-size: 0.76rem;
+}
+.gridTwo,
+.gridThree,
+.businessGrid,
+.gridFour {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+.gridTwo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.gridThree {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.businessGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.businessGridCompact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.gridFour {
+  grid-template-columns: 1fr 1.2fr 1fr 0.9fr;
+}
+.field,
+.dropdownField {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+.field > span,
+.dropdownField > span {
+  color: #3f536b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.field b,
+.dropdownField b {
+  color: #c0392b;
+  margin-left: 3px;
+}
+.field input {
+  width: 100%;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #c3cfdd;
+  border-radius: 5px;
+  color: #24364b;
+  font-size: 0.86rem;
+}
+.field input:focus {
+  border-color: #0b5798;
+  outline: 0;
+  box-shadow: 0 0 0 2px rgba(11, 87, 152, 0.12);
+}
+.field small,
+.sectionError {
+  color: #b42323;
+  font-size: 0.74rem;
+}
+.dropdownField :global(button) {
+  min-height: 40px;
+  padding: 0 11px;
+  font-size: 0.86rem;
+  text-align: left;
+}
+.dropdownField :global(.menu) {
+  z-index: 30;
+}
+.submitError {
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 4px;
+  background: #fff0f0;
+  color: #b42323;
+  font-size: 0.78rem;
+}
+.approvalNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid #cfe5d6;
+  border-radius: 5px;
+  background: #eff9f1;
+  color: #28613d;
+}
+.approvalNotice svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #2f8a4c;
+}
+.approvalNotice strong,
+.approvalNotice span {
+  display: block;
+}
+.approvalNotice strong {
+  font-size: 0.82rem;
+}
+.approvalNotice span {
+  margin-top: 3px;
+  color: #537564;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0;
+  padding: 1.1rem 2rem 1.75rem;
+  border-top: 1px solid #e5eaf0;
+  background: #fbfcfe;
+}
+.footer button {
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  color: #164a7b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.footer button:last-child {
+  border-color: #075298;
+  background: #075298;
+  color: #fff;
+}
+.footer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.spinner {
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 680px) {
+  .form {
+    padding: 1.25rem 1.25rem 0;
+  }
+  .gridThree {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .gridFour {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .footer {
+    padding: 1rem 1.25rem 1.25rem;
+  }
+}
+@media (max-width: 520px) {
+  .form {
+    gap: 14px;
+    padding: 1rem 1rem 0;
+  }
+  .gridTwo,
+  .businessGrid,
+  .businessGridCompact,
+  .gridFour {
+    grid-template-columns: 1fr;
+  }
+  .footer {
+    align-items: stretch;
+    flex-direction: column-reverse;
+    padding: 0.875rem 1rem 1rem;
+  }
+  .footer button {
+    width: 100%;
+  }
+}

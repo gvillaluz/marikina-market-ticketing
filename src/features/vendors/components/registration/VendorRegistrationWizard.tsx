@@ -160,12 +160,7 @@ export default function VendorRegistrationWizard({
         )}
 
         <footer className={styles.footer}>
-          {step === 1 ? (
-            <Link to="/login" className={styles.secondaryButton}>
-              <ChevronLeft size={16} aria-hidden="true" />
-              Back
-            </Link>
-          ) : (
+          {step > 1 ? (
             <button
               type="button"
               className={styles.secondaryButton}
@@ -175,7 +170,7 @@ export default function VendorRegistrationWizard({
               <ChevronLeft size={16} aria-hidden="true" />
               Back
             </button>
-          )}
+          ) : <span aria-hidden="true" />}
 
           <div className={styles.footerActions}>
             <button

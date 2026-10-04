@@ -21,6 +21,7 @@ export const initialWizardState: VendorRegistrationForm = {
   businessId: "",
   businessName: "",
   natureOfBusiness: "",
+  vendorType: "",
   stallNumber: "",
   marketSectionId: "",
   governmentIdType: "",
@@ -107,8 +108,14 @@ function validateStep(
     );
     if (businessNameError) errors.businessName = businessNameError;
     if (natureError) errors.natureOfBusiness = natureError;
+    if (!form.vendorType) {
+      errors.vendorType = "Vendor type is required.";
+    }
     if (!form.marketSectionId || Number(form.marketSectionId) < 1) {
       errors.marketSectionId = "Select a valid market section.";
+    }
+    if (form.vendorType === "Public" && !form.stallNumber.trim()) {
+      errors.stallNumber = "Stall number is required for public vendors.";
     }
   }
 

@@ -24,6 +24,44 @@
   align-items: start;
 }
 
+.gridField {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.formDropdown {
+  display: block;
+  width: 100%;
+}
+
+.formDropdown :global(button) {
+  min-height: 42px;
+  padding: 0 12px;
+  text-align: left;
+}
+
+.fieldError {
+  color: #b42323;
+  font-size: 0.74rem;
+}
+
+
+.fieldLabel {
+  color: #304861;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.required {
+  color: #c0392b;
+}
+
+.stallField {
+  max-width: calc(50% - 7px);
+}
+
 .twoColumns {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -71,6 +109,10 @@
   .twoColumns,
   .threeColumns {
     grid-template-columns: 1fr;
+  }
+
+  .stallField {
+    max-width: none;
   }
 }
 

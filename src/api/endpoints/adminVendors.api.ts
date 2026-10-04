@@ -14,6 +14,14 @@ import type {
   VendorRegistrationFilters,
   VendorRegistrationStatusCounts,
   VendorRegistrationSummary,
+  VendorRegistrationDetails,
+  VendorRegistrationDocument,
+  AdminRegisterVendorRequest,
+  RegistrationApproval,
+  RegistrationApprovalRequest,
+  RegistrationApprovalResponse,
+  RegistrationDeclineRequest,
+  RegistrationDeclinedResponse,
 } from "@/api/types/admin-vendor.types";
 
 export const adminVendorsApi = {
@@ -90,6 +98,64 @@ export const adminVendorsApi = {
     const { data } = await client.get<
       AdminVendorPageResponse<VendorRegistrationSummary>
     >("/admin/vendors/registration-requests", { params: filters });
+    return data;
+  },
+
+  async getRegistrationDetails(
+    registrationId: number,
+  ): Promise<VendorRegistrationDetails> {
+    const { data } = await client.get<VendorRegistrationDetails>(
+      `/admin/vendors/registration-requests/${registrationId}`,
+    );
+    return data;
+  },
+
+  async getRegistrationDocuments(
+    registrationId: number,
+  ): Promise<VendorRegistrationDocument[]> {
+    const { data } = await client.get<VendorRegistrationDocument[]>(
+      `/admin/vendors/registration-requests/${registrationId}/documents`,
+    );
+    return data;
+  },
+
+  async registerVendor(
+    request: AdminRegisterVendorRequest,
+  ): Promise<RegistrationApproval> {
+    const { data } = await client.post<RegistrationApproval>(
+      "/admin/vendors/register",
+      request,
+    );
+    return data;
+  },
+
+  async approveRegistration(
+    request: RegistrationApprovalRequest,
+  ): Promise<RegistrationApprovalResponse> {
+    const { data } = await client.post<RegistrationApprovalResponse>(
+      "/admin/vendors/approve-registry",
+      request,
+    );
+    return data;
+  },
+
+  async declineRegistration(
+    request: RegistrationDeclineRequest,
+  ): Promise<RegistrationDeclinedResponse> {
+    const { data } = await client.post<RegistrationDeclinedResponse>(
+      "/admin/vendors/decline-registry",
+      request,
+    );
+    return data;
+  },
+
+  async requestMoreInformation(
+    request: RegistrationDeclineRequest,
+  ): Promise<RegistrationDeclinedResponse> {
+    const { data } = await client.post<RegistrationDeclinedResponse>(
+      "/admin/vendors/request-more-information",
+      request,
+    );
     return data;
   },
 };

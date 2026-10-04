@@ -1,3 +1,8 @@
-.page { width: 100%; color: #17324f; }
-.breadcrumb { margin-bottom: 5px; color: var(--text-muted); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em; }
-.breadcrumb span { margin: 0 5px; color: var(--primary); }
+.page { width: 100%; min-width: 0; padding-bottom: 2rem; color: #17324f; }
+.breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 0.75rem; color: #002753; font-size: 0.8125rem; font-weight: 600; letter-spacing: .01em; }
+.breadcrumb span { color: #94a0b2; font-size: 1rem; }
+
+@media (max-width: 640px) {
+  .page { padding-bottom: 1rem; }
+  .breadcrumb { font-size: .72rem; }
+}

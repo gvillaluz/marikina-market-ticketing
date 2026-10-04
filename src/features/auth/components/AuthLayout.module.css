@@ -1,0 +1,13 @@
+.page { display: flex; min-height: 100vh; flex-direction: column; background: radial-gradient(circle at 50% 0, #f8fbff 0, var(--bg-page) 55%); }
+.backHomeWrapper { padding: 1.5rem 2.5rem 0; }
+.backHome { display: inline-flex; align-items: center; gap: .5rem; padding: .55rem .9rem; border: 1px solid rgba(11,45,91,.12); border-radius: var(--radius-sm); background: rgba(255,255,255,.7); color: var(--primary); font-size: .8125rem; font-weight: 600; box-shadow: 0 2px 8px rgba(11,45,91,.05); transition: background-color .15s ease, border-color .15s ease; }
+.backHome:hover { background: var(--primary-hover); color: #fff; }
+.cardArea { display: flex; flex: 1; align-items: center; justify-content: center; padding: 2.5rem 1rem 4rem; }
+.card { display: flex; width: 100%; max-width: 62rem; overflow: hidden; border: 1px solid rgba(11,45,91,.08); border-radius: var(--radius-lg); background: var(--bg-surface); box-shadow: 0 18px 45px rgba(11,45,91,.14); }
+.brandPanel { display: flex; width: 44%; flex-direction: column; align-items: center; justify-content: center; padding: 3.5rem 2.5rem; background: linear-gradient(145deg, #123b70, var(--primary)); text-align: center; }
+.seal { display: flex; width: 5rem; height: 5rem; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,.4); border-radius: 50%; background: rgba(255,255,255,.1); }
+.sealImage { width: 100%; height: 100%; border-radius: 50%; object-fit: contain; }
+.brandTitle { margin-top: 1.5rem; color: #fff; font-family: var(--font-mono, monospace); font-size: 1.75rem; font-weight: 700; line-height: 1.2; letter-spacing: -.025em; }
+.brandSubtext { margin-top: .75rem; color: rgba(255,255,255,.9); font-size: .875rem; }
+.formPanel { flex: 1; padding: 3.5rem 3.75rem; }
+@media (max-width: 768px) { .backHomeWrapper { padding: 1.25rem 1.5rem 0; } .card { flex-direction: column; } .brandPanel { width: 100%; padding: 2.5rem 1.5rem; } .brandTitle { font-size: 1.5rem; } .formPanel { padding: 2.5rem 1.5rem; } }

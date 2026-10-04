@@ -23,6 +23,10 @@ import EnforcerPerformancePage from "@/features/enforcers/pages/EnforcerPerforma
 import AdminVendorsPage from "@/features/vendors/pages/AdminVendorsPage";
 import AdminVendorInspectionPage from "@/features/vendors/pages/AdminVendorInspectionPage";
 import AdminVendorRegistrationsPage from "@/features/vendors/pages/AdminVendorRegistrationsPage";
+import AdminVendorRegistrationReviewPage from "@/features/vendors/pages/AdminVendorRegistrationReviewPage";
+import AdminVendorRegistrationApprovePage from "@/features/vendors/pages/AdminVendorRegistrationApprovePage";
+import AdminVendorRegistrationDeclinePage from "@/features/vendors/pages/AdminVendorRegistrationDeclinePage";
+import AdminVendorRegistrationInformationPage from "@/features/vendors/pages/AdminVendorRegistrationInformationPage";
 import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
 
 const ADMIN_ENFORCER_ROLES: UserRole[] = ["Admin", "Enforcer"];
@@ -84,6 +88,38 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
               <AdminVendorRegistrationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorRegistration(":registrationId")}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorRegistrationReviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorRegistrationApprove(":registrationId")}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorRegistrationApprovePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorRegistrationDecline(":registrationId")}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorRegistrationDeclinePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorRegistrationInformation(":registrationId")}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorRegistrationInformationPage />
             </ProtectedRoute>
           }
         />

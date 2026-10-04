@@ -1,8 +1,10 @@
 import { RefreshCw } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { VendorRegistrationSummary } from "@/api/types/admin-vendor.types";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
 import Table, { type Column } from "@/components/ui/Table";
+import { ROUTES } from "@/routes/routePaths";
 import styles from "./AdminVendorRegistrationTable.module.css";
 
 interface Props {
@@ -35,34 +37,116 @@ function statusClass(status: string | number) {
   const value = String(status).toLowerCase();
   if (value.includes("approve")) return styles.approved;
   if (value.includes("reject")) return styles.rejected;
-  if (value.includes("information") || value.includes("follow")) return styles.info;
+  if (value.includes("information") || value.includes("follow"))
+    return styles.info;
   return styles.pending;
 }
 
 export default function AdminVendorRegistrationTable({
-  registrations, status, vendorType, setStatus, setVendorType, page,
-  totalPages, setPage, hasMore, total, isLoading, isError, errorMessage, refetch,
+  registrations,
+  status,
+  vendorType,
+  setStatus,
+  setVendorType,
+  page,
+  totalPages,
+  setPage,
+  hasMore,
+  total,
+  isLoading,
+  isError,
+  errorMessage,
+  refetch,
 }: Props) {
   const columns: Column<VendorRegistrationSummary>[] = [
-    { key: "registrationId", header: "Registration ID", width: "12%", render: (row) => <span className={styles.id}>REG-{row.registrationId}</span> },
+    {
+      key: "registrationId",
+      header: "Registration ID",
+      width: "12%",
+      render: (row) => (
+        <span className={styles.id}>REG-{row.registrationId}</span>
+      ),
+    },
     { key: "businessId", header: "Business ID", width: "11%" },
-    { key: "businessName", header: "Business Name", width: "14%", render: (row) => <strong>{row.businessName}</strong> },
+    {
+      key: "businessName",
+      header: "Business Name",
+      width: "14%",
+      render: (row) => <strong>{row.businessName}</strong>,
+    },
     { key: "vendorName", header: "Vendor Name", width: "14%" },
-    { key: "vendorType", header: "Vendor Type", width: "10%", align: "center", render: (row) => displayValue(row.vendorType) },
+    {
+      key: "vendorType",
+      header: "Vendor Type",
+      width: "10%",
+      render: (row) => displayValue(row.vendorType),
+    },
     { key: "marketSectionName", header: "Market Section", width: "13%" },
-    { key: "stallNumber", header: "Stall Number", width: "9%", align: "center", render: (row) => displayValue(row.stallNumber) },
-    { key: "requestedAt", header: "Request Date", width: "10%", render: (row) => new Date(row.requestedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) },
-    { key: "status", header: "Status", width: "9%", align: "center", render: (row) => <span className={`${styles.status} ${statusClass(row.status)}`}><span />{statusLabel(row.status)}</span> },
-    { key: "action", header: "Action", width: "8%", align: "center", render: () => <button className={styles.reviewButton} type="button">Review</button> },
+    {
+      key: "stallNumber",
+      header: "Stall Number",
+      width: "9%",
+      render: (row) => displayValue(row.stallNumber),
+    },
+    {
+      key: "requestedAt",
+      header: "Request Date",
+      width: "10%",
+      render: (row) =>
+        new Date(row.requestedAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+    },
+    {
+      key: "status",
+      header: "Status",
+      width: "9%",
+      render: (row) => (
+        <span className={`${styles.status} ${statusClass(row.status)}`}>
+          <span />
+          {statusLabel(row.status)}
+        </span>
+      ),
+    },
+    {
+      key: "action",
+      header: "Action",
+      width: "8%",
+      render: (row) => (
+        <Link
+          className={styles.reviewButton}
+          to={ROUTES.adminVendorRegistration(String(row.registrationId))}
+        >
+          Review
+        </Link>
+      ),
+    },
   ];
 
   const offset = (page - 1) * 10;
+  const legendCounts = registrations.reduce(
+    (counts, registration) => {
+      const value = String(registration.status).toLowerCase();
+      if (value.includes("approve")) counts.approved += 1;
+      else if (value.includes("reject")) counts.rejected += 1;
+      else if (value.includes("information") || value.includes("follow"))
+        counts.info += 1;
+      else counts.pending += 1;
+      return counts;
+    },
+    { pending: 0, info: 0, rejected: 0, approved: 0 },
+  );
   return (
     <section className={styles.panel}>
       <div className={styles.heading}>
         <div>
-          <h2>Incoming Vendor Account Registrants</h2>
-          <p>Review new account requests, verify supporting documents, and resolve pending cases before vendor activation.</p>
+          <h2>Registration requests</h2>
+          <p>
+            Review new account requests, verify supporting documents, and
+            resolve pending cases before vendor activation.
+          </p>
         </div>
         <div className={styles.filters}>
           <Dropdown
@@ -85,26 +169,61 @@ export default function AdminVendorRegistrationTable({
             onChange={setVendorType}
             options={[
               { value: "all", label: "All" },
-              { value: "Vendor", label: "Vendor" },
-              { value: "Business", label: "Business" },
+              { value: "Public", label: "Public" },
+              { value: "Private", label: "Private" },
             ]}
           />
         </div>
       </div>
       {isError ? (
-        <div className={styles.error} role="alert"><span>{errorMessage}</span><button type="button" onClick={() => void refetch()}><RefreshCw size={14} /> Try again</button></div>
+        <div className={styles.error} role="alert">
+          <span>{errorMessage}</span>
+          <button type="button" onClick={() => void refetch()}>
+            <RefreshCw size={14} /> Try again
+          </button>
+        </div>
       ) : (
-        <Table className={styles.table} tableClassName={styles.tableInner} columns={columns} data={registrations} keyExtractor={(row) => String(row.registrationId)} loading={isLoading} loadingMessage="Loading registration requests..." emptyMessage="No registration requests match these filters." />
+        <Table
+          className={styles.table}
+          tableClassName={styles.tableInner}
+          columns={columns}
+          data={registrations}
+          keyExtractor={(row) => String(row.registrationId)}
+          loading={isLoading}
+          loadingMessage="Loading registration requests..."
+          emptyMessage="No registration requests match these filters."
+        />
       )}
       <footer className={styles.footer}>
-        <span>Showing {registrations.length ? offset + 1 : 0} to {offset + registrations.length} of {total ?? `${offset + registrations.length}${hasMore ? "+" : ""}`} registrations</span>
-        <Pagination compact showSinglePage canGoNext={!isLoading && hasMore} className={styles.pagination} page={page} totalPages={totalPages} onChange={setPage} />
+        <span>
+          Showing {registrations.length ? offset + 1 : 0} to{" "}
+          {offset + registrations.length} of{" "}
+          {total ?? `${offset + registrations.length}${hasMore ? "+" : ""}`}{" "}
+          registrations
+        </span>
+        <Pagination
+          compact
+          showSinglePage
+          canGoNext={!isLoading && hasMore}
+          className={styles.pagination}
+          page={page}
+          totalPages={totalPages}
+          onChange={setPage}
+        />
       </footer>
       <div className={styles.legend}>
-        <span><i className={styles.pendingDot} /> Pending</span>
-        <span><i className={styles.infoDot} /> Needs Information</span>
-        <span><i className={styles.rejectedDot} /> Rejected</span>
-        <span><i className={styles.approvedDot} /> Approved</span>
+        <span>
+          <i className={styles.pendingDot} /> {legendCounts.pending} Pending
+        </span>
+        <span>
+          <i className={styles.infoDot} /> {legendCounts.info} Needs Information
+        </span>
+        <span>
+          <i className={styles.rejectedDot} /> {legendCounts.rejected} Rejected
+        </span>
+        <span>
+          <i className={styles.approvedDot} /> {legendCounts.approved} Approved
+        </span>
       </div>
     </section>
   );

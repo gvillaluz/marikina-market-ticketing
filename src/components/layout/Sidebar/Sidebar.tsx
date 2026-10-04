@@ -223,24 +223,26 @@ const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
           </div>
 
           {/* Navigation */}
-          <div className={styles.section}>
-            <nav className={styles.nav}>
-              {visibleItems.map((item) => {
-                const isActive = location.pathname === item.to;
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    className={`${styles.link} ${isActive ? styles.active : ""}`}
-                    onClick={onClose}
-                    title={item.label}
-                  >
-                    <span className={styles.linkIcon}>{item.icon}</span>
-                    <span className={styles.linkLabel}>{item.label}</span>
-                  </NavLink>
-                );
-              })}
-            </nav>
+          <div className={styles.sidebarContent}>
+            <div className={styles.section}>
+              <nav className={styles.nav}>
+                {visibleItems.map((item) => {
+                  const isActive = location.pathname === item.to;
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={`${styles.link} ${isActive ? styles.active : ""}`}
+                      onClick={onClose}
+                      title={item.label}
+                    >
+                      <span className={styles.linkIcon}>{item.icon}</span>
+                      <span className={styles.linkLabel}>{item.label}</span>
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            </div>
           </div>
         </div>
 

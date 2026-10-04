@@ -1,7 +1,8 @@
 import type { VendorRegistrationForm } from "@/api/types/vendor.types";
 import type { RegistrationFieldErrors } from "@/features/vendors/hooks/useVendorRegistration";
 import { GOVERNMENT_ID_OPTIONS } from "@/features/vendors/registration.constants";
-import { FileUpload, SelectInput, TextInput } from "./FormField";
+import { Dropdown } from "@/components/ui/Dropdown";
+import { FileUpload, TextInput } from "./FormField";
 import styles from "./RegistrationForm.module.css";
 
 interface Step3Props {
@@ -18,20 +19,33 @@ export default function Step3RequiredDocuments({
   errors,
   update,
 }: Step3Props) {
+  const governmentIdLabel =
+    GOVERNMENT_ID_OPTIONS.find(
+      (option) => option.value === form.governmentIdType,
+    )?.label ?? "Select an ID type";
+
   return (
     <div className={styles.formStack}>
       <div className={`${styles.grid} ${styles.twoColumns}`}>
         <section className={styles.documentGroup}>
           <h4 className={styles.groupTitle}>Government ID</h4>
-          <SelectInput
-            label="Government ID type"
-            required
-            options={GOVERNMENT_ID_OPTIONS}
-            placeholder="Select an ID type"
-            value={form.governmentIdType}
-            onChange={(event) => update("governmentIdType", event.target.value)}
-            error={errors.governmentIdType}
-          />
+          <div className={styles.gridField}>
+            <label className={styles.fieldLabel}>
+              Government ID type <span className={styles.required}>*</span>
+            </label>
+            <Dropdown
+              ariaLabel="Government ID type"
+              triggerLabel={governmentIdLabel}
+              value={form.governmentIdType}
+              className={styles.formDropdown}
+              fullWidth
+              onChange={(value) => update("governmentIdType", value)}
+              options={GOVERNMENT_ID_OPTIONS}
+            />
+            {errors.governmentIdType && (
+              <span className={styles.fieldError}>{errors.governmentIdType}</span>
+            )}
+          </div>
           <FileUpload
             label="Government ID photo"
             description="Upload the front of your government ID"

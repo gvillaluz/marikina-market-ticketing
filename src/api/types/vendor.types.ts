@@ -39,6 +39,7 @@ export interface VendorRegistrationForm {
   businessId: string;
   businessName: string;
   natureOfBusiness: string;
+  vendorType: string;
   stallNumber: string;
   marketSectionId: string;
   governmentIdType: string;

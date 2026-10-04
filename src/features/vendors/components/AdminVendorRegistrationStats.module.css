@@ -2,17 +2,37 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .card {
+  position: relative;
+  overflow: hidden;
   min-height: 116px;
-  padding: 16px 18px;
+  padding: 18px 20px;
   border: 1px solid var(--border-default);
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--bg-surface);
   box-shadow: var(--shadow-sm);
   border-top: 3px solid transparent;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.card::after {
+  position: absolute;
+  right: -20px;
+  bottom: -28px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+  opacity: .045;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .pending { border-top-color: #2563eb; }
@@ -29,6 +49,11 @@
 .icon {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #eef4fb;
   color: var(--primary);
 }
 
@@ -52,10 +77,19 @@
   font-size: 0.76rem;
 }
 
+.pending .icon { background: #e8f1ff; color: #2563eb; }
+.info .icon { background: #fff1db; color: #d97706; }
+.approved .icon { background: #e4f6e9; color: #16803c; }
+.rejected .icon { background: #ffe8e9; color: #dc2626; }
+
 @media (max-width: 900px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 520px) {
-  .grid { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .card { min-height: 108px; padding: 14px; }
+  .value { font-size: 1.45rem; }
+  .label { font-size: .82rem; }
+  .helper { font-size: .7rem; }
 }

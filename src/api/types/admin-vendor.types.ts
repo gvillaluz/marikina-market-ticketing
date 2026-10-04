@@ -9,11 +9,7 @@ export interface AdminVendorSummary {
   ticketCount: number;
 }
 
-export type ComplianceScoreRange =
-  | "85-100"
-  | "70-84"
-  | "50-69"
-  | "Below 50";
+export type ComplianceScoreRange = "85-100" | "70-84" | "50-69" | "Below 50";
 
 export interface AdminVendorActivity {
   ticketId: number;
@@ -141,8 +137,122 @@ export interface VendorRegistrationSummary {
   status: string | number;
 }
 
+export interface VendorRegistrationDocument {
+  documentType: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  url: string;
+}
+
+export interface VendorRegistrationDetails {
+  registrationId: number;
+  businessId: string;
+  businessName: string;
+  natureOfBusiness: string;
+  vendorType: string | number;
+  marketSectionName: string;
+  stallNumber: string | null;
+  firstName: string;
+  middleName: string | null;
+  lastName: string;
+  dateOfBirth: string;
+  age: number;
+  governmentIdType: string | number | null;
+  governmentIdNumber: string | null;
+  phoneNumber: string;
+  email: string;
+  houseNumber: string;
+  street: string;
+  barangay: string;
+  city: string;
+  status: string | number;
+  requestedAt: string;
+  reviewedAt: string | null;
+  reviewerName: string | null;
+  remarksOrReason: string | null;
+  documents: VendorRegistrationDocument[] | null;
+  version?: number;
+}
+
+export interface RegistrationApprovalRequest {
+  vendorRegistrationId: number;
+  version: number;
+}
+
+export interface RegistrationDeclineRequest
+  extends RegistrationApprovalRequest {
+  reviewReason: string;
+  reviewRemarks: string;
+}
+
+export interface RegistrationApprovalResponse {
+  userId: number;
+  vendorId: number;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  businessName: string;
+  marketSectionId: number;
+  marketSectionName: string;
+  adminId: number;
+  status: string | number;
+  createdAt: string;
+  version: number;
+}
+
+export interface RegistrationDeclinedResponse {
+  registrationId: number;
+  firstName: string;
+  middleName: string | null;
+  lastName: string;
+  businessName: string;
+  reviewReason: string;
+  reviewRemarks: string;
+  adminId: number;
+  reviewedAt: string;
+  version: number;
+}
+
 export interface VendorRegistrationFilters {
   offset: number;
   status?: string;
   vendorType?: string;
+}
+
+export interface AdminRegisterVendorRequest {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+  houseNumber: string;
+  street: string;
+  barangay: string;
+  city: string;
+  businessName: string;
+  businessId: string;
+  natureOfBusiness: string;
+  marketSectionId: number;
+  stallNumber: string;
+  vendorType: string;
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface RegistrationApproval {
+  userId: number;
+  vendorId: number;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  businessName: string;
+  marketSectionId: number;
+  marketSectionName: string;
+  adminId: number;
+  status: string | number;
+  createdAt: string;
+  version: number;
 }

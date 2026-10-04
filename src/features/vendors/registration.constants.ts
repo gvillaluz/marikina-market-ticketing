@@ -13,6 +13,11 @@ export const MARKET_SECTION_OPTIONS = Object.entries(MARKET_SECTION_LABELS).map(
   }),
 );
 
+export const VENDOR_TYPE_OPTIONS = [
+  { value: "Public", label: "Public" },
+  { value: "Private", label: "Private" },
+];
+
 export const GOVERNMENT_ID_OPTIONS = [
   { value: "NationalID", label: "PhilSys National ID" },
   { value: "UMID", label: "UMID" },

@@ -36,7 +36,15 @@ const VendorsPage: FC = () => {
         subtitle="Registered businesses and their compliance status."
         actions={
           isAdmin && (
-            <Button onClick={() => navigate('/vendor/register')}>+ Add Vendor</Button>
+            <Button
+              onClick={() =>
+                navigate('/vendor/register', {
+                  state: { returnTo: '/vendors' },
+                })
+              }
+            >
+              + Add Vendor
+            </Button>
           )
         }
       />

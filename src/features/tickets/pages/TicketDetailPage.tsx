@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   User,
@@ -66,7 +66,7 @@ const STATUS_OPTIONS = [
 
 const TicketDetailPage: FC = () => {
   const { id } = useParams();
-  const [isStatusOptionsOpen, setIsStatusOptionsOpen] = useState(false);
+  const statusOptions = useDisclosure();
   const { ticket, refetch, isLoading, isError, error } = useTicketDetails(
     Number.parseInt(id || ""),
   );
@@ -244,14 +244,17 @@ const TicketDetailPage: FC = () => {
           )}
         </DetailCard>
 
-        {isStatusOptionsOpen && (
+        {statusOptions.isOpen && (
           <DetailCard
             title="UPDATE TICKET STATUS"
             icon={ListChecks}
             full
             dashedBorder
           >
-            <div id="ticket-status-options" className={styles.statusOptionsPanel}>
+            <div
+              id="ticket-status-options"
+              className={styles.statusOptionsPanel}
+            >
               <p className={styles.cardSubtitle}>
                 Select the most appropriate status for this ticket.
               </p>
@@ -262,7 +265,9 @@ const TicketDetailPage: FC = () => {
                     title={option.title}
                     description={option.description}
                     selected={selectedStatus === option.value}
-                    onClick={() => setSelectedStatus(option.value as RecordStatus)}
+                    onClick={() =>
+                      setSelectedStatus(option.value as RecordStatus)
+                    }
                   />
                 ))}
               </div>
@@ -274,17 +279,17 @@ const TicketDetailPage: FC = () => {
       <TicketDetailFooter
         onViewFullRecord={recordModal.open}
         onChangeStatus={() => {
-          if (!isStatusOptionsOpen) {
-            setIsStatusOptionsOpen(true);
+          if (!statusOptions.isOpen) {
+            statusOptions.open();
             return;
           }
           if (selectedStatus === ticket?.status) {
-            setIsStatusOptionsOpen(false);
+            statusOptions.close();
             return;
           }
           confirmModal.open();
         }}
-        statusOptionsOpen={isStatusOptionsOpen}
+        statusOptionsOpen={statusOptions.isOpen}
       />
 
       {recordModal.isOpen && ticket != null && (
@@ -317,7 +322,7 @@ const TicketDetailPage: FC = () => {
                       version: ticket?.version ?? 0,
                     });
                     confirmModal.close();
-                    setIsStatusOptionsOpen(false);
+                    statusOptions.close();
                     refetch();
                   } catch {
                     // stays open, error toast already shown via onError in the hook

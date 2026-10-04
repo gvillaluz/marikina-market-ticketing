@@ -11,6 +11,14 @@ export const ROUTES = {
   enforcers: "/enforcers",
   adminVendors: "/admin/vendors",
   adminVendorRegistrations: "/admin/vendor-registrations",
+  adminVendorRegistration: (id: string) =>
+    `/admin/vendor-registrations/review/${id}`,
+  adminVendorRegistrationApprove: (id: string) =>
+    `/admin/vendor-registrations/review/${id}/approve`,
+  adminVendorRegistrationDecline: (id: string) =>
+    `/admin/vendor-registrations/review/${id}/decline`,
+  adminVendorRegistrationInformation: (id: string) =>
+    `/admin/vendor-registrations/review/${id}/request-information`,
   adminVendorInspections: (id: string) => `/admin/vendors/${id}/inspections`,
   enforcerPerformancePage: (id: string) => `/enforcer/performance/${id}`,
   analytics: "/analytics",

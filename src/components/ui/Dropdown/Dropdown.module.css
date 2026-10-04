@@ -3,6 +3,11 @@
   display: inline-block;
 }
 
+.fullWidth {
+  display: block;
+  width: 100%;
+}
+
 .trigger {
   display: inline-flex;
   align-items: center;
@@ -18,6 +23,10 @@
   padding: 5px 20px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   height: 36px;
+}
+
+.fullWidth .trigger {
+  width: 100%;
 }
 
 .trigger:hover {
@@ -48,6 +57,13 @@
   z-index: 20;
   list-style: none;
   margin: 0;
+}
+
+.fullWidth .menu {
+  left: 0;
+  right: auto;
+  width: 100%;
+  min-width: 0;
 }
 
 .option {

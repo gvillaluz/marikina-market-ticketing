@@ -55,6 +55,8 @@
 
 .searchWrapper {
   position: relative;
+  display: flex;
+  align-items: center;
   flex: 0 1 360px;
   width: 360px;
   min-width: 220px;
@@ -62,6 +64,12 @@
   border-radius: 9px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.searchWrapper:focus-within {
+  border-color: #7d9cbe;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
 .searchIcon {
@@ -76,14 +84,12 @@
   width: 100%;
   height: 38px;
   border-radius: 9px;
+  border: 0;
   padding: 6px 10px 6px 34px;
+  outline: 0;
+  background: transparent;
   color: #263b53;
   font-size: 0.8125rem;
-}
-
-.searchInput:focus {
-  outline: 3px solid rgba(37, 99, 235, 0.14);
-  border-color: #7d9cbe;
 }
 
 .filterGroup {

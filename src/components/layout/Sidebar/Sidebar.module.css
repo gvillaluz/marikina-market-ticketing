@@ -11,11 +11,18 @@
   padding: 1.25rem 0.875rem 1rem;
   flex-shrink: 0;
   z-index: 200;
-  transition: width 0.2s ease, transform 0.2s ease;
+  transition:
+    width 0.2s ease,
+    transform 0.2s ease;
 }
 
 .collapsed {
   width: 72px;
+}
+
+.sidebarContent {
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .collapsed .brand {
@@ -57,7 +64,7 @@
 }
 
 .brandText {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
   font-weight: 700;
   font-size: 0.8125rem;
   line-height: 1.25;
@@ -73,7 +80,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
   font-weight: 700;
   font-size: 0.875rem;
   flex-shrink: 0;
@@ -105,7 +112,9 @@
   color: rgba(255, 255, 255, 0.65);
   font-weight: 500;
   font-size: 0.875rem;
-  transition: background-color 0.12s ease, color 0.12s ease;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
 }
 
 .link:hover {
@@ -211,13 +220,15 @@
 }
 
 .collapsed .logoutBtn::after {
-  content: '↪';
+  content: "↪";
   font-size: 1rem;
 }
 
 .logoutBtn {
   border: 1px solid rgba(255, 255, 255, 0.35);
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .logoutBtn:hover {

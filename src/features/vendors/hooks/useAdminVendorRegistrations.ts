@@ -24,6 +24,10 @@ export function useAdminVendorRegistrations() {
       }),
   });
 
+  const refetchAll = async () => {
+    await Promise.all([countsQuery.refetch(), requestsQuery.refetch()]);
+  };
+
   const total = requestsQuery.data?.total ?? null;
 
   return {
@@ -54,6 +58,6 @@ export function useAdminVendorRegistrations() {
       "Unable to load vendor registration requests.",
     ),
     isCountsLoading: countsQuery.isLoading,
-    refetch: requestsQuery.refetch,
+    refetch: refetchAll,
   };
 }
