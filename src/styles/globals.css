@@ -1,3 +1,70 @@
+@import "tailwindcss";
+
+/* Tailwind aliases preserve the existing runtime theme variables. */
+@theme inline {
+  --color-ui-primary: var(--primary);
+  --color-ui-heading: var(--text-heading);
+  --color-ui-body: var(--text-body);
+  --color-ui-muted: var(--text-muted);
+  --color-ui-on-primary: var(--text-on-primary);
+  --color-ui-surface: var(--bg-surface);
+  --color-ui-border: var(--border-default);
+  --color-ui-info: var(--info);
+  --color-ui-danger: var(--danger);
+  --color-ui-success: var(--success);
+  --color-ui-inactive: var(--status-medium);
+  --color-ui-table: color-mix(in srgb, var(--bg-page) 70%, var(--bg-surface));
+  --color-ui-table-footer: color-mix(in srgb, var(--bg-page) 25%, var(--bg-surface));
+  --color-ui-success-border: color-mix(in srgb, var(--success) 22%, var(--bg-surface));
+  --color-ui-success-subtle: color-mix(in srgb, var(--success) 7%, var(--bg-surface));
+  --color-ui-inactive-border: color-mix(in srgb, var(--warning) 25%, var(--bg-surface));
+  --color-ui-inactive-subtle: color-mix(in srgb, var(--warning) 8%, var(--bg-surface));
+  --color-ui-switch-off: color-mix(in srgb, var(--text-muted) 75%, var(--bg-surface));
+  --color-ui-info-border: color-mix(in srgb, var(--info) 20%, var(--bg-surface));
+  --color-ui-info-subtle: color-mix(in srgb, var(--info) 5%, var(--bg-surface));
+  --radius-ui-sm: var(--radius-sm);
+}
+
+@theme {
+  --text-column: 0.5625rem;
+  --text-micro: 0.625rem;
+  --text-caption: 0.6875rem;
+  --text-compact: 0.8125rem;
+  --text-page-title: 1.75rem;
+  --leading-detail: 1.6;
+  --leading-badge: 1.4;
+  --tracking-column: 0.07em;
+  --radius-notice: 0.1875rem;
+  --radius-button: 0.25rem;
+  --radius-search: 0.5625rem;
+  --radius-pill: 999px;
+  --color-search-focus: #7d9cbe;
+  --color-search-text: #263b53;
+  --color-search-icon: #64748b;
+  --shadow-search: 0 1px 2px rgb(15 23 42 / 4%);
+  --shadow-search-focus: 0 0 0 3px rgb(37 99 235 / 14%);
+  --ease-search: ease;
+}
+
+@custom-variant compact (@media (max-width: 600px));
+
+/* Shared table treatments stay unlayered to coexist with the legacy reset. */
+.directory-cell {
+  @apply h-16.5 border-b border-ui-border p-4 text-left align-middle text-xs leading-detail;
+}
+
+.directory-column {
+  @apply relative p-4 text-left text-column font-semibold leading-normal tracking-column uppercase text-ui-body;
+}
+
+.directory-message {
+  @apply px-4.5 py-12 text-center text-sm leading-normal text-ui-body;
+}
+
+.control-focus {
+  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-info;
+}
+
 :root {
   --primary: #0b2d5b;
   --primary-hover: #0a2650;
@@ -68,7 +135,12 @@ html {
 }
 
 body {
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: var(--font-size-body);
   line-height: 1.5;
   color: var(--text-body);
@@ -95,7 +167,7 @@ a,
 input,
 select,
 textarea,
-[role='button'] {
+[role="button"] {
   transition:
     color 160ms ease,
     background-color 160ms ease,

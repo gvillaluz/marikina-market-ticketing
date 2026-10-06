@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./Sidebar.module.css";
+import { Settings } from "lucide-react";
 
 interface NavItem {
   to: string;
@@ -131,6 +132,8 @@ const ChartIcon = (
   </svg>
 );
 
+const SettingsIcon = <Settings size={18} strokeWidth={2} />;
+
 const NAV_ITEMS: NavItem[] = [
   {
     to: "/dashboard",
@@ -179,6 +182,12 @@ const NAV_ITEMS: NavItem[] = [
     label: "Performance",
     icon: ChartIcon,
     allowedRoles: ["Admin", "Enforcer"],
+  },
+  {
+    to: "/system/configuration",
+    label: "Configurations",
+    icon: SettingsIcon,
+    allowedRoles: ["Admin"],
   },
 ];
 
