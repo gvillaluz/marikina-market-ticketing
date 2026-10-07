@@ -1,9 +1,10 @@
+import styles from './TicketsPage.module.css';
 import { FC, useState } from 'react';
 import PageHeader from '@/components/ui/PageHeader';
 import TicketList from '@/features/tickets/components/TicketList';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
 import { MARKET_SECTION_LABELS, MarketSection } from '@/api/types/common.types';
-import styles from './TicketsPage.module.css';
+
 import useTicketAnalytics from '../hooks/useTicketAnalytics';
 import TicketAnalyticsCard from '../components/TicketAnalyticsCard';
 import { TicketModal } from '../../../components/ui/TicketModal/TicketModal';
@@ -37,7 +38,7 @@ const TicketsPage: FC = () => {
     ["ticket"],
     () => setIsExportOpen(false),
   );
-  const { stats } = useTicketAnalytics();
+  const { stats, isLoading: isAnalyticsLoading } = useTicketAnalytics();
 
   const {
     ticketSummary,
@@ -65,10 +66,10 @@ const TicketsPage: FC = () => {
       />
 
       <div className={styles.stats}>
-        <TicketAnalyticsCard label="Total Tickets" value={stats ? formatNumber(stats.totalTicketsThisMonth) : '—'} change={stats?.ticketChangePercentage} />
-        <TicketAnalyticsCard label="Pending Payments" value={stats ? formatCurrency(stats.pendingPaymentsThisMonth) : '—'} change={stats?.paymentsChangePercentage} />
-        <TicketAnalyticsCard label="Resolved Violations" value={stats ? formatNumber(stats.resolvedViolationsThisMonth) : '—'} progress={stats?.resolutionRate} />
-        <TicketAnalyticsCard label="Critical Severities" value={stats ? formatNumber(stats.highSeveritiesThisMonth) : '—'} change={stats?.highSeveritiesChangePercentage} />
+        <TicketAnalyticsCard label="Total Tickets" value={stats ? formatNumber(stats.totalTicketsThisMonth) : '—'} change={stats?.ticketChangePercentage}  isLoading={isAnalyticsLoading}/>
+        <TicketAnalyticsCard label="Pending Payments" value={stats ? formatCurrency(stats.pendingPaymentsThisMonth) : '—'} change={stats?.paymentsChangePercentage}  isLoading={isAnalyticsLoading}/>
+        <TicketAnalyticsCard label="Resolved Violations" value={stats ? formatNumber(stats.resolvedViolationsThisMonth) : '—'} progress={stats?.resolutionRate}  isLoading={isAnalyticsLoading}/>
+        <TicketAnalyticsCard label="Critical Severities" value={stats ? formatNumber(stats.highSeveritiesThisMonth) : '—'} change={stats?.highSeveritiesChangePercentage}  isLoading={isAnalyticsLoading}/>
       </div>
 
       <section className={styles.recordsContainer}>

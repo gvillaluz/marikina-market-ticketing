@@ -1,0 +1,74 @@
+.row > th, .row > td {
+  padding: var(--ordinance-space-lg) var(--ordinance-space-xl);
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-body);
+  font-size: var(--market-font-size-small);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.row:hover {
+  background: var(--ordinance-row-hover);
+}
+
+.row > .identity strong {
+  display: block;
+  color: var(--text-heading);
+  font-size: var(--market-font-size-small);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.identity > span {
+  display: block;
+  margin-top: var(--ordinance-space-xs);
+  color: var(--text-body);
+  font-size: var(--market-font-size-micro);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.row > .date {
+  color: var(--text-muted);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ordinance-space-xs);
+  padding: var(--ordinance-space-xs) var(--ordinance-space-sm);
+  border: 1px solid currentColor;
+  border-radius: var(--market-radius-pill);
+  font-size: var(--market-font-size-micro);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.active {
+  border-color: color-mix(in srgb, var(--success) 20%, var(--bg-surface));
+  background: var(--ordinance-success-surface);
+  color: var(--success);
+}
+
+.inactive {
+  border-color: color-mix(in srgb, var(--warning) 25%, var(--bg-surface));
+  background: var(--ordinance-warning-surface);
+  color: var(--warning);
+}
+
+.dot {
+  width: var(--ordinance-space-xs);
+  height: var(--ordinance-space-xs);
+  border-radius: var(--market-radius-pill);
+  background: currentColor;
+}
+
+.row > .action {
+  text-align: right;
+}
+
+.manage {
+  min-height: 0;
+  padding: var(--ordinance-space-sm);
+  font-size: var(--market-font-size-micro);
+}

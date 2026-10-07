@@ -1,71 +1,47 @@
-@import "tailwindcss";
-
-/* Tailwind aliases preserve the existing runtime theme variables. */
-@theme inline {
-  --color-ui-primary: var(--primary);
-  --color-ui-heading: var(--text-heading);
-  --color-ui-body: var(--text-body);
-  --color-ui-muted: var(--text-muted);
-  --color-ui-on-primary: var(--text-on-primary);
-  --color-ui-surface: var(--bg-surface);
-  --color-ui-border: var(--border-default);
-  --color-ui-info: var(--info);
-  --color-ui-danger: var(--danger);
-  --color-ui-success: var(--success);
-  --color-ui-inactive: var(--status-medium);
-  --color-ui-table: color-mix(in srgb, var(--bg-page) 70%, var(--bg-surface));
-  --color-ui-table-footer: color-mix(in srgb, var(--bg-page) 25%, var(--bg-surface));
-  --color-ui-success-border: color-mix(in srgb, var(--success) 22%, var(--bg-surface));
-  --color-ui-success-subtle: color-mix(in srgb, var(--success) 7%, var(--bg-surface));
-  --color-ui-inactive-border: color-mix(in srgb, var(--warning) 25%, var(--bg-surface));
-  --color-ui-inactive-subtle: color-mix(in srgb, var(--warning) 8%, var(--bg-surface));
-  --color-ui-switch-off: color-mix(in srgb, var(--text-muted) 75%, var(--bg-surface));
-  --color-ui-info-border: color-mix(in srgb, var(--info) 20%, var(--bg-surface));
-  --color-ui-info-subtle: color-mix(in srgb, var(--info) 5%, var(--bg-surface));
-  --radius-ui-sm: var(--radius-sm);
-}
-
-@theme {
-  --text-column: 0.5625rem;
-  --text-micro: 0.625rem;
-  --text-caption: 0.6875rem;
-  --text-compact: 0.8125rem;
-  --text-page-title: 1.75rem;
-  --leading-detail: 1.6;
-  --leading-badge: 1.4;
-  --tracking-column: 0.07em;
-  --radius-notice: 0.1875rem;
-  --radius-button: 0.25rem;
-  --radius-search: 0.5625rem;
-  --radius-pill: 999px;
-  --color-search-focus: #7d9cbe;
-  --color-search-text: #263b53;
-  --color-search-icon: #64748b;
-  --shadow-search: 0 1px 2px rgb(15 23 42 / 4%);
-  --shadow-search-focus: 0 0 0 3px rgb(37 99 235 / 14%);
-  --ease-search: ease;
-}
-
-@custom-variant compact (@media (max-width: 600px));
-
-/* Shared table treatments stay unlayered to coexist with the legacy reset. */
-.directory-cell {
-  @apply h-16.5 border-b border-ui-border p-4 text-left align-middle text-xs leading-detail;
-}
-
-.directory-column {
-  @apply relative p-4 text-left text-column font-semibold leading-normal tracking-column uppercase text-ui-body;
-}
-
-.directory-message {
-  @apply px-4.5 py-12 text-center text-sm leading-normal text-ui-body;
-}
-
-.control-focus {
-  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-info;
-}
-
 :root {
+  /* Ordinance registry and editor controls. */
+  --ordinance-space-xs: 0.25rem;
+  --ordinance-space-sm: 0.5rem;
+  --ordinance-space-md: 0.75rem;
+  --ordinance-space-lg: 1rem;
+  --ordinance-space-xl: 1.25rem;
+  --ordinance-space-xxl: 1.5rem;
+  --ordinance-badge-size: 1.5rem;
+  --ordinance-control-height: 2rem;
+  --ordinance-description-height: 4rem;
+  --ordinance-table-min-width: 44rem;
+  --ordinance-search-width: 22.5rem;
+  --ordinance-search-min-width: 13.75rem;
+  --ordinance-search-height: 2.375rem;
+  --ordinance-search-padding-block: 0.375rem;
+  --ordinance-search-inset: 2.25rem;
+  --ordinance-muted-surface: color-mix(in srgb, var(--bg-page) 50%, var(--bg-surface));
+  --ordinance-info-surface: color-mix(in srgb, var(--info) 9%, var(--bg-surface));
+  --ordinance-warning-surface: color-mix(in srgb, var(--warning) 12%, var(--bg-surface));
+  --ordinance-success-surface: color-mix(in srgb, var(--success) 8%, var(--bg-surface));
+  --ordinance-action-border: color-mix(in srgb, var(--market-action) 25%, var(--bg-surface));
+  --ordinance-danger-surface: color-mix(in srgb, var(--danger) 6%, var(--bg-surface));
+  --ordinance-row-hover: color-mix(in srgb, var(--info) 3%, var(--bg-surface));
+  /* Market-section controls retain their existing fixed visual values. */
+  --market-action: #005aaa;
+  --market-search-focus: #7d9cbe;
+  --market-search-text: #263b53;
+  --market-search-icon: #64748b;
+  --market-search-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+  --market-focus-shadow: 0 0 0 3px rgb(37 99 235 / 14%);
+  --market-radius-button: 0.25rem;
+  --market-radius-search: 0.5625rem;
+  --market-radius-notice: 0.1875rem;
+  --market-radius-pill: 999px;
+  --market-font-size-column: 0.5625rem;
+  --market-font-size-micro: 0.625rem;
+  --market-font-size-caption: 0.6875rem;
+  --market-font-size-small: 0.75rem;
+  --market-font-size-compact: 0.8125rem;
+  --market-font-size-body: 0.875rem;
+  --market-font-size-heading: 1rem;
+  --market-font-size-title: 1.75rem;
+
   --primary: #0b2d5b;
   --primary-hover: #0a2650;
   --accent: #b8792f;

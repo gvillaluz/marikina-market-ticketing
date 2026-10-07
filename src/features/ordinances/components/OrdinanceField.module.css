@@ -1,0 +1,64 @@
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--ordinance-space-xs);
+}
+
+.label {
+  color: var(--text-body);
+  font-size: var(--market-font-size-caption);
+  font-weight: 500;
+}
+
+.dropdown {
+  min-width: 0;
+}
+
+.control {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--ordinance-control-height);
+  padding: var(--ordinance-space-sm);
+  border: 1px solid var(--border-default);
+  border-radius: var(--market-radius-button);
+  background: var(--bg-surface);
+  color: var(--text-heading);
+  font-family: inherit;
+  font-size: var(--market-font-size-caption);
+  line-height: 1.4;
+}
+
+.control::placeholder {
+  color: var(--text-muted);
+}
+
+.control:hover:not(:disabled) {
+  border-color: var(--market-search-focus);
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 1px;
+}
+
+.control:disabled {
+  background: var(--ordinance-muted-surface);
+  color: var(--text-body);
+  cursor: not-allowed;
+}
+
+.description {
+  min-height: var(--ordinance-description-height);
+  resize: vertical;
+}
+
+.invalid {
+  border-color: var(--danger);
+}
+
+.error {
+  color: var(--danger);
+  font-size: var(--market-font-size-micro);
+  line-height: 1.4;
+}

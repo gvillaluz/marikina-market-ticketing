@@ -24,7 +24,6 @@ const MONTH_NAMES = [
 const MonthlyInspectionsChart: FC<MonthlyInspectionsChartProps> = ({
   inspections,
 }) => {
-  console.log(inspections);
   const max = Math.max(...inspections.map((d) => d.totalIssuedTickets), 1);
   const currentMonthNumber = new Date().getMonth() + 1;
 

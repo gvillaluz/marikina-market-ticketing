@@ -16,6 +16,11 @@ interface DropdownProps<T extends string = string> {
   options: readonly DropdownOption<T>[];
   className?: string;
   fullWidth?: boolean;
+  disabled?: boolean;
+  triggerId?: string;
+  invalid?: boolean;
+  describedBy?: string;
+  onBlur?: () => void;
 }
 
 export function Dropdown<T extends string = string>({
@@ -27,9 +32,17 @@ export function Dropdown<T extends string = string>({
   options,
   className = "",
   fullWidth = false,
+  disabled = false,
+  triggerId,
+  invalid,
+  describedBy,
+  onBlur,
 }: DropdownProps<T>) {
   const [open, setOpen] = useState(defaultOpen);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => { if (disabled) setOpen(false); }, [disabled]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -45,19 +58,35 @@ export function Dropdown<T extends string = string>({
     <div
       className={`${styles.wrapper} ${fullWidth ? styles.fullWidth : ""} ${className}`}
       ref={rootRef}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onBlur?.();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && open) {
+          event.stopPropagation();
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
     >
       <button
         type="button"
+        id={triggerId}
+        ref={triggerRef}
         className={styles.trigger}
+        disabled={disabled}
+        aria-label={triggerId ? ariaLabel : undefined}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         aria-haspopup="listbox"
-        aria-expanded={open}
+        aria-expanded={open && !disabled}
         onClick={() => setOpen((prev) => !prev)}
       >
         <span className={styles.triggerLabel}>{triggerLabel ?? ariaLabel}</span>
         <ChevronDown className={styles.chevron} size={15} />
       </button>
 
-      {open && (
+      {open && !disabled && (
         <ul className={styles.menu} role="listbox" aria-label={ariaLabel}>
           {options.map((option) => (
             <li key={option.value} role="option" aria-selected={option.value === value}>
@@ -65,8 +94,10 @@ export function Dropdown<T extends string = string>({
                 type="button"
                 className={styles.option}
                 onClick={() => {
+                  if (disabled) return;
                   onChange(option.value);
                   setOpen(false);
+                  triggerRef.current?.focus();
                 }}
               >
                 <span>{option.label}</span>

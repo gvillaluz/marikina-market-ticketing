@@ -1,0 +1,199 @@
+.nameCell {
+  height: 4.125rem;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-color: var(--border-default);
+  padding: 1rem;
+  padding-left: 1.125rem !important;
+  text-align: left;
+  vertical-align: middle;
+  font-size: var(--market-font-size-small);
+  line-height: 1.6;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  color: var(--text-heading);
+}
+
+.descriptionCell {
+  height: 4.125rem;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-color: var(--border-default);
+  padding: 1rem;
+  text-align: left;
+  vertical-align: middle;
+  font-size: var(--market-font-size-small);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.valueCell {
+  height: 4.125rem;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-color: var(--border-default);
+  padding: 1rem;
+  text-align: left;
+  vertical-align: middle;
+  font-size: var(--market-font-size-small);
+  line-height: 1.6;
+}
+
+.activeStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  border-radius: var(--market-radius-pill);
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--success);
+  background-color: var(--success);
+  padding-inline: 0.5rem !important;
+  padding-block: 0.1875rem !important;
+  font-size: var(--market-font-size-micro);
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--success);
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .activeStatus {
+    border-color: color-mix(in srgb, var(--success) 22%, var(--bg-surface));
+  }
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .activeStatus {
+    background-color: color-mix(in srgb, var(--success) 7%, var(--bg-surface));
+  }
+}
+
+.inactiveStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  border-radius: var(--market-radius-pill);
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--warning);
+  background-color: var(--warning);
+  padding-inline: 0.5rem !important;
+  padding-block: 0.1875rem !important;
+  font-size: var(--market-font-size-micro);
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--status-medium);
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .inactiveStatus {
+    border-color: color-mix(in srgb, var(--warning) 25%, var(--bg-surface));
+  }
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .inactiveStatus {
+    background-color: color-mix(in srgb, var(--warning) 8%, var(--bg-surface));
+  }
+}
+
+.statusDot {
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-radius: var(--market-radius-pill);
+  background-color: currentcolor;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.editButton {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--border-default);
+  background-color: var(--bg-surface);
+  color: var(--info);
+}
+
+.editButton:focus-visible {
+  outline-style: solid;
+  outline-width: 2px;
+  outline-offset: 2px;
+  outline-color: var(--info);
+}
+
+.editButton:disabled {
+  cursor: not-allowed !important;
+}
+
+.activeSwitch {
+  display: flex;
+  height: 1.25rem;
+  width: 2.1875rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  border-radius: var(--market-radius-pill);
+  border-style: solid;
+  border-width: 0px;
+  background-color: var(--info);
+  padding: 0.1875rem !important;
+}
+
+.activeSwitch:focus-visible {
+  outline-style: solid;
+  outline-width: 2px;
+  outline-offset: 2px;
+  outline-color: var(--info);
+}
+
+.activeSwitch:disabled {
+  cursor: not-allowed !important;
+}
+
+.inactiveSwitch {
+  display: flex;
+  height: 1.25rem;
+  width: 2.1875rem;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: var(--market-radius-pill);
+  border-style: solid;
+  border-width: 0px;
+  background-color: var(--text-muted);
+  padding: 0.1875rem !important;
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .inactiveSwitch {
+    background-color: color-mix(in srgb, var(--text-muted) 75%, var(--bg-surface));
+  }
+}
+
+.inactiveSwitch:focus-visible {
+  outline-style: solid;
+  outline-width: 2px;
+  outline-offset: 2px;
+  outline-color: var(--info);
+}
+
+.inactiveSwitch:disabled {
+  cursor: not-allowed !important;
+}
+
+.switchKnob {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: var(--market-radius-pill);
+  background-color: var(--bg-surface);
+}
