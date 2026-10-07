@@ -30,6 +30,9 @@ export const ROUTES = {
   penalties: "/penalties",
   compliance: "/compliance",
   home: "/",
+  systemConfiguration: "/system/configuration",
+  marketSection: "/system/market-section",
+  ordinance: "/system/ordinance",
 } as const;
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];

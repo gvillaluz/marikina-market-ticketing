@@ -28,6 +28,8 @@ import AdminVendorRegistrationApprovePage from "@/features/vendors/pages/AdminVe
 import AdminVendorRegistrationDeclinePage from "@/features/vendors/pages/AdminVendorRegistrationDeclinePage";
 import AdminVendorRegistrationInformationPage from "@/features/vendors/pages/AdminVendorRegistrationInformationPage";
 import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
+import SystemConfigurationPage from "@/features/configuration/pages/SystemConfigurationPage";
+import MarketSectionPage from "@/features/market-section/pages/MarketSectionPage";
 
 const ADMIN_ENFORCER_ROLES: UserRole[] = ["Admin", "Enforcer"];
 const ADMIN_ONLY_ROLES: UserRole[] = ["Admin"];
@@ -148,6 +150,11 @@ const AppRoutes = () => {
           path={ROUTES.performance}
           element={<AdminPlaceholderPage title="Performance" />}
         />
+        <Route
+          path={ROUTES.systemConfiguration}
+          element={<SystemConfigurationPage />}
+        />
+        <Route path={ROUTES.marketSection} element={<MarketSectionPage />} />
       </Route>
 
       {/* General authenticated routes (any role) */}
