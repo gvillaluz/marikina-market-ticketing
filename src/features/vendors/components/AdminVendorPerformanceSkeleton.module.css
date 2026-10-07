@@ -1,0 +1,50 @@
+.profileCard,
+.scoreCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.profileName,
+.profileDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.profileDetails {
+  padding: 6px 0;
+}
+
+.scoreCard {
+  gap: 12px;
+  padding: 16px 18px;
+}
+
+.scoreContent {
+  display: grid;
+  grid-template-columns: 124px minmax(150px, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.scoreMetrics {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scoreMetrics > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}

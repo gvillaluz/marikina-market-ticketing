@@ -1,0 +1,75 @@
+.page {
+  width: 100%;
+  min-width: 0;
+  color: #17324f;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 5px;
+  color: #6d7886;
+  font-size: 0.875rem;
+}
+
+.breadcrumb a {
+  color: #145391;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: minmax(290px, 360px) minmax(360px, 1fr);
+  align-items: stretch;
+  gap: 12px;
+  max-width: 900px;
+  margin: 0 0 17px;
+}
+
+.historySection {
+  min-width: 0;
+}
+
+.historySection > :global(div:first-child) {
+  margin-bottom: 8px;
+}
+
+.errorPage {
+  display: flex;
+  min-height: 280px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.errorPage h2 {
+  font-size: 1rem;
+}
+
+.errorPage p {
+  color: #667487;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 950px) {
+  .summary {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,60 +1,56 @@
-import { FC } from 'react';
+import styles from "./RegistrationStepper.module.css";
 
-export interface RegistrationStep {
-  num: number;
-  label: string;
-}
-
-const STEPS: RegistrationStep[] = [
-  { num: 1, label: 'Personal Information' },
-  { num: 2, label: 'Business Details' },
-  { num: 3, label: 'Required Documents' },
-  { num: 4, label: 'Account Registration' },
+const STEPS = [
+  "Personal Information",
+  "Business Details",
+  "Required Documents",
+  "Account Registration",
 ];
 
 interface RegistrationStepperProps {
   currentStep: number;
-  onStepClick?: (step: number) => void;
+  onStepClick: (step: number) => void;
 }
 
-const RegistrationStepper: FC<RegistrationStepperProps> = ({ currentStep, onStepClick }) => {
+export default function RegistrationStepper({
+  currentStep,
+  onStepClick,
+}: RegistrationStepperProps) {
   return (
-    <nav className="mt-8 space-y-1">
-      {STEPS.map((step) => {
-        const isActive = step.num === currentStep;
-        const isDone = step.num < currentStep;
-        return (
-          <button
-            key={step.num}
-            type="button"
-            onClick={() => onStepClick?.(step.num)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors ${
-              isActive ? 'bg-white/10' : 'hover:bg-white/5'
-            }`}
-          >
-            <span
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                isActive
-                  ? 'bg-white text-primary'
-                  : isDone
-                  ? 'bg-accent text-white'
-                  : 'border-2 border-white/40 text-white/70'
-              }`}
-            >
-              {isDone ? '✓' : step.num}
-            </span>
-            <span
-              className={`text-sm font-medium ${
-                isActive ? 'text-white font-bold' : 'text-white/70'
-              }`}
-            >
-              {step.label}
-            </span>
-          </button>
-        );
-      })}
+    <nav aria-label="Registration steps">
+      <ol className={styles.steps}>
+        {STEPS.map((label, index) => {
+          const step = index + 1;
+          const isCurrent = step === currentStep;
+          const isComplete = step < currentStep;
+          const itemClass = [
+            styles.step,
+            isCurrent ? styles.current : "",
+            isComplete ? styles.complete : "",
+          ].filter(Boolean).join(" ");
+
+          return (
+            <li className={itemClass} key={label}>
+              {step < currentStep ? (
+                <button
+                  type="button"
+                  className={styles.stepButton}
+                  onClick={() => onStepClick(step)}
+                  aria-label={`Go back to ${label}`}
+                >
+                  <span className={styles.number} aria-hidden="true">{step}</span>
+                  <span>{label}</span>
+                </button>
+              ) : (
+                <span className={styles.stepLabel} aria-current={isCurrent ? "step" : undefined}>
+                  <span className={styles.number} aria-hidden="true">{step}</span>
+                  <span>{label}</span>
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
     </nav>
   );
-};
-
-export default RegistrationStepper;
+}

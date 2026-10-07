@@ -1,0 +1,161 @@
+.panel {
+  grid-column: span 7;
+  min-height: 270px;
+}
+
+.chartContent {
+  display: flex;
+  min-height: 190px;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.chartToolbar {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  justify-content: space-between;
+  color: #8490a0;
+  font-size: 0.7rem;
+}
+
+.chartToolbar select {
+  padding: 2px 5px;
+  border: 1px solid #d6deea;
+  border-radius: 4px;
+  background: #fff;
+  color: #465569;
+  font: inherit;
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.trendLine {
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  animation: draw-trend 900ms ease-out forwards;
+}
+
+@keyframes draw-trend {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.gridLine {
+  stroke: #e9edf2;
+  stroke-width: 1;
+}
+
+.axisLabel,
+.monthLabel {
+  fill: #8792a0;
+  font-size: 11px;
+}
+
+.trendLine {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.point {
+  stroke: #fff;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.high {
+  color: #ed3e35;
+}
+
+.medium {
+  color: #ff9e21;
+}
+
+.low {
+  color: #3b9b60;
+}
+
+.high .trendLine,
+.high .point {
+  stroke: #ed3e35;
+}
+
+.medium .trendLine,
+.medium .point {
+  stroke: #ff9e21;
+}
+
+.low .trendLine,
+.low .point {
+  stroke: #3b9b60;
+}
+
+.high .point {
+  fill: #ed3e35;
+}
+
+.medium .point {
+  fill: #ff9e21;
+}
+
+.low .point {
+  fill: #3b9b60;
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 2px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #5e6876;
+  font-size: 0.68rem;
+}
+
+.legend .high {
+  color: #ed3e35;
+}
+
+.legend .medium {
+  color: #ff9e21;
+}
+
+.legend .low {
+  color: #3b9b60;
+}
+
+.legend i {
+  display: inline-block;
+  width: 10px;
+  height: 4px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+@media (max-width: 850px) {
+  .panel {
+    grid-column: span 12;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trendLine {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

@@ -19,8 +19,15 @@ const EnforcerActivitySkeleton: FC = () => {
       <div className={styles.section}>
         <SkeletonBlock width="50%" height="12px" />
         <div className={styles.issuerList}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <SkeletonBlock key={i} width="100%" height="18px" />
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div className={styles.skeletonIssuer} key={index}>
+              <SkeletonBlock width="27px" height="27px" radius="50%" />
+              <div className={styles.skeletonIssuerInfo}>
+                <SkeletonBlock width="62%" height="11px" />
+                <SkeletonBlock width="38%" height="9px" />
+              </div>
+              <SkeletonBlock width="30px" height="11px" />
+            </div>
           ))}
         </div>
       </div>

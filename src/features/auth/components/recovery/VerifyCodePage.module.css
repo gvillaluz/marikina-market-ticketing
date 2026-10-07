@@ -1,0 +1,131 @@
+.description {
+  margin-top: 0.3rem;
+  color: var(--text-body);
+  font-size: 0.8125rem;
+}
+
+.form {
+  margin-top: 1.5rem;
+}
+
+.codeInputs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.codeInput {
+  width: 100%;
+  height: 46px;
+  border: 1px solid var(--border-default);
+  border-radius: 5px;
+  color: var(--text-heading);
+  font-size: 1.125rem;
+  text-align: center;
+}
+
+.codeInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(11, 45, 91, 0.12);
+}
+
+.resendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  color: var(--text-body);
+  font-size: 0.75rem;
+}
+
+.resendControls {
+  display: inline-flex;
+  min-width: 5.25rem;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.resendButton {
+  display: inline-flex;
+  min-height: 20px;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.resendButton:disabled {
+  cursor: not-allowed;
+  color: var(--text-body);
+  text-decoration: none;
+}
+
+.cooldown {
+  color: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.sendingMessage {
+  display: flex;
+  min-height: 210px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--text-body);
+  font-size: 0.875rem;
+}
+
+.primaryButton {
+  display: flex;
+  min-height: 40px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  border-radius: 4px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.error {
+  margin-top: 0.75rem;
+  color: #b42318;
+  font-size: 0.75rem;
+}
+
+.spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 380px) {
+  .codeInputs {
+    gap: 0.35rem;
+  }
+
+  .codeInput {
+    height: 42px;
+  }
+}

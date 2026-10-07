@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { vendorApi } from '@/api/endpoints/vendor.api';
 import type { Vendor } from '@/api/types/vendor.types';
 import type { Status } from '@/api/types/common.types';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 export function useVendorApproval() {
   const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ export function useVendorApproval() {
       }
       throw new Error(`Unsupported status action: ${status}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Action failed.');
+      setError(getApiErrorMessage(err, 'Action failed.'));
       throw err;
     } finally {
       setLoading(false);

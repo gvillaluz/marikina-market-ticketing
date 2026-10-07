@@ -1,0 +1,223 @@
+.registryCard {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(320px, 45%);
+  min-width: 190px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #d9e1ec;
+  border-radius: 6px;
+  color: #728095;
+}
+
+.searchBox:focus-within {
+  border-color: #7da7d3;
+  box-shadow: 0 0 0 3px rgba(32, 105, 181, 0.1);
+}
+
+.searchBox input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: #253b54;
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.searchBox input::placeholder {
+  color: #8490a0;
+}
+
+.filters {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.tableWrapper {
+  margin: 0 16px 12px;
+}
+
+.tableWrapper :global(table) {
+  table-layout: fixed;
+  min-width: 980px;
+}
+
+.businessId {
+  color: #184b82 !important;
+  font-weight: 700;
+}
+
+.vendorName {
+  color: #182b41 !important;
+  font-weight: 650;
+}
+
+.scoreBadge {
+  min-width: 48px;
+  justify-content: center;
+  padding: 3px 7px;
+  border: 1px solid currentColor;
+  font-size: 0.67rem;
+}
+
+.viewButton {
+  display: inline-flex;
+  min-width: 142px;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 10px;
+  border: 1px solid #b9d2ee;
+  border-radius: 5px;
+  background: #f4f9ff;
+  color: #145391;
+  font-size: 0.67rem;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.viewButton:hover {
+  background: #e7f2ff;
+}
+
+.tableFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  color: #697789;
+  font-size: 0.7rem;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.iconButton {
+  display: inline-grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid #dce5ef;
+  border-radius: 5px;
+  background: #fff;
+  color: #52657a;
+  cursor: pointer;
+}
+
+.utilityButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.utilityButton {
+  display: inline-flex;
+  height: 27px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  border: 1px solid #dce5ef;
+  border-radius: 5px;
+  background: #fff;
+  color: #52657a;
+  font-size: 0.66rem;
+  cursor: pointer;
+}
+
+.pagination {
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 0;
+}
+
+.pagination :global(button) {
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  border-radius: 5px;
+  font-size: 0.7rem;
+}
+
+.pagination :global(button[aria-current="page"]) {
+  border-color: #123d67;
+  background: #123d67;
+  color: #fff;
+}
+
+.pagination :global(button:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.errorState {
+  display: flex;
+  min-height: 270px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #718094;
+  font-size: 0.78rem;
+}
+
+.errorState > svg {
+  color: #bd7a1b;
+}
+
+.errorState strong {
+  color: #2a4058;
+  font-size: 0.9rem;
+}
+
+.errorState button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: #145391;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 620px) {
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .searchBox {
+    width: 100%;
+  }
+
+  .filters {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .tableFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -3,6 +3,7 @@ import { AccountStatus } from "@/api/types/common.types";
 import { EnforcerSummary } from "@/api/types/enforcer.types";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 
 interface FetchEnforcersParams {
     search?: string;
@@ -23,7 +24,7 @@ export function useFetchEnforcers(params: FetchEnforcersParams) {
     const offset = (page - 1) * PAGE_SIZE;
 
     const query = useQuery({
-        queryKey: ['enforcers', params.search, params.status, params.sortBy, params.sortDirection],
+        queryKey: ['enforcers', params.search, params.status, params.sortBy, params.sortDirection, page, PAGE_SIZE],
         queryFn: () => enforcersApi.enforcerList({
             offset,
             search: params.search,
@@ -42,12 +43,14 @@ export function useFetchEnforcers(params: FetchEnforcersParams) {
         total,
         totalPages,
         page,
+        pageSize: PAGE_SIZE,
         setPage,
         fetchProcess: {
             isLoading: query.isLoading,
             isFetching: query.isFetching,
             isError: query.isError,
             error: query.error,
+            errorMessage: getApiErrorMessage(query.error, "Something went wrong while fetching enforcer records."),
             onRetry: query.refetch
         }
     }

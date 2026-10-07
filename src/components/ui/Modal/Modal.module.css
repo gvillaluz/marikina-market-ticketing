@@ -2,7 +2,8 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background-color: rgba(30, 34, 43, 0.55);
+  background-color: rgba(11, 29, 53, 0.58);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,13 +22,15 @@
 
 .modal {
   background-color: #fff;
+  border: 1px solid rgba(217, 225, 236, 0.8);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 24px 64px rgba(11, 29, 53, 0.24);
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.2s ease;
+  overflow: hidden;
 }
 
 @keyframes slideUp {
@@ -63,34 +66,41 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #c3c6d2;
+  border-bottom: 1px solid #e5eaf1;
+  background: linear-gradient(180deg, #fff, #fbfcfe);
 }
 
 .title {
   font-size: 1.125rem;
   margin: 0;
+  letter-spacing: -0.015em;
 }
 
 .subtitle {
-  color: var(--neutral-500);
+  color: var(--text-body);
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
 
 .closeBtn {
-  background: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: #f3f6fa;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   line-height: 1;
-  color: var(--neutral-500);
+  color: var(--text-body);
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
 }
 
 .closeBtn:hover {
-  background-color: var(--neutral-100);
-  color: var(--neutral-900);
+  background-color: #e9eff7;
+  color: var(--primary);
 }
 
 .body {
@@ -103,8 +113,37 @@
 
 .footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--neutral-100);
+  border-top: 1px solid #e5eaf1;
+  background: #fbfcfe;
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0.5rem;
+  }
+
+  .modal {
+    max-height: calc(100vh - 1rem);
+    border-radius: var(--radius-lg);
+  }
+
+  .header {
+    padding: 1rem 1.125rem;
+  }
+
+  .footer {
+    padding: 0.875rem 1.125rem;
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .modal {
+    animation: none;
+  }
 }

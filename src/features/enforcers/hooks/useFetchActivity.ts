@@ -1,5 +1,6 @@
 import { enforcersApi } from "@/api/endpoints/enforcers.api";
 import { useQuery } from "@tanstack/react-query";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 
 export function useFetchActivity() {
     const query = useQuery({
@@ -16,6 +17,7 @@ export function useFetchActivity() {
             isLoading: query.isLoading,
             isError: query.isError,
             error: query.error,
+            errorMessage: getApiErrorMessage(query.error, "Couldn't load activity data."),
             onRetry: query.refetch
         }
     }

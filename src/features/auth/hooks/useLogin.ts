@@ -3,28 +3,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes/routePaths';
 import type { LoginInput } from '@/features/auth/auth.types';
-import { jwtDecode } from 'jwt-decode';
+import { resolveLoginIdentifier } from '@/features/auth/auth.utils';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 export interface LoginFormValues {
   username: string;
   password: string;
-}
-
-export function resolveLoginIdentifier(username: string): string | null {
-  const trimmed = username.trim();
-  if (!trimmed) return null;
-
-  if (trimmed.includes('@')) {
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
-    return isEmail ? trimmed : null;
-  }
-
-  if (trimmed.toLowerCase() === 'admin') return 'admin@marikina.gov.ph';
-  if (trimmed.toLowerCase() === 'vendor' || /^\d{3}-\d{5}[A-Za-z]?$/.test(trimmed)) {
-    return 'vendor@marikina.gov.ph';
-  }
-
-  return null;
 }
 
 interface UseLoginOptions {
@@ -63,7 +47,7 @@ export function useLogin(options: UseLoginOptions = {}) {
       console.log('Navigation complete'); 
     } catch (err) {
       console.log('Login error:', err);
-      setError(err instanceof Error ? err.message : 'Login failed.');
+      setError(getApiErrorMessage(err, 'Login failed.'));
     } finally {
       setLoading(false);
     }

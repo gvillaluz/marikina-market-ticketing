@@ -1,11 +1,27 @@
-import type { UserRole } from '@/api/types/common.types';
+import type { AccountStatus, UserRole } from "@/api/types/common.types";
 
-export interface User {
-  id: string;
-  name: string;
+export interface UserProfileResponse {
+  userId: number;
+  username: string;
+  firstName: string;
+  middleName: string | null;
+  lastName: string;
   email: string;
-  role: UserRole;
-  avatar?: string;
+  dateOfBirth: string;
+  mobileNumber: string;
+  houseNumber: string;
+  street: string;
+  barangay: string;
+  city: string;
+  status: AccountStatus;
+  role: string | number | null;
+  createdAt: string;
+  profileUrl: string | null;
+  mustChangedPassword: boolean;
+}
+
+export interface User extends Omit<UserProfileResponse, "role"> {
+  role: UserRole | null;
 }
 
 export interface LoginInput {
@@ -22,12 +38,20 @@ export interface RegisterInput {
 
 export interface AuthResponse {
   user: User;
-  mustChangePassword: boolean;  
+  mustChangePassword: boolean;
   accessToken: string;
 }
 
-export interface User {
-  id: string;
-  username: string;
-  role: 'Admin'| 'Enforcer' | 'Vendor';
+export interface LoginResponse {
+  accessToken: string;
+  mustChangePassword: boolean;
+}
+
+export interface AccessTokenRefreshRequest {
+  accessToken: string;
+}
+
+export interface TokenRefreshResponse {
+  accessToken: string;
+  mustChangePassword: boolean;
 }

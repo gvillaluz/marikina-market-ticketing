@@ -1,0 +1,22 @@
+.formWrapper { color: var(--text-heading); }
+.heading { margin: 0; color: var(--primary); font-family: var(--font-mono, monospace); font-size: 1.35rem; font-weight: 700; letter-spacing: .01em; text-align: center; }
+.message { margin-top: 1rem; padding: .75rem 1rem; border-radius: var(--radius-sm); font-size: .875rem; }
+.successMessage { background: #f0fdf4; color: #15803d; }
+.errorMessage { background: #fef2f2; color: #b91c1c; }
+.form { display: flex; flex-direction: column; gap: 1.15rem; margin-top: 1.75rem; }
+.field { display: flex; flex-direction: column; }
+.label { margin-bottom: .375rem; color: var(--text-body); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.inputWrapper { position: relative; }
+.icon { position: absolute; top: 50%; left: .75rem; transform: translateY(-50%); color: var(--text-body); }
+.input { width: 100%; min-height: 2.75rem; padding: .625rem .75rem .625rem 2.5rem; border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: #fbfcfe; font-size: .875rem; transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease; }
+.input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(11, 45, 91, .15); }
+.input:hover { background: #fff; }
+.fieldError { display: block; margin-top: .25rem; color: #dc2626; font-size: .75rem; }
+.submit { width: 100%; min-height: 2.75rem; padding: .625rem; border: 0; border-radius: var(--radius-sm); background: var(--primary); color: #fff; font-size: .875rem; font-weight: 700; box-shadow: 0 4px 10px rgba(11,45,91,.16); transition: background-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.submit:hover { background: var(--primary-hover); color: #fff; }
+.submit:hover:not(:disabled) { box-shadow: 0 6px 14px rgba(11,45,91,.22); transform: translateY(-1px); }
+.submit:disabled { opacity: .6; }
+.forgot { display: block; width: 100%; margin-top: .9rem; border: 0; background: transparent; color: var(--primary); font-size: .8125rem; font-weight: 600; text-align: center; text-decoration: underline; }
+.forgot:hover { text-decoration: underline; }
+.registerPrompt { margin-top: 1.5rem; color: var(--text-body); font-size: .875rem; text-align: center; }
+.registerLink { color: var(--primary); font-weight: 600; text-decoration: underline; }

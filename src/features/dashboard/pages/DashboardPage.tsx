@@ -10,7 +10,7 @@ const CARD_DEFS = [
 ] as const;
 
 export function DashboardPage() {
-  const { data, isLoading, isError } = useDashboardSummary();
+  const { data, isLoading, isError, errorMessage } = useDashboardSummary();
 
   return (
     <div>
@@ -18,7 +18,7 @@ export function DashboardPage() {
         <h1 className={styles.title}>Dashboard</h1>
       </div>
 
-      {isError && <p className={styles.errorState}>Unable to load dashboard summary.</p>}
+      {isError && <p className={styles.errorState}>{errorMessage}</p>}
 
       <div className={styles.grid}>
         {CARD_DEFS.map((card) => (

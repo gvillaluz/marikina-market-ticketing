@@ -6,6 +6,7 @@ import type { UserRole } from "@/api/types/common.types";
 import LandingPage from "@/features/landing/pages/LandingPage";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import AdminLoginPage from "@/features/auth/pages/AdminLoginPage";
+import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
 import ChangePasswordPage from "@/features/auth/pages/ChangePasswordPage";
 import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
 import AdminPlaceholderPage from "@/features/dashboard/pages/AdminPlaceholderPage";
@@ -19,6 +20,14 @@ import CompliancePage from "@/features/compliance/pages/CompliancePage";
 import { InspectionsPage } from "../features/inspections/pages/InspectionsPage";
 import EnforcersPage from "@/features/enforcers/pages/EnforcersPage";
 import EnforcerPerformancePage from "@/features/enforcers/pages/EnforcerPerformancePage";
+import AdminVendorsPage from "@/features/vendors/pages/AdminVendorsPage";
+import AdminVendorInspectionPage from "@/features/vendors/pages/AdminVendorInspectionPage";
+import AdminVendorRegistrationsPage from "@/features/vendors/pages/AdminVendorRegistrationsPage";
+import AdminVendorRegistrationReviewPage from "@/features/vendors/pages/AdminVendorRegistrationReviewPage";
+import AdminVendorRegistrationApprovePage from "@/features/vendors/pages/AdminVendorRegistrationApprovePage";
+import AdminVendorRegistrationDeclinePage from "@/features/vendors/pages/AdminVendorRegistrationDeclinePage";
+import AdminVendorRegistrationInformationPage from "@/features/vendors/pages/AdminVendorRegistrationInformationPage";
+import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
 
 const ADMIN_ENFORCER_ROLES: UserRole[] = ["Admin", "Enforcer"];
 const ADMIN_ONLY_ROLES: UserRole[] = ["Admin"];
@@ -30,6 +39,14 @@ const AppRoutes = () => {
       <Route path={ROUTES.home} element={<LandingPage />} />
       <Route path={ROUTES.login} element={<LoginPage />} />
       <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
+      <Route
+        path={`${ROUTES.forgotPassword("Vendor")}/:step?`}
+        element={<ForgotPasswordPage />}
+      />
+      <Route
+        path={`${ROUTES.forgotPassword("Admin")}/:step?`}
+        element={<ForgotPasswordPage />}
+      />
       <Route path={ROUTES.register} element={<VendorRegistrationPage />} />
 
       {/* Standalone change-password route — NOT nested in DashboardLayout,
@@ -59,12 +76,72 @@ const AppRoutes = () => {
         />
         <Route path={ROUTES.enforcers} element={<EnforcersPage />} />
         <Route
+          path={ROUTES.adminVendors}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorRegistrations}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorRegistrationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorRegistration(":registrationId")}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorRegistrationReviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorRegistrationApprove(":registrationId")}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorRegistrationApprovePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorRegistrationDecline(":registrationId")}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorRegistrationDeclinePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorRegistrationInformation(":registrationId")}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorRegistrationInformationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.adminVendorInspections(":vendorId")}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminVendorInspectionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path={ROUTES.enforcerPerformancePage(":id")}
           element={<EnforcerPerformancePage />}
         />
         <Route
           path={ROUTES.analytics}
-          element={<AdminPlaceholderPage title="Analytics" />}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <AdminAnalyticsPage />
+            </ProtectedRoute>
+          }
         />
         <Route path={ROUTES.inspections} element={<InspectionsPage />} />
         <Route

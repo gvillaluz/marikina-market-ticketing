@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import citySeal from '@/assets/icons/Marikina_City_Seal.svg (1).webp';
+import styles from './LandingPage.module.css';
 
 /* ------------------------------------------------------------------ */
 /* Shared building blocks                                              */
@@ -12,9 +14,7 @@ interface EyebrowProps {
 function Eyebrow({ text, light = false }: EyebrowProps) {
   return (
     <p
-      className={`text-center text-xs font-bold tracking-[0.25em] uppercase ${
-        light ? 'text-accent' : 'text-accent'
-      }`}
+      className={styles.eyebrow}
     >
       {text}
     </p>
@@ -31,17 +31,15 @@ interface SectionHeadingProps {
 
 function SectionHeading({ eyebrow, title, subtext, light = false, className = '' }: SectionHeadingProps) {
   return (
-    <div className={`max-w-2xl mx-auto text-center ${className}`}>
+    <div className={`${styles.sectionHeading} ${className}`}>
       <Eyebrow text={eyebrow} light={light} />
       <h2
-        className={`mt-3 font-mono text-3xl md:text-4xl font-bold leading-tight ${
-          light ? 'text-white' : 'text-primary'
-        }`}
+        className={`${styles.sectionTitle} ${light ? styles.lightText : ''}`}
       >
         {title}
       </h2>
       {subtext && (
-        <p className={`mt-4 text-base md:text-lg ${light ? 'text-gray-200' : 'text-bodygray'}`}>
+        <p className={`${styles.sectionSubtext} ${light ? styles.lightSubtext : ''}`}>
           {subtext}
         </p>
       )}
@@ -55,41 +53,25 @@ function SectionHeading({ eyebrow, title, subtext, light = false, className = ''
 
 function Navbar() {
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-        <button
-          className="text-left font-mono font-bold text-primary text-sm md:text-base leading-tight"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        >
-          Marikina Public Market
-          <span className="block">Inspection System</span>
-        </button>
+    <header className={styles.navbar}>
+      <div className={styles.navContainer}>
+        <Link to="/" className={styles.brand}>
+          <img src={citySeal} alt="" />
+          <span>
+            <strong>Marikina Public Market</strong>
+            <small>Inspection System</small>
+          </span>
+        </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="#top" className="text-primary font-medium border-b-2 border-primary pb-0.5">
-            Home
-          </a>
-          <a href="#features" className="text-bodygray hover:text-primary transition-colors">
-            About
-          </a>
-          <a href="#contact" className="text-bodygray hover:text-primary transition-colors">
-            Contact
-          </a>
+        <nav className={styles.navLinks} aria-label="Main navigation">
+          <a href="#top" className={styles.activeNavLink}>Home</a>
+          <a href="#features">About</a>
+          <a href="#contact">Contact</a>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <Link
-            to="/login"
-            className="px-4 py-2 rounded-md border border-primary text-primary font-medium text-sm hover:bg-primary/5 transition-colors"
-          >
-Login
-          </Link>
-          <Link
-            to="/register"
-            className="px-4 py-2 rounded-md bg-primary text-white font-medium text-sm hover:bg-primary/90 transition-colors"
-          >
-            Vendor Registration
-          </Link>
+        <div className={styles.navActions}>
+          <Link to="/login" className={styles.loginLink}>Login</Link>
+          <Link to="/register" state={{ returnTo: "/" }} className={styles.registerLink}>Vendor Registration</Link>
         </div>
       </div>
     </header>
@@ -99,44 +81,41 @@ Login
 
 function Hero() {
   return (
-    <section className="relative" id="top">
-      {}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `linear-gradient(180deg, #0B2D5B 0%, #3a6aa5 45%, #7fb3d5 70%, #c9b98a 100%)`,
-        }}
-      >
-        {}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.18) 0%, transparent 55%), repeating-linear-gradient(90deg, rgba(255,255,255,0.10) 0 2px, transparent 2px 90px)',
-          }}
-        />
-        {}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              'radial-gradient(ellipse at 12% 78%, rgba(11,45,91,0.28) 0%, transparent 30%), radial-gradient(ellipse at 88% 78%, rgba(11,45,91,0.28) 0%, transparent 30%)',
-          }}
-        />
-      </div>
-
-      {}
-      <div className="absolute inset-0 bg-white/70" />
-
-      <div className="relative max-w-[1200px] mx-auto px-4 md:px-8 py-24 md:py-28 min-h-[400px] flex items-center">
-        <div className="max-w-2xl">
-          <h1 className="font-mono text-4xl md:text-5xl lg:text-6xl font-bold text-primary leading-[1.05]">
+    <section className={styles.hero} id="top">
+      <div className={styles.heroBackdrop} aria-hidden="true" />
+      <div className={styles.heroContainer}>
+        <div className={styles.heroContent}>
+          <span className={styles.heroEyebrow}>MARIKINA CITY · PUBLIC MARKET</span>
+          <h1 className={styles.heroTitle}>
             A Smarter Public Market for a Better Marikina.
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-bodygray max-w-xl">
-            Empowering Marikina with smart technology by analyzing ticketing patterns to
-            automatically optimize inspection allocations.
+          <p className={styles.heroCopy}>
+            Bringing vendors, market enforcers, and administrators together through clearer
+            inspections, accessible records, and accountable service.
           </p>
+          <div className={styles.heroActions}>
+            <Link to="/register" state={{ returnTo: "/" }} className={styles.heroPrimary}>Register as a vendor</Link>
+            <Link to="/admin/login" className={styles.heroSecondary}>Administrator login <span aria-hidden>→</span></Link>
+          </div>
+          <div className={styles.heroTrust}>
+            <span aria-hidden>✓</span> A more connected market community
+          </div>
+        </div>
+        <div className={styles.heroPanel} aria-label="Market system overview">
+          <div className={styles.heroPanelTop}>
+            <div className={styles.heroPanelBrand}>
+              <img src={citySeal} alt="" />
+              <span><strong>Market operations</strong><small>One connected system</small></span>
+            </div>
+            <span className={styles.liveBadge}><i /> Online</span>
+          </div>
+          <div className={styles.heroPanelBody}>
+            <span className={styles.panelCaption}>BUILT FOR EVERY MARKET ROLE</span>
+            <div className={styles.roleRow}><span className={styles.roleIcon}>V</span><span><strong>Vendors</strong><small>Track tickets and compliance</small></span><span className={styles.roleArrow}>↗</span></div>
+            <div className={styles.roleRow}><span className={styles.roleIcon}>E</span><span><strong>Enforcers</strong><small>Record inspections on the go</small></span><span className={styles.roleArrow}>↗</span></div>
+            <div className={styles.roleRow}><span className={styles.roleIcon}>A</span><span><strong>Administrators</strong><small>Manage records and operations</small></span><span className={styles.roleArrow}>↗</span></div>
+          </div>
+          <div className={styles.heroPanelFoot}><span /> Secure, role-based access</div>
         </div>
       </div>
     </section>
@@ -161,20 +140,17 @@ const featureCards = [
 
 function Features() {
   return (
-    <section id="features" className="bg-white py-20 md:py-24">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8">
+    <section id="features" className={styles.lightSection}>
+      <div className={styles.container}>
         <SectionHeading
           eyebrow="System Features"
           title="Key implementing technologies of the system"
         />
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`${styles.cardGrid} ${styles.threeColumns}`}>
           {featureCards.map((c) => (
-            <div
-              key={c.title}
-              className="bg-bglight-card rounded-xl p-8 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-mono text-xl font-bold text-primary">{c.title}</h3>
-              <p className="mt-4 text-bodygray leading-relaxed">{c.desc}</p>
+            <div key={c.title} className={`${styles.featureCard} ${styles.softCard}`}>
+              <h3 className={styles.cardTitle}>{c.title}</h3>
+              <p className={styles.cardCopy}>{c.desc}</p>
             </div>
           ))}
         </div>
@@ -210,26 +186,26 @@ const processSteps = [
 
 function ProcessStep({ num, title, desc, arrow }: { num: string; title: string; desc: string; arrow: boolean }) {
   return (
-    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
-      <div className="flex-1 text-center md:text-left">
-        <p className="font-mono text-2xl font-bold text-accent">{num}</p>
-        <h3 className="mt-2 font-mono text-lg font-bold text-primary">{title}</h3>
-        <p className="mt-2 text-bodygray text-sm leading-relaxed">{desc}</p>
+    <div className={styles.processStep}>
+      <div className={styles.processContent}>
+        <p className={styles.processNumber}>{num}</p>
+        <h3 className={styles.processTitle}>{title}</h3>
+        <p className={styles.processCopy}>{desc}</p>
       </div>
       {arrow && (
-        <span className="text-accent text-2xl font-bold flex-shrink-0 hidden md:block">→</span>
+        <span className={styles.processArrow}>→</span>
       )}
-      {arrow && <span className="text-accent text-xl font-bold md:hidden">↓</span>}
+      {arrow && <span className={styles.processDown}>↓</span>}
     </div>
   );
 }
 
 function Process() {
   return (
-    <section className="bg-bglight py-20 md:py-24">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8">
+    <section className={styles.tintedSection}>
+      <div className={styles.container}>
         <SectionHeading eyebrow="PROCESS" title="From ticket to inspection, automatically" />
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className={`${styles.cardGrid} ${styles.fourColumns}`}>
           {processSteps.map((s, i) => (
             <ProcessStep key={s.num} {...s} arrow={i < processSteps.length - 1} />
           ))}
@@ -255,16 +231,10 @@ const hotspots = [
   { label: 'Wet Section B', level: 'Low' },
 ];
 
-const levelStyles: Record<string, string> = {
-  High: 'bg-accent text-white',
-  Medium: 'bg-bglight text-primary',
-  Low: 'bg-bglight text-bodygray',
-};
-
 function AnalyticsPreview() {
   return (
-    <section className="bg-white py-20 md:py-24">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8">
+    <section className={styles.lightSection}>
+      <div className={styles.container}>
         <SectionHeading
           eyebrow="ANALYTICS DASHBOARD"
           title="What the Administrator dashboard shows"
@@ -272,31 +242,31 @@ function AnalyticsPreview() {
         />
 
         {/* Mock dashboard card */}
-        <div className="mt-14 max-w-4xl mx-auto rounded-xl overflow-hidden shadow-lg border border-gray-200">
+        <div className={styles.analyticsCard}>
           {/* header bar */}
-          <div className="bg-primary px-5 py-3 flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-white" />
-            <span className="text-white/90 text-sm font-medium">
+          <div className={styles.analyticsHeader}>
+            <span className={styles.analyticsDot} />
+            <span className={styles.analyticsHeaderText}>
               Administrator / Analytics — Violation Type Distribution
             </span>
           </div>
 
           {/* body */}
-          <div className="bg-white p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className={styles.analyticsBody}>
             {/* left: bar chart */}
             <div>
-              <h3 className="font-mono text-sm font-bold text-primary mb-4">
+              <h3 className={styles.smallTitle}>
                 Violation Type Distribution
               </h3>
-              <div className="space-y-4">
+              <div className={styles.barList}>
                 {bars.map((b) => (
                   <div key={b.label}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-semibold text-primary">{b.label}</span>
+                    <div className={styles.barLabel}>
+                      <span>{b.label}</span>
                     </div>
-                    <div className="h-3 w-full bg-bglight rounded-full overflow-hidden">
+                    <div className={styles.barTrack}>
                       <div
-                        className="h-full bg-accent rounded-full"
+                        className={styles.barFill}
                         style={{ width: b.width }}
                       />
                     </div>
@@ -306,21 +276,19 @@ function AnalyticsPreview() {
             </div>
 
             {/* right: hotspot ranking */}
-            <div className="bg-bglight-card rounded-xl p-5">
-              <h3 className="font-mono text-sm font-bold text-primary mb-4">
+            <div className={styles.hotspotCard}>
+              <h3 className={styles.smallTitle}>
                 Market Section Hotspot Ranking
               </h3>
               <div>
                 {hotspots.map((h, i) => (
                   <div
                     key={h.label}
-                    className={`py-3 flex items-center justify-between ${
-                      i > 0 ? 'border-t border-gray-200' : ''
-                    }`}
+                    className={`${styles.hotspotRow} ${i > 0 ? styles.hotspotBorder : ''}`}
                   >
-                    <span className="text-sm font-medium text-primary">{h.label}</span>
+                    <span className={styles.hotspotLabel}>{h.label}</span>
                     <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${levelStyles[h.level]}`}
+                      className={`${styles.level} ${styles[`level${h.level}`]}`}
                     >
                       {h.level}
                     </span>
@@ -370,26 +338,24 @@ const roles = [
 
 function WhoItsFor() {
   return (
-    <section className="bg-bglight py-20 md:py-24">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8">
+    <section className={styles.tintedSection}>
+      <div className={styles.container}>
         <SectionHeading
           eyebrow="WHO IT'S FOR"
           title="Three roles, one centralized system"
           subtext="Every account is role-based — each user only sees the functions relevant to their responsibilities."
         />
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`${styles.cardGrid} ${styles.threeColumns}`}>
           {roles.map((r) => (
-            <div key={r.name} className="bg-white rounded-xl p-8 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-mono text-lg font-bold text-primary">{r.name}</h3>
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-bglight text-primary">
-                  {r.platform}
-                </span>
+            <div key={r.name} className={`${styles.roleCard} ${styles.whiteCard}`}>
+              <div className={styles.roleHeader}>
+                <h3 className={styles.roleTitle}>{r.name}</h3>
+                <span className={styles.platform}>{r.platform}</span>
               </div>
-              <ul className="mt-5 space-y-3">
+              <ul className={styles.bulletList}>
                 {r.bullets.map((b) => (
-                  <li key={b} className="text-bodygray text-sm leading-relaxed flex gap-2">
-                    <span className="text-accent flex-shrink-0">—</span>
+                  <li key={b} className={styles.bulletItem}>
+                    <span className={styles.bulletMark}>—</span>
                     <span>{b}</span>
                   </li>
                 ))}
@@ -405,18 +371,18 @@ function WhoItsFor() {
 
 function ClosingCta() {
   return (
-    <section id="contact" className="bg-primary py-20 md:py-24">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8 text-center">
-<h2 className="font-mono text-3xl md:text-4xl font-bold text-white">
+    <section id="contact" className={styles.ctaSection}>
+      <div className={`${styles.container} ${styles.centered}`}>
+<h2 className={styles.ctaTitle}>
           Register your stall today.
         </h2>
-        <p className="mt-5 text-gray-200 max-w-xl mx-auto text-lg">
+        <p className={styles.ctaCopy}>
           Submit a valid ID and business registration document — the Administrator reviews
           and approves your account against the existing vendor registry.
         </p>
         <Link
           to="/register"
-          className="inline-block mt-8 px-8 py-3.5 rounded-md bg-accent text-white font-bold text-base hover:bg-accent/90 transition-colors"
+          className={styles.ctaButton}
         >
           Vendor Registration
         </Link>
@@ -428,7 +394,7 @@ function ClosingCta() {
 
 export default function LandingPage() {
   return (
-    <div className="font-sans bg-white">
+    <div className={`route-motion ${styles.landing}`}>
       <Navbar />
       <Hero />
       <Features />

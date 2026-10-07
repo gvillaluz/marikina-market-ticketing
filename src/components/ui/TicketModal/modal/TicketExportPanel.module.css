@@ -1,22 +1,23 @@
 .panel {
-    width: 260px;
-    flex-shrink: 0;
-    border-left: 2px solid #C3C6D2;
-    padding: 20px;
-    flex: 1;
+    width: 280px;
+    flex: 0 0 280px;
+    align-self: stretch;
+    padding: 1.25rem;
+    border-left: 1px solid #e3e9f0;
+    background: #fbfcfe;
 }
 
 .title {
     margin: 0 0 4px;
     font-size: 1rem;
     font-weight: 700;
-    color: #002753;
+    color: var(--primary);
 }
 
 .subtitle {
     margin: 0 0 16px;
     font-size: 0.8rem;
-    color: var(--neutral-500);
+    color: var(--text-body);
 }
 
 .optionList {
@@ -32,20 +33,23 @@
     width: 100%;
     text-align: left;
     background: #fff;
-    border: 1px solid var(--neutral-200);
-    border-radius: 8px;
+    border: 1px solid #e1e8f0;
+    border-radius: 10px;
     padding: 12px 14px;
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.optionCard:hover {
-    border-color: #002753;
+.optionCard:hover:not(:disabled) {
+    border-color: #8aa8c7;
+    background: #f7faff;
+    box-shadow: 0 4px 12px rgba(19, 45, 75, 0.06);
+    transform: translateY(-1px);
 }
 
-.optionCardActive {
-    border: 1px solid #0060A8;
-    background: #EAF1FE;
+.optionCard:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
 }
 
 .optionIcon {
@@ -75,4 +79,49 @@
 .chevron {
     color: var(--neutral-400, #9AA0A6);
     flex-shrink: 0;
+}
+
+.error {
+    margin: 0 0 0.8rem;
+    padding: 0.65rem 0.7rem;
+    border: 1px solid #f3c5c5;
+    border-radius: 8px;
+    background: #fff7f7;
+    color: #a32929;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    border: 2px solid #d8e2ed;
+    border-top-color: #1e4e7a;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 800px) {
+    .panel {
+        width: auto;
+        flex: auto;
+        border-top: 1px solid #e3e9f0;
+        border-left: 0;
+    }
+
+    .optionList {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spinner {
+        animation-duration: 1.5s;
+    }
 }

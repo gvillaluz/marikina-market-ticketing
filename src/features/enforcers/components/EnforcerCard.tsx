@@ -1,12 +1,11 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { ArrowRight, Ticket, TriangleAlert } from 'lucide-react';
-import StatusPill from '@/features/tickets/components/detail/StatusPill';
 import styles from './EnforcerCard.module.css';
 
 interface EnforcerCardProps {
   name: string;
   initials: string;
-  profileUrl: string;
+  profileUrl: string | null;
   badgeNo: string;
   status: 'Active' | 'Inactive';
   warnings: number;
@@ -24,11 +23,19 @@ const EnforcerCard: FC<EnforcerCardProps> = ({
   tickets,
   onViewInspections,
 }) => {
+  const [imageFailed, setImageFailed] = useState(false);
+  const hasProfileImage = Boolean(profileUrl?.trim()) && !imageFailed;
+
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        {profileUrl != '' ? (
-          <img src={profileUrl} alt='profile' /> 
+        {hasProfileImage ? (
+          <img
+            className={styles.profileImage}
+            src={profileUrl ?? undefined}
+            alt={`${name} profile`}
+            onError={() => setImageFailed(true)}
+          />
         ) : (
           <div className={styles.avatar}>{initials}</div>
         )}

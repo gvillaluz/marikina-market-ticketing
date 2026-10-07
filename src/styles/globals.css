@@ -1,8 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-
 :root {
   --primary: #0b2d5b;
   --primary-hover: #0a2650;
@@ -35,6 +30,19 @@
 
   --sidebar-width: 260px;
   --navbar-height: 64px;
+
+  --font-size-xs: clamp(0.625rem, 0.6rem + 0.08vw, 0.75rem);
+  --font-size-sm: clamp(0.75rem, 0.7rem + 0.12vw, 0.875rem);
+  --font-size-body: clamp(0.9375rem, 0.88rem + 0.16vw, 1rem);
+  --font-size-h3: clamp(1.125rem, 1rem + 0.3vw, 1.375rem);
+  --font-size-h2: clamp(1.25rem, 1.05rem + 0.5vw, 1.75rem);
+  --font-size-h1: clamp(1.5rem, 1.2rem + 0.8vw, 2.25rem);
+}
+
+@property --vendor-score-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
 }
 
 * {
@@ -49,9 +57,19 @@ body,
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 1rem;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 76px;
+}
+
 body {
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  font-size: 15px;
+  font-size: var(--font-size-body);
   line-height: 1.5;
   color: var(--text-body);
   background-color: var(--bg-page);
@@ -72,11 +90,52 @@ button {
   cursor: pointer;
 }
 
+button,
+a,
+input,
+select,
+textarea,
+[role='button'] {
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.route-motion {
+  width: 100%;
+  animation: route-enter 220ms ease-out both;
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 input,
 select,
 textarea {
   font-family: inherit;
-  font-size: 0.9375rem;
+  font-size: var(--font-size-body);
 }
 
 h1,
@@ -86,6 +145,18 @@ h4 {
   font-weight: 700;
   color: var(--text-heading);
   line-height: 1.25;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+}
+
+h3 {
+  font-size: var(--font-size-h3);
 }
 
 .container {
@@ -168,4 +239,3 @@ h4 {
 .flex-1 {
   flex: 1;
 }
-

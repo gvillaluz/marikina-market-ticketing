@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { TICKET_TYPE_LABELS, SEVERITY_LABELS } from '@/utils/constants';
-import { formatDate } from '@/utils/formatters';
+import { formatControlNumber, formatDate } from '@/utils/formatters';
 import type { TicketRecord } from '@/api/types/ticket.types';
 import styles from './TicketCard.module.css';
 
@@ -23,7 +23,7 @@ const TicketCard: FC<TicketCardProps> = ({ ticket }) => {
   return (
     <div className={styles.card} onClick={() => navigate(`/tickets/${ticket.id}`)}>
       <div className={styles.top}>
-        <span className={styles.ticketNo}>{ticket.controlNumber}</span>
+        <span className={styles.ticketNo}>{formatControlNumber(ticket.controlNumber)}</span>
         <StatusBadge status={ticket.status} />
       </div>
 

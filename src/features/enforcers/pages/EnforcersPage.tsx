@@ -13,12 +13,12 @@ import EnforcerListError from "../components/EnforcerListError";
 import EnforcerCardSkeleton from "../components/EnforcerCardSkeleton";
 import { useNavigate } from "react-router-dom";
 
-const STATUS_FILTERS = ["Active", "Inactive"];
+const STATUS_FILTERS = ["Active", "Inactive"] as const;
 
 const EnforcersPage: FC = () => {
   const navigate = useNavigate();
   const { filters, setFilters, sortOptions, queryParams } = useEnforcerFilter();
-  const { enforcers, total, totalPages, page, setPage, fetchProcess } =
+  const { enforcers, total, totalPages, page, pageSize, setPage, fetchProcess } =
     useFetchEnforcers(queryParams);
   const { averageWarning, averageTicket, topEnforcers, activityProcess } =
     useFetchActivity();
@@ -30,12 +30,19 @@ const EnforcersPage: FC = () => {
   return (
     <div>
       <PageHeader
-        title="Enforcer Performance Records"
-        subtitle="Monitor duty records for market enforcers."
+        title="Enforcers"
+        subtitle="Browse staff profiles and review inspection activity."
       />
 
       <div className={styles.layout}>
         <section className={styles.recordsContainer}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <h2 className={styles.sectionTitle}>Enforcer directory</h2>
+              <p className={styles.sectionSubtitle}>Profiles and issued inspection records</p>
+            </div>
+            <span className={styles.totalBadge}>{total} enforcers</span>
+          </div>
           <div className={styles.toolbar}>
             <div className={styles.searchWrapper}>
               <Search
@@ -80,11 +87,14 @@ const EnforcersPage: FC = () => {
 
           <div className={styles.grid}>
             {fetchProcess.isLoading ? (
-              Array.from({ length: 2 }).map((_, i) => (
+              Array.from({ length: 6 }).map((_, i) => (
                 <EnforcerCardSkeleton key={i} />
               ))
             ) : fetchProcess.isError ? (
-              <EnforcerListError onRetry={fetchProcess.onRetry} />
+              <EnforcerListError
+                message={fetchProcess.errorMessage}
+                onRetry={fetchProcess.onRetry}
+              />
             ) : enforcers.length === 0 ? (
               <div className={styles.emptyState}>
                 <div className={styles.emptyStateIconWrap}>
@@ -103,7 +113,7 @@ const EnforcersPage: FC = () => {
                 <EnforcerCard
                   key={enforcer.enforcerId}
                   name={`${enforcer.lastName}, ${enforcer.firstName}`}
-                  initials={`${enforcer.lastName[0].toUpperCase()}${enforcer.firstName[0].toUpperCase()}`}
+                  initials={`${enforcer.lastName?.[0] ?? ""}${enforcer.firstName?.[0] ?? ""}`.toUpperCase() || "E"}
                   profileUrl={enforcer.profileUrl}
                   badgeNo={enforcer.username}
                   status={enforcer.status}
@@ -120,8 +130,8 @@ const EnforcersPage: FC = () => {
           {enforcers.length !== 0 && (
             <div className={styles.footer}>
               <span className={styles.entries}>
-                Showing {total === 0 ? 0 : (page - 1) * 9 + 1} to{" "}
-                {Math.min(page * 9, total)} of {total} entries
+                Showing {(page - 1) * pageSize + 1} to{" "}
+                {Math.min((page - 1) * pageSize + enforcers.length, total)} of {total} enforcers
               </span>
 
               <div className={styles.pagination}>
@@ -133,20 +143,22 @@ const EnforcersPage: FC = () => {
                 >
                   ‹
                 </button>
+                {totalPages > 3 && page > 2 && <span className={styles.ellipsis}>...</span>}
                 {Array.from(
                   { length: Math.min(totalPages, 3) },
-                  (_, index) => index + 1,
+                  (_, index) => Math.min(Math.max(page - 1, 1), Math.max(1, totalPages - 2)) + index,
                 ).map((p) => (
                   <button
                     key={p}
                     className={`${styles.pageButton} ${page === p ? styles.currentPage : ""}`}
                     onClick={() => goToPage(p)}
                     aria-label={`Go to page ${p}`}
+                    aria-current={page === p ? "page" : undefined}
                   >
                     {p}
                   </button>
                 ))}
-                {totalPages > 3 && <span className={styles.ellipsis}>...</span>}
+                {totalPages > 3 && page + 1 < totalPages && <span className={styles.ellipsis}>...</span>}
                 <button
                   className={styles.pageButton}
                   disabled={page >= totalPages}
@@ -164,8 +176,9 @@ const EnforcersPage: FC = () => {
           averageTicket={averageTicket ?? 0.0}
           averageWarning={averageWarning ?? 0.0}
           topEnforcers={topEnforcers ?? []}
-          isLoading={activityProcess.isLoading && activityProcess.isFetching}
+          isLoading={activityProcess.isLoading}
           isError={activityProcess.isError}
+          errorMessage={activityProcess.errorMessage}
           onRetry={activityProcess.onRetry}
         />
       </div>

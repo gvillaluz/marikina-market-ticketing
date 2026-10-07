@@ -1,0 +1,138 @@
+.smallPanel {
+  grid-column: span 3;
+  min-height: 235px;
+}
+
+.ratioContent,
+.resolutionContent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 142px;
+  padding: 6px 2px 2px;
+}
+
+.ratioHeading {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ratioHeading strong,
+.resolutionContent > strong {
+  color: #0b5394;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.ratioHeading span,
+.resolutionContent > span {
+  color: #566474;
+  font-size: 0.75rem;
+}
+
+.ratioTrack {
+  display: flex;
+  height: 7px;
+  overflow: hidden;
+  margin-top: 8px;
+  border-radius: 6px;
+  background: #e8edf2;
+}
+
+.ratioTrack span:first-child {
+  background: #075298;
+  transition: width 350ms ease;
+}
+
+.ratioTrack span:last-child {
+  background: #e34c45;
+  transition: width 350ms ease;
+}
+
+.ratioLabels {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  margin-top: 6px;
+  color: #6f7a88;
+  font-size: 0.68rem;
+}
+
+.ratioTotal,
+.resolutionContent p {
+  margin-top: 10px;
+  color: #8792a0;
+  font-size: 0.7rem;
+}
+
+.metricFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.metricHint {
+  color: #9aa5b1;
+  font-size: 0.65rem;
+  text-align: right;
+}
+
+.resolutionContent > strong {
+  display: block;
+  color: #34874f;
+}
+
+.resolutionContent > span {
+  display: block;
+  margin-top: 3px;
+}
+
+.resolutionStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-top: 16px;
+}
+
+.resolutionStats div {
+  padding: 8px 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.resolutionStats strong {
+  display: block;
+  color: #34874f;
+  font-size: 0.95rem;
+}
+
+.resolutionStats span {
+  display: block;
+  margin-top: 2px;
+  color: #7c8794;
+  font-size: 0.62rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ratioTrack span {
+    transition: none;
+  }
+}
+
+@media (max-width: 1000px) {
+  .smallPanel {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 600px) {
+  .smallPanel {
+    grid-column: span 12;
+  }
+}

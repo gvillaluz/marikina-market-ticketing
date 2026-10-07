@@ -1,26 +1,23 @@
-import { FC } from 'react';
-import { Link } from 'react-router-dom';
-import VendorRegistrationWizard from '@/features/vendors/components/registration/VendorRegistrationWizard';
+import VendorRegistrationWizard from "@/features/vendors/components/registration/VendorRegistrationWizard";
+import { useVendorRegistration } from "@/features/vendors/hooks/useVendorRegistration";
+import { useLocation, useNavigate } from "react-router-dom";
+import styles from "./VendorRegistrationPage.module.css";
 
-const VendorRegistrationPage: FC = () => {
+export default function VendorRegistrationPage() {
+  const registration = useVendorRegistration();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const returnTo =
+    (location.state as { returnTo?: string } | null)?.returnTo ?? "/";
+
+  const handleCancel = () => {
+    registration.cancel();
+    navigate(returnTo);
+  };
+
   return (
-    <div className="min-h-screen bg-page flex flex-col">
-      {/* Back Home */}
-      <div className="px-6 md:px-10 pt-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-on-primary font-semibold text-sm hover:bg-primary-hover transition-colors"
-        >
-          <span aria-hidden>←</span> Back Home
-        </Link>
-      </div>
-
-      {/* Centered wizard */}
-      <div className="flex-1 flex items-center justify-center px-4 py-10">
-        <VendorRegistrationWizard />
-      </div>
-    </div>
+    <main className={styles.page}>
+      <VendorRegistrationWizard {...registration} cancel={handleCancel} />
+    </main>
   );
-};
-
-export default VendorRegistrationPage;
+}

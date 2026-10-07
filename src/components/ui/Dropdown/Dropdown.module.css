@@ -3,25 +3,41 @@
   display: inline-block;
 }
 
+.fullWidth {
+  display: block;
+  width: 100%;
+}
+
 .trigger {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
   background: #ffffff;
   font-size: 0.75rem;
   font-weight: 500;
   color: #374151;
   cursor: pointer;
   padding: 5px 20px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   height: 36px;
 }
 
+.fullWidth .trigger {
+  width: 100%;
+}
+
 .trigger:hover {
-  background: #f9fafb;
+  border-color: #aabbd0;
+  background: #f8fafd;
+}
+
+.trigger:focus-visible,
+.option:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.2);
+  outline-offset: 2px;
 }
 
 .chevron {
@@ -34,13 +50,20 @@
   right: 0;
   min-width: 220px;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e4eaf2;
   border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 28px rgba(19, 39, 68, 0.14);
   padding: 6px;
   z-index: 20;
   list-style: none;
   margin: 0;
+}
+
+.fullWidth .menu {
+  left: 0;
+  right: auto;
+  width: 100%;
+  min-width: 0;
 }
 
 .option {
@@ -59,7 +82,7 @@
 }
 
 .option:hover {
-  background: #f3f4f6;
+  background: #eff5fc;
 }
 
 .check {

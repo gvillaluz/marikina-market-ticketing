@@ -1,13 +1,64 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
-import { useAuthStore } from '@/store/store';
-import type { User, LoginInput, RegisterInput } from '@/features/auth/auth.types';
-import { authApi } from '@/api/endpoints/auth.api';
-import { jwtDecode } from 'jwt-decode';
-import { UserRole } from '@/api/types/common.types';
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import axios from "axios";
+import { useAuthStore } from "@/store/store";
+import { getApiErrorMessage } from "@/utils/apiErrors";
+import { useToast } from "@/components/ui/Toast/useToast";
+import type { User, LoginInput, RegisterInput } from "@/features/auth/auth.types";
+import { authApi } from "@/api/endpoints/auth.api";
+import { UserRole } from "@/api/types/common.types";
+import {
+  clearAuthSession,
+  getAuthSessionVersion,
+  getAccessTokenExpiration,
+  getStoredAuthSession,
+  invalidateAuthSession,
+  refreshAccessToken,
+  RefreshSessionExpiredError,
+  storeAuthSession,
+} from "@/features/auth/authSession";
+
+const REFRESH_BUFFER_MS = 60_000;
+const REFRESH_RETRY_MS = 10_000;
+
+function normalizeRole(role: string | number | null): UserRole | null {
+  if (role === null) return null;
+  if (typeof role !== "string") {
+    throw new Error("The user profile did not include a valid role.");
+  }
+
+  const normalized = role.toLowerCase();
+  if (
+    normalized === "admin" ||
+    normalized === "marketadmin" ||
+    normalized === "headadmin"
+  ) {
+    return "Admin";
+  }
+  if (normalized === "vendor") return "Vendor";
+  if (normalized === "enforcer") return "Enforcer";
+  throw new Error(`Unsupported user role: ${role}`);
+}
+
+function isAuthenticationFailure(error: unknown): boolean {
+  if (error instanceof RefreshSessionExpiredError) return true;
+  if (!axios.isAxiosError(error)) return false;
+  const status = error.response?.status;
+  return status === 400 || status === 401 || status === 403;
+}
 
 interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
+  isAuthReady: boolean;
   isAdmin: boolean;
   isVendor: boolean;
   mustChangePassword: boolean;
@@ -20,80 +71,271 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { user, isAuthenticated, setAuth, logout: storeLogout } = useAuthStore();
-  const [loading, setLoading] = useState(false);
-  const [mustChangePassword, setMustChangePassword] = useState(false);
+  const {
+    user,
+    token,
+    isAuthenticated,
+    mustChangePassword,
+    setAuth,
+    setMustChangePassword,
+  } = useAuthStore();
+  const { showToast } = useToast();
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const refreshWarningShown = useRef(false);
 
- const login = useCallback(
-  async (input: LoginInput) => {
-    setLoading(true);
-    try {
-      const res = await authApi.login(input);
-      const profile = await authApi.getMe(res.accessToken);
-
-      if (profile.role) {
-        profile.role = (profile.role.charAt(0).toUpperCase() + profile.role.slice(1).toLowerCase()) as UserRole;
+  const login = useCallback(
+    async (input: LoginInput) => {
+      const response = await authApi.login(input);
+      const accessTokenExpiration = getAccessTokenExpiration(response.accessToken);
+      if (!accessTokenExpiration || accessTokenExpiration <= Date.now()) {
+        throw new Error("The server returned an invalid or expired access token.");
       }
 
-      console.log('normalized role:', profile.role);
-      setAuth(profile, res.accessToken);
-      setMustChangePassword(res.mustChangePassword);
+      clearAuthSession();
+      storeAuthSession(response.accessToken);
 
-      return { user: profile, mustChangePassword: res.mustChangePassword, access_token: res.accessToken };
-    } finally {
-      setLoading(false);
-    }
-  },
-  [setAuth],
-);
+      try {
+        const profile = await authApi.getMe(response.accessToken);
+        const authenticatedUser: User = {
+          ...profile,
+          role: normalizeRole(profile.role),
+        };
+        const mustChange =
+          profile.mustChangedPassword || response.mustChangePassword;
+        setAuth(authenticatedUser, response.accessToken);
+        setMustChangePassword(mustChange);
+        setIsAuthReady(true);
+        return { user: authenticatedUser, mustChangePassword: mustChange };
+      } catch (error) {
+        clearAuthSession();
+        throw error;
+      }
+    },
+    [setAuth, setMustChangePassword],
+  );
 
-const register = useCallback(
-  async (input: RegisterInput) => {
-    setLoading(true);
-    try {
-      const res = await authApi.register(input);
-      const profile = await authApi.getMe(res.accessToken);
-      setAuth(profile, res.accessToken);
-      console.log('role after login:', profile.role);
-      setMustChangePassword(res.mustChangePassword);
-    } finally {
-      setLoading(false);
-    }
-  },
-  [setAuth],
-);
+  const register = useCallback(
+    async (input: RegisterInput) => {
+      const response = await authApi.register(input);
+      const accessTokenExpiration = getAccessTokenExpiration(response.accessToken);
+      if (!accessTokenExpiration || accessTokenExpiration <= Date.now()) {
+        throw new Error("The server returned an invalid access token.");
+      }
+
+      clearAuthSession();
+      storeAuthSession(response.accessToken);
+
+      try {
+        const profile = await authApi.getMe(response.accessToken);
+        const authenticatedUser: User = {
+          ...profile,
+          role: normalizeRole(profile.role),
+        };
+        setAuth(authenticatedUser, response.accessToken);
+        setMustChangePassword(
+          profile.mustChangedPassword || response.mustChangePassword,
+        );
+        setIsAuthReady(true);
+      } catch (error) {
+        clearAuthSession();
+        throw error;
+      }
+    },
+    [setAuth, setMustChangePassword],
+  );
 
   const logout = useCallback(() => {
-    setMustChangePassword(false);
-    storeLogout();
-  }, [storeLogout]);
+    const accessToken = useAuthStore.getState().token;
+    invalidateAuthSession();
+    if (accessToken) {
+      void authApi.logout(accessToken).catch((error: unknown) => {
+        console.warn(
+          "The server could not invalidate the signed-out session.",
+          getApiErrorMessage(error, "Unknown logout error."),
+        );
+      });
+    }
+  }, []);
 
   const clearMustChangePassword = useCallback(() => {
     setMustChangePassword(false);
-  }, []);
+  }, [setMustChangePassword]);
+
+  useEffect(() => {
+    localStorage.removeItem("marikina-auth");
+
+    let isCancelled = false;
+    let retryTimer: number | undefined;
+    const restoreSession = async () => {
+      const restoreVersion = getAuthSessionVersion();
+      const storedSession = getStoredAuthSession();
+      if (!storedSession) {
+        setIsAuthReady(true);
+        return;
+      }
+
+      try {
+        const refreshed = await refreshAccessToken();
+        const profile = await authApi.getMe(refreshed.accessToken);
+        if (isCancelled || restoreVersion !== getAuthSessionVersion()) return;
+
+        const restoredUser: User = {
+          ...profile,
+          role: normalizeRole(profile.role),
+        };
+        setAuth(restoredUser, refreshed.accessToken);
+        setMustChangePassword(
+          profile.mustChangedPassword || refreshed.mustChangePassword,
+        );
+        refreshWarningShown.current = false;
+        setIsAuthReady(true);
+      } catch (error) {
+        if (isCancelled || restoreVersion !== getAuthSessionVersion()) return;
+
+        const latestSession = getStoredAuthSession();
+        if (
+          isAuthenticationFailure(error) ||
+          !latestSession
+        ) {
+          invalidateAuthSession(restoreVersion);
+          setIsAuthReady(true);
+          return;
+        }
+
+        retryTimer = window.setTimeout(() => void restoreSession(), REFRESH_RETRY_MS);
+        if (!refreshWarningShown.current) {
+          refreshWarningShown.current = true;
+          showToast({
+            title: "Session restoration delayed",
+            description:
+              "The connection to the authentication service failed. We will retry automatically.",
+            variant: "warning",
+          });
+        }
+      }
+    };
+
+    void restoreSession();
+    return () => {
+      isCancelled = true;
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer);
+    };
+  }, [setAuth, setMustChangePassword, showToast]);
+
+  useEffect(() => {
+    if (!isAuthReady || !isAuthenticated || !token) return;
+
+    const session = getStoredAuthSession();
+    const authSessionVersion = getAuthSessionVersion();
+    const accessTokenExpiration = getAccessTokenExpiration(token);
+    if (!session || !accessTokenExpiration) {
+      if (session) invalidateAuthSession(authSessionVersion);
+      return;
+    }
+
+    let retryTimer: number | undefined;
+    let refreshTimer: number | undefined;
+    const refreshBeforeExpiry = async () => {
+      if (authSessionVersion !== getAuthSessionVersion()) return;
+      const latestSession = getStoredAuthSession();
+      if (!latestSession) {
+        invalidateAuthSession(authSessionVersion);
+        return;
+      }
+
+      try {
+        const refreshed = await refreshAccessToken();
+        if (authSessionVersion !== getAuthSessionVersion()) return;
+        setMustChangePassword(refreshed.mustChangePassword);
+        refreshWarningShown.current = false;
+      } catch (error) {
+        if (
+          error instanceof RefreshSessionExpiredError &&
+          error.sessionVersion !== getAuthSessionVersion()
+        ) {
+          return;
+        }
+        if (authSessionVersion !== getAuthSessionVersion()) return;
+        const updatedSession = getStoredAuthSession();
+        if (
+          isAuthenticationFailure(error) ||
+          !updatedSession
+        ) {
+          invalidateAuthSession(
+            error instanceof RefreshSessionExpiredError
+              ? error.sessionVersion
+              : authSessionVersion,
+          );
+          return;
+        }
+
+        retryTimer = window.setTimeout(
+          () => void refreshBeforeExpiry(),
+          REFRESH_RETRY_MS,
+        );
+        if (!refreshWarningShown.current) {
+          refreshWarningShown.current = true;
+          showToast({
+            title: "Session refresh delayed",
+            description:
+              "Your session is still active. We will retry refreshing it automatically.",
+            variant: "warning",
+          });
+        }
+      }
+    };
+
+    const lifetime = accessTokenExpiration - Date.now();
+    const buffer = Math.min(REFRESH_BUFFER_MS, Math.max(5_000, lifetime * 0.1));
+    const refreshAt = accessTokenExpiration - buffer;
+    refreshTimer = window.setTimeout(
+      () => void refreshBeforeExpiry(),
+      Math.max(0, refreshAt - Date.now()),
+    );
+    return () => {
+      if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer);
+    };
+  }, [
+    isAuthReady,
+    isAuthenticated,
+    token,
+    setMustChangePassword,
+    showToast,
+  ]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       isAuthenticated,
-      isAdmin: user?.role === 'Admin',
-      isVendor: user?.role === 'Vendor',
+      isAuthReady,
+      isAdmin: user?.role === "Admin",
+      isVendor: user?.role === "Vendor",
       mustChangePassword,
       login,
       register,
       logout,
       clearMustChangePassword,
     }),
-    [user, isAuthenticated, mustChangePassword, login, register, logout, clearMustChangePassword],
+    [
+      user,
+      isAuthenticated,
+      isAuthReady,
+      mustChangePassword,
+      login,
+      register,
+      logout,
+      clearMustChangePassword,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within an AuthProvider.');
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within an AuthProvider.");
+  return context;
 }
 
 export default AuthContext;

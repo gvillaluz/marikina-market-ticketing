@@ -5,10 +5,22 @@ interface PaginationProps {
   page: number;
   totalPages: number;
   onChange: (page: number) => void;
+  compact?: boolean;
+  className?: string;
+  showSinglePage?: boolean;
+  canGoNext?: boolean;
 }
 
-const Pagination: FC<PaginationProps> = ({ page, totalPages, onChange }) => {
-  if (totalPages <= 1) return null;
+const Pagination: FC<PaginationProps> = ({
+  page,
+  totalPages,
+  onChange,
+  compact = false,
+  className = '',
+  showSinglePage = false,
+  canGoNext,
+}) => {
+  if (totalPages <= 1 && !showSinglePage) return null;
 
   const getPages = () => {
     const pages: (number | '…')[] = [];
@@ -23,13 +35,14 @@ const Pagination: FC<PaginationProps> = ({ page, totalPages, onChange }) => {
   };
 
   return (
-    <div className={styles.pagination}>
+    <div className={`${styles.pagination} ${className}`}>
       <button
         className={styles.btn}
         onClick={() => onChange(page - 1)}
         disabled={page <= 1}
+        aria-label="Previous page"
       >
-        ‹ Prev
+        {compact ? '‹' : '‹ Prev'}
       </button>
       {getPages().map((p, i) =>
         p === '…' ? (
@@ -39,6 +52,7 @@ const Pagination: FC<PaginationProps> = ({ page, totalPages, onChange }) => {
             key={p}
             className={`${styles.pageBtn} ${p === page ? styles.active : ''}`}
             onClick={() => onChange(p)}
+            aria-current={p === page ? 'page' : undefined}
           >
             {p}
           </button>
@@ -47,9 +61,10 @@ const Pagination: FC<PaginationProps> = ({ page, totalPages, onChange }) => {
       <button
         className={styles.btn}
         onClick={() => onChange(page + 1)}
-        disabled={page >= totalPages}
+        disabled={canGoNext ?? page >= totalPages}
+        aria-label="Next page"
       >
-        Next ›
+        {compact ? '›' : 'Next ›'}
       </button>
     </div>
   );

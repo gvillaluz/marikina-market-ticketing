@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import { Eye } from "lucide-react";
 import { formatDateTime } from "@/utils/formatters";
 import styles from "./EnforcerInspectionList.module.css";
+import { formatControlNumber } from "@/utils/formatters";
 import { InspectionHistorySummary } from "@/api/types/enforcer.types";
 
 interface InspectionRecord {
@@ -40,7 +41,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
           key: "controlNumber",
           header: "Control #",
           render: (record) =>
-            record.controlNumber ? `#${record.controlNumber}` : "N/A",
+            formatControlNumber(record.controlNumber, "N/A"),
         },
         {
           key: "issuedAt",

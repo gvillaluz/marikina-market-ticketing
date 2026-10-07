@@ -45,6 +45,6 @@ export function useTickets(filters: TicketFilters = {}) {
     isFetching: query.isFetching,
     isError: query.isError,
     error: query.error,
-    refetch: query.refetch
+    refetch: query.refetch,
   }
 }

@@ -14,6 +14,8 @@ interface DropdownProps<T extends string = string> {
   value: T;
   onChange: (value: T) => void;
   options: readonly DropdownOption<T>[];
+  className?: string;
+  fullWidth?: boolean;
 }
 
 export function Dropdown<T extends string = string>({
@@ -23,6 +25,8 @@ export function Dropdown<T extends string = string>({
   value,
   onChange,
   options,
+  className = "",
+  fullWidth = false,
 }: DropdownProps<T>) {
   const [open, setOpen] = useState(defaultOpen);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -38,7 +42,10 @@ export function Dropdown<T extends string = string>({
   }, []);
 
   return (
-    <div className={styles.wrapper} ref={rootRef}>
+    <div
+      className={`${styles.wrapper} ${fullWidth ? styles.fullWidth : ""} ${className}`}
+      ref={rootRef}
+    >
       <button
         type="button"
         className={styles.trigger}

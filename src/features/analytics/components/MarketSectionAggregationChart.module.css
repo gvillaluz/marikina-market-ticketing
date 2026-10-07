@@ -1,0 +1,81 @@
+.panel {
+  grid-column: span 6;
+  min-height: 250px;
+}
+
+.chart {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(92px, 1.1fr) minmax(50px, 4fr) 28px;
+  align-items: center;
+  gap: 7px;
+  min-height: 13px;
+}
+
+.name {
+  overflow: hidden;
+  color: #5e6a79;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 1px;
+  background: #f0f3f7;
+}
+
+.track span {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: #075298;
+  transition: width 400ms ease;
+  border-radius: inherit;
+}
+
+.row {
+  transition: transform 140ms ease;
+}
+
+.row:hover {
+  transform: translateX(2px);
+}
+
+.row strong {
+  color: #435267;
+  font-size: 0.68rem;
+  font-weight: 650;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 22px 0;
+  color: #7b8797;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .track span {
+    transition: none;
+  }
+}
+
+@media (max-width: 850px) {
+  .panel {
+    grid-column: span 12;
+  }
+}

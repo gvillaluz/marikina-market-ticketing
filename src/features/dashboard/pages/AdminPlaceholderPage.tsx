@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import PageHeader from '@/components/ui/PageHeader';
+import styles from './AdminPlaceholderPage.module.css';
 
 interface AdminPlaceholderPageProps {
   title: string;
@@ -8,13 +9,13 @@ interface AdminPlaceholderPageProps {
 
 const AdminPlaceholderPage: FC<AdminPlaceholderPageProps> = ({ title }) => {
   return (
-    <div>
+    <div className={styles.page}>
       <PageHeader
         title={title}
         subtitle={`The ${title} module is under construction.`}
       />
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-10 text-center">
-        <p className="text-bodygray text-sm">
+      <div className={styles.card}>
+        <p>
           This section will be available soon.
         </p>
       </div>

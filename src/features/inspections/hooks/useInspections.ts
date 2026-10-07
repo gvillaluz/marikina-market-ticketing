@@ -23,7 +23,10 @@ export function useInspections(filters: Filters = {}) {
 
   const query = useQuery({
     queryKey: ['inspections', filters, page, PAGE_SIZE],
-    queryFn: () => ticketsApi.inspectionList(filters),
+    queryFn: () => ticketsApi.inspectionList({
+      ...filters,
+      offset: (page - 1) * PAGE_SIZE,
+    }),
     placeholderData: keepPreviousData, 
   });
 
@@ -36,10 +39,12 @@ export function useInspections(filters: Filters = {}) {
     total,
     totalPages,
     page,
+    pageSize: PAGE_SIZE,
     setPage,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,
-    error: query.error
+    error: query.error,
+    refetch: query.refetch,
   };
 }

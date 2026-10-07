@@ -7,6 +7,7 @@ import { TICKET_TYPE_LABELS, SEVERITY_LABELS } from '@/utils/constants';
 import { isRequired } from '@/utils/validators';
 import type { CreateTicketInput } from '@/api/types/ticket.types';
 import styles from './CreateTicketModal.module.css';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 interface CreateTicketModalProps {
   open: boolean;
@@ -42,7 +43,7 @@ const CreateTicketModal: FC<CreateTicketModalProps> = ({ open, onClose, onCreate
       onClose();
       setForm({ type: 'violation', title: '', description: '', severity: 'medium', location: MARIKINA_BARANGAYS[0] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create ticket.');
+      setError(getApiErrorMessage(err, 'Failed to create ticket.'));
     } finally {
       setLoading(false);
     }

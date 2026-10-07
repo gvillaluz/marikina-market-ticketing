@@ -1,0 +1,91 @@
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 30px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.stepLabel,
+.stepButton {
+  display: flex;
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.83rem;
+  text-align: left;
+}
+
+.stepButton {
+  cursor: pointer;
+}
+
+.stepButton:hover {
+  color: #fff;
+}
+
+.number {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.77rem;
+  font-weight: 600;
+}
+
+.current .stepLabel {
+  color: #fff;
+  font-weight: 700;
+}
+
+.current .number {
+  border-color: #fff;
+  background: #fff;
+  color: #075298;
+}
+
+.complete .number {
+  border-color: #fff;
+  background: #fff;
+  color: #075298;
+}
+
+@media (max-width: 720px) {
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+    margin-top: 19px;
+  }
+
+  .stepLabel,
+  .stepButton {
+    min-height: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 5px;
+    font-size: 0.68rem;
+    text-align: center;
+  }
+
+  .stepLabel > span:last-child,
+  .stepButton > span:last-child {
+    max-width: 100%;
+    line-height: 1.25;
+  }
+}

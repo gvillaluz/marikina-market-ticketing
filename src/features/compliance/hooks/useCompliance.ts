@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { complianceApi } from '@/api/endpoints/compliance.api';
 import type { ComplianceScore } from '@/api/endpoints/compliance.api';
+import { getApiErrorMessage } from '@/utils/apiErrors';
 
 
 export function useCompliance() {
@@ -16,7 +17,7 @@ export function useCompliance() {
       const results = await Promise.all(vendorIds.map((id) => complianceApi.getVendorCompliance(id)));
       setScores(results);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load compliance data.');
+      setError(getApiErrorMessage(err, 'Failed to load compliance data.'));
     } finally {
       setLoading(false);
     }

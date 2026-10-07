@@ -29,6 +29,21 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
+/** Prefix a control number consistently wherever it is shown to the user. */
+export function formatControlNumber(
+  value: string | number | null | undefined,
+  fallback = "—",
+): string {
+  if (value == null || String(value).trim() === "") return fallback;
+
+  const number = String(value)
+    .trim()
+    .replace(/^CTRL\s*#?\s*/i, "")
+    .replace(/^#\s*/, "");
+
+  return `CTRL #${number}`;
+}
+
 /** Format a number with thousands separators. */
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat('en-PH').format(value);

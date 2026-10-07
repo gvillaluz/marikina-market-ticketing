@@ -4,15 +4,16 @@ import Button from '@/components/ui/Button';
 import styles from './../pages/EnforcersPage.module.css';
 
 interface EnforcerListErrorProps {
+  message: string;
   onRetry: () => void;
 }
 
-const EnforcerListError: FC<EnforcerListErrorProps> = ({ onRetry }) => {
+const EnforcerListError: FC<EnforcerListErrorProps> = ({ message, onRetry }) => {
   return (
     <div className={styles.listError}>
       <AlertTriangle size={28} className={styles.listErrorIcon} />
       <h3 className={styles.listErrorTitle}>Unable to load enforcers</h3>
-      <p className={styles.listErrorMessage}>Something went wrong while fetching enforcer records.</p>
+      <p className={styles.listErrorMessage}>{message}</p>
       <Button variant="primary" onClick={onRetry}>Try Again</Button>
     </div>
   );

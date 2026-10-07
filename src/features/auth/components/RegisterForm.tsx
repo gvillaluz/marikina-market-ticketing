@@ -1,11 +1,11 @@
 import { FC, FormEvent, useState } from 'react';
 import { Link } from 'react-router-dom';
-import useRegister from '@/features/auth/hooks/useRegister';
 import Button from '@/components/ui/Button';
 import { isValidEmail, hasMinLength } from '@/utils/validators';
 import citySeal from '@/assets/icons/Marikina_City_Seal.svg (1).webp';
 import type { UserRole } from '@/api/types/common.types';
 import styles from '@/features/auth/pages/AuthPage.module.css';
+import type { RegisterInput } from '@/features/auth/auth.types';
 
 interface FormState {
   name: string;
@@ -23,8 +23,13 @@ const initial: FormState = {
   role: 'Vendor',
 };
 
-const RegisterForm: FC = () => {
-  const { submit, loading, error } = useRegister();
+interface RegisterFormProps {
+  submit: (input: RegisterInput) => Promise<void>;
+  loading: boolean;
+  error: string | null;
+}
+
+const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
   const [form, setForm] = useState<FormState>(initial);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormState, string>>>({});
 

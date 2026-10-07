@@ -11,6 +11,9 @@ interface NavbarProps {
 
 const Navbar: FC<NavbarProps> = ({ onMenuClick, sidebarCollapsed }) => {
   const { user } = useAuth();
+  const userName = user
+    ? [user.firstName, user.lastName].filter(Boolean).join(' ')
+    : '';
 
   return (
     <header className={styles.navbar}>
@@ -36,7 +39,7 @@ const Navbar: FC<NavbarProps> = ({ onMenuClick, sidebarCollapsed }) => {
         <div className={styles.user}>
           <UserRound className={styles.profileIcon} size={20} strokeWidth={1.8} aria-hidden="true" />
           <div className={styles.userMeta}>
-            <span className={styles.userName}>{user?.name}</span>
+            <span className={styles.userName}>{userName}</span>
           </div>
         </div>
       </div>

@@ -209,6 +209,8 @@ export interface TicketDetail {
   penaltyType?: PenaltyType;
   dueDate?: Date;
   totalFineAmount?: number;
+  totalFineDue?: number;
+  totalPaymentAmount?: number;
   ticketEvidences: string[];
   ticketReceipts: string[];
   version: number;

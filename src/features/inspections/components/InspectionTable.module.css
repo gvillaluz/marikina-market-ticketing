@@ -27,3 +27,18 @@
   border-color: #00488F;
   background: #00488F !important;
 }
+
+.errorState {
+  display: flex;
+  min-height: 140px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border: 1px dashed #e5b4b4;
+  border-radius: 10px;
+  background: #fffafa;
+  color: #a33a3a;
+  font-size: 0.875rem;
+}
