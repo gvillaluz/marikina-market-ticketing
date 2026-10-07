@@ -43,6 +43,10 @@
   min-width: 0;
 }
 
+.profileImage {
+  object-fit: cover;
+}
+
 .name {
   font-size: 1.3rem;
   font-weight: 600;

@@ -3,16 +3,29 @@ import { Phone, Mail, Calendar, BadgeCheck } from "lucide-react";
 import styles from "./EnforcerProfileCard.module.css";
 import { EnforcerProfile } from "@/api/types/enforcer.types";
 import { formatDate, formatDateTime } from "@/utils/formatters";
+import { useEnforcerProfileImage } from "../../hooks/useEnforcerProfileImage";
 
 interface EnforcerProfileProps {
   profile: EnforcerProfile;
 }
 
 const EnforcerProfileCard: FC<EnforcerProfileProps> = ({ profile }) => {
+  const image = useEnforcerProfileImage(profile);
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <div className={styles.avatar}>{}</div>
+        {image.hasImage ? (
+          <img
+            className={`${styles.avatar} ${styles.profileImage}`}
+            src={image.url}
+            alt={`${profile.firstName} ${profile.lastName} profile`}
+            onError={image.imageFailed}
+          />
+        ) : (
+          <div className={styles.avatar} aria-hidden="true">
+            {image.initials}
+          </div>
+        )}
         <div className={styles.headerTitle}>
           <h3
             className={styles.name}

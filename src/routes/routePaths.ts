@@ -22,7 +22,6 @@ export const ROUTES = {
   adminVendorInspections: (id: string) => `/admin/vendors/${id}/inspections`,
   enforcerPerformancePage: (id: string) => `/enforcer/performance/${id}`,
   analytics: "/analytics",
-  performance: "/performance",
   ticketDetail: (id: string) => `/tickets/${id}`,
   vendors: "/vendors",
   vendorDetail: (id: string) => `/vendors/${id}`,
@@ -33,6 +32,7 @@ export const ROUTES = {
   systemConfiguration: "/system/configuration",
   marketSection: "/system/market-section",
   ordinance: "/system/ordinance",
+  backups: "/configuration/backups",
 } as const;
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];

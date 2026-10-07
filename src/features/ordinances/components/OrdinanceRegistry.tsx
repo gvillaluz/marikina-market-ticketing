@@ -75,9 +75,7 @@ export default function OrdinanceRegistry({
               <th scope="col">Penalty Tiers</th>
               <th scope="col">Last Updated</th>
               <th scope="col">Status</th>
-              <th scope="col">
-                <span className={styles.screenReader}>Actions</span>
-              </th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>

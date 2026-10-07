@@ -1,13 +1,6 @@
 import { FC } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  LayoutGrid,
-  FileText,
-  Database,
-  ShieldCheck,
-  Bell,
-  ChevronRight,
-} from "lucide-react";
+import { LayoutGrid, FileText, Database, ChevronRight } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 import ConfigModuleCard from "../components/ConfigModuleCard";
 import RecentChangeItem from "../components/RecentChangeItem";
@@ -55,25 +48,7 @@ const CONFIG_MODULES = [
     iconBg: "#EEEDFE",
     title: "Data & Backups",
     description: "Schedule backups and manage data retention.",
-    href: "/configuration/backups",
-  },
-  {
-    id: "security-access",
-    icon: ShieldCheck,
-    iconColor: "#1E8E3E",
-    iconBg: "#E6F4EA",
-    title: "Security & Access",
-    description: "Set login, password, and verification rules.",
-    href: "/configuration/security",
-  },
-  {
-    id: "notifications",
-    icon: Bell,
-    iconColor: "#D4537E",
-    iconBg: "#FBEAF0",
-    title: "Notifications",
-    description: "Control admin and enforcement notifications.",
-    href: "/configuration/notifications",
+    href: ROUTES.backups,
   },
 ];
 
@@ -106,7 +81,9 @@ const SystemConfigurationPage: FC = () => {
   const marketSectionSummary = useMarketSectionCount();
   const ordinanceSummary = useOrdinanceCount();
   const navigate = useNavigate();
-  const canManageOrdinances = useAuthStore((state) => state.user?.role === "Admin");
+  const canManageOrdinances = useAuthStore(
+    (state) => state.user?.role === "Admin",
+  );
 
   return (
     <div className={styles.page}>
@@ -149,7 +126,10 @@ const SystemConfigurationPage: FC = () => {
         </p>
 
         <div className={styles.moduleGrid}>
-          {CONFIG_MODULES.filter((module) => module.id !== "ordinances-penalties" || canManageOrdinances).map((module) => (
+          {CONFIG_MODULES.filter(
+            (module) =>
+              module.id !== "ordinances-penalties" || canManageOrdinances,
+          ).map((module) => (
             <ConfigModuleCard key={module.id} {...module} />
           ))}
         </div>

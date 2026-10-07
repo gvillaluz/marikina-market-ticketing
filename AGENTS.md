@@ -7,6 +7,7 @@
 - Feature-based folders: each feature owns its api, hooks, components, and pages, and exports only what others need through its `index.ts`. Features don't import another feature's internal files.
 - Shared pieces used by two or more features go in the shared components folder.
 - Don't add new patterns, folders, or libraries without asking first.
+- Don't create api folder inside a feature folder. all api files should be in the api layer.
 - All states of a page or component should be always extracted as a hook.
 
 ## Security

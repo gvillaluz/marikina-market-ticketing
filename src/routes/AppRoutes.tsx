@@ -9,7 +9,6 @@ import AdminLoginPage from "@/features/auth/pages/AdminLoginPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
 import ChangePasswordPage from "@/features/auth/pages/ChangePasswordPage";
 import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
-import AdminPlaceholderPage from "@/features/dashboard/pages/AdminPlaceholderPage";
 import TicketsPage from "@/features/tickets/pages/TicketsPage";
 import TicketDetailPage from "@/features/tickets/pages/TicketDetailPage";
 import VendorsPage from "@/features/vendors/pages/VendorPage";
@@ -31,6 +30,7 @@ import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
 import SystemConfigurationPage from "@/features/configuration/pages/SystemConfigurationPage";
 import MarketSectionPage from "@/features/market-section/pages/MarketSectionPage";
 import { OrdinancesPage } from "@/features/ordinances";
+import { BackupsPage } from "@/features/backups";
 
 const ADMIN_ENFORCER_ROLES: UserRole[] = ["Admin", "Enforcer"];
 const ADMIN_ONLY_ROLES: UserRole[] = ["Admin"];
@@ -148,15 +148,26 @@ const AppRoutes = () => {
         />
         <Route path={ROUTES.inspections} element={<InspectionsPage />} />
         <Route
-          path={ROUTES.performance}
-          element={<AdminPlaceholderPage title="Performance" />}
-        />
-        <Route
           path={ROUTES.systemConfiguration}
           element={<SystemConfigurationPage />}
         />
         <Route path={ROUTES.marketSection} element={<MarketSectionPage />} />
-        <Route path={ROUTES.ordinance} element={<ProtectedRoute roles={ADMIN_ONLY_ROLES}><OrdinancesPage /></ProtectedRoute>} />
+        <Route
+          path={ROUTES.ordinance}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <OrdinancesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.backups}
+          element={
+            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+              <BackupsPage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       {/* General authenticated routes (any role) */}

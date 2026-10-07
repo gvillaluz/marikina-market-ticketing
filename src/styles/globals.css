@@ -1,4 +1,80 @@
 :root {
+  --sidebar-content-inset: 0.875rem;
+  --sidebar-scrollbar-width: 0.25rem;
+  --backup-history-error-width: 22rem;
+  --navbar-profile-size: 2.75rem;
+  /* Data & Backups: shared spacing and screenshot-specific treatments. */
+  --backup-space-xs: 0.25rem;
+  --backup-space-sm: 0.5rem;
+  --backup-space-md: 0.75rem;
+  --backup-space-lg: 1rem;
+  --backup-space-xl: 1.25rem;
+  --backup-space-xxl: 1.5rem;
+  --backup-space-section: 2rem;
+  --backup-font-micro: 0.625rem;
+  --backup-font-caption: 0.6875rem;
+  --backup-font-small: 0.75rem;
+  --backup-font-body: 0.875rem;
+  --backup-font-heading: 1rem;
+  --backup-font-title: 1.75rem;
+  --backup-action: #005aaa;
+  --backup-action-hover: #004b8f;
+  --backup-schedule-icon: #7660c8;
+  --backup-success: #2d8d48;
+  --backup-success-surface: color-mix(
+    in srgb,
+    var(--backup-success) 10%,
+    var(--bg-surface)
+  );
+  --backup-danger-surface: color-mix(
+    in srgb,
+    var(--danger) 8%,
+    var(--bg-surface)
+  );
+  --backup-info-surface: color-mix(
+    in srgb,
+    var(--backup-action) 8%,
+    var(--bg-surface)
+  );
+  --backup-icon-surface: color-mix(
+    in srgb,
+    var(--backup-schedule-icon) 12%,
+    var(--bg-surface)
+  );
+  --backup-action-border: color-mix(
+    in srgb,
+    var(--backup-action) 25%,
+    var(--bg-surface)
+  );
+  --backup-warning-border: color-mix(
+    in srgb,
+    var(--warning) 35%,
+    var(--bg-surface)
+  );
+  --backup-warning-surface: color-mix(
+    in srgb,
+    var(--warning) 6%,
+    var(--bg-surface)
+  );
+  --backup-table-surface: color-mix(
+    in srgb,
+    var(--bg-page) 65%,
+    var(--bg-surface)
+  );
+  --backup-control-height: 2.25rem;
+  --backup-control-radius: 0.25rem;
+  --backup-card-height: 15.75rem;
+  --backup-icon-size: 2.5rem;
+  --backup-health-icon-size: 3rem;
+  --backup-switch-width: 2.125rem;
+  --backup-switch-height: 1.125rem;
+  --backup-switch-knob: 0.875rem;
+  --backup-row-height: 4rem;
+  --backup-table-width: 44rem;
+  --backup-pill-radius: 999px;
+  --backup-ring: 0 0 0 0.25rem var(--backup-success-surface);
+  --backup-disabled-opacity: 0.6;
+
   /* Ordinance registry and editor controls. */
   --ordinance-space-xs: 0.25rem;
   --ordinance-space-sm: 0.5rem;
@@ -15,12 +91,36 @@
   --ordinance-search-height: 2.375rem;
   --ordinance-search-padding-block: 0.375rem;
   --ordinance-search-inset: 2.25rem;
-  --ordinance-muted-surface: color-mix(in srgb, var(--bg-page) 50%, var(--bg-surface));
-  --ordinance-info-surface: color-mix(in srgb, var(--info) 9%, var(--bg-surface));
-  --ordinance-warning-surface: color-mix(in srgb, var(--warning) 12%, var(--bg-surface));
-  --ordinance-success-surface: color-mix(in srgb, var(--success) 8%, var(--bg-surface));
-  --ordinance-action-border: color-mix(in srgb, var(--market-action) 25%, var(--bg-surface));
-  --ordinance-danger-surface: color-mix(in srgb, var(--danger) 6%, var(--bg-surface));
+  --ordinance-muted-surface: color-mix(
+    in srgb,
+    var(--bg-page) 50%,
+    var(--bg-surface)
+  );
+  --ordinance-info-surface: color-mix(
+    in srgb,
+    var(--info) 9%,
+    var(--bg-surface)
+  );
+  --ordinance-warning-surface: color-mix(
+    in srgb,
+    var(--warning) 12%,
+    var(--bg-surface)
+  );
+  --ordinance-success-surface: color-mix(
+    in srgb,
+    var(--success) 8%,
+    var(--bg-surface)
+  );
+  --ordinance-action-border: color-mix(
+    in srgb,
+    var(--market-action) 25%,
+    var(--bg-surface)
+  );
+  --ordinance-danger-surface: color-mix(
+    in srgb,
+    var(--danger) 6%,
+    var(--bg-surface)
+  );
   --ordinance-row-hover: color-mix(in srgb, var(--info) 3%, var(--bg-surface));
   /* Market-section controls retain their existing fixed visual values. */
   --market-action: #005aaa;

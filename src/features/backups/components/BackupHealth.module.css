@@ -1,0 +1,99 @@
+.card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--backup-space-xl) var(--backup-space-section);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  background: var(--bg-surface);
+}
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: var(--backup-space-sm) 0 var(--backup-space-lg);
+  width: var(--backup-health-icon-size);
+  height: var(--backup-health-icon-size);
+  border-radius: var(--backup-pill-radius);
+  color: var(--backup-action);
+  background: var(--backup-info-surface);
+}
+.success {
+  color: var(--text-on-primary);
+  background: var(--backup-success);
+  box-shadow: var(--backup-ring);
+}
+.failed {
+  color: var(--danger);
+  background: var(--backup-danger-surface);
+}
+.disabled {
+  color: var(--text-body);
+  background: var(--bg-page);
+}
+.running {
+  animation: backup-spin 1.5s linear infinite;
+}
+.label {
+  font-size: var(--backup-font-caption);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--backup-action);
+}
+.details h3 {
+  margin-top: var(--backup-space-sm);
+  font-size: var(--backup-font-body);
+  font-weight: 500;
+  color: var(--text-heading);
+}
+.details p {
+  margin-top: var(--backup-space-sm);
+  font-size: var(--backup-font-small);
+  line-height: 1.6;
+  color: var(--text-body);
+  overflow-wrap: anywhere;
+}
+.previous {
+  margin-top: var(--backup-space-sm);
+  font-size: var(--backup-font-caption);
+  color: var(--text-body);
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--backup-space-md);
+  margin-top: auto;
+  padding-top: var(--backup-space-lg);
+  width: 100%;
+}
+.stats div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--backup-space-xs);
+  padding-top: var(--backup-space-md);
+  border-top: 1px solid var(--border-default);
+}
+.stats div + div {
+  border-left: 1px solid var(--border-default);
+}
+.stats dd {
+  font-size: var(--backup-font-small);
+  color: var(--text-heading);
+}
+.stats dt {
+  font-size: var(--backup-font-micro);
+  color: var(--text-body);
+}
+@keyframes backup-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .running {
+    animation: none;
+  }
+}

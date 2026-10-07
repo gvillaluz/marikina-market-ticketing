@@ -1,0 +1,99 @@
+.card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+.header {
+  padding: var(--backup-space-lg) var(--backup-space-xl);
+}
+.header h2 {
+  font-size: var(--backup-font-heading);
+  font-weight: 500;
+}
+.header p {
+  margin-top: var(--backup-space-xs);
+  font-size: var(--backup-font-caption);
+  color: var(--text-body);
+}
+.tableRegion {
+  position: relative;
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  min-width: var(--backup-table-width);
+  table-layout: auto;
+  border-collapse: collapse;
+}
+.table th {
+  padding: var(--backup-space-md) var(--backup-space-lg);
+  font-size: var(--backup-font-micro);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--text-body);
+  background: var(--backup-table-surface);
+}
+.table th:first-child {
+  padding-left: var(--backup-space-xl);
+  width: 25%;
+}
+.table th:nth-child(2) {
+  width: 13%;
+}
+.table th:nth-child(3) {
+  width: 10%;
+}
+.table th:nth-child(4) {
+  width: auto;
+}
+.table th:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+.srOnly {
+  position: absolute;
+  padding: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--backup-space-md);
+  padding: var(--backup-space-md) var(--backup-space-xl);
+  border-top: 1px solid var(--border-default);
+  font-size: var(--backup-font-small);
+}
+.pagination {
+  display: flex;
+  gap: var(--backup-space-sm);
+}
+.pagination button {
+  padding: var(--backup-space-sm) var(--backup-space-md);
+  border: 1px solid var(--backup-action-border);
+  border-radius: var(--backup-control-radius);
+  font-size: var(--backup-font-small);
+  color: var(--backup-action);
+  background: var(--bg-surface);
+}
+.pagination button:hover:not(:disabled) {
+  background: var(--backup-info-surface);
+}
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: var(--backup-disabled-opacity);
+}
+.pagination button:focus-visible,
+.tableRegion:focus-visible {
+  outline: 2px solid var(--backup-action);
+  outline-offset: -2px;
+}

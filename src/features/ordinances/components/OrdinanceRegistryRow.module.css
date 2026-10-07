@@ -1,4 +1,5 @@
-.row > th, .row > td {
+.row > th,
+.row > td {
   padding: var(--ordinance-space-lg) var(--ordinance-space-xl);
   border-bottom: 1px solid var(--border-default);
   color: var(--text-body);
@@ -64,7 +65,7 @@
 }
 
 .row > .action {
-  text-align: right;
+  text-align: center;
 }
 
 .manage {

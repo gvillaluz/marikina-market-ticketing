@@ -1,0 +1,33 @@
+.message {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--backup-space-md);
+  padding: var(--backup-space-lg);
+  font-size: var(--backup-font-small);
+  color: var(--text-body);
+  overflow-wrap: anywhere;
+}
+.error {
+  color: var(--danger);
+}
+.retry {
+  padding: var(--backup-space-xs) var(--backup-space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--backup-control-radius);
+  font-size: var(--backup-font-small);
+  color: var(--backup-action);
+  background: var(--bg-surface);
+}
+.retry:hover:not(:disabled) {
+  background: var(--backup-info-surface);
+}
+.retry:disabled {
+  cursor: wait;
+  opacity: var(--backup-disabled-opacity);
+}
+.retry:focus-visible {
+  outline: 2px solid var(--backup-action);
+  outline-offset: 2px;
+}

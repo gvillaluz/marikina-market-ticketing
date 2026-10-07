@@ -53,6 +53,12 @@
   font-size: var(--market-font-size-caption);
 }
 
+.header .create:hover:not(:disabled) {
+  border-color: var(--backup-action-hover);
+  background: var(--backup-action-hover);
+  color: var(--text-on-primary);
+}
+
 .notice {
   display: flex;
   align-items: flex-start;
