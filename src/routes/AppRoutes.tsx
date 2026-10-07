@@ -30,6 +30,7 @@ import AdminVendorRegistrationInformationPage from "@/features/vendors/pages/Adm
 import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
 import SystemConfigurationPage from "@/features/configuration/pages/SystemConfigurationPage";
 import MarketSectionPage from "@/features/market-section/pages/MarketSectionPage";
+import { OrdinancesPage } from "@/features/ordinances";
 
 const ADMIN_ENFORCER_ROLES: UserRole[] = ["Admin", "Enforcer"];
 const ADMIN_ONLY_ROLES: UserRole[] = ["Admin"];
@@ -155,6 +156,7 @@ const AppRoutes = () => {
           element={<SystemConfigurationPage />}
         />
         <Route path={ROUTES.marketSection} element={<MarketSectionPage />} />
+        <Route path={ROUTES.ordinance} element={<ProtectedRoute roles={ADMIN_ONLY_ROLES}><OrdinancesPage /></ProtectedRoute>} />
       </Route>
 
       {/* General authenticated routes (any role) */}

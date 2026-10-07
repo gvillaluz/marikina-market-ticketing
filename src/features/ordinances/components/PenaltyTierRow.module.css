@@ -1,0 +1,92 @@
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--ordinance-space-sm);
+  padding: var(--ordinance-space-sm);
+  border: 1px solid var(--border-default);
+  border-radius: var(--market-radius-button);
+  background: var(--bg-surface);
+}
+
+.offense {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: var(--ordinance-space-sm);
+}
+
+.offense strong {
+  display: block;
+  color: var(--text-heading);
+  font-size: var(--market-font-size-caption);
+  font-weight: 500;
+}
+
+.offense div > span {
+  display: block;
+  margin-top: var(--ordinance-space-xs);
+  color: var(--text-muted);
+  font-size: var(--market-font-size-micro);
+}
+
+.number {
+  display: grid;
+  width: var(--ordinance-badge-size);
+  height: var(--ordinance-badge-size);
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: var(--market-radius-pill);
+  background: var(--market-action);
+  color: var(--text-on-primary);
+  font-size: var(--market-font-size-caption);
+  font-weight: 600;
+}
+
+.row > :nth-child(2), .row > :nth-child(3) {
+  grid-column: 1;
+}
+
+.remove {
+  display: grid;
+  grid-column: 2;
+  grid-row: 2 / 4;
+  align-self: center;
+  width: var(--ordinance-control-height);
+  height: var(--ordinance-control-height);
+  place-items: center;
+  padding: var(--ordinance-space-xs);
+  border: 0;
+  border-radius: var(--market-radius-button);
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+}
+
+.remove:hover:not(:disabled) {
+  background: var(--ordinance-danger-surface);
+}
+
+.remove:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+.remove:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+@media (min-width: 640px) {
+  .row {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .offense, .row > :nth-child(2), .row > :nth-child(3), .remove {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .remove {
+    align-self: end;
+  }
+}

@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ApiRequestError } from "@/utils/apiErrors";
-import { marketSectionApi } from "../api/marketSection.api";
+import { marketSectionApi } from "@/api/endpoints/marketSection.api";
+
+export const marketSectionsListKey = ["market_sections", "list"] as const;
 
 export function useMarketSections() {
   const [search, setSearch] = useState("");
   const query = useQuery({
-    queryKey: ["market_sections", "list"],
+    queryKey: marketSectionsListKey,
     queryFn: ({ signal }) => marketSectionApi.getAll(signal),
   });
   const sections = query.data ?? [];

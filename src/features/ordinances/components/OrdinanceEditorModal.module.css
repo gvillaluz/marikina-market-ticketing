@@ -1,0 +1,14 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ordinance-space-md);
+  padding: var(--ordinance-space-lg);
+}
+
+.error {
+  padding: var(--ordinance-space-md);
+  border-radius: var(--market-radius-button);
+  background: var(--ordinance-danger-surface);
+  color: var(--danger);
+  font-size: var(--market-font-size-small);
+}

@@ -25,7 +25,9 @@ export const adminAnalyticsApi = {
     return data;
   },
 
-  async getViolationTypeDistribution(): Promise<ViolationCategoryDistribution[]> {
+  async getViolationTypeDistribution(): Promise<
+    ViolationCategoryDistribution[]
+  > {
     const { data } = await client.get<ViolationCategoryDistribution[]>(
       "/admin/analytics/violation-type-distribution",
     );

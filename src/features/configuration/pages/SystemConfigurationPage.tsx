@@ -16,6 +16,7 @@ import { useMarketSectionCount } from "../hooks/useMarketSectionCount";
 import { useOrdinanceCount } from "../hooks/useOrdinanceCount";
 import StatCard from "@/components/ui/Card/StatCard/StatCard";
 import { ROUTES } from "@/routes/routePaths";
+import { useAuthStore } from "@/store/store";
 
 // STATIC DATA — replace with useSystemStats() once the endpoint exists.
 const STATS = {
@@ -45,7 +46,7 @@ const CONFIG_MODULES = [
     iconBg: "#FAEEDA",
     title: "Ordinances & Penalties",
     description: "Maintain ordinance details and penalty tiers.",
-    href: "/configuration/ordinances",
+    href: ROUTES.ordinance,
   },
   {
     id: "data-backups",
@@ -105,6 +106,7 @@ const SystemConfigurationPage: FC = () => {
   const marketSectionSummary = useMarketSectionCount();
   const ordinanceSummary = useOrdinanceCount();
   const navigate = useNavigate();
+  const canManageOrdinances = useAuthStore((state) => state.user?.role === "Admin");
 
   return (
     <div className={styles.page}>
@@ -147,7 +149,7 @@ const SystemConfigurationPage: FC = () => {
         </p>
 
         <div className={styles.moduleGrid}>
-          {CONFIG_MODULES.map((module) => (
+          {CONFIG_MODULES.filter((module) => module.id !== "ordinances-penalties" || canManageOrdinances).map((module) => (
             <ConfigModuleCard key={module.id} {...module} />
           ))}
         </div>

@@ -7,6 +7,7 @@
 - Feature-based folders: each feature owns its api, hooks, components, and pages, and exports only what others need through its `index.ts`. Features don't import another feature's internal files.
 - Shared pieces used by two or more features go in the shared components folder.
 - Don't add new patterns, folders, or libraries without asking first.
+- All states of a page or component should be always extracted as a hook.
 
 ## Security
 
@@ -32,6 +33,7 @@
 - Extract any TSX that belongs to a file into its own component, and extract any repeated UI into a component.
 - Each component has its own CSS Module file. Use existing CSS variables, and avoid inline styles.
 - No `any`. Type API responses and props.
+- Always format the file using the formatter.
 
 ## Workflow
 
@@ -51,11 +53,14 @@
 - Never leave background processes running.
 
 ## Styling
-- Use Tailwind utility classes. Don't add CSS Modules or inline styles.
-- Global styles and design tokens live in one place (the Tailwind config and the global CSS file). Colors, spacing, radius, shadows, and font sizes come from those tokens. Don't hard-code hex values or arbitrary values like `w-[137px]` unless no token fits.
-- Before writing a long class string, check whether the same combination already exists. If a class combination appears in two or more places, extract it:
-  - A repeated UI element becomes a component (preferred).
-  - A repeated style on non-component elements becomes a shared class in the global CSS using `@apply`.
-- Keep `className` strings short and readable. Order them consistently: layout, spacing, sizing, typography, color, state.
-- If a token is missing, add it to the global config or CSS and tell me, instead of repeating a one-off value.
+- This project uses CSS Modules with CSS variables from the global stylesheet. Don't introduce Tailwind or any other styling library, and don't convert existing components.
+- Each component has its own CSS Module file, named after it (`Component.module.css`). Don't use inline styles except for values that must be computed at runtime.
+- Global styles and design tokens live in one place (the global stylesheet). Colors, spacing, radius, shadows, and font sizes come from CSS variables. Don't hard-code hex values or magic numbers when a variable exists.
+- Before writing new styles, check whether the same rules already exist. If a style appears in two or more places, extract it:
+  - A repeated UI element becomes a shared component (preferred).
+  - A repeated style on non-component elements moves to the global stylesheet or a shared CSS Module.
+- Keep CSS Modules short and readable. Use class names that describe the role (`.card`, `.header`), not the look (`.blueBox`). Order properties consistently: layout, spacing, sizing, typography, color, state.
+- Build mobile-first, and put breakpoints at the bottom of the file. Keep hover, focus, and disabled states for every interactive element.
+- If a variable is missing, add it to the global stylesheet and tell me, instead of repeating a one-off value.
 - Don't add a styling library or plugin without asking first.
+- Don't do project-wide styling refactors or migrations. Stay inside the files I name.

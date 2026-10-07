@@ -1,35 +1,35 @@
-﻿import { Pencil } from "lucide-react";
-import type { MarketSectionResponse } from "../api/marketSection.api";
+import styles from './MarketSectionRow.module.css';
+import { Pencil } from "lucide-react";
+import type { MarketSectionResponse } from "@/api/types/market-section.types";
 
 interface MarketSectionRowProps {
   section: MarketSectionResponse;
+  disabled: boolean;
+  pending: boolean;
+  onEdit: () => void;
+  onToggle: () => void;
 }
 
-export default function MarketSectionRow({ section }: MarketSectionRowProps) {
+export default function MarketSectionRow({ section, disabled, pending, onEdit, onToggle }: MarketSectionRowProps) {
   return (
-    <tr>
-      <th scope="row" className="directory-cell pl-4.5! font-medium wrap-anywhere text-ui-heading">{section.name}</th>
-      <td className="directory-cell wrap-anywhere">{section.description}</td>
-      <td className="directory-cell">{section.vendorCount.toLocaleString()}</td>
-      <td className="directory-cell">
-        <span className={`inline-flex items-center gap-1.25 rounded-pill border px-2! py-0.75! text-micro font-medium leading-badge ${
-          section.isActive
-            ? "border-ui-success-border bg-ui-success-subtle text-ui-success"
-            : "border-ui-inactive-border bg-ui-inactive-subtle text-ui-inactive"
-        }`}>
-          <span className="size-1.25 rounded-full bg-current" aria-hidden="true" />
+    <tr aria-busy={pending}>
+      <th scope="row" className={styles.nameCell}>{section.name}</th>
+      <td className={styles.descriptionCell}>{section.description}</td>
+      <td className={styles.valueCell}>{section.vendorCount.toLocaleString()}</td>
+      <td className={styles.valueCell}>
+        <span className={section.isActive ? styles.activeStatus : styles.inactiveStatus}>
+          <span className={styles.statusDot} aria-hidden="true" />
           {section.isActive ? "Active" : "Inactive"}
         </span>
       </td>
-      <td className="directory-cell">
-        <div className="flex items-center justify-end gap-3">
+      <td className={styles.valueCell}>
+        <div className={styles.actions}>
           <button
             type="button"
-            className="control-focus grid size-8 shrink-0 place-items-center rounded-ui-sm border border-ui-border bg-ui-surface text-ui-info disabled:cursor-not-allowed!"
-            disabled
+            className={styles.editButton}
+            disabled={disabled}
+            onClick={onEdit}
             aria-label={`Edit ${section.name}`}
-            aria-describedby="market-section-actions-note"
-            title="Editing sections is currently unavailable"
           >
             <Pencil size={14} aria-hidden="true" />
           </button>
@@ -38,14 +38,13 @@ export default function MarketSectionRow({ section }: MarketSectionRowProps) {
             role="switch"
             aria-checked={section.isActive}
             aria-label={`${section.name} active status`}
-            aria-describedby="market-section-actions-note"
-            title="Changing section status is currently unavailable"
-            className={`control-focus flex h-5 w-8.75 shrink-0 items-center rounded-pill border-0 p-0.75! disabled:cursor-not-allowed! ${
-              section.isActive ? "justify-end bg-ui-info" : "bg-ui-switch-off"
-            }`}
-            disabled
+            onClick={onToggle}
+            aria-busy={pending}
+            title={pending ? "Updating status…" : section.isActive ? "Mark inactive" : "Mark active"}
+            className={section.isActive ? styles.activeSwitch : styles.inactiveSwitch}
+            disabled={disabled}
           >
-            <span className="size-3.5 rounded-full bg-ui-surface" aria-hidden="true" />
+            <span className={styles.switchKnob} aria-hidden="true" />
           </button>
         </div>
       </td>

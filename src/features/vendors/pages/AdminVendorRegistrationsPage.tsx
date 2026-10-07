@@ -1,3 +1,4 @@
+import styles from './AdminVendorRegistrationsPage.module.css';
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -6,7 +7,6 @@ import AdminCreateVendorModal from "../components/AdminCreateVendorModal";
 import AdminVendorRegistrationStats from "../components/AdminVendorRegistrationStats";
 import AdminVendorRegistrationTable from "../components/AdminVendorRegistrationTable";
 import { useAdminVendorRegistrations } from "../hooks/useAdminVendorRegistrations";
-import styles from "./AdminVendorRegistrationsPage.module.css";
 
 export default function AdminVendorRegistrationsPage() {
   const registrations = useAdminVendorRegistrations();
@@ -24,6 +24,7 @@ export default function AdminVendorRegistrationsPage() {
           <Button
             size="lg"
             icon={<UserPlus size={17} />}
+            className={styles.createVendorButton}
             onClick={() => setCreateOpen(true)}
           >
             Create Vendor Account

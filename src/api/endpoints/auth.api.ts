@@ -50,9 +50,13 @@ export const authApi = {
   },
 
   async getMe(token: string): Promise<UserProfileResponse> {
-    const { data } = await client.post<UserProfileResponse>("/user/me", undefined, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const { data } = await client.post<UserProfileResponse>(
+      "/user/me",
+      undefined,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     return data;
   },
 
@@ -87,11 +91,14 @@ export const authApi = {
     return data;
   },
 
-  async verifyCode(username: string, code: string): Promise<VerifyCodeResponse> {
-    const { data } = await client.post<VerifyCodeResponse>(
-      "/auth/verify-otp",
-      { username, code },
-    );
+  async verifyCode(
+    username: string,
+    code: string,
+  ): Promise<VerifyCodeResponse> {
+    const { data } = await client.post<VerifyCodeResponse>("/auth/verify-otp", {
+      username,
+      code,
+    });
     return data;
   },
 
