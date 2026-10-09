@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import styles from "../AdminVendorRegistrationReviewPage.module.css";
+import styles from "./ReviewSection.module.css";
 
 interface ReviewSectionProps {
   title: string;

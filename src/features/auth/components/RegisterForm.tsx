@@ -1,11 +1,11 @@
-import { FC, FormEvent, useState } from 'react';
-import { Link } from 'react-router-dom';
-import Button from '@/components/ui/Button';
-import { isValidEmail, hasMinLength } from '@/utils/validators';
-import citySeal from '@/assets/icons/Marikina_City_Seal.svg (1).webp';
-import type { UserRole } from '@/api/types/common.types';
-import styles from '@/features/auth/pages/AuthPage.module.css';
-import type { RegisterInput } from '@/features/auth/auth.types';
+import { FC, FormEvent, useState } from "react";
+import { Link } from "react-router-dom";
+import Button from "@/components/ui/Button";
+import { isValidEmail, hasMinLength } from "@/utils/validators";
+import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
+import type { UserRole } from "@/api/types/common.types";
+import styles from "@/features/auth/pages/AuthPage.module.css";
+import type { RegisterInput } from "@/features/auth/auth.types";
 
 interface FormState {
   name: string;
@@ -16,11 +16,11 @@ interface FormState {
 }
 
 const initial: FormState = {
-  name: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-  role: 'Vendor',
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  role: "MarketVendor",
 };
 
 interface RegisterFormProps {
@@ -31,7 +31,9 @@ interface RegisterFormProps {
 
 const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
   const [form, setForm] = useState<FormState>(initial);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<keyof FormState, string>>
+  >({});
 
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -39,20 +41,31 @@ const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const errs: Partial<Record<keyof FormState, string>> = {};
-    if (!hasMinLength(form.name, 2)) errs.name = 'Enter your full name.';
-    if (!isValidEmail(form.email)) errs.email = 'Enter a valid email address.';
-    if (!hasMinLength(form.password, 6)) errs.password = 'Password must be at least 6 characters.';
-    if (form.confirmPassword !== form.password) errs.confirmPassword = 'Passwords do not match.';
+    if (!hasMinLength(form.name, 2)) errs.name = "Enter your full name.";
+    if (!isValidEmail(form.email)) errs.email = "Enter a valid email address.";
+    if (!hasMinLength(form.password, 6))
+      errs.password = "Password must be at least 6 characters.";
+    if (form.confirmPassword !== form.password)
+      errs.confirmPassword = "Passwords do not match.";
     setFieldErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    await submit({ name: form.name, email: form.email, password: form.password, role: form.role });
+    await submit({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      role: form.role,
+    });
   };
 
   return (
     <div className={styles.card}>
       <div className={styles.logo}>
-        <img className={styles.logoMark} src={citySeal} alt="Marikina City seal" />
+        <img
+          className={styles.logoMark}
+          src={citySeal}
+          alt="Marikina City seal"
+        />
         <div className={styles.logoText}>
           Marikina City
           <br />
@@ -61,7 +74,9 @@ const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
       </div>
 
       <h1 className={styles.heading}>Create an account</h1>
-      <p className={styles.subheading}>Register as a vendor or city administrator.</p>
+      <p className={styles.subheading}>
+        Register as a vendor or city administrator.
+      </p>
 
       {error && <div className={styles.errorBox}>{error}</div>}
 
@@ -72,10 +87,12 @@ const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
             type="text"
             className={styles.input}
             value={form.name}
-            onChange={(e) => setField('name', e.target.value)}
+            onChange={(e) => setField("name", e.target.value)}
             placeholder="Juan Dela Cruz"
           />
-          {fieldErrors.name && <span className={styles.error}>{fieldErrors.name}</span>}
+          {fieldErrors.name && (
+            <span className={styles.error}>{fieldErrors.name}</span>
+          )}
         </div>
 
         <div className={styles.field}>
@@ -84,10 +101,12 @@ const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
             type="email"
             className={styles.input}
             value={form.email}
-            onChange={(e) => setField('email', e.target.value)}
+            onChange={(e) => setField("email", e.target.value)}
             placeholder="you@marikina.gov.ph"
           />
-          {fieldErrors.email && <span className={styles.error}>{fieldErrors.email}</span>}
+          {fieldErrors.email && (
+            <span className={styles.error}>{fieldErrors.email}</span>
+          )}
         </div>
 
         <div className={styles.field}>
@@ -96,10 +115,12 @@ const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
             type="password"
             className={styles.input}
             value={form.password}
-            onChange={(e) => setField('password', e.target.value)}
+            onChange={(e) => setField("password", e.target.value)}
             placeholder="••••••••"
           />
-          {fieldErrors.password && <span className={styles.error}>{fieldErrors.password}</span>}
+          {fieldErrors.password && (
+            <span className={styles.error}>{fieldErrors.password}</span>
+          )}
         </div>
 
         <div className={styles.field}>
@@ -108,10 +129,12 @@ const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
             type="password"
             className={styles.input}
             value={form.confirmPassword}
-            onChange={(e) => setField('confirmPassword', e.target.value)}
+            onChange={(e) => setField("confirmPassword", e.target.value)}
             placeholder="••••••••"
           />
-          {fieldErrors.confirmPassword && <span className={styles.error}>{fieldErrors.confirmPassword}</span>}
+          {fieldErrors.confirmPassword && (
+            <span className={styles.error}>{fieldErrors.confirmPassword}</span>
+          )}
         </div>
 
         <div className={styles.field}>
@@ -119,10 +142,9 @@ const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
           <select
             className={styles.input}
             value={form.role}
-            onChange={(e) => setField('role', e.target.value as UserRole)}
+            onChange={(e) => setField("role", e.target.value as UserRole)}
           >
-            <option value="Vendor">Vendor</option>
-            <option value="Admin">Administrator</option>
+            <option value="MarketVendor">Vendor</option>
           </select>
         </div>
 
@@ -132,7 +154,10 @@ const RegisterForm: FC<RegisterFormProps> = ({ submit, loading, error }) => {
       </form>
 
       <p className={styles.switch}>
-        Already have an account? <Link to="/login" className={styles.link}>Sign in</Link>
+        Already have an account?{" "}
+        <Link to="/login" className={styles.link}>
+          Sign in
+        </Link>
       </p>
     </div>
   );

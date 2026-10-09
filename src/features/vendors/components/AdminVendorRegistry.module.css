@@ -86,7 +86,7 @@
   border: 1px solid #b9d2ee;
   border-radius: 5px;
   background: #f4f9ff;
-  color: #145391;
+  color: var(--button-primary);
   font-size: 0.67rem;
   font-weight: 650;
   white-space: nowrap;
@@ -159,8 +159,8 @@
 }
 
 .pagination :global(button[aria-current="page"]) {
-  border-color: #123d67;
-  background: #123d67;
+  border-color: var(--button-primary);
+  background: var(--button-primary);
   color: #fff;
 }
 
@@ -195,7 +195,7 @@
   gap: 5px;
   border: 0;
   background: transparent;
-  color: #145391;
+  color: var(--button-primary);
   font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;

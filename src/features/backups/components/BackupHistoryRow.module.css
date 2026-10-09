@@ -1,0 +1,113 @@
+.row td {
+  padding: var(--backup-space-md) var(--backup-space-lg);
+  height: var(--backup-row-height);
+  font-size: var(--backup-font-small);
+  text-align: left;
+  vertical-align: middle;
+  color: var(--text-body);
+}
+.row + .row td {
+  border-top: 1px solid var(--border-default);
+}
+.row .date {
+  padding-left: var(--backup-space-xl);
+  color: var(--text-heading);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--backup-space-xs);
+  padding: var(--backup-space-xs) var(--backup-space-sm);
+  border: 1px solid transparent;
+  border-radius: var(--backup-pill-radius);
+  font-size: var(--backup-font-micro);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.statusContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--backup-space-sm);
+}
+
+.row .actionCell {
+  padding-right: var(--backup-space-xl);
+  width: 1%;
+  white-space: nowrap;
+}
+.badge span {
+  width: var(--backup-space-xs);
+  height: var(--backup-space-xs);
+  border-radius: var(--backup-pill-radius);
+  background: currentColor;
+}
+.completed {
+  border-color: color-mix(
+    in srgb,
+    var(--backup-success) 20%,
+    var(--bg-surface)
+  );
+  color: var(--backup-success);
+  background: var(--backup-success-surface);
+}
+.failed {
+  border-color: color-mix(in srgb, var(--danger) 20%, var(--bg-surface));
+  color: var(--danger);
+  background: var(--backup-danger-surface);
+}
+.error {
+  margin: 0;
+  max-width: var(--backup-history-error-width);
+  font-size: var(--backup-font-caption);
+  line-height: 1.5;
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--backup-space-xs);
+  width: max-content;
+}
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: var(--backup-space-xs);
+  padding: 0 var(--backup-space-sm);
+  height: var(--backup-table-control-size);
+  border: 1px solid var(--border-default);
+  border-radius: var(--backup-control-radius);
+  font-size: var(--backup-font-caption);
+  font-weight: 500;
+  line-height: 1.5;
+  background: var(--bg-surface);
+}
+.actions .download {
+  border-color: var(--backup-action-border);
+  color: var(--backup-action);
+}
+.actions .restore {
+  border-color: var(--border-default);
+  color: var(--text-body);
+  background: var(--bg-page);
+}
+.actions button:disabled {
+  border-color: var(--border-default);
+  color: var(--text-body);
+  background: var(--bg-page);
+  cursor: not-allowed;
+  opacity: 1;
+}
+.actions button:focus-visible {
+  outline: 2px solid var(--backup-action);
+  outline-offset: 2px;
+}
+.actions button:hover:not(:disabled) {
+  border-color: var(--backup-action);
+  background: var(--backup-info-surface);
+}

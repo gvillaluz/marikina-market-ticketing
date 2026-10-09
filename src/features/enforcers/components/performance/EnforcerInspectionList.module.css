@@ -44,12 +44,12 @@
 
 .actionBtn {
   font-size: 0.8rem;
-  color: #00488f;
+  color: var(--button-primary);
   border: 1px solid #b8d7f5;
 }
 
 .actionBtn:hover {
-  background: #00488f !important;
-  border-color: #00488f;
+  background: var(--button-primary) !important;
+  border-color: var(--button-primary);
   color: #fff;
 }

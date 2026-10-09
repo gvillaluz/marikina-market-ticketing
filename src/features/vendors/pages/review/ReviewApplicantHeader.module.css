@@ -1,0 +1,53 @@
+.applicant {
+  composes: surface from "./RegistrationLayout.module.css";
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-lg);
+}
+.avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--registration-avatar-size);
+  height: var(--registration-avatar-size);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  color: var(--text-on-primary);
+  background: var(--primary);
+}
+.applicant strong,
+.applicant span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.applicant > div > strong {
+  color: var(--text-heading);
+  font-size: var(--font-size-body);
+}
+.applicant > div > span {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-xs);
+}
+.requested {
+  width: 100%;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-default);
+}
+.requested span {
+  font-size: var(--font-size-xs);
+}
+.requested strong {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+@media (min-width: 600px) {
+  .requested {
+    width: auto;
+    margin-left: auto;
+    padding-top: 0;
+    border: 0;
+    text-align: right;
+  }
+}

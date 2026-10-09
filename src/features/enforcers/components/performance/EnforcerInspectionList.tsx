@@ -7,18 +7,6 @@ import styles from "./EnforcerInspectionList.module.css";
 import { formatControlNumber } from "@/utils/formatters";
 import { InspectionHistorySummary } from "@/api/types/enforcer.types";
 
-interface InspectionRecord {
-  id: number;
-  controlNumber: string;
-  issuedAt: string;
-  vendorFirstName: string;
-  vendorLastName: string;
-  stallNo: string;
-  marketSectionName: string;
-  type: string;
-  status: string;
-}
-
 interface EnforcerInspectionListProps {
   records: InspectionHistorySummary[];
   loading?: boolean;
@@ -40,8 +28,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
         {
           key: "controlNumber",
           header: "Control #",
-          render: (record) =>
-            formatControlNumber(record.controlNumber, "N/A"),
+          render: (record) => formatControlNumber(record.controlNumber, "N/A"),
         },
         {
           key: "issuedAt",

@@ -1,0 +1,139 @@
+.enter {
+  animation: form-enter var(--form-motion-duration) var(--form-motion-ease) both;
+}
+@keyframes form-enter {
+  from {
+    opacity: 0.85;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.description {
+  margin-top: var(--space-sm);
+  font-size: var(--form-font-body);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+.description strong {
+  font-weight: 600;
+  color: var(--text-heading);
+  overflow-wrap: anywhere;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+.label {
+  display: block;
+  font-size: var(--form-font-caption);
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-sm);
+}
+.input {
+  padding: var(--space-md) var(--space-lg);
+  width: 100%;
+  min-height: var(--form-control-height);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--form-font-body);
+  color: var(--text-heading);
+  background: var(--bg-surface);
+  caret-color: var(--primary);
+}
+.input::placeholder {
+  color: var(--text-body);
+}
+.input:hover:not(:disabled) {
+  border-color: var(--text-muted);
+}
+.input:focus-visible {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: var(--form-focus-ring);
+}
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.input:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  background: var(--bg-page);
+}
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  width: 100%;
+  min-height: var(--form-control-height);
+  border: 1px solid var(--button-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--form-font-body);
+  font-weight: 600;
+  color: var(--text-on-primary);
+  background: var(--button-primary);
+}
+.primaryButton:hover:not(:disabled) {
+  border-color: var(--button-primary-hover);
+  background: var(--button-primary-hover);
+}
+.primaryButton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.primaryButton:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 3px;
+}
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.error {
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--form-font-caption);
+  line-height: 1.5;
+  color: var(--danger);
+  background: var(--form-error-surface);
+}
+.spinner {
+  flex-shrink: 0;
+  animation: spin 900ms linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 767px) {
+  .input {
+    font-size: 1rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enter {
+    animation: none;
+  }
+  .spinner {
+    animation: none;
+  }
+  .input,
+  .primaryButton {
+    transition: none;
+  }
+  .primaryButton:active:not(:disabled) {
+    transform: none;
+  }
+}

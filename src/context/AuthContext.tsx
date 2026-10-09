@@ -1,3 +1,4 @@
+import { useLoginChallenge } from "@/features/auth/hooks/useLoginChallenge";
 import {
   createContext,
   ReactNode,
@@ -12,9 +13,18 @@ import axios from "axios";
 import { useAuthStore } from "@/store/store";
 import { getApiErrorMessage } from "@/utils/apiErrors";
 import { useToast } from "@/components/ui/Toast/useToast";
-import type { User, LoginInput, RegisterInput } from "@/features/auth/auth.types";
+import type {
+  User,
+  LoginInput,
+  LoginChallenge,
+  RegisterInput,
+} from "@/features/auth/auth.types";
 import { authApi } from "@/api/endpoints/auth.api";
-import { UserRole } from "@/api/types/common.types";
+import {
+  isAdministrator,
+  normalizeUserRole,
+  UnsupportedUserRoleError,
+} from "@/utils/roles";
 import {
   clearAuthSession,
   getAuthSessionVersion,
@@ -29,26 +39,8 @@ import {
 const REFRESH_BUFFER_MS = 60_000;
 const REFRESH_RETRY_MS = 10_000;
 
-function normalizeRole(role: string | number | null): UserRole | null {
-  if (role === null) return null;
-  if (typeof role !== "string") {
-    throw new Error("The user profile did not include a valid role.");
-  }
-
-  const normalized = role.toLowerCase();
-  if (
-    normalized === "admin" ||
-    normalized === "marketadmin" ||
-    normalized === "headadmin"
-  ) {
-    return "Admin";
-  }
-  if (normalized === "vendor") return "Vendor";
-  if (normalized === "enforcer") return "Enforcer";
-  throw new Error(`Unsupported user role: ${role}`);
-}
-
 function isAuthenticationFailure(error: unknown): boolean {
+  if (error instanceof UnsupportedUserRoleError) return true;
   if (error instanceof RefreshSessionExpiredError) return true;
   if (!axios.isAxiosError(error)) return false;
   const status = error.response?.status;
@@ -62,7 +54,13 @@ interface AuthContextValue {
   isAdmin: boolean;
   isVendor: boolean;
   mustChangePassword: boolean;
-  login: (input: LoginInput) => Promise<{ user: User; mustChangePassword: boolean }>;
+  login: (input: LoginInput) => Promise<LoginChallenge>;
+  loginChallenge: LoginChallenge | null;
+  verifyLogin: (
+    code: string,
+  ) => Promise<{ user: User; mustChangePassword: boolean }>;
+  resendLogin: () => Promise<LoginChallenge>;
+  cancelLogin: () => void;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => void;
   clearMustChangePassword: () => void;
@@ -83,41 +81,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const refreshWarningShown = useRef(false);
 
-  const login = useCallback(
-    async (input: LoginInput) => {
-      const response = await authApi.login(input);
-      const accessTokenExpiration = getAccessTokenExpiration(response.accessToken);
-      if (!accessTokenExpiration || accessTokenExpiration <= Date.now()) {
-        throw new Error("The server returned an invalid or expired access token.");
-      }
-
+  const completeLogin = useCallback(
+    (authenticatedUser: User, accessToken: string, mustChange: boolean) => {
       clearAuthSession();
-      storeAuthSession(response.accessToken);
-
-      try {
-        const profile = await authApi.getMe(response.accessToken);
-        const authenticatedUser: User = {
-          ...profile,
-          role: normalizeRole(profile.role),
-        };
-        const mustChange =
-          profile.mustChangedPassword || response.mustChangePassword;
-        setAuth(authenticatedUser, response.accessToken);
-        setMustChangePassword(mustChange);
-        setIsAuthReady(true);
-        return { user: authenticatedUser, mustChangePassword: mustChange };
-      } catch (error) {
-        clearAuthSession();
-        throw error;
-      }
+      storeAuthSession(accessToken);
+      setAuth(authenticatedUser, accessToken);
+      setMustChangePassword(mustChange);
+      setIsAuthReady(true);
     },
     [setAuth, setMustChangePassword],
   );
+  const challengeReady = useCallback(() => setIsAuthReady(true), []);
+  const { login, loginChallenge, verifyLogin, resendLogin, cancelLogin } =
+    useLoginChallenge(completeLogin, challengeReady);
 
   const register = useCallback(
     async (input: RegisterInput) => {
       const response = await authApi.register(input);
-      const accessTokenExpiration = getAccessTokenExpiration(response.accessToken);
+      const accessTokenExpiration = getAccessTokenExpiration(
+        response.accessToken,
+      );
       if (!accessTokenExpiration || accessTokenExpiration <= Date.now()) {
         throw new Error("The server returned an invalid access token.");
       }
@@ -129,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const profile = await authApi.getMe(response.accessToken);
         const authenticatedUser: User = {
           ...profile,
-          role: normalizeRole(profile.role),
+          role: normalizeUserRole(profile.role),
         };
         setAuth(authenticatedUser, response.accessToken);
         setMustChangePassword(
@@ -145,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
+    cancelLogin();
     const accessToken = useAuthStore.getState().token;
     invalidateAuthSession();
     if (accessToken) {
@@ -155,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       });
     }
-  }, []);
+  }, [cancelLogin]);
 
   const clearMustChangePassword = useCallback(() => {
     setMustChangePassword(false);
@@ -181,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const restoredUser: User = {
           ...profile,
-          role: normalizeRole(profile.role),
+          role: normalizeUserRole(profile.role),
         };
         setAuth(restoredUser, refreshed.accessToken);
         setMustChangePassword(
@@ -193,16 +177,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (isCancelled || restoreVersion !== getAuthSessionVersion()) return;
 
         const latestSession = getStoredAuthSession();
-        if (
-          isAuthenticationFailure(error) ||
-          !latestSession
-        ) {
+        if (isAuthenticationFailure(error) || !latestSession) {
           invalidateAuthSession(restoreVersion);
           setIsAuthReady(true);
           return;
         }
 
-        retryTimer = window.setTimeout(() => void restoreSession(), REFRESH_RETRY_MS);
+        retryTimer = window.setTimeout(
+          () => void restoreSession(),
+          REFRESH_RETRY_MS,
+        );
         if (!refreshWarningShown.current) {
           refreshWarningShown.current = true;
           showToast({
@@ -257,10 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         if (authSessionVersion !== getAuthSessionVersion()) return;
         const updatedSession = getStoredAuthSession();
-        if (
-          isAuthenticationFailure(error) ||
-          !updatedSession
-        ) {
+        if (isAuthenticationFailure(error) || !updatedSession) {
           invalidateAuthSession(
             error instanceof RefreshSessionExpiredError
               ? error.sessionVersion
@@ -296,23 +277,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
       if (retryTimer !== undefined) window.clearTimeout(retryTimer);
     };
-  }, [
-    isAuthReady,
-    isAuthenticated,
-    token,
-    setMustChangePassword,
-    showToast,
-  ]);
+  }, [isAuthReady, isAuthenticated, token, setMustChangePassword, showToast]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       isAuthenticated,
       isAuthReady,
-      isAdmin: user?.role === "Admin",
-      isVendor: user?.role === "Vendor",
+      isAdmin: isAdministrator(user?.role),
+      isVendor: user?.role === "MarketVendor",
       mustChangePassword,
       login,
+      loginChallenge,
+      verifyLogin,
+      resendLogin,
+      cancelLogin,
       register,
       logout,
       clearMustChangePassword,
@@ -323,6 +302,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthReady,
       mustChangePassword,
       login,
+      loginChallenge,
+      verifyLogin,
+      resendLogin,
+      cancelLogin,
       register,
       logout,
       clearMustChangePassword,

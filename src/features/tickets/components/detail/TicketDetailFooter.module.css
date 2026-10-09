@@ -4,7 +4,7 @@
   justify-content: space-between;
   margin-top: 1.25rem;
   padding: 1.5rem;
-  border: 1px solid #C3C6D2;
+  border: 1px solid #c3c6d2;
   box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
   background: #fff;
   border-radius: 8px;
@@ -16,19 +16,19 @@
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  border: 2px solid #6B7280;
+  border: 2px solid #6b7280;
   border-radius: 5px;
   color: #434750;
 }
 
 .changeBtn {
   display: inline-flex;
-  background: #00488F;
+  background: var(--button-primary);
   border-radius: 5px;
   color: #fff;
   padding: 7px 20px;
   gap: 5px;
   font-size: 0.875rem;
   font-weight: bold;
-  letter-spacing: .6px;
+  letter-spacing: 0.6px;
 }

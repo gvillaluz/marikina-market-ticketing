@@ -1,13 +1,15 @@
-import { FC, ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { ROUTES } from './routePaths';
-import type { UserRole } from '@/api/types/common.types';
-import styles from './ProtectedRoute.module.css';
+import { FC, ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { ROUTES } from "./routePaths";
+import type { UserRole } from "@/api/types/common.types";
+import { USER_ROLES, STAFF_ROLES } from "@/api/types/common.types";
+import { roleHomePath } from "@/utils/roles";
+import styles from "./ProtectedRoute.module.css";
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  roles?: UserRole[];
+  roles?: readonly UserRole[];
 }
 
 const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
@@ -23,18 +25,26 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.adminLogin} state={{ from: location }} replace />;
+    return (
+      <Navigate to={ROUTES.adminLogin} state={{ from: location }} replace />
+    );
   }
 
-  if (roles && (!user?.role || !roles.includes(user.role))) {
+  if (!user?.role || !USER_ROLES.includes(user.role)) {
     return <Navigate to={ROUTES.adminLogin} replace />;
   }
 
-  const isAdmin = user?.role === 'Admin';
   const onChangePasswordPage = location.pathname === ROUTES.changePassword;
 
-  if (isAdmin && mustChangePassword && !onChangePasswordPage) {
+  if (
+    STAFF_ROLES.includes(user.role) &&
+    mustChangePassword &&
+    !onChangePasswordPage
+  ) {
     return <Navigate to={ROUTES.changePassword} replace />;
+  }
+  if (roles && user.role !== "HeadAdmin" && !roles.includes(user.role)) {
+    return <Navigate to={roleHomePath(user.role)} replace />;
   }
 
   return <>{children}</>;

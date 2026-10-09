@@ -1,0 +1,92 @@
+.row td {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--market-font-size-caption);
+  color: var(--text-heading);
+  overflow-wrap: anywhere;
+}
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+.avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  overflow: hidden;
+  width: var(--account-avatar-size);
+  height: var(--account-avatar-size);
+  border-radius: var(--market-radius-pill);
+  font-size: var(--market-font-size-micro);
+  font-weight: 600;
+  color: var(--market-action);
+  background: var(--ordinance-info-surface);
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.name {
+  font-weight: 600;
+}
+.secondary {
+  margin-top: var(--space-xs);
+  font-size: var(--market-font-size-micro);
+  color: var(--text-body);
+}
+.role {
+  display: inline-block;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--market-radius-notice);
+  font-size: var(--market-font-size-micro);
+  color: var(--text-body);
+  background: var(--bg-page);
+}
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid currentColor;
+  border-radius: var(--market-radius-pill);
+  font-size: var(--market-font-size-micro);
+  white-space: nowrap;
+}
+.status::before {
+  width: var(--account-status-dot);
+  height: var(--account-status-dot);
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+.active {
+  border-color: color-mix(in srgb, var(--success) 25%, var(--bg-surface));
+  color: var(--success);
+  background: var(--ordinance-success-surface);
+}
+.inactive {
+  border-color: var(--backup-warning-border);
+  color: var(--account-inactive-text);
+  background: var(--ordinance-warning-surface);
+}
+.manage {
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--ordinance-action-border);
+  border-radius: var(--market-radius-button);
+  font-size: var(--market-font-size-caption);
+  color: var(--market-action);
+  background: var(--bg-surface);
+}
+.manage:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+.manage:hover:not(:disabled) {
+  background: var(--ordinance-info-surface);
+}
+.manage:focus-visible {
+  outline: 2px solid var(--market-action);
+  outline-offset: 2px;
+}

@@ -160,13 +160,13 @@
   padding: 5px 10px !important;
   border-color: #c5d8eb !important;
   background: #f4f9ff !important;
-  color: #145391 !important;
+  color: var(--button-primary) !important;
   font-size: 0.71rem !important;
 }
 
 .viewButton:hover {
-  border-color: #0b4f91 !important;
-  background: #0b4f91 !important;
+  border-color: var(--button-primary) !important;
+  background: var(--button-primary) !important;
   color: #fff !important;
 }
 
@@ -221,8 +221,8 @@
 }
 
 .pagination :global(button[aria-current="page"]) {
-  border-color: #0b4f91;
-  background: #0b4f91;
+  border-color: var(--button-primary);
+  background: var(--button-primary);
   color: #fff;
 }
 
@@ -244,7 +244,7 @@
 .errorState button {
   border: 0;
   background: transparent;
-  color: #145391;
+  color: var(--button-primary);
   font-size: inherit;
   font-weight: 700;
 }

@@ -8,8 +8,10 @@
   padding-block: 0.625rem;
   font-size: var(--market-font-size-micro);
   font-weight: 500;
-  color: var(--primary);
-  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke;
+  color: var(--button-primary);
+  transition-property:
+    color, background-color, border-color, outline-color, text-decoration-color,
+    fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -43,7 +45,9 @@
   font-size: var(--market-font-size-micro);
   font-weight: 500;
   color: var(--text-on-primary);
-  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke;
+  transition-property:
+    color, background-color, border-color, outline-color, text-decoration-color,
+    fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }

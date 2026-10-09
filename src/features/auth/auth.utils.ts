@@ -7,13 +7,5 @@ export function resolveLoginIdentifier(username: string): string | null {
     return isEmail ? trimmed : null;
   }
 
-  if (trimmed.toLowerCase() === "admin") return "admin@marikina.gov.ph";
-  if (
-    trimmed.toLowerCase() === "vendor" ||
-    /^\d{3}-\d{5}[A-Za-z]?$/.test(trimmed)
-  ) {
-    return "vendor@marikina.gov.ph";
-  }
-
-  return null;
+  return /\s/.test(trimmed) ? null : trimmed;
 }

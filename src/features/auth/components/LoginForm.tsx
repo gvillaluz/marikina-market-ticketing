@@ -1,149 +1,161 @@
-import { FormEvent, FC, useState } from "react";
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ROUTES } from '@/routes/routePaths';
-import { resolveLoginIdentifier } from '@/features/auth/auth.utils';
-import type { LoginFormValues } from '@/features/auth/hooks/useLogin';
-import styles from './LoginForm.module.css';
+import type { AuthAccess } from "@/api/types/common.types";
+import type { FC } from "react";
+import { Link } from "react-router-dom";
+import {
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  LockKeyhole,
+  UserRound,
+} from "lucide-react";
+import Button from "@/components/ui/Button";
+import type { LoginFormValues } from "../hooks/useLogin";
+import { useLoginForm } from "../hooks/useLoginForm";
+import styles from "./LoginForm.module.css";
 
 interface LoginFormProps {
   showRegisterLink?: boolean;
-  role?: 'Admin' | 'Enforcer' | 'Vendor';
+  access?: AuthAccess;
   submit: (values: LoginFormValues) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
-
-type FieldErrors = {
-  username?: string;
-  password?: string;
-};
-
 const LoginForm: FC<LoginFormProps> = ({
   showRegisterLink = true,
-  role,
+  access,
   submit,
   loading,
   error,
 }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const passwordReset = (
-    location.state as { passwordReset?: boolean } | null
-  )?.passwordReset;
-
-  const handleForgotPassword = () => {
-    const nextStep = username.trim() ? "options" : "find-account";
-    const recoveryRole = role === "Admin" ? "Admin" : "Vendor";
-    navigate(`${ROUTES.forgotPassword(recoveryRole)}/${nextStep}`, {
-      state: { username: username.trim() },
-    });
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const errors: FieldErrors = {};
-    const isAdminLogin = role === "Admin";
-
-    if (!username.trim()) {
-      errors.username = "Enter your username.";
-    } else if (!isAdminLogin && !resolveLoginIdentifier(username)) {
-      errors.username = "Enter your username or email.";
-    }
-
-    if (!password.trim()) {
-      errors.password = "Enter your password.";
-    } else if (!isAdminLogin && password.length < 6) {
-      errors.password = "Password must be at least 6 characters.";
-    }
-
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-
-    await submit({ username, password });
-  };
-
+  const model = useLoginForm(access, submit, loading);
   return (
     <div className={styles.formWrapper}>
       <h2 className={styles.heading}>LOGIN</h2>
-
-      {passwordReset && (
-        <div className={`${styles.message} ${styles.successMessage}`} role="status">
+      {model.passwordReset && (
+        <div className={styles.successMessage} role="status">
           Your password has been changed. Please log in with your new password.
         </div>
       )}
-
       {error && (
-        <div className={`${styles.message} ${styles.errorMessage}`}>
+        <div className={styles.errorMessage} role="alert">
           {error}
         </div>
       )}
-
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form
+        className={styles.form}
+        onSubmit={model.handleSubmit}
+        aria-busy={loading}
+      >
         <div className={styles.field}>
-          <label className={styles.label}>Username</label>
+          <label className={styles.label} htmlFor="login-username">
+            Username
+          </label>
           <div className={styles.inputWrapper}>
-            <span className={styles.icon} aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </span>
+            <UserRound className={styles.icon} size={18} aria-hidden="true" />
             <input
+              id="login-username"
+              ref={model.usernameRef}
               type="text"
               className={styles.input}
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              placeholder="234-02141M"
+              value={model.username}
+              onChange={(event) => model.changeUsername(event.target.value)}
+              placeholder={
+                access === "staff"
+                  ? "Enter your username"
+                  : "Enter your username or email"
+              }
               autoComplete="username"
+              maxLength={200}
+              disabled={loading}
+              aria-invalid={Boolean(model.fieldErrors.username)}
+              aria-describedby={
+                model.fieldErrors.username ? "login-username-error" : undefined
+              }
             />
           </div>
-          {fieldErrors.username && (
-            <span className={styles.fieldError}>{fieldErrors.username}</span>
-          )}
-        </div>
-
-        <div className={styles.field}>
-          <label className={styles.label}>Password</label>
-          <div className={styles.inputWrapper}>
-            <span className={styles.icon} aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+          {model.fieldErrors.username && (
+            <span
+              id="login-username-error"
+              className={styles.fieldError}
+              role="alert"
+            >
+              {model.fieldErrors.username}
             </span>
-            <input
-              type="password"
-              className={styles.input}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
-          </div>
-          {fieldErrors.password && (
-            <span className={styles.fieldError}>{fieldErrors.password}</span>
           )}
         </div>
-
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="login-password">
+            Password
+          </label>
+          <div className={styles.inputWrapper}>
+            <LockKeyhole className={styles.icon} size={18} aria-hidden="true" />
+            <input
+              id="login-password"
+              ref={model.passwordRef}
+              type={model.showPassword ? "text" : "password"}
+              className={`${styles.input} ${styles.password}`}
+              value={model.password}
+              onChange={(event) => model.changePassword(event.target.value)}
+              placeholder="Enter your password"
+              autoComplete="current-password"
+              maxLength={128}
+              disabled={loading}
+              aria-invalid={Boolean(model.fieldErrors.password)}
+              aria-describedby={
+                model.fieldErrors.password ? "login-password-error" : undefined
+              }
+            />
+            <Button
+              className={styles.passwordToggle}
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={model.togglePassword}
+              disabled={loading}
+              aria-label={
+                model.showPassword ? "Hide password" : "Show password"
+              }
+              aria-pressed={model.showPassword}
+            >
+              {model.showPassword ? (
+                <EyeOff size={16} aria-hidden="true" />
+              ) : (
+                <Eye size={16} aria-hidden="true" />
+              )}
+            </Button>
+          </div>
+          {model.fieldErrors.password && (
+            <span
+              id="login-password-error"
+              className={styles.fieldError}
+              role="alert"
+            >
+              {model.fieldErrors.password}
+            </span>
+          )}
+        </div>
         <button type="submit" disabled={loading} className={styles.submit}>
-          {loading ? "Signing in..." : "LOGIN"}
+          {loading && (
+            <LoaderCircle
+              className={styles.spinner}
+              size={16}
+              aria-hidden="true"
+            />
+          )}
+          {loading ? "Sending code…" : "LOGIN"}
         </button>
       </form>
-
       <button
         type="button"
-        onClick={handleForgotPassword}
+        onClick={model.forgotPassword}
+        disabled={loading}
         className={styles.forgot}
       >
         Forgot password?
       </button>
-
       {showRegisterLink && (
         <p className={styles.registerPrompt}>
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account?{" "}
           <Link
             to="/register"
             state={{ returnTo: "/login" }}
@@ -156,5 +168,4 @@ const LoginForm: FC<LoginFormProps> = ({
     </div>
   );
 };
-
 export default LoginForm;

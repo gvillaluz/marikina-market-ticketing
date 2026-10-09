@@ -1,4 +1,170 @@
 :root {
+  --staff-modal-width: 47.5rem;
+  --staff-panel-padding: 1.25rem;
+  --staff-section-gap: 1.375rem;
+  --staff-control-height: 2.1875rem;
+  --staff-section-number-size: 1.5rem;
+  --staff-close-size: 1.875rem;
+  --staff-font-body: 0.625rem;
+  --staff-font-caption: 0.5rem;
+  --staff-font-heading: 0.6875rem;
+  --staff-title-size: 1.125rem;
+  --form-control-height: 2.75rem;
+  --form-font-body: 0.875rem;
+  --form-font-caption: 0.75rem;
+  --form-focus-ring: 0 0 0 3px
+    color-mix(in srgb, var(--primary) 14%, transparent);
+  --form-error-surface: color-mix(in srgb, var(--danger) 6%, var(--bg-surface));
+  --form-motion-duration: 280ms;
+  --form-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --recovery-control-height: var(--form-control-height);
+  --recovery-code-height: 3rem;
+  --recovery-card-width: 56rem;
+  --recovery-content-height: 28rem;
+  --recovery-state-height: 12rem;
+  --recovery-font-body: var(--form-font-body);
+  --recovery-font-caption: var(--form-font-caption);
+  --recovery-motion-duration: var(--form-motion-duration);
+  --recovery-motion-ease: var(--form-motion-ease);
+  --recovery-focus-ring: var(--form-focus-ring);
+  --recovery-error-surface: var(--form-error-surface);
+  --recovery-brand-start: #123b70;
+  --recovery-card-shadow: 0 18px 45px
+    color-mix(in srgb, var(--primary) 14%, transparent);
+  --breadcrumb-font-size: 0.75rem;
+  --button-primary: #005aaa;
+  --button-primary-hover: #004b8f;
+  --button-primary-surface: color-mix(
+    in srgb,
+    var(--button-primary) 7%,
+    var(--bg-surface)
+  );
+  --registration-sidebar-width: 19rem;
+  --registration-avatar-size: 3rem;
+  --registration-document-height: 12rem;
+  --registration-control-height: 2.5rem;
+  --registration-remarks-height: 10rem;
+  --registration-empty-height: 18rem;
+  --registration-error-width: 42rem;
+  --registration-info-surface: color-mix(
+    in srgb,
+    var(--primary) 7%,
+    var(--bg-surface)
+  );
+  --registration-danger-surface: color-mix(
+    in srgb,
+    var(--danger) 5%,
+    var(--bg-surface)
+  );
+  --registration-warning-surface: color-mix(
+    in srgb,
+    var(--warning) 6%,
+    var(--bg-surface)
+  );
+  --registration-success-surface: color-mix(
+    in srgb,
+    var(--success) 5%,
+    var(--bg-surface)
+  );
+  --primary-50: var(--registration-info-surface);
+  --primary-500: var(--primary);
+  --primary-600: var(--primary-hover);
+  --neutral-50: var(--bg-page);
+  --neutral-100: var(--bg-card);
+  --neutral-200: var(--border-default);
+  --neutral-400: var(--text-body);
+  --neutral-700: var(--text-heading);
+  /* Shared spacing and account-directory dimensions. */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.25rem;
+  --space-section: 2rem;
+  --account-control-height: 2.25rem;
+  --account-icon-size: 2.75rem;
+  --account-avatar-size: 2.25rem;
+  --account-status-dot: 0.25rem;
+  --account-search-width: 18rem;
+  --account-table-width: 54rem;
+  --account-inactive-text: #895500;
+  --sidebar-content-inset: 0.875rem;
+  --sidebar-scrollbar-width: 0.25rem;
+  --backup-history-error-width: 22rem;
+  --backup-table-control-size: 1.6875rem;
+  --navbar-profile-size: 2.75rem;
+  /* Data & Backups: shared spacing and screenshot-specific treatments. */
+  --backup-space-xs: 0.25rem;
+  --backup-space-sm: 0.5rem;
+  --backup-space-md: 0.75rem;
+  --backup-space-lg: 1rem;
+  --backup-space-xl: 1.25rem;
+  --backup-space-xxl: 1.5rem;
+  --backup-space-section: 2rem;
+  --backup-font-micro: 0.625rem;
+  --backup-font-caption: 0.6875rem;
+  --backup-font-small: 0.75rem;
+  --backup-font-body: 0.875rem;
+  --backup-font-heading: 1rem;
+  --backup-font-title: 1.75rem;
+  --backup-action: var(--button-primary);
+  --backup-action-hover: var(--button-primary-hover);
+  --backup-schedule-icon: #7660c8;
+  --backup-success: #2d8d48;
+  --backup-success-surface: color-mix(
+    in srgb,
+    var(--backup-success) 10%,
+    var(--bg-surface)
+  );
+  --backup-danger-surface: color-mix(
+    in srgb,
+    var(--danger) 8%,
+    var(--bg-surface)
+  );
+  --backup-info-surface: color-mix(
+    in srgb,
+    var(--backup-action) 8%,
+    var(--bg-surface)
+  );
+  --backup-icon-surface: color-mix(
+    in srgb,
+    var(--backup-schedule-icon) 12%,
+    var(--bg-surface)
+  );
+  --backup-action-border: color-mix(
+    in srgb,
+    var(--backup-action) 25%,
+    var(--bg-surface)
+  );
+  --backup-warning-border: color-mix(
+    in srgb,
+    var(--warning) 35%,
+    var(--bg-surface)
+  );
+  --backup-warning-surface: color-mix(
+    in srgb,
+    var(--warning) 6%,
+    var(--bg-surface)
+  );
+  --backup-table-surface: color-mix(
+    in srgb,
+    var(--bg-page) 65%,
+    var(--bg-surface)
+  );
+  --backup-control-height: 2.25rem;
+  --backup-control-radius: 0.25rem;
+  --backup-card-height: 15.75rem;
+  --backup-icon-size: 2.5rem;
+  --backup-health-icon-size: 3rem;
+  --backup-switch-width: 2.125rem;
+  --backup-switch-height: 1.125rem;
+  --backup-switch-knob: 0.875rem;
+  --backup-row-height: 4rem;
+  --backup-table-width: 44rem;
+  --backup-pill-radius: 999px;
+  --backup-ring: 0 0 0 0.25rem var(--backup-success-surface);
+  --backup-disabled-opacity: 0.6;
+
   /* Ordinance registry and editor controls. */
   --ordinance-space-xs: 0.25rem;
   --ordinance-space-sm: 0.5rem;
@@ -15,15 +181,39 @@
   --ordinance-search-height: 2.375rem;
   --ordinance-search-padding-block: 0.375rem;
   --ordinance-search-inset: 2.25rem;
-  --ordinance-muted-surface: color-mix(in srgb, var(--bg-page) 50%, var(--bg-surface));
-  --ordinance-info-surface: color-mix(in srgb, var(--info) 9%, var(--bg-surface));
-  --ordinance-warning-surface: color-mix(in srgb, var(--warning) 12%, var(--bg-surface));
-  --ordinance-success-surface: color-mix(in srgb, var(--success) 8%, var(--bg-surface));
-  --ordinance-action-border: color-mix(in srgb, var(--market-action) 25%, var(--bg-surface));
-  --ordinance-danger-surface: color-mix(in srgb, var(--danger) 6%, var(--bg-surface));
+  --ordinance-muted-surface: color-mix(
+    in srgb,
+    var(--bg-page) 50%,
+    var(--bg-surface)
+  );
+  --ordinance-info-surface: color-mix(
+    in srgb,
+    var(--info) 9%,
+    var(--bg-surface)
+  );
+  --ordinance-warning-surface: color-mix(
+    in srgb,
+    var(--warning) 12%,
+    var(--bg-surface)
+  );
+  --ordinance-success-surface: color-mix(
+    in srgb,
+    var(--success) 8%,
+    var(--bg-surface)
+  );
+  --ordinance-action-border: color-mix(
+    in srgb,
+    var(--market-action) 25%,
+    var(--bg-surface)
+  );
+  --ordinance-danger-surface: color-mix(
+    in srgb,
+    var(--danger) 6%,
+    var(--bg-surface)
+  );
   --ordinance-row-hover: color-mix(in srgb, var(--info) 3%, var(--bg-surface));
   /* Market-section controls retain their existing fixed visual values. */
-  --market-action: #005aaa;
+  --market-action: var(--button-primary);
   --market-search-focus: #7d9cbe;
   --market-search-text: #263b53;
   --market-search-icon: #64748b;

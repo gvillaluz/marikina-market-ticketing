@@ -2,21 +2,23 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import { ROUTES } from "./routePaths";
-import type { UserRole } from "@/api/types/common.types";
+import {
+  ADMIN_ROLES,
+  STAFF_ROLES,
+  HEAD_ADMIN_ROLES,
+} from "@/api/types/common.types";
 import LandingPage from "@/features/landing/pages/LandingPage";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import AdminLoginPage from "@/features/auth/pages/AdminLoginPage";
+import LoginVerificationPage from "@/features/auth/pages/LoginVerificationPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
 import ChangePasswordPage from "@/features/auth/pages/ChangePasswordPage";
 import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
-import AdminPlaceholderPage from "@/features/dashboard/pages/AdminPlaceholderPage";
 import TicketsPage from "@/features/tickets/pages/TicketsPage";
 import TicketDetailPage from "@/features/tickets/pages/TicketDetailPage";
 import VendorsPage from "@/features/vendors/pages/VendorPage";
 import VendorDetailPage from "@/features/vendors/pages/VendorDetailPage";
 import VendorRegistrationPage from "@/features/vendors/pages/VendorRegistrationPage";
-import PenaltiesPage from "@/features/penalties/pages/PenaltiesPage";
-import CompliancePage from "@/features/compliance/pages/CompliancePage";
 import { InspectionsPage } from "../features/inspections/pages/InspectionsPage";
 import EnforcersPage from "@/features/enforcers/pages/EnforcersPage";
 import EnforcerPerformancePage from "@/features/enforcers/pages/EnforcerPerformancePage";
@@ -31,9 +33,8 @@ import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
 import SystemConfigurationPage from "@/features/configuration/pages/SystemConfigurationPage";
 import MarketSectionPage from "@/features/market-section/pages/MarketSectionPage";
 import { OrdinancesPage } from "@/features/ordinances";
-
-const ADMIN_ENFORCER_ROLES: UserRole[] = ["Admin", "Enforcer"];
-const ADMIN_ONLY_ROLES: UserRole[] = ["Admin"];
+import { BackupsPage } from "@/features/backups";
+import { AccountsPage } from "@/features/accounts";
 
 const AppRoutes = () => {
   return (
@@ -43,11 +44,15 @@ const AppRoutes = () => {
       <Route path={ROUTES.login} element={<LoginPage />} />
       <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
       <Route
-        path={`${ROUTES.forgotPassword("Vendor")}/:step?`}
+        path={ROUTES.loginVerification}
+        element={<LoginVerificationPage />}
+      />
+      <Route
+        path={`${ROUTES.forgotPassword("vendor")}/:step?`}
         element={<ForgotPasswordPage />}
       />
       <Route
-        path={`${ROUTES.forgotPassword("Admin")}/:step?`}
+        path={`${ROUTES.forgotPassword("staff")}/:step?`}
         element={<ForgotPasswordPage />}
       />
       <Route path={ROUTES.register} element={<VendorRegistrationPage />} />
@@ -57,7 +62,7 @@ const AppRoutes = () => {
       <Route
         path={ROUTES.changePassword}
         element={
-          <ProtectedRoute roles={ADMIN_ENFORCER_ROLES}>
+          <ProtectedRoute roles={STAFF_ROLES}>
             <ChangePasswordPage />
           </ProtectedRoute>
         }
@@ -66,12 +71,20 @@ const AppRoutes = () => {
       {/* Admin/Enforcer protected routes */}
       <Route
         element={
-          <ProtectedRoute roles={ADMIN_ENFORCER_ROLES}>
+          <ProtectedRoute roles={STAFF_ROLES}>
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
         <Route path={ROUTES.dashboard} element={<DashboardPage />} />
+        <Route
+          path={ROUTES.accounts}
+          element={
+            <ProtectedRoute roles={HEAD_ADMIN_ROLES}>
+              <AccountsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path={ROUTES.tickets} element={<TicketsPage />} />
         <Route
           path={ROUTES.ticketDetail(":id")}
@@ -81,7 +94,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.adminVendors}
           element={
-            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <AdminVendorsPage />
             </ProtectedRoute>
           }
@@ -89,7 +102,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.adminVendorRegistrations}
           element={
-            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <AdminVendorRegistrationsPage />
             </ProtectedRoute>
           }
@@ -97,7 +110,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.adminVendorRegistration(":registrationId")}
           element={
-            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <AdminVendorRegistrationReviewPage />
             </ProtectedRoute>
           }
@@ -105,7 +118,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.adminVendorRegistrationApprove(":registrationId")}
           element={
-            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <AdminVendorRegistrationApprovePage />
             </ProtectedRoute>
           }
@@ -113,7 +126,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.adminVendorRegistrationDecline(":registrationId")}
           element={
-            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <AdminVendorRegistrationDeclinePage />
             </ProtectedRoute>
           }
@@ -121,7 +134,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.adminVendorRegistrationInformation(":registrationId")}
           element={
-            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <AdminVendorRegistrationInformationPage />
             </ProtectedRoute>
           }
@@ -129,7 +142,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.adminVendorInspections(":vendorId")}
           element={
-            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <AdminVendorInspectionPage />
             </ProtectedRoute>
           }
@@ -141,22 +154,44 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.analytics}
           element={
-            <ProtectedRoute roles={ADMIN_ONLY_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <AdminAnalyticsPage />
             </ProtectedRoute>
           }
         />
         <Route path={ROUTES.inspections} element={<InspectionsPage />} />
         <Route
-          path={ROUTES.performance}
-          element={<AdminPlaceholderPage title="Performance" />}
+          path={ROUTES.systemConfiguration}
+          element={
+            <ProtectedRoute roles={HEAD_ADMIN_ROLES}>
+              <SystemConfigurationPage />
+            </ProtectedRoute>
+          }
         />
         <Route
-          path={ROUTES.systemConfiguration}
-          element={<SystemConfigurationPage />}
+          path={ROUTES.marketSection}
+          element={
+            <ProtectedRoute roles={HEAD_ADMIN_ROLES}>
+              <MarketSectionPage />
+            </ProtectedRoute>
+          }
         />
-        <Route path={ROUTES.marketSection} element={<MarketSectionPage />} />
-        <Route path={ROUTES.ordinance} element={<ProtectedRoute roles={ADMIN_ONLY_ROLES}><OrdinancesPage /></ProtectedRoute>} />
+        <Route
+          path={ROUTES.ordinance}
+          element={
+            <ProtectedRoute roles={HEAD_ADMIN_ROLES}>
+              <OrdinancesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.backups}
+          element={
+            <ProtectedRoute roles={HEAD_ADMIN_ROLES}>
+              <BackupsPage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       {/* General authenticated routes (any role) */}
@@ -176,8 +211,6 @@ const AppRoutes = () => {
           path={ROUTES.vendorRegister}
           element={<VendorRegistrationPage />}
         />
-        <Route path={ROUTES.penalties} element={<PenaltiesPage />} />
-        <Route path={ROUTES.compliance} element={<CompliancePage />} />
       </Route>
 
       {/* Catch-all */}

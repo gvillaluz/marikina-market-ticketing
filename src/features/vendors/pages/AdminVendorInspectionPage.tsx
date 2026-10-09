@@ -1,4 +1,5 @@
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import type { AdminVendorInspectionNavigationState } from "@/api/types/admin-vendor.types";
@@ -30,8 +31,7 @@ export default function AdminVendorInspectionPage() {
     scoreErrorMessage,
     refetchProfile,
     refetchScore,
-  } =
-    useAdminVendorProfile(vendorId);
+  } = useAdminVendorProfile(vendorId);
   const inspectionPage = useAdminVendorInspectionPage(vendorId);
 
   if (!Number.isInteger(vendorId) || vendorId < 1) {
@@ -50,18 +50,22 @@ export default function AdminVendorInspectionPage() {
 
   return (
     <div className={styles.page}>
-      <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-        <Link to="/admin/vendors">Vendors</Link>
-        <span aria-hidden="true">›</span>
-        <span>{vendorName}</span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Vendors", to: "/admin/vendors" },
+          { label: vendorName },
+        ]}
+      />
 
       <PageHeader
         title="Vendor Performance Record"
         subtitle="Performance summary and inspection log for this vendor."
       />
 
-      <section className={styles.summary} aria-label="Vendor performance summary">
+      <section
+        className={styles.summary}
+        aria-label="Vendor performance summary"
+      >
         {isProfileError ? (
           <AdminVendorPerformanceError
             title="Profile unavailable"
@@ -71,9 +75,7 @@ export default function AdminVendorInspectionPage() {
         ) : isProfileLoading || !profile ? (
           <AdminVendorPerformanceSkeleton variant="profile" />
         ) : (
-          <AdminVendorPerformanceProfile
-            profile={profile}
-          />
+          <AdminVendorPerformanceProfile profile={profile} />
         )}
         {isScoreError ? (
           <AdminVendorPerformanceError

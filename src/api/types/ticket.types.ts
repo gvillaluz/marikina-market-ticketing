@@ -1,13 +1,23 @@
-import { TicketStatus } from '@/features/tickets/tickets.types';
-import type { MarketSection, OffenseLevel, RecordStatus, Severity, PaginationSummary } from './common.types';
+import type {
+  MarketSection,
+  OffenseLevel,
+  RecordStatus,
+  Severity,
+} from "./common.types";
 
-export type TicketType = 'violation' | 'complaint' | 'inspection' | 'renewal';
-export type TicketCategories = 'Traffic' | 'Obstruction' | 'Sanitation' | 'Licensing' | 'Noise' | 'WeightMeasures';
+export type TicketType = "violation" | "complaint" | "inspection" | "renewal";
+export type TicketCategories =
+  | "Traffic"
+  | "Obstruction"
+  | "Sanitation"
+  | "Licensing"
+  | "Noise"
+  | "WeightMeasures";
 
 export interface InspectionRecord {
   id: string;
   controlNumber: string;
-  type: 'warning' | 'ticket';
+  type: "warning" | "ticket";
   enforcer: string;
   stallNo: string;
   tradeName: string;
@@ -68,20 +78,20 @@ export interface InspectionSummary {
   marketSectionId: number;
   marketSectionName: string;
   status: RecordStatus;
-  type: 'Warning' | 'Ticket';
+  type: "Warning" | "Ticket";
   issuedAt: Date;
   updatedAt: Date;
 }
 
 export interface WarningRecord extends BaseRecordDetail {
-  type: 'warning';
+  type: "warning";
   ordinanceNumber: string;
   ordinanceSeries: string;
   ordinanceCategory: string;
 }
 
 export interface TicketRecord extends BaseRecordDetail {
-  type: 'ticket';
+  type: "ticket";
   status: RecordStatus;
   address: string;
   violations: ViolationLine[];
@@ -97,19 +107,17 @@ export interface TicketRecord extends BaseRecordDetail {
   title?: string;
 }
 
-export interface TicketListResponse {
-  items: TicketRecord[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages?: number;
-  summary?: PaginationSummary;
-}
-
-type PrintColumn = 'controlNumber' | 'type' | 'issuedAt' | 'vendor' | 'status' | 'section' | 'severity';
+type PrintColumn =
+  | "controlNumber"
+  | "type"
+  | "issuedAt"
+  | "vendor"
+  | "status"
+  | "section"
+  | "severity";
 
 export interface PrintConfigPayload {
-  types: Array<'warning' | 'ticket'>;
+  types: Array<"warning" | "ticket">;
   columns: PrintColumn[];
   startDate: string;
   endDate: string;
@@ -118,20 +126,6 @@ export interface PrintConfigPayload {
 export interface ExportResult {
   fileUrl: string;
   fileName: string;
-}
-
-export interface CreateTicketPayload {
-  stallNo: string;
-  tradeName: string;
-  violatorName: string;
-  dateTime: string;
-  location: string;
-  address: string;
-  violationCommitted: string;
-  description: string;
-  violations: Omit<ViolationLine, 'id'>[];
-  penalty: Omit<PenaltyDetails, 'totalFineDue'>;
-  photoEvidenceUrl?: string;
 }
 
 export interface TicketHistoryEntry {
@@ -143,7 +137,7 @@ export interface TicketHistoryEntry {
   timestamp: string;
 }
 
-export type PenaltyType = 'CashFine' | 'BloodDonation' | 'CommunityService'
+export type PenaltyType = "CashFine" | "BloodDonation" | "CommunityService";
 
 export interface TicketSummary {
   id: number;
@@ -161,18 +155,18 @@ export interface TicketSummary {
   severity: Severity;
   penaltyType: PenaltyType;
   totalPaymentAmount: number;
-  issuedAt: Date
+  issuedAt: Date;
 }
 
 export interface TicketStats {
   totalTicketsThisMonth: number;
   ticketChangePercentage: number;
-  pendingPaymentsThisMonth: number; 
+  pendingPaymentsThisMonth: number;
   paymentsChangePercentage: number;
   resolvedViolationsThisMonth: number;
   resolutionRate: number;
   highSeveritiesThisMonth: number;
-  highSeveritiesChangePercentage: number
+  highSeveritiesChangePercentage: number;
 }
 
 export interface Violation {
@@ -182,7 +176,7 @@ export interface Violation {
   ordinanceNo: string;
   ordinanceCode: string;
   offenseCount: number;
-  penaltyAmount?: number
+  penaltyAmount?: number;
 }
 
 export interface TicketDetail {
@@ -191,8 +185,8 @@ export interface TicketDetail {
   enforcerLastName: string;
   enforcerFirstName: string;
   vendorId: number;
-  controlNumber?: string
-  type: 'Warning' | 'Ticket';
+  controlNumber?: string;
+  type: "Warning" | "Ticket";
   stallNumber: string;
   businessName: string;
   lastName: string;

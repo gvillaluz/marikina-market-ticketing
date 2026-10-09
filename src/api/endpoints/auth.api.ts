@@ -3,6 +3,8 @@ import type {
   AuthResponse,
   LoginInput,
   LoginResponse,
+  VerifyLoginInput,
+  VerifyLoginResponse,
   RegisterInput,
   User,
   UserProfileResponse,
@@ -46,6 +48,13 @@ export const authApi = {
 
   async register(input: RegisterInput): Promise<AuthResponse> {
     const { data } = await client.post<AuthResponse>("/auth/register", input);
+    return data;
+  },
+  async verifyLogin(input: VerifyLoginInput): Promise<VerifyLoginResponse> {
+    const { data } = await client.post<VerifyLoginResponse>(
+      "/auth/verify-login",
+      input,
+    );
     return data;
   },
 

@@ -3,14 +3,11 @@ import type { TicketDetail } from "@/api/types/ticket.types";
 export function getTicketTotalFineAmount(
   ticket: TicketDetail | undefined,
 ): number | null {
-  const amounts = [
-    ticket?.totalFineAmount,
-    ticket?.totalFineDue,
-    ticket?.totalPaymentAmount,
-  ];
+  const amounts = [ticket?.totalFineDue, ticket?.totalFineAmount];
   return (
     amounts.find(
-      (amount): amount is number => typeof amount === "number" && amount > 0,
+      (amount): amount is number =>
+        typeof amount === "number" && Number.isFinite(amount) && amount >= 0,
     ) ?? null
   );
 }

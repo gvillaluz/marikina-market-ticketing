@@ -1,5 +1,6 @@
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import { AlertTriangle, ArrowLeft, CircleAlert, Info } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { ROUTES } from "@/routes/routePaths";
@@ -12,7 +13,7 @@ import {
 import { useAdminVendorRegistrationReview } from "../hooks/useAdminVendorRegistrationReview";
 import ReviewApplicantHeader from "./review/ReviewApplicantHeader";
 import ReviewSkeleton from "./review/ReviewSkeleton";
-import styles from "./review/AdminVendorRegistrationActionPage.module.css";
+import styles from "./AdminVendorRegistrationActionPage.module.css";
 
 function getModeTitle(mode: RegistrationActionMode) {
   if (mode === "approve") return "Approve Registration";
@@ -39,6 +40,7 @@ export default function AdminVendorRegistrationActionPage({
   const navigate = useNavigate();
   const registrationId = Number(rawId);
   const review = useAdminVendorRegistrationReview(registrationId);
+  const action = useAdminVendorRegistrationAction(mode, review.details);
   const options = mode === "decline" ? DECLINE_OPTIONS : INFORMATION_OPTIONS;
 
   if (!Number.isInteger(registrationId) || registrationId < 1) {
@@ -73,19 +75,19 @@ export default function AdminVendorRegistrationActionPage({
   }
 
   const details = review.details;
-  const action = useAdminVendorRegistrationAction(mode, details);
 
   return (
     <div className={`${styles.page} ${styles[mode]}`}>
-      <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-        <Link to={ROUTES.adminVendorRegistrations}>Vendor Records</Link>
-        <span>›</span>
-        <Link to={ROUTES.adminVendorRegistration(String(registrationId))}>
-          REG-{String(registrationId).padStart(4, "0")}
-        </Link>
-        <span>›</span>
-        <span>{getModeTitle(mode)}</span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Vendor Records", to: ROUTES.adminVendorRegistrations },
+          {
+            label: `REG-${String(registrationId).padStart(4, "0")}`,
+            to: ROUTES.adminVendorRegistration(String(registrationId)),
+          },
+          { label: getModeTitle(mode) },
+        ]}
+      />
 
       <header className={styles.header}>
         <h1>{getModeTitle(mode)}</h1>
@@ -114,6 +116,7 @@ export default function AdminVendorRegistrationActionPage({
                       name="reviewReason"
                       value={option.value}
                       checked={action.selectedReason === option.value}
+                      disabled={action.isSubmitting || !action.canSubmit}
                       onChange={(event) =>
                         action.setSelectedReason(event.target.value)
                       }
@@ -161,6 +164,7 @@ export default function AdminVendorRegistrationActionPage({
                   onChange={(event) => action.setRemarks(event.target.value)}
                   placeholder="Write the details the applicant needs to know."
                   maxLength={2000}
+                  disabled={action.isSubmitting || !action.canSubmit}
                 />
               </label>
               <small>{action.remarks.length}/2000 characters</small>
@@ -168,9 +172,25 @@ export default function AdminVendorRegistrationActionPage({
           )}
 
           {action.submitError && (
-            <p className={styles.error}>{action.submitError}</p>
+            <div className={styles.error} role="alert">
+              <p>{action.submitError}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={action.isSubmitting}
+                onClick={() => void review.refetch()}
+              >
+                Reload latest details
+              </Button>
+            </div>
           )}
 
+          {!action.canSubmit && (
+            <p className={styles.error} role="status">
+              This request is already processed or its version is unavailable.
+              Return to the review page and reload the latest details.
+            </p>
+          )}
           <footer className={styles.actions}>
             <span>
               <Info size={13} /> The request and selected decision are recorded
@@ -182,6 +202,7 @@ export default function AdminVendorRegistrationActionPage({
                 size="sm"
                 icon={<ArrowLeft size={14} />}
                 onClick={action.cancel}
+                disabled={action.isSubmitting}
               >
                 Cancel
               </Button>
@@ -189,6 +210,7 @@ export default function AdminVendorRegistrationActionPage({
                 variant={mode === "decline" ? "danger" : "primary"}
                 size="sm"
                 loading={action.isSubmitting}
+                disabled={!action.canSubmit}
                 onClick={() =>
                   mode === "approve"
                     ? action.setShowApprovalModal(true)
@@ -229,7 +251,9 @@ export default function AdminVendorRegistrationActionPage({
 
       <Modal
         open={action.showApprovalModal}
-        onClose={() => action.setShowApprovalModal(false)}
+        onClose={() => {
+          if (!action.isSubmitting) action.setShowApprovalModal(false);
+        }}
         title="Approve registration?"
         subtitle="This action will create the vendor account."
         footer={
@@ -238,12 +262,14 @@ export default function AdminVendorRegistrationActionPage({
               variant="ghost"
               size="sm"
               onClick={() => action.setShowApprovalModal(false)}
+              disabled={action.isSubmitting}
             >
               Cancel
             </Button>
             <Button
               size="sm"
               loading={action.isSubmitting}
+              disabled={!action.canSubmit}
               onClick={() => void action.submit()}
             >
               Confirm Approval

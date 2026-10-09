@@ -10,11 +10,13 @@ const STEPS = [
 interface RegistrationStepperProps {
   currentStep: number;
   onStepClick: (step: number) => void;
+  disabled?: boolean;
 }
 
 export default function RegistrationStepper({
   currentStep,
   onStepClick,
+  disabled = false,
 }: RegistrationStepperProps) {
   return (
     <nav aria-label="Registration steps">
@@ -27,7 +29,9 @@ export default function RegistrationStepper({
             styles.step,
             isCurrent ? styles.current : "",
             isComplete ? styles.complete : "",
-          ].filter(Boolean).join(" ");
+          ]
+            .filter(Boolean)
+            .join(" ");
 
           return (
             <li className={itemClass} key={label}>
@@ -35,15 +39,23 @@ export default function RegistrationStepper({
                 <button
                   type="button"
                   className={styles.stepButton}
+                  disabled={disabled}
                   onClick={() => onStepClick(step)}
                   aria-label={`Go back to ${label}`}
                 >
-                  <span className={styles.number} aria-hidden="true">{step}</span>
+                  <span className={styles.number} aria-hidden="true">
+                    {step}
+                  </span>
                   <span>{label}</span>
                 </button>
               ) : (
-                <span className={styles.stepLabel} aria-current={isCurrent ? "step" : undefined}>
-                  <span className={styles.number} aria-hidden="true">{step}</span>
+                <span
+                  className={styles.stepLabel}
+                  aria-current={isCurrent ? "step" : undefined}
+                >
+                  <span className={styles.number} aria-hidden="true">
+                    {step}
+                  </span>
                   <span>{label}</span>
                 </span>
               )}

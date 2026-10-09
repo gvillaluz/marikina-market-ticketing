@@ -1,3 +1,4 @@
+import type { UserRole } from "./common.types";
 import { AccountStatus } from "./common.types";
 import { TicketType } from "./ticket.types";
 
@@ -40,7 +41,7 @@ export interface EnforcerProfile {
   phoneNumber: string;
   email: string;
   status: AccountStatus;
-  role: "MarketAdmin" | "HeadAdmin" | "Enforcer";
+  role: UserRole;
   hiredAt: Date;
   profileUrl: string;
   lastInspectionDate: Date;

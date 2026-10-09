@@ -1,20 +1,7 @@
-import { TicketStatus } from "@/features/tickets/tickets.types";
+
 import apiClient from "../client";
 import type { PaginatedResponse, RecordStatus } from "../types/common.types";
-import type {
-  InspectionRecord,
-  WarningRecord,
-  TicketRecord,
-  PrintConfigPayload,
-  ExportResult,
-  CreateTicketPayload,
-  TicketListResponse,
-  TicketHistoryEntry,
-  TicketSummary,
-  TicketStats,
-  TicketDetail,
-  InspectionSummary,
-} from "../types/ticket.types";
+import type { InspectionRecord, WarningRecord, TicketRecord, PrintConfigPayload, ExportResult, TicketHistoryEntry, TicketSummary, TicketStats, TicketDetail, InspectionSummary } from "../types/ticket.types";
 
 interface GetInspectionsParams {
   search?: string;

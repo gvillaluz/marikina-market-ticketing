@@ -3,12 +3,12 @@
   background-color: var(--primary);
   color: var(--text-on-primary);
   height: 100vh;
+  height: 100dvh;
   position: sticky;
   top: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 1.25rem 0.875rem 1rem;
+  padding: 1.25rem var(--sidebar-content-inset) 1rem;
   flex-shrink: 0;
   z-index: 200;
   transition:
@@ -21,8 +21,35 @@
 }
 
 .sidebarContent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   min-height: 0;
+  margin-inline: calc(-1 * var(--sidebar-content-inset));
+  padding-inline: var(--sidebar-content-inset);
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) transparent;
+}
+
+.sidebarContent::-webkit-scrollbar {
+  width: var(--sidebar-scrollbar-width);
+}
+.sidebarContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebarContent::-webkit-scrollbar-thumb {
+  border-radius: var(--market-radius-pill);
+  background: var(--text-muted);
+}
+.sidebarContent::-webkit-scrollbar-thumb:hover {
+  background: var(--text-on-primary);
+}
+
+.sidebarContent:focus-visible {
+  outline: 2px solid var(--text-on-primary);
+  outline-offset: -2px;
 }
 
 .collapsed .brand {
@@ -57,6 +84,7 @@
 
 .brand {
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
@@ -94,6 +122,7 @@
 }
 
 .section {
+  flex-shrink: 0;
   margin-top: 1.5rem;
 }
 
@@ -138,7 +167,10 @@
 }
 
 .footer {
-  padding: 0.25rem;
+  margin-top: auto;
+  flex-shrink: 0;
+  padding: var(--ordinance-space-lg) var(--ordinance-space-xs)
+    var(--ordinance-space-xs);
 }
 
 .userPill {
@@ -240,7 +272,7 @@
   padding: 0.625rem 0.75rem;
   border-radius: 8px;
   background-color: var(--text-on-primary);
-  color: var(--primary);
+  color: var(--button-primary);
   font-weight: 700;
   font-size: 0.875rem;
   transition: background-color 0.12s ease;

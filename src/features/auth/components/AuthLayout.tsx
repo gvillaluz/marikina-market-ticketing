@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { FC, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
@@ -15,11 +16,11 @@ const AuthLayout: FC<AuthLayoutProps> = ({
   children,
 }) => {
   return (
-    <div className={`route-motion ${styles.page}`}>
+    <div className={styles.page}>
       {showBackHome && (
         <div className={styles.backHomeWrapper}>
           <Link to="/" className={styles.backHome}>
-            <span aria-hidden>←</span> Back Home
+            <ArrowLeft size={16} aria-hidden="true" /> Back Home
           </Link>
         </div>
       )}
@@ -40,9 +41,7 @@ const AuthLayout: FC<AuthLayoutProps> = ({
             <p className={styles.brandSubtext}>{subtext}</p>
           </div>
 
-          <div className={styles.formPanel}>
-            {children}
-          </div>
+          <div className={styles.formPanel}>{children}</div>
         </div>
       </div>
     </div>

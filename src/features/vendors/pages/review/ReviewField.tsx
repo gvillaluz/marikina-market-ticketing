@@ -1,4 +1,4 @@
-import styles from "../AdminVendorRegistrationReviewPage.module.css";
+import styles from "./ReviewField.module.css";
 
 function displayValue(value: string | number | null | undefined) {
   if (value === null || value === undefined || value === "") return "N/A";

@@ -92,7 +92,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #145391;
+  color: var(--button-primary);
   font: inherit;
   font-weight: 700;
   cursor: pointer;

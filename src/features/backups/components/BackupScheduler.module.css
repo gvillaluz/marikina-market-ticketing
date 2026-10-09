@@ -1,0 +1,190 @@
+.card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  min-height: var(--backup-card-height);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--backup-space-md);
+  margin: 0 var(--backup-space-xl);
+  padding: var(--backup-space-lg) 0;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--backup-icon-size);
+  height: var(--backup-icon-size);
+  border-radius: var(--backup-control-radius);
+  color: var(--backup-schedule-icon);
+  background: var(--backup-icon-surface);
+}
+
+.heading {
+  flex: 1;
+  min-width: 0;
+}
+.heading h2 {
+  font-size: var(--backup-font-heading);
+  font-weight: 600;
+}
+.heading p {
+  margin-top: var(--backup-space-xs);
+  font-size: var(--backup-font-caption);
+  color: var(--text-body);
+}
+
+.toggle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 2px;
+  width: var(--backup-switch-width);
+  height: var(--backup-switch-height);
+  border: 0;
+  border-radius: var(--backup-pill-radius);
+  background: var(--text-muted);
+}
+
+.toggle span {
+  width: var(--backup-switch-knob);
+  height: var(--backup-switch-knob);
+  border-radius: var(--backup-pill-radius);
+  background: var(--bg-surface);
+}
+.toggle[aria-checked="true"] {
+  justify-content: flex-end;
+  background: var(--backup-action);
+}
+.toggle:hover:not(:disabled) {
+  box-shadow: var(--shadow-md);
+}
+.toggle:disabled {
+  cursor: not-allowed;
+  opacity: var(--backup-disabled-opacity);
+}
+
+.form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: var(--backup-space-lg) var(--backup-space-xl) var(--backup-space-xl);
+}
+.fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--backup-space-md);
+}
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--backup-space-sm);
+  font-size: var(--backup-font-caption);
+  color: var(--text-body);
+}
+.field input,
+.field > div > button {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--backup-space-sm) var(--backup-space-md);
+  width: 100%;
+  min-width: 0;
+  height: var(--backup-control-height);
+  border: 1px solid var(--border-default);
+  border-radius: var(--backup-control-radius);
+  font-size: var(--backup-font-small);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-heading);
+  background: var(--bg-surface);
+  box-shadow: none;
+}
+.field input {
+  color-scheme: light;
+}
+.field > div > button > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field input:hover:not(:disabled),
+.field > div > button:hover:not(:disabled) {
+  border-color: var(--backup-action);
+  background: var(--backup-info-surface);
+}
+.field input:disabled,
+.field > div > button:disabled {
+  color: var(--text-body);
+  background: var(--bg-page);
+  cursor: not-allowed;
+  opacity: 1;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--backup-space-md);
+  margin-top: var(--backup-space-lg);
+}
+.timezone {
+  font-size: var(--backup-font-micro);
+  color: var(--text-body);
+}
+.save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: var(--backup-space-sm) var(--backup-space-lg);
+  min-height: var(--backup-control-height);
+  border: 1px solid var(--backup-action);
+  border-radius: var(--backup-control-radius);
+  font-size: var(--backup-font-small);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-on-primary);
+  background: var(--backup-action);
+}
+.save:hover:not(:disabled) {
+  border-color: var(--backup-action-hover);
+  background: var(--backup-action-hover);
+}
+.save:disabled {
+  border-color: var(--border-default);
+  color: var(--text-body);
+  background: var(--bg-page);
+  cursor: not-allowed;
+  opacity: 1;
+}
+.save:focus-visible,
+.toggle:focus-visible,
+.field input:focus-visible {
+  outline: 2px solid var(--backup-action);
+  outline-offset: 2px;
+}
+.field > div > button:focus-visible {
+  outline: 2px solid var(--backup-action);
+  outline-offset: 2px;
+}
+
+@media (min-width: 600px) {
+  .fields {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .fields:has([id="backup-weekday"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -187,6 +187,10 @@ export interface RegistrationDeclineRequest
 }
 
 export interface RegistrationApprovalResponse {
+  registrationId: number;
+  vendorStatus: "Active" | "Inactive";
+  reviewedAt: string;
+  emailSent: boolean;
   userId: number;
   vendorId: number;
   firstName: string;
@@ -196,12 +200,14 @@ export interface RegistrationApprovalResponse {
   marketSectionId: number;
   marketSectionName: string;
   adminId: number;
-  status: string | number;
+  status: "Approved";
   createdAt: string;
   version: number;
 }
 
 export interface RegistrationDeclinedResponse {
+  status: "Rejected" | "NeedsInformation";
+  emailSent: boolean;
   registrationId: number;
   firstName: string;
   middleName: string | null;

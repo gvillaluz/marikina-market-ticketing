@@ -1,0 +1,27 @@
+.section {
+  composes: surface from "./RegistrationLayout.module.css";
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  overflow: hidden;
+}
+.skeletonFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xl);
+  margin-top: var(--space-md);
+}
+.skeletonFields > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.sixColumns,
+.threeColumns {
+  min-width: 0;
+}
+@media (min-width: 1000px) {
+  .skeletonFields {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -1,15 +1,22 @@
+import {
+  ADMIN_ROLES,
+  HEAD_ADMIN_ROLES,
+  STAFF_ROLES,
+  USER_ROLE_LABELS,
+  type UserRole,
+} from "@/api/types/common.types";
 import { FC, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./Sidebar.module.css";
-import { Settings } from "lucide-react";
+import { Settings, UsersRound } from "lucide-react";
 
 interface NavItem {
   to: string;
   label: string;
   icon: JSX.Element;
-  allowedRoles: ("Admin" | "Enforcer" | "Vendor")[];
+  allowedRoles: readonly UserRole[];
 }
 
 const HouseIcon = (
@@ -115,23 +122,6 @@ const BarChartIcon = (
   </svg>
 );
 
-const ChartIcon = (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="20" x2="18" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="6" y1="20" x2="6" y2="14" />
-  </svg>
-);
-
 const SettingsIcon = <Settings size={18} strokeWidth={2} />;
 
 const NAV_ITEMS: NavItem[] = [
@@ -139,55 +129,61 @@ const NAV_ITEMS: NavItem[] = [
     to: "/dashboard",
     label: "Dashboard",
     icon: HouseIcon,
-    allowedRoles: ["Admin", "Enforcer"],
+    allowedRoles: STAFF_ROLES,
   },
   {
     to: "/inspections",
     label: "Inspections",
     icon: DocumentIcon,
-    allowedRoles: ["Admin", "Enforcer"],
+    allowedRoles: STAFF_ROLES,
   },
   {
     to: "/tickets",
     label: "Tickets",
     icon: TicketIcon,
-    allowedRoles: ["Admin", "Enforcer"],
+    allowedRoles: STAFF_ROLES,
   },
   {
     to: "/enforcers",
     label: "Enforcers",
     icon: EnforcerIcon,
-    allowedRoles: ["Admin"],
+    allowedRoles: STAFF_ROLES,
   },
   {
     to: "/admin/vendors",
     label: "Vendors",
     icon: VendorIcon,
-    allowedRoles: ["Admin"],
+    allowedRoles: ADMIN_ROLES,
   },
   {
     to: "/admin/vendor-registrations",
     label: "Registrants",
     icon: DocumentIcon,
-    allowedRoles: ["Admin"],
+    allowedRoles: ADMIN_ROLES,
   },
   {
     to: "/analytics",
     label: "Analytics",
     icon: BarChartIcon,
-    allowedRoles: ["Admin", "Enforcer"],
+    allowedRoles: ADMIN_ROLES,
   },
   {
-    to: "/performance",
-    label: "Performance",
-    icon: ChartIcon,
-    allowedRoles: ["Admin", "Enforcer"],
+    to: "/vendors",
+    label: "Vendors",
+    icon: VendorIcon,
+    allowedRoles: ["MarketEnforcer", "MarketVendor"],
+  },
+  {
+    to: "/admin/accounts",
+    label: "Accounts",
+    icon: <UsersRound size={18} strokeWidth={2} />,
+    allowedRoles: HEAD_ADMIN_ROLES,
   },
   {
     to: "/system/configuration",
     label: "Configurations",
     icon: SettingsIcon,
-    allowedRoles: ["Admin"],
+    allowedRoles: HEAD_ADMIN_ROLES,
   },
 ];
 
@@ -216,78 +212,81 @@ const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
         className={`${styles.sidebar} ${open ? styles.open : ""} ${collapsed ? styles.collapsed : ""}`}
       >
         {/* Brand / seal */}
-        <div>
-          <div className={styles.brand}>
-            <img
-              className={styles.seal}
-              src={citySeal}
-              alt="Marikina City seal"
-            />
-            <div>
-              <div className={styles.brandText}>
-                Marikina Public Market Inspection System
-              </div>
-              <div className={styles.brandSub}>Admin Access</div>
+        <div className={styles.brand}>
+          <img
+            className={styles.seal}
+            src={citySeal}
+            alt="Marikina City seal"
+          />
+          <div>
+            <div className={styles.brandText}>
+              Marikina Public Market Inspection System
             </div>
-          </div>
-
-          {/* Navigation */}
-          <div className={styles.sidebarContent}>
-            <div className={styles.section}>
-              <nav className={styles.nav}>
-                {visibleItems.map((item) => {
-                  const isActive = location.pathname === item.to;
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      className={`${styles.link} ${isActive ? styles.active : ""}`}
-                      onClick={onClose}
-                      title={item.label}
-                    >
-                      <span className={styles.linkIcon}>{item.icon}</span>
-                      <span className={styles.linkLabel}>{item.label}</span>
-                    </NavLink>
-                  );
-                })}
-              </nav>
-            </div>
+            <div className={styles.brandSub}>Admin Access</div>
           </div>
         </div>
 
-        {/* Footer — user pill + log out */}
-        <div className={styles.footer}>
-          <div className={styles.userPill}>
-            {user?.profileUrl && !profileImageFailed ? (
-              <img
-                className={styles.userAvatar}
-                src={user.profileUrl}
-                alt={`${fullName} profile`}
-                onError={() => setProfileImageFailed(true)}
-              />
-            ) : (
-              <div className={styles.userAvatar} aria-hidden="true">
-                {[user?.firstName, user?.lastName]
-                  .filter(Boolean)
-                  .map((part) => part?.[0])
-                  .join("")
-                  .toUpperCase() || "U"}
-              </div>
-            )}
-            <div className={styles.userDetails}>
-              <span className={styles.userName}>{fullName}</span>
-              <span className={styles.userMeta}>
-                {user?.username ?? "user"}
-              </span>
-              <span className={styles.userEmail}>{user?.email}</span>
-              <span className={styles.userRole}>
-                {user?.role ?? "—"} · {user?.status}
-              </span>
-            </div>
+        {/* Navigation */}
+        <div
+          className={styles.sidebarContent}
+          role="region"
+          aria-label="Sidebar navigation and account"
+          tabIndex={0}
+        >
+          <div className={styles.section}>
+            <nav className={styles.nav}>
+              {visibleItems.map((item) => {
+                const isActive = location.pathname === item.to;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={`${styles.link} ${isActive ? styles.active : ""}`}
+                    onClick={onClose}
+                    title={item.label}
+                  >
+                    <span className={styles.linkIcon}>{item.icon}</span>
+                    <span className={styles.linkLabel}>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
           </div>
-          <button className={styles.logoutBtn} onClick={logout}>
-            Log Out
-          </button>
+          {/* Footer — user pill + log out */}
+          <div className={styles.footer}>
+            <div className={styles.userPill}>
+              {user?.profileUrl && !profileImageFailed ? (
+                <img
+                  className={styles.userAvatar}
+                  src={user.profileUrl}
+                  alt={`${fullName} profile`}
+                  onError={() => setProfileImageFailed(true)}
+                />
+              ) : (
+                <div className={styles.userAvatar} aria-hidden="true">
+                  {[user?.firstName, user?.lastName]
+                    .filter(Boolean)
+                    .map((part) => part?.[0])
+                    .join("")
+                    .toUpperCase() || "U"}
+                </div>
+              )}
+              <div className={styles.userDetails}>
+                <span className={styles.userName}>{fullName}</span>
+                <span className={styles.userMeta}>
+                  {user?.username ?? "user"}
+                </span>
+                <span className={styles.userEmail}>{user?.email}</span>
+                <span className={styles.userRole}>
+                  {user?.role ? USER_ROLE_LABELS[user.role] : "—"} ·{" "}
+                  {user?.status}
+                </span>
+              </div>
+            </div>
+            <button className={styles.logoutBtn} onClick={logout}>
+              Log Out
+            </button>
+          </div>
         </div>
       </aside>
     </>

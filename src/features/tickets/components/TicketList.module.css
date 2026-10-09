@@ -4,7 +4,11 @@
   gap: 1rem;
 }
 
-.actions { display: flex; gap: .25rem; white-space: nowrap; }
+.actions {
+  display: flex;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
 
 .status {
   border-width: 2px;
@@ -16,12 +20,36 @@
   padding: 5px 15px;
 }
 
-.pending { color: #D97706; background-color: #FFFBEB; border-color: #F4D3A6; }
-.paid { color: #3B82F6; background-color: #DBEAFE; border-color: #ABCBFC; }
-.overdue { color: #EF4444; background-color: #FEF2F2; border-color: #FABEBE; }
-.contested { color: #EA580C; background-color: #FFF7ED; border-color: #F9C7AA; }
-.waived { color: #9333EA; background-color: #FAF5FF; border-color: #DBBBF9; }
-.cleared { color: #8F0058; background-color: #FDF0F8; border-color: #DCA8C8; }
+.pending {
+  color: #d97706;
+  background-color: #fffbeb;
+  border-color: #f4d3a6;
+}
+.paid {
+  color: #3b82f6;
+  background-color: #dbeafe;
+  border-color: #abcbfc;
+}
+.overdue {
+  color: #ef4444;
+  background-color: #fef2f2;
+  border-color: #fabebe;
+}
+.contested {
+  color: #ea580c;
+  background-color: #fff7ed;
+  border-color: #f9c7aa;
+}
+.waived {
+  color: #9333ea;
+  background-color: #faf5ff;
+  border-color: #dbbbf9;
+}
+.cleared {
+  color: #8f0058;
+  background-color: #fdf0f8;
+  border-color: #dca8c8;
+}
 
 .statusIcon {
   display: block;
@@ -31,26 +59,47 @@
   stroke: currentColor;
 }
 
-.statusIcon.pending { fill: #D97706; }
-.statusIcon.paid { fill: #3B82F6; }
-.statusIcon.overdue { fill: #EF4444; }
-.statusIcon.contested { fill: #EA580C; }
-.statusIcon.waived { fill: #9333EA; }
-.statusIcon.cleared { fill: #8F0058; }
+.statusIcon.pending {
+  fill: #d97706;
+}
+.statusIcon.paid {
+  fill: #3b82f6;
+}
+.statusIcon.overdue {
+  fill: #ef4444;
+}
+.statusIcon.contested {
+  fill: #ea580c;
+}
+.statusIcon.waived {
+  fill: #9333ea;
+}
+.statusIcon.cleared {
+  fill: #8f0058;
+}
 
-.severity { 
-  display: flex; 
-  border-radius: 999px; 
-  padding: .5em 1em; 
-  font-size: .72rem; 
-  text-transform: capitalize; 
-  font-weight: 600; 
+.severity {
+  display: flex;
+  border-radius: 999px;
+  padding: 0.5em 1em;
+  font-size: 0.72rem;
+  text-transform: capitalize;
+  font-weight: 600;
   justify-content: center;
   align-items: center;
 }
-.minor { color: #3F8F0A; background-color: #DFF3CC; }
-.moderate { color: #A66F00; background-color: #FFEBB0; }
-.high { color: #D6001C; background-color: #FFD3D8; }
+.minor {
+  color: #3f8f0a;
+  background-color: #dff3cc;
+}
+.moderate {
+  color: #a66f00;
+  background-color: #ffebb0;
+}
+.high {
+  color: #d6001c;
+  background-color: #ffd3d8;
+}
 
 .span {
   font-weight: bold;
@@ -71,7 +120,12 @@
 
 .skeleton {
   height: 200px;
-  background: linear-gradient(90deg, var(--neutral-100) 25%, var(--neutral-50) 50%, var(--neutral-100) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--neutral-100) 25%,
+    var(--neutral-50) 50%,
+    var(--neutral-100) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite;
   border-radius: var(--radius-md);
@@ -80,16 +134,23 @@
 .actionBtn {
   border: 2px solid;
   border-radius: 10px;
-  color: #00488F;
+  color: var(--button-primary);
   padding: 9px 10px;
-  transition: .1s ease-in-out background;
+  transition: 0.1s ease-in-out background;
 }
 
-.view { border-color: #B8D7F5; background-color: #F4F8FE; }
-.change { border-color: #00488F; background-color: #00488F; color: #F4F8FE; }
+.view {
+  border-color: #b8d7f5;
+  background-color: #f4f8fe;
+}
+.change {
+  border-color: var(--button-primary);
+  background-color: var(--button-primary);
+  color: #f4f8fe;
+}
 
 .actionBtn.change:hover {
-  background-color: #00488fcc;
+  background-color: var(--button-primary-hover);
 }
 
 @keyframes shimmer {

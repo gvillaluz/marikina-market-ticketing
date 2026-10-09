@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { useRecoveryLookup } from "../../hooks/useRecoveryLookup";
 import { UserRound } from "lucide-react";
 import styles from "./AccountLookupPage.module.css";
 
@@ -13,37 +13,46 @@ const AccountLookupPage = ({
   initialError,
   onContinue,
 }: AccountLookupPageProps) => {
-  const [username, setUsername] = useState(initialUsername);
-  const [error, setError] = useState(initialError);
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!username.trim()) {
-      setError("Enter your username.");
-      return;
-    }
-    onContinue(username.trim());
-  };
+  const { username, error, changeUsername, submit } = useRecoveryLookup(
+    initialUsername,
+    initialError,
+    onContinue,
+  );
 
   return (
     <>
-      <p className={styles.description}>Please enter your username.</p>
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <p id="recovery-lookup-description" className={styles.description}>
+        Please enter your username.
+      </p>
+      <form className={styles.form} onSubmit={submit}>
         <label className={styles.label}>
           Username
           <span className={styles.inputWrap}>
-            <UserRound className={styles.inputIcon} size={16} />
+            <UserRound
+              className={styles.inputIcon}
+              size={16}
+              aria-hidden="true"
+            />
             <input
               autoComplete="username"
+              maxLength={200}
+              aria-invalid={Boolean(error)}
+              aria-describedby={
+                error ? "recovery-lookup-error" : "recovery-lookup-description"
+              }
               autoFocus
               className={styles.input}
               value={username}
-              onChange={(event) => setUsername(event.target.value)}
+              onChange={(event) => changeUsername(event.target.value)}
               placeholder="Enter your username"
             />
           </span>
         </label>
-        {error && <p className={styles.error} role="alert">{error}</p>}
+        {error && (
+          <p id="recovery-lookup-error" className={styles.error} role="alert">
+            {error}
+          </p>
+        )}
         <button className={styles.primaryButton} type="submit">
           Continue
         </button>

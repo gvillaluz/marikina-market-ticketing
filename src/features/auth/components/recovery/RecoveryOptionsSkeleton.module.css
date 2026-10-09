@@ -1,0 +1,6 @@
+.description {
+  composes: description from "./RecoveryForm.module.css";
+}
+.options {
+  composes: optionList from "./RecoveryOptionsPage.module.css";
+}

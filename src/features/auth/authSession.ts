@@ -24,39 +24,29 @@ export class RefreshSessionExpiredError extends Error {
 }
 
 let sessionVersion = 0;
-let refreshRequest: { version: number; promise: Promise<TokenRefreshResponse> } | null = null;
+let authSession: StoredAuthSession | null = null;
+let refreshRequest: {
+  version: number;
+  promise: Promise<TokenRefreshResponse>;
+} | null = null;
 
-export function storeAuthSession(
-  accessToken: string,
-): void {
+export function storeAuthSession(accessToken: string): void {
   if (!accessToken || !getAccessTokenExpiration(accessToken)) {
     throw new Error("The server returned an invalid access token.");
   }
 
   const session: StoredAuthSession = { accessToken };
-  sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+  authSession = session;
   sessionVersion += 1;
 }
 
 export function getStoredAuthSession(): StoredAuthSession | null {
-  const storedValue = sessionStorage.getItem(AUTH_SESSION_KEY);
-  if (!storedValue) return null;
-
-  try {
-    const session = JSON.parse(storedValue) as Partial<StoredAuthSession>;
-    if (typeof session.accessToken !== "string" || !session.accessToken) {
-      clearAuthSession();
-      return null;
-    }
-
-    return { accessToken: session.accessToken };
-  } catch {
-    clearAuthSession();
-    return null;
-  }
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
+  return authSession ? { ...authSession } : null;
 }
 
 export function clearAuthSession(): void {
+  authSession = null;
   sessionStorage.removeItem(AUTH_SESSION_KEY);
   sessionVersion += 1;
 }
@@ -73,7 +63,8 @@ export function getAccessTokenExpiration(accessToken: string): number | null {
 }
 
 export function invalidateAuthSession(expectedVersion?: number): void {
-  if (expectedVersion !== undefined && expectedVersion !== sessionVersion) return;
+  if (expectedVersion !== undefined && expectedVersion !== sessionVersion)
+    return;
   clearAuthSession();
   useAuthStore.getState().logout();
 }
@@ -124,11 +115,9 @@ async function requestWebAccessToken(
     const updatedSession: StoredAuthSession = {
       accessToken: refreshed.accessToken,
     };
-    sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(updatedSession));
+    authSession = updatedSession;
     useAuthStore.getState().setAccessToken(refreshed.accessToken);
-    useAuthStore
-      .getState()
-      .setMustChangePassword(refreshed.mustChangePassword);
+    useAuthStore.getState().setMustChangePassword(refreshed.mustChangePassword);
     return refreshed;
   } catch (error) {
     if (error instanceof RefreshSessionExpiredError) throw error;

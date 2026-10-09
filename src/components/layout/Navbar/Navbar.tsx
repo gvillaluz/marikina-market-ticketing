@@ -1,8 +1,7 @@
-import { FC } from 'react';
-import { Link } from 'react-router-dom';
-import { Bell, UserRound } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import styles from './Navbar.module.css';
+import { FC } from "react";
+import { Link } from "react-router-dom";
+import { Bell, UserRound } from "lucide-react";
+import styles from "./Navbar.module.css";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -10,18 +9,13 @@ interface NavbarProps {
 }
 
 const Navbar: FC<NavbarProps> = ({ onMenuClick, sidebarCollapsed }) => {
-  const { user } = useAuth();
-  const userName = user
-    ? [user.firstName, user.lastName].filter(Boolean).join(' ')
-    : '';
-
   return (
     <header className={styles.navbar}>
       <div className={styles.left}>
         <button
           className={styles.menuBtn}
           onClick={onMenuClick}
-          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-expanded={!sidebarCollapsed}
         >
           <span className={styles.hamburger} />
@@ -36,12 +30,19 @@ const Navbar: FC<NavbarProps> = ({ onMenuClick, sidebarCollapsed }) => {
           <Bell size={18} strokeWidth={1.8} aria-hidden="true" />
         </Link>
         <div className={styles.divider} />
-        <div className={styles.user}>
-          <UserRound className={styles.profileIcon} size={20} strokeWidth={1.8} aria-hidden="true" />
-          <div className={styles.userMeta}>
-            <span className={styles.userName}>{userName}</span>
-          </div>
-        </div>
+        <span
+          className={styles.profile}
+          role="img"
+          aria-label="Profile"
+          title="Profile"
+        >
+          <UserRound
+            className={styles.profileIcon}
+            size={24}
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+        </span>
       </div>
     </header>
   );

@@ -5,18 +5,14 @@
   color: #17324f;
 }
 
-.breadcrumb {
-  display: none;
-}
-
-.breadcrumb span {
-  color: #94a0b2;
-  font-size: var(--market-font-size-heading);
+.page .header {
+  align-items: flex-end;
+  align-items: last baseline;
 }
 
 .createVendorButton {
   border-radius: var(--market-radius-button) !important;
-  background-color: var(--info) !important;
+  background-color: var(--backup-action) !important;
   padding-inline: 1rem !important;
   padding-block: 0.5625rem !important;
   font-size: var(--market-font-size-small) !important;
@@ -28,18 +24,17 @@
 
 @media (hover: hover) {
   .createVendorButton:hover {
-    background-color: var(--primary-hover) !important;
+    background-color: var(--backup-action-hover) !important;
   }
+}
+
+.createVendorButton:focus-visible {
+  outline: 2px solid var(--backup-action);
+  outline-offset: 2px;
 }
 
 @media (max-width: 640px) {
   .page {
     padding-bottom: 1rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .breadcrumb {
-    font-size: .72rem;
   }
 }

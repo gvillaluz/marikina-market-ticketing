@@ -1,0 +1,14 @@
+.row td {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-default);
+}
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}

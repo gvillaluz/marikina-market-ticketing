@@ -6,14 +6,16 @@ export function useAdminVendorRegistrationReview(registrationId: number) {
   const detailsQuery = useQuery({
     queryKey: ["admin-vendor-registration", registrationId],
     queryFn: () => adminVendorsApi.getRegistrationDetails(registrationId),
-    enabled: registrationId > 0,
+    enabled: Number.isSafeInteger(registrationId) && registrationId > 0,
   });
 
   const documentsQuery = useQuery({
     queryKey: ["admin-vendor-registration-documents", registrationId],
     queryFn: () => adminVendorsApi.getRegistrationDocuments(registrationId),
     enabled:
+      Number.isSafeInteger(registrationId) &&
       registrationId > 0 &&
+      detailsQuery.isSuccess &&
       !String(detailsQuery.data?.status ?? "")
         .toLowerCase()
         .includes("approve"),
@@ -21,6 +23,12 @@ export function useAdminVendorRegistrationReview(registrationId: number) {
 
   return {
     details: detailsQuery.data,
+    canDecide: Boolean(
+      detailsQuery.data &&
+        !["approved", "rejected"].includes(
+          String(detailsQuery.data.status).toLowerCase(),
+        ),
+    ),
     documents: documentsQuery.data ?? [],
     isLoading: detailsQuery.isLoading || documentsQuery.isLoading,
     isError: detailsQuery.isError || documentsQuery.isError,

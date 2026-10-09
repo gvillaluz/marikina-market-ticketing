@@ -1,5 +1,6 @@
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import { AlertTriangle, CircleAlert, RefreshCw } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { formatDateTime } from "@/utils/formatters";
 import { ROUTES } from "@/routes/routePaths";
@@ -73,11 +74,12 @@ export default function AdminVendorRegistrationReviewPage() {
 
   return (
     <div className={styles.page}>
-      <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-        <Link to={ROUTES.adminVendorRegistrations}>Vendor Records</Link>
-        <span>›</span>
-        <span>Review Vendor Registration</span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Vendor Records", to: ROUTES.adminVendorRegistrations },
+          { label: "Review Vendor Registration" },
+        ]}
+      />
       <header className={styles.pageHeader}>
         <h1>Review Vendor Registration</h1>
         <p>
@@ -195,6 +197,9 @@ export default function AdminVendorRegistrationReviewPage() {
               subtitle="Open the focused viewer for detailed inspection."
             >
               <div className={styles.documents}>
+                {documents.length === 0 && (
+                  <p>No supporting documents were supplied.</p>
+                )}
                 {documents.map((document) => (
                   <ReviewDocumentCard
                     key={`${document.documentType}-${document.fileName}`}
@@ -213,6 +218,7 @@ export default function AdminVendorRegistrationReviewPage() {
             <div>
               <Button
                 variant="danger"
+                disabled={!review.canDecide}
                 size="sm"
                 onClick={() =>
                   navigate(
@@ -226,6 +232,7 @@ export default function AdminVendorRegistrationReviewPage() {
               </Button>
               <Button
                 variant="outline"
+                disabled={!review.canDecide}
                 size="sm"
                 onClick={() =>
                   navigate(
@@ -239,6 +246,7 @@ export default function AdminVendorRegistrationReviewPage() {
               </Button>
               <Button
                 size="sm"
+                disabled={!review.canDecide}
                 onClick={() =>
                   navigate(
                     ROUTES.adminVendorRegistrationApprove(

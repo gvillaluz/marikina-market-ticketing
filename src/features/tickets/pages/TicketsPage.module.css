@@ -150,7 +150,7 @@
 .printButton:hover {
   border-color: #a9bfd9;
   background: #f3f7fc;
-  color: var(--primary);
+  color: var(--button-primary);
 }
 
 .pageButton {
@@ -162,13 +162,16 @@
   color: #43566d;
   font-size: 0.8rem;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .pageButton:hover:not(:disabled) {
   border-color: #a9bfd9;
   background: #f3f7fc;
-  color: var(--primary);
+  color: var(--button-primary);
 }
 
 .pageButton:disabled {
@@ -177,8 +180,8 @@
 }
 
 .currentPage {
-  border-color: var(--primary);
-  background: var(--primary);
+  border-color: var(--button-primary);
+  background: var(--button-primary);
   color: #fff;
 }
 
