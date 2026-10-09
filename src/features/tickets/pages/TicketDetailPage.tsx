@@ -1,5 +1,6 @@
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import { FC } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   User,
   ClipboardList,
@@ -101,15 +102,12 @@ const TicketDetailPage: FC = () => {
 
   return (
     <div className={styles.page}>
-      <div className={styles.breadcrumb}>
-        <Link to="/tickets" className={styles.breadcrumbLink}>
-          Tickets
-        </Link>
-        <span className={styles.breadcrumbSeparator}>›</span>
-        <span className={styles.breadcrumbCurrent}>
-          {formatControlNumber(ticket?.controlNumber)}
-        </span>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Tickets", to: "/tickets" },
+          { label: formatControlNumber(ticket?.controlNumber) },
+        ]}
+      />
 
       <TicketDetailHeader
         controlNo={ticket?.controlNumber || ""}

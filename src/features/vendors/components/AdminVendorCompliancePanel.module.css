@@ -186,7 +186,9 @@
   border-radius: 6px;
   background: #f0f5fa;
   box-shadow: none;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .settlementCard:hover {
@@ -265,8 +267,8 @@
 }
 
 .settlementPagination :global(button[aria-current="page"]) {
-  border-color: #123d67;
-  background: #123d67;
+  border-color: var(--button-primary);
+  background: var(--button-primary);
   color: #fff;
 }
 
@@ -288,7 +290,7 @@
 .panelError button {
   border: 0;
   background: transparent;
-  color: #145391;
+  color: var(--button-primary);
   font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;

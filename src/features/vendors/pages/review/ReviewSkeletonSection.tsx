@@ -1,5 +1,5 @@
 import SkeletonBlock from "@/components/ui/Skeleton/SkeletonBlock";
-import styles from "../AdminVendorRegistrationReviewPage.module.css";
+import styles from "./ReviewSkeletonSection.module.css";
 
 export default function ReviewSkeletonSection({
   columns,

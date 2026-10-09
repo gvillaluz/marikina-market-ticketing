@@ -1,15 +1,19 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import env from '@/config/env';
-import { useAuthStore } from '@/store/store';
-import snakecaseKeys from 'snakecase-keys';
-import camelcaseKeys from 'camelcase-keys';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from "axios";
+import env from "@/config/env";
+import { useAuthStore } from "@/store/store";
+import snakecaseKeys from "snakecase-keys";
+import camelcaseKeys from "camelcase-keys";
 import {
   getAuthSessionVersion,
   invalidateAuthSession,
   refreshAccessToken,
   RefreshSessionExpiredError,
-} from '@/features/auth/authSession';
-import { ApiRequestError, getApiResponseMessage } from '@/utils/apiErrors';
+} from "@/features/auth/authSession";
+import { ApiRequestError, getApiResponseMessage } from "@/utils/apiErrors";
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
   authRetry?: boolean;
@@ -17,15 +21,16 @@ type RetriableRequestConfig = InternalAxiosRequestConfig & {
 };
 
 const PUBLIC_AUTH_PATHS = [
-  '/auth/login',
-  '/auth/register',
-  '/auth/logout',
-  '/auth/find-account',
-  '/auth/send-otp',
-  '/auth/verify-otp',
-  '/auth/reset-password',
-  '/auth/refresh-web',
-  '/vendor/register',
+  "/auth/login",
+  "/auth/verify-login",
+  "/auth/register",
+  "/auth/logout",
+  "/auth/find-account",
+  "/auth/send-otp",
+  "/auth/verify-otp",
+  "/auth/reset-password",
+  "/auth/refresh-web",
+  "/vendor/register",
 ];
 
 function isPublicAuthRequest(url?: string): boolean {
@@ -36,8 +41,8 @@ const client: AxiosInstance = axios.create({
   baseURL: `${env.apiBaseUrl}/api`,
   timeout: 15000,
   headers: {
-    'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true',
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
   },
 });
 
@@ -60,11 +65,15 @@ client.interceptors.request.use(
         getAuthSessionVersion();
     }
 
-    if (config.data && typeof config.data === 'object' && !(config.data instanceof FormData)) {
+    if (
+      config.data &&
+      typeof config.data === "object" &&
+      !(config.data instanceof FormData)
+    ) {
       config.data = snakecaseKeys(config.data, { deep: true });
     }
 
-    if (config.params && typeof config.params === 'object') {
+    if (config.params && typeof config.params === "object") {
       config.params = snakecaseKeys(config.params, { deep: true });
     }
     return config;
@@ -72,24 +81,18 @@ client.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-
 client.interceptors.response.use(
   (response) => {
     const isBinaryData =
-      (typeof Blob !== 'undefined' && response.data instanceof Blob) ||
+      (typeof Blob !== "undefined" && response.data instanceof Blob) ||
       response.data instanceof ArrayBuffer;
-    if (response.data && typeof response.data === 'object' && !isBinaryData) {
+    if (response.data && typeof response.data === "object" && !isBinaryData) {
       response.data = camelcaseKeys(response.data, { deep: true });
     }
 
-    console.log('API Response:', {
-      url: response.config.url,
-      status: response.status,
-    });
     return response;
   },
   async (error: AxiosError) => {
-    console.warn('API request failed:', error.config?.url, error.response?.status);
     const request = error.config as RetriableRequestConfig | undefined;
     const isAuthenticatedRequest = request && !isPublicAuthRequest(request.url);
     const apiMessage = getApiResponseMessage(error.response?.data);
@@ -109,7 +112,7 @@ client.interceptors.response.use(
         request.authRetry = true;
         const currentToken = useAuthStore.getState().token;
         const currentAuthorization = currentToken
-          ? ['Bearer', currentToken].join(' ')
+          ? ["Bearer", currentToken].join(" ")
           : null;
         if (
           currentAuthorization &&
@@ -120,7 +123,10 @@ client.interceptors.response.use(
         }
         try {
           const refreshed = await refreshAccessToken();
-          request.headers.Authorization = ['Bearer', refreshed.accessToken].join(' ');
+          request.headers.Authorization = [
+            "Bearer",
+            refreshed.accessToken,
+          ].join(" ");
           return client.request(request);
         } catch (refreshError) {
           if (refreshError instanceof RefreshSessionExpiredError) {

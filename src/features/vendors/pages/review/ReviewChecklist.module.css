@@ -1,0 +1,40 @@
+.checklist {
+  composes: surface from "./RegistrationLayout.module.css";
+}
+.checklist h2 {
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+}
+.checklist > p {
+  margin-top: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+.checklistItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg) 0;
+  border-bottom: 1px solid var(--border-default);
+}
+.checklistItem:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.checklistItem svg {
+  flex-shrink: 0;
+  margin-top: var(--space-xs);
+  color: var(--text-body);
+}
+.checklistItem strong,
+.checklistItem span {
+  display: block;
+}
+.checklistItem strong {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-heading);
+}
+.checklistItem span {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-xs);
+}

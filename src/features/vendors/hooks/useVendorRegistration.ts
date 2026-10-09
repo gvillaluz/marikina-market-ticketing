@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { VendorRegistrationForm } from "@/api/types/vendor.types";
 import { vendorApi } from "@/api/endpoints/vendor.api";
 import { isValidEmail } from "@/utils/validators";
@@ -50,7 +50,10 @@ function validateRequiredText(
   return undefined;
 }
 
-function validateFile(file: File | null, fieldName: string): string | undefined {
+function validateFile(
+  file: File | null,
+  fieldName: string,
+): string | undefined {
   if (!file) return `${fieldName} is required.`;
   if (!ALLOWED_FILE_TYPES.includes(file.type)) {
     return `${fieldName} must be a JPG, PNG, or PDF file.`;
@@ -68,8 +71,18 @@ function validateStep(
   const errors: RegistrationFieldErrors = {};
 
   if (step === 1) {
-    const firstNameError = validateRequiredText(form.firstName, "First name", 2, 50);
-    const lastNameError = validateRequiredText(form.lastName, "Last name", 2, 50);
+    const firstNameError = validateRequiredText(
+      form.firstName,
+      "First name",
+      2,
+      50,
+    );
+    const lastNameError = validateRequiredText(
+      form.lastName,
+      "Last name",
+      2,
+      50,
+    );
     if (firstNameError) errors.firstName = firstNameError;
     if (lastNameError) errors.lastName = lastNameError;
 
@@ -79,7 +92,8 @@ function validateStep(
       Number.isNaN(Date.parse(form.dateOfBirth)) ||
       new Date(`${form.dateOfBirth}T00:00:00`) > new Date()
     ) {
-      errors.dateOfBirth = "Enter a valid birth date that is not in the future.";
+      errors.dateOfBirth =
+        "Enter a valid birth date that is not in the future.";
     }
 
     if (!/^09\d{9}$/.test(form.phoneNumber.trim())) {
@@ -99,7 +113,12 @@ function validateStep(
   }
 
   if (step === 2) {
-    const businessNameError = validateRequiredText(form.businessName, "Business name", 2, 100);
+    const businessNameError = validateRequiredText(
+      form.businessName,
+      "Business name",
+      2,
+      100,
+    );
     const natureError = validateRequiredText(
       form.natureOfBusiness,
       "Nature of business",
@@ -138,8 +157,10 @@ function validateStep(
       form.businessDocumentPhoto,
       "Business document photo",
     );
-    if (governmentIdPhotoError) errors.governmentIdPhoto = governmentIdPhotoError;
-    if (businessDocumentError) errors.businessDocumentPhoto = businessDocumentError;
+    if (governmentIdPhotoError)
+      errors.governmentIdPhoto = governmentIdPhotoError;
+    if (businessDocumentError)
+      errors.businessDocumentPhoto = businessDocumentError;
   }
 
   if (step === 4) {
@@ -163,6 +184,7 @@ function validateStep(
 }
 
 export function useVendorRegistration() {
+  const busy = useRef(false);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<VendorRegistrationForm>(initialWizardState);
   const [errors, setErrors] = useState<RegistrationFieldErrors>({});
@@ -174,6 +196,7 @@ export function useVendorRegistration() {
     key: K,
     value: VendorRegistrationForm[K],
   ) => {
+    if (busy.current) return;
     setForm((previous) => ({ ...previous, [key]: value }));
     setErrors((previous) => {
       const next = { ...previous };
@@ -191,6 +214,7 @@ export function useVendorRegistration() {
   };
 
   const next = () => {
+    if (busy.current) return false;
     const stepErrors = validateStep(step, form);
     setErrors(stepErrors);
     if (Object.keys(stepErrors).length > 0) return false;
@@ -199,12 +223,14 @@ export function useVendorRegistration() {
   };
 
   const back = () => {
+    if (busy.current) return;
     setStep((current) => Math.max(current - 1, 1));
     setErrors({});
     setSubmitError(null);
   };
 
   const goToStep = (targetStep: number) => {
+    if (busy.current || !Number.isSafeInteger(targetStep)) return;
     if (targetStep >= 1 && targetStep < step) {
       setStep(targetStep);
       setErrors({});
@@ -213,6 +239,7 @@ export function useVendorRegistration() {
   };
 
   const cancel = () => {
+    if (busy.current) return;
     setForm(initialWizardState);
     setStep(1);
     setErrors({});
@@ -220,6 +247,7 @@ export function useVendorRegistration() {
   };
 
   const submit = async () => {
+    if (busy.current || submitted) return;
     const allErrors = [1, 2, 3, 4].reduce<RegistrationFieldErrors>(
       (combined, currentStep) => ({
         ...combined,
@@ -230,12 +258,14 @@ export function useVendorRegistration() {
     setErrors(allErrors);
     if (Object.keys(allErrors).length > 0) {
       const firstInvalidStep = [1, 2, 3, 4].find(
-        (currentStep) => Object.keys(validateStep(currentStep, form)).length > 0,
+        (currentStep) =>
+          Object.keys(validateStep(currentStep, form)).length > 0,
       );
       if (firstInvalidStep) setStep(firstInvalidStep);
       return;
     }
 
+    busy.current = true;
     setLoading(true);
     setSubmitError(null);
     try {
@@ -243,9 +273,13 @@ export function useVendorRegistration() {
       setSubmitted(true);
     } catch (error) {
       setSubmitError(
-        getApiErrorMessage(error, "Registration could not be submitted. Please try again."),
+        getApiErrorMessage(
+          error,
+          "Registration could not be submitted. Please try again.",
+        ),
       );
     } finally {
+      busy.current = false;
       setLoading(false);
     }
   };

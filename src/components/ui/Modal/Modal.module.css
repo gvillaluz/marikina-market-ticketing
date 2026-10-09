@@ -100,7 +100,7 @@
 
 .closeBtn:hover {
   background-color: #e9eff7;
-  color: var(--primary);
+  color: var(--button-primary);
 }
 
 .body {

@@ -1,5 +1,7 @@
 .card {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
   min-height: var(--backup-card-height);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
@@ -72,6 +74,9 @@
 }
 
 .form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: var(--backup-space-lg) var(--backup-space-xl) var(--backup-space-xl);
 }
 .fields {
@@ -87,25 +92,44 @@
   font-size: var(--backup-font-caption);
   color: var(--text-body);
 }
-.field input {
+.field input,
+.field > div > button {
+  display: inline-flex;
+  align-items: center;
   padding: var(--backup-space-sm) var(--backup-space-md);
   width: 100%;
   min-width: 0;
-  min-height: var(--backup-control-height);
+  height: var(--backup-control-height);
   border: 1px solid var(--border-default);
   border-radius: var(--backup-control-radius);
   font-size: var(--backup-font-small);
+  font-weight: 500;
+  line-height: 1.5;
   color: var(--text-heading);
   background: var(--bg-surface);
+  box-shadow: none;
+}
+.field input {
   color-scheme: light;
 }
-
-.field input:hover:not(:disabled) {
-  border-color: var(--backup-action);
+.field > div > button > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.field input:disabled {
+
+.field input:hover:not(:disabled),
+.field > div > button:hover:not(:disabled) {
+  border-color: var(--backup-action);
+  background: var(--backup-info-surface);
+}
+.field input:disabled,
+.field > div > button:disabled {
+  color: var(--text-body);
+  background: var(--bg-page);
   cursor: not-allowed;
-  opacity: var(--backup-disabled-opacity);
+  opacity: 1;
 }
 .actions {
   display: flex;
@@ -120,22 +144,30 @@
   color: var(--text-body);
 }
 .save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-left: auto;
   padding: var(--backup-space-sm) var(--backup-space-lg);
   min-height: var(--backup-control-height);
-  border: 1px solid var(--backup-action-border);
+  border: 1px solid var(--backup-action);
   border-radius: var(--backup-control-radius);
   font-size: var(--backup-font-small);
   font-weight: 600;
-  color: var(--backup-action);
-  background: var(--bg-surface);
+  line-height: 1.5;
+  color: var(--text-on-primary);
+  background: var(--backup-action);
 }
 .save:hover:not(:disabled) {
-  background: var(--backup-info-surface);
+  border-color: var(--backup-action-hover);
+  background: var(--backup-action-hover);
 }
 .save:disabled {
+  border-color: var(--border-default);
+  color: var(--text-body);
+  background: var(--bg-page);
   cursor: not-allowed;
-  opacity: var(--backup-disabled-opacity);
+  opacity: 1;
 }
 .save:focus-visible,
 .toggle:focus-visible,
@@ -143,9 +175,16 @@
   outline: 2px solid var(--backup-action);
   outline-offset: 2px;
 }
+.field > div > button:focus-visible {
+  outline: 2px solid var(--backup-action);
+  outline-offset: 2px;
+}
 
 @media (min-width: 600px) {
   .fields {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .fields:has([id="backup-weekday"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

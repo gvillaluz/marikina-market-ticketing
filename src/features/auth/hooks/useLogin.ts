@@ -1,10 +1,9 @@
-import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { ROUTES } from '@/routes/routePaths';
-import type { LoginInput } from '@/features/auth/auth.types';
-import { resolveLoginIdentifier } from '@/features/auth/auth.utils';
-import { getApiErrorMessage } from '@/utils/apiErrors';
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
+import type { LoginInput } from "@/features/auth/auth.types";
+import { ROUTES } from "@/routes/routePaths";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 
 export interface LoginFormValues {
   username: string;
@@ -12,21 +11,42 @@ export interface LoginFormValues {
 }
 
 interface UseLoginOptions {
-  role?: 'Admin' | 'Enforcer' | 'Vendor';
   redirectTo?: string;
 }
 
 export function useLogin(options: UseLoginOptions = {}) {
-  const { login } = useAuth();
+  const busy = useRef(false);
+  const { login, cancelLogin } = useAuth();
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const state: unknown = location.state;
+  const expired = Boolean(
+    state &&
+      typeof state === "object" &&
+      (state as Record<string, unknown>).verificationExpired === true,
+  );
+  const [error, setError] = useState<string | null>(
+    expired ? "Your sign-in session expired. Please sign in again." : null,
+  );
 
-  const { role, redirectTo } = options;
-  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? redirectTo ?? ROUTES.dashboard;
+  const { redirectTo } = options;
+  const from =
+    (location.state as { from?: { pathname: string } } | null)?.from
+      ?.pathname ??
+    redirectTo ??
+    null;
 
   const submit = async (values: LoginFormValues) => {
+    if (busy.current) return;
+    busy.current = true;
     setLoading(true);
     setError(null);
     try {
@@ -35,21 +55,29 @@ export function useLogin(options: UseLoginOptions = {}) {
         password: values.password,
       };
 
-      const { user, mustChangePassword, } = await login(input);
-      if (!user.role) {
-        setError('not access');
-        setLoading(false);
+      await login(input);
+      if (!mounted.current) {
+        cancelLogin();
         return;
       }
-      
-      console.log('Redirecting to:', from);
-      navigate(from, { replace: true });
-      console.log('Navigation complete'); 
+      const redirectTo =
+        typeof from === "string" &&
+        from.startsWith("/") &&
+        !from.startsWith("//") &&
+        !from.includes("\\")
+          ? from
+          : undefined;
+      navigate(ROUTES.loginVerification, {
+        state: {
+          redirectTo,
+          access: location.pathname.startsWith("/admin/") ? "staff" : "vendor",
+        },
+      });
     } catch (err) {
-      console.log('Login error:', err);
-      setError(getApiErrorMessage(err, 'Login failed.'));
+      if (mounted.current) setError(getApiErrorMessage(err, "Login failed."));
     } finally {
-      setLoading(false);
+      busy.current = false;
+      if (mounted.current) setLoading(false);
     }
   };
 

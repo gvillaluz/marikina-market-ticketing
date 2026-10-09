@@ -1,0 +1,108 @@
+.form {
+  --staff-font-body: var(--form-font-body);
+  --staff-font-caption: var(--form-font-caption);
+  --staff-font-heading: var(--market-font-size-heading);
+  --staff-control-height: var(--form-control-height);
+  padding: var(--space-xl);
+  line-height: 1.5;
+}
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section);
+  min-width: 0;
+  border: 0;
+}
+.role {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  font-size: var(--staff-font-body);
+  color: var(--text-heading);
+}
+.role label {
+  font-weight: 500;
+}
+.names,
+.pair,
+.address {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+}
+.requireChange {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--ordinance-muted-surface);
+}
+.checkbox {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: var(--space-xs);
+  width: var(--space-lg);
+  height: var(--space-lg);
+  border-radius: var(--market-radius-notice);
+  color: var(--text-on-primary);
+  background: var(--button-primary);
+}
+.checkbox input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: not-allowed;
+}
+.checkbox svg {
+  pointer-events: none;
+}
+.requireChange label {
+  font-size: var(--staff-font-body);
+  font-weight: 500;
+  color: var(--text-heading);
+}
+.requireChange label span {
+  display: block;
+  margin-top: var(--space-xs);
+  font-size: var(--staff-font-caption);
+  font-weight: 400;
+  color: var(--text-body);
+}
+.error {
+  margin-top: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  font-size: var(--staff-font-body);
+  color: var(--danger);
+  background: var(--form-error-surface);
+  overflow-wrap: anywhere;
+}
+.role .error {
+  margin-top: 0;
+}
+@media (min-width: 600px) {
+  .pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .names {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .address {
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr) repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+@media (max-width: 599px) {
+  .form {
+    padding: var(--space-lg);
+  }
+}

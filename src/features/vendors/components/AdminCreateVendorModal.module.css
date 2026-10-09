@@ -171,8 +171,8 @@
   font-weight: 700;
 }
 .footer button:last-child {
-  border-color: #075298;
-  background: #075298;
+  border-color: var(--button-primary);
+  background: var(--button-primary);
   color: #fff;
 }
 .footer button:disabled {

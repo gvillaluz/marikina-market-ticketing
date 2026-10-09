@@ -26,7 +26,8 @@ const STEP_CONTENT = {
   },
   2: {
     title: "Business Details",
-    description: "Tell us about your business so we can complete your vendor record.",
+    description:
+      "Tell us about your business so we can complete your vendor record.",
   },
   3: {
     title: "Required Documents",
@@ -54,7 +55,10 @@ export default function VendorRegistrationWizard({
 }: UseVendorRegistration) {
   if (submitted) {
     return (
-      <section className={`${styles.successCard} motion-enter`} aria-live="polite">
+      <section
+        className={`${styles.successCard} motion-enter`}
+        aria-live="polite"
+      >
         <span className={styles.successIcon}>
           <Check size={34} strokeWidth={2.5} aria-hidden="true" />
         </span>
@@ -124,14 +128,21 @@ export default function VendorRegistrationWizard({
   const content = STEP_CONTENT[step as keyof typeof STEP_CONTENT];
 
   return (
-    <section className={`${styles.wizard} motion-enter`} aria-label="Vendor registration">
+    <section
+      className={`${styles.wizard} motion-enter`}
+      aria-label="Vendor registration"
+    >
       <aside className={styles.sidebar}>
         <h1>Join the Market Registry</h1>
         <p>
           Register your stall to access and manage your inspection history and
           compliance records all in one digital platform.
         </p>
-        <RegistrationStepper currentStep={step} onStepClick={goToStep} />
+        <RegistrationStepper
+          currentStep={step}
+          onStepClick={goToStep}
+          disabled={loading}
+        />
       </aside>
 
       <div className={styles.main}>
@@ -140,7 +151,13 @@ export default function VendorRegistrationWizard({
           <p>{content.description}</p>
         </header>
 
-        <div className={styles.stepContent} key={step}>
+        <fieldset
+          className={styles.stepContent}
+          key={step}
+          disabled={loading}
+          aria-label={content.title}
+          aria-busy={loading}
+        >
           {step === 1 && (
             <Step1PersonalInfo form={form} errors={errors} update={update} />
           )}
@@ -148,15 +165,25 @@ export default function VendorRegistrationWizard({
             <Step2BusinessDetails form={form} errors={errors} update={update} />
           )}
           {step === 3 && (
-            <Step3RequiredDocuments form={form} errors={errors} update={update} />
+            <Step3RequiredDocuments
+              form={form}
+              errors={errors}
+              update={update}
+            />
           )}
           {step === 4 && (
-            <Step4AccountRegistration form={form} errors={errors} update={update} />
+            <Step4AccountRegistration
+              form={form}
+              errors={errors}
+              update={update}
+            />
           )}
-        </div>
+        </fieldset>
 
         {submitError && (
-          <p className={styles.submitError} role="alert">{submitError}</p>
+          <p className={styles.submitError} role="alert">
+            {submitError}
+          </p>
         )}
 
         <footer className={styles.footer}>
@@ -170,7 +197,9 @@ export default function VendorRegistrationWizard({
               <ChevronLeft size={16} aria-hidden="true" />
               Back
             </button>
-          ) : <span aria-hidden="true" />}
+          ) : (
+            <span aria-hidden="true" />
+          )}
 
           <div className={styles.footerActions}>
             <button
@@ -200,7 +229,11 @@ export default function VendorRegistrationWizard({
               >
                 {loading ? (
                   <>
-                    <LoaderCircle className={styles.spinner} size={16} aria-hidden="true" />
+                    <LoaderCircle
+                      className={styles.spinner}
+                      size={16}
+                      aria-hidden="true"
+                    />
                     Submitting...
                   </>
                 ) : (

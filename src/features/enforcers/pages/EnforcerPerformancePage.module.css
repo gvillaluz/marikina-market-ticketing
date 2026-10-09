@@ -138,13 +138,13 @@
 }
 
 .currentPage {
-  background: #1e40af;
-  border-color: #1e40af;
+  background: var(--button-primary);
+  border-color: var(--button-primary);
   color: #ffffff;
 }
 
 .currentPage:hover {
-  background-color: #00488f !important;
+  background-color: var(--button-primary) !important;
 }
 
 .ellipsis {

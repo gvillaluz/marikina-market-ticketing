@@ -1,8 +1,28 @@
 import { ApiRequestError } from "@/utils/apiErrors";
 import type {
   BackupHealthResponse,
+  BackupScheduleResponse,
+  BackupWeekday,
   UpdateBackupScheduleRequest,
 } from "@/api/types/backups.types";
+
+export const backupWeekdays: BackupWeekday[] = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+export function validateBackupScheduleResponse(
+  response: BackupScheduleResponse,
+): BackupScheduleResponse {
+  if (!response || validateBackupSchedule(response))
+    throw new ApiRequestError();
+  return response;
+}
 
 export const backupKeys = {
   schedule: ["backups", "schedule"] as const,
@@ -61,18 +81,24 @@ export function validateBackupSchedule(
     return "Choose whether automatic backups are enabled.";
   if (fields.frequency !== "Daily" && fields.frequency !== "Weekly")
     return "Choose a valid backup frequency.";
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(fields.time))
+  if (
+    typeof fields.time !== "string" ||
+    !/^([01]\d|2[0-3]):[0-5]\d$/.test(fields.time)
+  )
     return "Enter a valid backup time.";
   if (
     fields.frequency === "Weekly" &&
-    (fields.dayOfWeek === null ||
-      !Number.isInteger(fields.dayOfWeek) ||
-      fields.dayOfWeek < 0 ||
-      fields.dayOfWeek > 6)
+    (fields.dayOfWeek == null || !backupWeekdays.includes(fields.dayOfWeek))
   )
     return "Choose a day for weekly backups.";
-  if (!Number.isSafeInteger(fields.retentionDays) || fields.retentionDays <= 0)
-    return "Choose a valid retention period.";
+  if (fields.frequency === "Daily" && fields.dayOfWeek != null)
+    return "Daily backups do not require a weekday.";
+  if (
+    !Number.isSafeInteger(fields.retentionDays) ||
+    fields.retentionDays < 1 ||
+    fields.retentionDays > 365
+  )
+    return "Choose a retention period between 1 and 365 days.";
   return "";
 }
 

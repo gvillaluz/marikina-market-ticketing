@@ -1,16 +1,16 @@
-import { CheckCircle2 } from "lucide-react";
-import styles from "../AdminVendorRegistrationReviewPage.module.css";
+import { Circle } from "lucide-react";
+import styles from "./ReviewChecklist.module.css";
 
 const items = [
   [
     "Identity matches government ID",
-    "Name, date of birth, and portrait verified",
+    "Compare the name, date of birth, and portrait",
   ],
-  ["Government ID is valid", "ID appears current and unobscured"],
-  ["Business permit is valid", "Permit year and business name confirmed"],
-  ["Contact details verified", "Phone and email from contact confirmed"],
-  ["Market assignment confirmed", "Market section and stall reviewed"],
-  ["Duplicate account search", "No duplicate found"],
+  ["Government ID validity", "Check that the ID is current and readable"],
+  ["Business permit validity", "Verify the permit year and business name"],
+  ["Contact details", "Verify the supplied phone and email"],
+  ["Market assignment", "Review the market section and stall"],
+  ["Duplicate account search", "Check for an existing vendor account"],
 ];
 
 export default function ReviewChecklist() {
@@ -20,7 +20,7 @@ export default function ReviewChecklist() {
       <p>Complete each control before approval.</p>
       {items.map(([title, description]) => (
         <div className={styles.checklistItem} key={title}>
-          <CheckCircle2 size={14} />
+          <Circle size={14} aria-hidden="true" />
           <div>
             <strong>{title}</strong>
             <span>{description}</span>

@@ -1,8 +1,11 @@
+import type { AuthAccess } from "@/api/types/common.types";
+
 export const ROUTES = {
   login: "/login",
   adminLogin: "/admin/login",
-  forgotPassword: (role: "Admin" | "Vendor") =>
-    role === "Admin" ? "/admin/forgot-password" : "/forgot-password",
+  loginVerification: "/auth/verify-login",
+  forgotPassword: (access: AuthAccess) =>
+    access === "staff" ? "/admin/forgot-password" : "/forgot-password",
   register: "/register",
   changePassword: "/admin/change-password",
   dashboard: "/dashboard",
@@ -26,13 +29,10 @@ export const ROUTES = {
   vendors: "/vendors",
   vendorDetail: (id: string) => `/vendors/${id}`,
   vendorRegister: "/vendor/register",
-  penalties: "/penalties",
-  compliance: "/compliance",
   home: "/",
   systemConfiguration: "/system/configuration",
   marketSection: "/system/market-section",
   ordinance: "/system/ordinance",
   backups: "/configuration/backups",
+  accounts: "/admin/accounts",
 } as const;
-
-export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];

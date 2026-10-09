@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/store";
 import { backupsApi } from "@/api/endpoints/backups.api";
+import { ApiRequestError } from "@/utils/apiErrors";
+import { useToast } from "@/components/ui/Toast/useToast";
 import {
   backupError,
   backupKeys,
@@ -14,11 +16,21 @@ import { useBackupHistory } from "./useBackupHistory";
 
 export function useBackups() {
   const client = useQueryClient();
-  const canManage = useAuthStore((state) => state.user?.role === "Admin");
+  const { showToast } = useToast();
+  const canManage = useAuthStore((state) => state.user?.role === "HeadAdmin");
   const schedule = useBackupSchedule(canManage);
   const health = useQuery({
     queryKey: backupKeys.health,
-    queryFn: ({ signal }) => backupsApi.getHealth(signal),
+    queryFn: async ({ signal }) => {
+      const response = await backupsApi.getHealth(signal);
+      if (
+        !response ||
+        typeof response.isRunning !== "boolean" ||
+        typeof response.enabled !== "boolean"
+      )
+        throw new ApiRequestError();
+      return response;
+    },
     enabled: canManage,
     refetchInterval: (query) => (query.state.data?.isRunning ? 5000 : 30000),
     refetchIntervalInBackground: false,
@@ -48,14 +60,35 @@ export function useBackups() {
   const manual = useMutation({
     mutationFn: backupsApi.createManual,
     retry: false,
-    onSuccess: () => {
+    onSuccess: (backup) => {
       resetHistory();
       void client.invalidateQueries({ queryKey: backupKeys.health });
+      if (backup.status === "Failed") {
+        showToast({
+          variant: "error",
+          title: "Backup failed",
+          description:
+            backup.errorMessage || "The backup failed. Please try again.",
+        });
+      } else {
+        showToast({
+          variant: "success",
+          title: "Backup completed successfully.",
+        });
+      }
     },
-    onError: () => {
+    onError: (cause) => {
       // A timeout can occur after the server has started a backup.
       resetHistory();
       void client.invalidateQueries({ queryKey: backupKeys.health });
+      showToast({
+        variant: "error",
+        title: "Unable to confirm the backup result",
+        description: backupError(
+          cause,
+          "Refresh health and history before trying again.",
+        ),
+      });
     },
     onSettled: () => {
       submitting.current = false;
@@ -86,18 +119,6 @@ export function useBackups() {
         void health.refetch();
       },
     },
-    manualError: manual.isError
-      ? backupError(
-          manual.error,
-          "Unable to confirm the backup result. Refresh health and history before trying again.",
-        )
-      : "",
-    manualSuccess: manual.isSuccess
-      ? manual.data.status === "Failed"
-        ? manual.data.errorMessage || "The backup failed. Please try again."
-        : "Backup completed successfully."
-      : "",
-    manualFailed: manual.isSuccess && manual.data.status === "Failed",
     isBackingUp: manual.isPending || Boolean(health.data?.isRunning),
     canBackup:
       canManage &&

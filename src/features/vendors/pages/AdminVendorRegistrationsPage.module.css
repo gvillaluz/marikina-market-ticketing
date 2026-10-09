@@ -5,13 +5,9 @@
   color: #17324f;
 }
 
-.breadcrumb {
-  display: none;
-}
-
-.breadcrumb span {
-  color: #94a0b2;
-  font-size: var(--market-font-size-heading);
+.page .header {
+  align-items: flex-end;
+  align-items: last baseline;
 }
 
 .createVendorButton {
@@ -40,11 +36,5 @@
 @media (max-width: 640px) {
   .page {
     padding-bottom: 1rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .breadcrumb {
-    font-size: 0.72rem;
   }
 }

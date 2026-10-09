@@ -1,14 +1,13 @@
 .row td {
   padding: var(--backup-space-md) var(--backup-space-lg);
   height: var(--backup-row-height);
-  border-bottom: 1px solid var(--border-default);
   font-size: var(--backup-font-small);
   text-align: left;
   vertical-align: middle;
   color: var(--text-body);
 }
-.row:last-child td {
-  border-bottom: 0;
+.row + .row td {
+  border-top: 1px solid var(--border-default);
 }
 .row .date {
   padding-left: var(--backup-space-xl);
@@ -34,6 +33,7 @@
 }
 
 .row .actionCell {
+  padding-right: var(--backup-space-xl);
   width: 1%;
   white-space: nowrap;
 }
@@ -69,7 +69,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--backup-space-sm);
+  gap: var(--backup-space-xs);
   width: max-content;
 }
 .actions button {
@@ -78,11 +78,13 @@
   justify-content: center;
   flex-shrink: 0;
   gap: var(--backup-space-xs);
-  padding: var(--backup-space-xs) var(--backup-space-sm);
-  border: 1px solid;
+  padding: 0 var(--backup-space-sm);
+  height: var(--backup-table-control-size);
+  border: 1px solid var(--border-default);
   border-radius: var(--backup-control-radius);
   font-size: var(--backup-font-caption);
   font-weight: 500;
+  line-height: 1.5;
   background: var(--bg-surface);
 }
 .actions .download {
@@ -90,18 +92,22 @@
   color: var(--backup-action);
 }
 .actions .restore {
-  border-color: var(--backup-warning-border);
-  color: var(--warning);
-  background: var(--backup-warning-surface);
+  border-color: var(--border-default);
+  color: var(--text-body);
+  background: var(--bg-page);
 }
 .actions button:disabled {
+  border-color: var(--border-default);
+  color: var(--text-body);
+  background: var(--bg-page);
   cursor: not-allowed;
-  opacity: var(--backup-disabled-opacity);
+  opacity: 1;
 }
 .actions button:focus-visible {
   outline: 2px solid var(--backup-action);
   outline-offset: 2px;
 }
 .actions button:hover:not(:disabled) {
+  border-color: var(--backup-action);
   background: var(--backup-info-surface);
 }

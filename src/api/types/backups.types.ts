@@ -1,4 +1,12 @@
 export type BackupFrequency = "Daily" | "Weekly";
+export type BackupWeekday =
+  | "Sunday"
+  | "Monday"
+  | "Tuesday"
+  | "Wednesday"
+  | "Thursday"
+  | "Friday"
+  | "Saturday";
 export type BackupType = "Automatic" | "Manual";
 export type BackupStatus = "Completed" | "Failed";
 
@@ -21,10 +29,15 @@ export interface BackupPageResponse {
   total: number | null;
 }
 
+export interface BackupDownloadResponse {
+  blob: Blob;
+  fileName: string;
+}
+
 export interface UpdateBackupScheduleRequest {
   enabled: boolean;
   frequency: BackupFrequency;
-  dayOfWeek: number | null;
+  dayOfWeek: BackupWeekday | null;
   time: string;
   retentionDays: number;
 }

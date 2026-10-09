@@ -2,32 +2,6 @@
   padding-bottom: 2rem;
 }
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
-  margin-bottom: 0.75rem;
-}
-
-.breadcrumbLink {
-  color: #002753;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.breadcrumbLink:hover {
-  text-decoration: underline;
-}
-
-.breadcrumbSeparator {
-  color: var(--neutral-400);
-}
-
-.breadcrumbCurrent {
-  color: var(--neutral-500);
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -54,7 +28,7 @@
   flex-direction: column;
   gap: 10px;
   margin: 10px 0;
-  border-bottom: 1px solid #E2E2E5;
+  border-bottom: 1px solid #e2e2e5;
   padding-bottom: 10px;
 }
 
@@ -80,7 +54,7 @@
 }
 
 .dueDate {
-  color: #BA1A1A;
+  color: #ba1a1a;
   font-weight: 600;
 }
 
@@ -92,7 +66,7 @@
 
 .noteBox {
   display: flex;
-  background: #E8F0FE;
+  background: #e8f0fe;
   color: #002753;
   border-radius: 6px;
   padding: 10px 12px;
@@ -138,26 +112,26 @@
 }
 
 .descriptionBlock {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
 }
 
 .descriptionLabel {
-    font-size: 0.75rem;
-    font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .descriptionBox {
-    background: var(--neutral-50, #F5F6F8);
-    border: 1px solid var(--neutral-200);
-    border-radius: 6px;
-    padding: 10px 12px;
-    font-size: 0.875rem;
-    color: #1A1C1E;
-    min-height: 20px;
-    font-style: italic;
+  background: var(--neutral-50, #f5f6f8);
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  color: #1a1c1e;
+  min-height: 20px;
+  font-style: italic;
 }
 
 .modalContent {
@@ -175,13 +149,13 @@
   padding: 7.5px 15px;
   border: 2px solid #737781;
   border-radius: 5px;
-  color: #1A1C1E;
+  color: #1a1c1e;
   font-size: 0.75rem;
 }
 
 .modalConfirm {
   padding: 7.5px 15px;
-  background-color: #003D7A;
+  background-color: #003d7a;
   border-radius: 5px;
   color: #fff;
   font-size: 0.75rem;

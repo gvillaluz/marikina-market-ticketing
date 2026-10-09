@@ -1,0 +1,40 @@
+.field {
+  composes: field from "./FormField.module.css";
+}
+.label {
+  composes: label from "../../../../styles/FormControls.module.css";
+}
+.required {
+  color: var(--danger);
+}
+.input {
+  composes: input from "../../../../styles/FormControls.module.css";
+  min-width: 0;
+}
+.inputWrapper {
+  position: relative;
+  min-width: 0;
+}
+.inputWrapper .password {
+  padding-right: var(--form-control-height);
+}
+.field .toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  width: var(--form-control-height);
+  height: var(--form-control-height);
+  border-radius: var(--radius-sm);
+}
+.toggle:hover:not(:disabled) {
+  color: var(--primary);
+  background: var(--button-primary-surface);
+}
+.error {
+  font-size: var(--form-font-caption);
+  line-height: 1.5;
+  color: var(--danger);
+}

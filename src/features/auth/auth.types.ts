@@ -43,8 +43,26 @@ export interface AuthResponse {
 }
 
 export interface LoginResponse {
+  message: string;
+  maskedEmail: string;
+  resendCooldownSeconds: number;
+  codeExpirySeconds: number;
+}
+
+export interface VerifyLoginInput extends LoginInput {
+  code: string;
+}
+
+export interface VerifyLoginResponse {
   accessToken: string;
   mustChangePassword: boolean;
+}
+
+export interface LoginChallenge {
+  maskedEmail: string;
+  message: string;
+  resendAvailableAt: number;
+  expiresAt: number;
 }
 
 export interface AccessTokenRefreshRequest {

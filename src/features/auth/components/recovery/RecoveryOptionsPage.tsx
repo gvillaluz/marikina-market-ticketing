@@ -1,5 +1,7 @@
-import { AtSign, LoaderCircle, LockKeyhole, MessageSquare } from "lucide-react";
-import type { RecoveryAccount, RecoveryChannel } from "@/features/auth/recovery.types";
+import { AtSign, LockKeyhole, MessageSquare } from "lucide-react";
+import type { RecoveryAccount, RecoveryChannel } from "../../recovery.types";
+import RecoveryOption from "./RecoveryOption";
+import RecoveryOptionsSkeleton from "./RecoveryOptionsSkeleton";
 import styles from "./RecoveryOptionsPage.module.css";
 
 interface RecoveryOptionsPageProps {
@@ -10,63 +12,55 @@ interface RecoveryOptionsPageProps {
   onBackToLogin: () => void;
   onTryAgain: () => void;
 }
-
-const RecoveryOptionsPage = ({
+export default function RecoveryOptionsPage({
   loading,
   error,
   account,
   onSelect,
   onBackToLogin,
   onTryAgain,
-}: RecoveryOptionsPageProps) => {
-  if (loading) {
-    return (
-      <div className={styles.loading} role="status">
-        <LoaderCircle className={styles.spinner} size={22} />
-        Finding your account...
-      </div>
-    );
-  }
-
-  if (error || !account) {
+}: RecoveryOptionsPageProps) {
+  if (loading) return <RecoveryOptionsSkeleton />;
+  if (error || !account)
     return (
       <div className={styles.errorState}>
-        <p className={styles.error} role="alert">{error || "Could not find your account."}</p>
+        <p className={styles.error} role="alert">
+          {error || "Could not find your account."}
+        </p>
         <button className={styles.tryAgain} onClick={onTryAgain} type="button">
           Try another username
         </button>
       </div>
     );
-  }
-
   return (
     <>
-      <p className={styles.description}>Please select an option to receive the password reset code.</p>
+      <p className={styles.description}>
+        Select where you want to receive your password reset code.
+      </p>
       <div className={styles.optionList}>
-        <button className={styles.option} onClick={() => onSelect("email")} type="button">
-          <AtSign className={styles.optionIcon} size={18} />
-          <span>
-            <span className={styles.optionTitle}>Reset via Email</span>
-            <span className={styles.optionDescription}>To reset your password, a code will be sent to your email.</span>
-          </span>
-        </button>
-        <button className={styles.option} onClick={() => onSelect("sms")} type="button">
-          <MessageSquare className={styles.optionIcon} size={18} />
-          <span>
-            <span className={styles.optionTitle}>Reset via SMS number</span>
-            <span className={styles.optionDescription}>To reset your password, a code will be sent to your SMS number.</span>
-          </span>
-        </button>
-        <button className={styles.option} onClick={onBackToLogin} type="button">
-          <LockKeyhole className={styles.optionIcon} size={18} />
-          <span>
-            <span className={styles.optionTitle}>Continue with password</span>
-            <span className={styles.optionDescription}>Use your currently stored password.</span>
-          </span>
-        </button>
+        <RecoveryOption
+          icon={AtSign}
+          title="Reset via Email"
+          description={account.maskedEmail || "Your registered email address"}
+          onSelect={() => onSelect("email")}
+          disabled={!account.maskedEmail}
+        />
+        <RecoveryOption
+          icon={MessageSquare}
+          title="Reset via SMS number"
+          description={
+            account.maskedPhoneNumber || "Your registered phone number"
+          }
+          onSelect={() => onSelect("sms")}
+          disabled={!account.maskedPhoneNumber}
+        />
+        <RecoveryOption
+          icon={LockKeyhole}
+          title="Continue with password"
+          description="Sign in using your current password."
+          onSelect={onBackToLogin}
+        />
       </div>
     </>
   );
-};
-
-export default RecoveryOptionsPage;
+}

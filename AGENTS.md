@@ -29,7 +29,8 @@
 
 ## Code style
 
-- Simple code: small functions, clear names, no speculative abstractions, no duplicated logic.
+- Simple code: small functions, clear names, no speculative abstractions, no duplicated logic. Follow the coding pattern of the exisiting files.
+- Don't overengineer. have a high confidence.
 - One component per file. Each file has one function that returns TSX.
 - Extract any TSX that belongs to a file into its own component, and extract any repeated UI into a component.
 - Each component has its own CSS Module file. Use existing CSS variables, and avoid inline styles.
@@ -49,11 +50,13 @@
 - Summarize changes per file and what I should test manually.
 
 ## Verification
+
 - `npm run build` is required before finishing.
 - Dev server: `npm run dev` (default port 5173, or whichever your project uses). Start it only when I ask or when a visual check is needed, and stop it afterward.
 - Never leave background processes running.
 
 ## Styling
+
 - This project uses CSS Modules with CSS variables from the global stylesheet. Don't introduce Tailwind or any other styling library, and don't convert existing components.
 - Each component has its own CSS Module file, named after it (`Component.module.css`). Don't use inline styles except for values that must be computed at runtime.
 - Global styles and design tokens live in one place (the global stylesheet). Colors, spacing, radius, shadows, and font sizes come from CSS variables. Don't hard-code hex values or magic numbers when a variable exists.

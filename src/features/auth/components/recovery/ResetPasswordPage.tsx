@@ -1,8 +1,6 @@
-import { FormEvent, useState } from "react";
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
-import { authApi } from "@/api/endpoints/auth.api";
 import styles from "./ResetPasswordPage.module.css";
-import { getApiErrorMessage } from "@/utils/apiErrors";
+import { useRecoveryReset } from "../../hooks/useRecoveryReset";
 
 interface ResetPasswordPageProps {
   username: string;
@@ -15,59 +13,49 @@ const ResetPasswordPage = ({
   resetToken,
   onComplete,
 }: ResetPasswordPageProps) => {
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    if (newPassword.length < 8) {
-      setError("Your password must be at least 8 characters long.");
-      return;
-    }
-    if (!/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword)) {
-      setError("Your password must include both letters and numbers.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await authApi.resetPassword({ username, newPassword, resetToken });
-      onComplete();
-    } catch (err) {
-      setError(getApiErrorMessage(err, "Could not reset your password."));
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const {
+    newPassword,
+    confirmPassword,
+    showNewPassword,
+    showConfirmPassword,
+    loading,
+    error,
+    mismatch,
+    changePassword,
+    changeConfirmation,
+    togglePassword,
+    toggleConfirmation,
+    submit,
+  } = useRecoveryReset(username, resetToken, onComplete);
   return (
     <>
-      <p className={styles.description}>Use at least 8 characters and include both letters and numbers.</p>
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <p id="recovery-password-description" className={styles.description}>
+        Use at least 8 characters and include both letters and numbers.
+      </p>
+      <form className={styles.form} onSubmit={submit}>
         <label className={styles.label}>
           New password
           <span className={styles.inputWrap}>
             <input
               autoComplete="new-password"
+              disabled={loading}
               className={styles.input}
-              onChange={(event) => setNewPassword(event.target.value)}
+              onChange={(event) => changePassword(event.target.value)}
               placeholder="Enter new password"
               type={showNewPassword ? "text" : "password"}
               value={newPassword}
+              aria-invalid={Boolean(error)}
+              aria-describedby={
+                error ? "recovery-reset-error" : "recovery-password-description"
+              }
             />
             <button
-              aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+              aria-label={
+                showNewPassword ? "Hide new password" : "Show new password"
+              }
               className={styles.passwordToggle}
-              onClick={() => setShowNewPassword(!showNewPassword)}
+              aria-pressed={showNewPassword}
+              onClick={togglePassword}
               type="button"
             >
               {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -79,28 +67,59 @@ const ResetPasswordPage = ({
           <span className={styles.inputWrap}>
             <input
               autoComplete="new-password"
+              disabled={loading}
               className={styles.input}
-              onChange={(event) => setConfirmPassword(event.target.value)}
+              onChange={(event) => changeConfirmation(event.target.value)}
               placeholder="Enter new password again"
               type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
+              aria-invalid={mismatch}
+              aria-describedby={
+                mismatch
+                  ? "recovery-password-mismatch"
+                  : "recovery-password-description"
+              }
             />
             <button
-              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+              aria-label={
+                showConfirmPassword
+                  ? "Hide confirm password"
+                  : "Show confirm password"
+              }
               className={styles.passwordToggle}
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              onClick={toggleConfirmation}
+              aria-pressed={showConfirmPassword}
               type="button"
             >
               {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </span>
-          {confirmPassword && newPassword !== confirmPassword && (
-            <span className={styles.passwordError}>Passwords do not match.</span>
+          {mismatch && (
+            <span
+              id="recovery-password-mismatch"
+              className={styles.passwordError}
+            >
+              Passwords do not match.
+            </span>
           )}
         </label>
-        {error && <p className={styles.error} role="alert">{error}</p>}
-        <button className={styles.primaryButton} disabled={loading} type="submit">
-          {loading && <LoaderCircle className={styles.spinner} size={16} />}
+        {error && (
+          <p id="recovery-reset-error" className={styles.error} role="alert">
+            {error}
+          </p>
+        )}
+        <button
+          className={styles.primaryButton}
+          disabled={loading}
+          type="submit"
+        >
+          {loading && (
+            <LoaderCircle
+              className={styles.spinner}
+              size={16}
+              aria-hidden="true"
+            />
+          )}
           {loading ? "Changing password..." : "Change Password"}
         </button>
       </form>

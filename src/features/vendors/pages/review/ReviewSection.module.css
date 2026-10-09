@@ -1,0 +1,12 @@
+.section {
+  composes: surface from "./RegistrationLayout.module.css";
+}
+.section h2 {
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+  text-transform: none;
+}
+.sectionSubtitle {
+  margin-top: var(--space-sm);
+  font-size: var(--font-size-sm);
+}

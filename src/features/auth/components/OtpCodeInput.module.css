@@ -1,0 +1,39 @@
+.inputs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.input {
+  padding: 0;
+  width: 100%;
+  height: var(--recovery-code-height);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--text-heading);
+  background: var(--bg-surface);
+  caret-color: var(--primary);
+}
+.input:hover:not(:disabled) {
+  border-color: var(--text-muted);
+}
+.input:focus-visible {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: var(--form-focus-ring);
+}
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.input:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+@media (prefers-reduced-motion: reduce) {
+  .input {
+    transition: none;
+  }
+}

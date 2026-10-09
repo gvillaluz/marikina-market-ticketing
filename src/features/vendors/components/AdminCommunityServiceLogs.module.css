@@ -149,14 +149,14 @@
   border: 1px solid #b9d3ee;
   border-radius: 4px;
   background: #f4f9ff;
-  color: #075298;
+  color: var(--button-primary);
   font-size: 0.67rem;
   font-weight: 650;
 }
 
 .uploadButton {
-  border-color: #075298;
-  background: #075298;
+  border-color: var(--button-primary);
+  background: var(--button-primary);
   color: #fff;
   cursor: not-allowed;
   opacity: 0.78;
@@ -186,7 +186,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #075298;
+  color: var(--button-primary);
   font-size: inherit;
   font-weight: 700;
   cursor: pointer;
@@ -262,8 +262,8 @@
 }
 
 .pagination :global(button[aria-current="page"]) {
-  border-color: #075298;
-  background: #075298;
+  border-color: var(--button-primary);
+  background: var(--button-primary);
   color: #fff;
 }
 

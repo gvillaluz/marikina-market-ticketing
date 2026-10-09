@@ -63,6 +63,9 @@
 }
 
 .stepContent {
+  min-width: 0;
+  margin: 0;
+  border: 0;
   min-height: 290px;
   flex: 1;
   padding: 21px 0;
@@ -87,35 +90,38 @@
 .secondaryButton,
 .homeButton {
   display: inline-flex;
-  min-height: 42px;
+  min-height: var(--form-control-height);
   align-items: center;
   justify-content: center;
   gap: 7px;
   padding: 0 16px;
-  border: 1px solid #075298;
-  border-radius: 5px;
+  border: 1px solid var(--button-primary);
+  border-radius: var(--radius-sm);
   font: inherit;
   font-size: 0.87rem;
   font-weight: 700;
   text-decoration: none;
-  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
 }
 
 .primaryButton,
 .homeButton {
-  background: #075298;
+  background: var(--button-primary);
   color: #fff;
 }
 
 .primaryButton:hover:not(:disabled),
 .homeButton:hover {
-  background: #063e73;
+  background: var(--button-primary-hover);
   transform: translateY(-1px);
 }
 
 .secondaryButton {
   background: #fff;
-  color: #075298;
+  color: var(--button-primary);
   cursor: pointer;
 }
 
@@ -125,8 +131,18 @@
 
 .primaryButton:disabled,
 .secondaryButton:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.7;
+}
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.homeButton:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 3px;
+}
+.primaryButton:active:not(:disabled),
+.secondaryButton:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .submitError {
@@ -360,32 +376,63 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes successEnter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes successPop {
-  from { opacity: 0; transform: scale(0.55); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes successRing {
-  from { opacity: 0.8; transform: scale(0.8); }
-  to { opacity: 0; transform: scale(1.18); }
+  from {
+    opacity: 0.8;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.18);
+  }
 }
 
 @keyframes detailEnter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes reviewPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(7, 82, 152, 0.12); }
-  50% { box-shadow: 0 0 0 5px rgba(7, 82, 152, 0.04); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(7, 82, 152, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(7, 82, 152, 0.04);
+  }
 }
 
 @media (max-width: 900px) {
@@ -434,7 +481,7 @@
 
   .primaryButton,
   .secondaryButton {
-    min-height: 40px;
+    min-height: var(--form-control-height);
     padding: 0 11px;
     font-size: 0.79rem;
   }
@@ -459,6 +506,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .primaryButton:hover:not(:disabled),
+  .homeButton:hover,
+  .primaryButton:active:not(:disabled),
+  .secondaryButton:active:not(:disabled) {
+    transform: none;
+  }
   .primaryButton,
   .secondaryButton,
   .homeButton,

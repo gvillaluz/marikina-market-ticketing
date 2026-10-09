@@ -82,7 +82,7 @@ const SystemConfigurationPage: FC = () => {
   const ordinanceSummary = useOrdinanceCount();
   const navigate = useNavigate();
   const canManageOrdinances = useAuthStore(
-    (state) => state.user?.role === "Admin",
+    (state) => state.user?.role === "HeadAdmin",
   );
 
   return (

@@ -1,6 +1,7 @@
 import { ExternalLink, FileText } from "lucide-react";
 import type { VendorRegistrationDocument } from "@/api/types/admin-vendor.types";
-import styles from "../AdminVendorRegistrationReviewPage.module.css";
+import styles from "./ReviewDocumentCard.module.css";
+import { useReviewDocument } from "../../hooks/useReviewDocument";
 
 function displayValue(value: string | number | null | undefined) {
   if (value === null || value === undefined || value === "") return "N/A";
@@ -12,12 +13,17 @@ export default function ReviewDocumentCard({
 }: {
   document: VendorRegistrationDocument;
 }) {
-  const isImage = document.contentType.startsWith("image/");
+  const { url, isImage, onImageError } = useReviewDocument(document);
 
   return (
     <article className={styles.documentCard}>
       {isImage ? (
-        <img src={document.url} alt={document.fileName} />
+        <img
+          src={url}
+          alt={document.fileName}
+          onError={onImageError}
+          referrerPolicy="no-referrer"
+        />
       ) : (
         <div className={styles.documentPreview}>
           <FileText size={38} />
@@ -32,9 +38,13 @@ export default function ReviewDocumentCard({
             {(document.size / 1024 / 1024).toFixed(1)} MB
           </span>
         </div>
-        <a href={document.url} target="_blank" rel="noreferrer">
-          <ExternalLink size={14} /> Open
-        </a>
+        {url ? (
+          <a href={url} target="_blank" rel="noreferrer">
+            <ExternalLink size={14} /> Open
+          </a>
+        ) : (
+          <span>Document unavailable</span>
+        )}
       </div>
     </article>
   );

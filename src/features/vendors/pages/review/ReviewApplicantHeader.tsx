@@ -1,6 +1,6 @@
 import type { VendorRegistrationDetails } from "@/api/types/admin-vendor.types";
 import { formatDateTime } from "@/utils/formatters";
-import styles from "../AdminVendorRegistrationReviewPage.module.css";
+import styles from "./ReviewApplicantHeader.module.css";
 
 export function getRegistrationName(details: VendorRegistrationDetails) {
   return [details.firstName, details.middleName, details.lastName]
@@ -17,7 +17,9 @@ export default function ReviewApplicantHeader({
 
   return (
     <section className={styles.applicant}>
-      <span className={styles.avatar}>{name.slice(0, 2).toUpperCase()}</span>
+      <span className={styles.avatar} aria-hidden="true">
+        {`${details.firstName.charAt(0)}${details.lastName.charAt(0)}`.toUpperCase()}
+      </span>
       <div>
         <strong>{name}</strong>
         <span>

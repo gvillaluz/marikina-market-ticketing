@@ -1,4 +1,6 @@
-import styles from './AdminVendorRegistrationsPage.module.css';
+import { ROUTES } from "@/routes/routePaths";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import styles from "./AdminVendorRegistrationsPage.module.css";
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -14,10 +16,14 @@ export default function AdminVendorRegistrationsPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.breadcrumb}>
-        VENDOR MANAGEMENT <span>›</span> ACCOUNT REGISTRANTS
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Vendor Management", to: ROUTES.adminVendors },
+          { label: "Account Registrants" },
+        ]}
+      />
       <PageHeader
+        className={styles.header}
         title="Incoming Vendor Account Registrants"
         subtitle="Review new account requests, verify registration documents, assign reviewers, and resolve cases before vendor activation."
         actions={

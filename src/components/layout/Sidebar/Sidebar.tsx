@@ -1,15 +1,22 @@
+import {
+  ADMIN_ROLES,
+  HEAD_ADMIN_ROLES,
+  STAFF_ROLES,
+  USER_ROLE_LABELS,
+  type UserRole,
+} from "@/api/types/common.types";
 import { FC, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./Sidebar.module.css";
-import { Settings } from "lucide-react";
+import { Settings, UsersRound } from "lucide-react";
 
 interface NavItem {
   to: string;
   label: string;
   icon: JSX.Element;
-  allowedRoles: ("Admin" | "Enforcer" | "Vendor")[];
+  allowedRoles: readonly UserRole[];
 }
 
 const HouseIcon = (
@@ -122,49 +129,61 @@ const NAV_ITEMS: NavItem[] = [
     to: "/dashboard",
     label: "Dashboard",
     icon: HouseIcon,
-    allowedRoles: ["Admin", "Enforcer"],
+    allowedRoles: STAFF_ROLES,
   },
   {
     to: "/inspections",
     label: "Inspections",
     icon: DocumentIcon,
-    allowedRoles: ["Admin", "Enforcer"],
+    allowedRoles: STAFF_ROLES,
   },
   {
     to: "/tickets",
     label: "Tickets",
     icon: TicketIcon,
-    allowedRoles: ["Admin", "Enforcer"],
+    allowedRoles: STAFF_ROLES,
   },
   {
     to: "/enforcers",
     label: "Enforcers",
     icon: EnforcerIcon,
-    allowedRoles: ["Admin"],
+    allowedRoles: STAFF_ROLES,
   },
   {
     to: "/admin/vendors",
     label: "Vendors",
     icon: VendorIcon,
-    allowedRoles: ["Admin"],
+    allowedRoles: ADMIN_ROLES,
   },
   {
     to: "/admin/vendor-registrations",
     label: "Registrants",
     icon: DocumentIcon,
-    allowedRoles: ["Admin"],
+    allowedRoles: ADMIN_ROLES,
   },
   {
     to: "/analytics",
     label: "Analytics",
     icon: BarChartIcon,
-    allowedRoles: ["Admin", "Enforcer"],
+    allowedRoles: ADMIN_ROLES,
+  },
+  {
+    to: "/vendors",
+    label: "Vendors",
+    icon: VendorIcon,
+    allowedRoles: ["MarketEnforcer", "MarketVendor"],
+  },
+  {
+    to: "/admin/accounts",
+    label: "Accounts",
+    icon: <UsersRound size={18} strokeWidth={2} />,
+    allowedRoles: HEAD_ADMIN_ROLES,
   },
   {
     to: "/system/configuration",
     label: "Configurations",
     icon: SettingsIcon,
-    allowedRoles: ["Admin"],
+    allowedRoles: HEAD_ADMIN_ROLES,
   },
 ];
 
@@ -259,7 +278,8 @@ const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
                 </span>
                 <span className={styles.userEmail}>{user?.email}</span>
                 <span className={styles.userRole}>
-                  {user?.role ?? "—"} · {user?.status}
+                  {user?.role ? USER_ROLE_LABELS[user.role] : "—"} ·{" "}
+                  {user?.status}
                 </span>
               </div>
             </div>

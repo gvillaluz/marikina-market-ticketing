@@ -1,6 +1,6 @@
 import SkeletonBlock from "@/components/ui/Skeleton/SkeletonBlock";
 import ReviewSkeletonSection from "./ReviewSkeletonSection";
-import styles from "../AdminVendorRegistrationReviewPage.module.css";
+import styles from "./ReviewSkeleton.module.css";
 
 export default function ReviewSkeleton() {
   return (

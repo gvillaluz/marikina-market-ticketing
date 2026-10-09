@@ -1,0 +1,54 @@
+.page {
+  composes: page from "./RegistrationLayout.module.css";
+  overflow: hidden;
+}
+.columns {
+  composes: columns from "./RegistrationLayout.module.css";
+}
+.main {
+  composes: main from "./RegistrationLayout.module.css";
+}
+.applicant {
+  composes: surface from "./RegistrationLayout.module.css";
+  overflow: hidden;
+}
+.section {
+  composes: surface from "./RegistrationLayout.module.css";
+  overflow: hidden;
+}
+.checklist {
+  composes: surface from "./RegistrationLayout.module.css";
+  overflow: hidden;
+}
+.applicant {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+.skeletonHeader,
+.skeletonApplicantText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  overflow: hidden;
+}
+.skeletonApplicantText {
+  flex: 1;
+}
+.skeletonDocuments {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+.skeletonChecklistItem {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-lg) 0;
+}
+.skeletonChecklistItem > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}

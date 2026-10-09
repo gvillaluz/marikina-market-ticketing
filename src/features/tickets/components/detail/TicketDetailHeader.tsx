@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import StatusPill from './StatusPill';
 import styles from './TicketDetailHeader.module.css';
-import { TicketStatus } from '../../tickets.types';
+
 import { RecordStatus, Severity } from '@/api/types/common.types';
 import { formatControlNumber } from '@/utils/formatters';
 

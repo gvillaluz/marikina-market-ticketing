@@ -133,7 +133,7 @@ export const adminVendorsApi = {
     request: RegistrationApprovalRequest,
   ): Promise<RegistrationApprovalResponse> {
     const { data } = await client.post<RegistrationApprovalResponse>(
-      "/admin/vendors/approve-registry",
+      "/vendor/approve-registry",
       request,
     );
     return data;
@@ -143,7 +143,7 @@ export const adminVendorsApi = {
     request: RegistrationDeclineRequest,
   ): Promise<RegistrationDeclinedResponse> {
     const { data } = await client.post<RegistrationDeclinedResponse>(
-      "/admin/vendors/decline-registry",
+      "/vendor/decline-registry",
       request,
     );
     return data;
@@ -153,7 +153,7 @@ export const adminVendorsApi = {
     request: RegistrationDeclineRequest,
   ): Promise<RegistrationDeclinedResponse> {
     const { data } = await client.post<RegistrationDeclinedResponse>(
-      "/admin/vendors/request-more-information",
+      "/vendor/request-more-information",
       request,
     );
     return data;

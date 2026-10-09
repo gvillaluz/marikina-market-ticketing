@@ -1,0 +1,163 @@
+.page {
+  composes: page from "./review/RegistrationLayout.module.css";
+}
+.columns {
+  composes: columns from "./review/RegistrationLayout.module.css";
+}
+.main {
+  composes: main from "./review/RegistrationLayout.module.css";
+}
+.actions {
+  composes: actions from "./review/RegistrationLayout.module.css";
+}
+.errorPage {
+  composes: errorPage from "./review/RegistrationLayout.module.css";
+}
+.errorCard {
+  composes: errorCard from "./review/RegistrationLayout.module.css";
+}
+.header {
+  composes: header from "./review/RegistrationLayout.module.css";
+}
+.error {
+  composes: error from "./review/RegistrationLayout.module.css";
+}
+.card {
+  composes: surface from "./review/RegistrationLayout.module.css";
+}
+.sideCard {
+  composes: surface from "./review/RegistrationLayout.module.css";
+}
+.reasonTitle,
+.sideCard h2 {
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+}
+.hint {
+  margin-top: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+.options {
+  display: grid;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  cursor: pointer;
+}
+.option:hover {
+  border-color: var(--primary);
+}
+.option:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--registration-info-surface);
+}
+.option:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.option:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.option input {
+  flex-shrink: 0;
+  margin-top: var(--space-xs);
+  accent-color: var(--primary);
+}
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.optionText strong {
+  font-size: var(--font-size-sm);
+  color: var(--text-heading);
+}
+.optionText small {
+  font-size: var(--font-size-xs);
+}
+.remarks label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-xl);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.remarks textarea {
+  padding: var(--space-md);
+  width: 100%;
+  min-height: var(--registration-remarks-height);
+  resize: vertical;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 400;
+  color: var(--text-heading);
+  background: var(--bg-surface);
+  caret-color: var(--primary);
+}
+.remarks textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.remarks textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.remarks > small {
+  display: block;
+  margin-top: var(--space-sm);
+  font-size: var(--font-size-xs);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sideCard p {
+  margin-top: var(--space-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+}
+.prepared,
+.approvalNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin-top: var(--space-xl);
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--primary);
+  background: var(--registration-info-surface);
+}
+.prepared svg,
+.approvalNotice svg {
+  flex-shrink: 0;
+}
+.decline .sideCard {
+  background: var(--registration-danger-surface);
+}
+.information .sideCard {
+  background: var(--registration-warning-surface);
+}
+.approve .sideCard {
+  background: var(--registration-success-surface);
+}
+.modalActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+.modalMessage {
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+}

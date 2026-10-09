@@ -4,9 +4,13 @@ import styles from "./BackupHistoryRow.module.css";
 
 interface BackupHistoryRowProps {
   backup: BackupHistoryRowModel;
+  onDownload: () => void;
 }
 
-export default function BackupHistoryRow({ backup }: BackupHistoryRowProps) {
+export default function BackupHistoryRow({
+  backup,
+  onDownload,
+}: BackupHistoryRowProps) {
   return (
     <tr className={styles.row}>
       <td className={styles.date}>{backup.dateLabel}</td>
@@ -30,11 +34,18 @@ export default function BackupHistoryRow({ backup }: BackupHistoryRowProps) {
           <button
             type="button"
             className={styles.download}
-            disabled
-            title="Downloads are currently unavailable"
+            disabled={backup.downloadDisabled}
+            aria-label={`Download backup ${backup.id}`}
+            aria-busy={backup.isDownloading}
+            title={
+              backup.canDownload
+                ? "Download encrypted backup"
+                : "This backup is unavailable for download"
+            }
+            onClick={onDownload}
           >
             <Download size={12} aria-hidden="true" />
-            Download
+            {backup.isDownloading ? "Downloading…" : "Download"}
           </button>
           <button
             type="button"

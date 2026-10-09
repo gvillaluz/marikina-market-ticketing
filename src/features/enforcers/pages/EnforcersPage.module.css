@@ -64,7 +64,9 @@
   border-radius: 9px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .searchWrapper:focus-within {
@@ -135,13 +137,16 @@
   color: #43566d;
   font-size: 0.8rem;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .pageButton:hover:not(:disabled) {
   border-color: #a9bfd9;
   background: #f3f7fc;
-  color: var(--primary);
+  color: var(--button-primary);
 }
 
 .pageButton:disabled {
@@ -150,8 +155,8 @@
 }
 
 .currentPage {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--button-primary);
+  border-color: var(--button-primary);
   color: #fff;
 }
 
@@ -200,7 +205,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--neutral-100, #EDEEF1);
+  background: var(--neutral-100, #edeef1);
   display: flex;
   align-items: center;
   justify-content: center;

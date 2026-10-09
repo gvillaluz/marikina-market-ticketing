@@ -1,0 +1,107 @@
+.description {
+  composes: description from "../../../styles/FormControls.module.css";
+}
+.form {
+  composes: form from "../../../styles/FormControls.module.css";
+}
+.verify {
+  composes: primaryButton from "../../../styles/FormControls.module.css";
+}
+.spinner {
+  composes: spinner from "../../../styles/FormControls.module.css";
+}
+.error {
+  composes: error from "../../../styles/FormControls.module.css";
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xl);
+  min-height: var(--form-control-height);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: var(--form-font-caption);
+  font-weight: 600;
+  color: var(--primary);
+  background: transparent;
+}
+.back:hover:not(:disabled) {
+  text-decoration: underline;
+}
+.back:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+.header h2 {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-h3);
+  color: var(--primary);
+}
+.icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--form-control-height);
+  height: var(--form-control-height);
+  border-radius: var(--radius-sm);
+  color: var(--primary);
+  background: var(--button-primary-surface);
+}
+.expiry {
+  font-size: var(--form-font-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-body);
+}
+.resendRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: var(--form-font-caption);
+  color: var(--text-body);
+}
+.resend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--form-control-height);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--button-primary);
+  background: transparent;
+}
+.resend:hover:not(:disabled) {
+  text-decoration: underline;
+}
+.resend:disabled {
+  cursor: not-allowed;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-body);
+}
+.back:focus-visible,
+.resend:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.notice {
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--form-font-caption);
+  color: var(--primary);
+  background: var(--button-primary-surface);
+}
+@media (prefers-reduced-motion: reduce) {
+  .back,
+  .resend {
+    transition: none;
+  }
+}

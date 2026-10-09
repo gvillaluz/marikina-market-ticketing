@@ -1,3 +1,4 @@
+import Pagination from "@/components/ui/Pagination";
 import type { BackupHistoryModel } from "../hooks/useBackupHistory";
 import BackupHistoryRow from "./BackupHistoryRow";
 import BackupMessage from "./BackupMessage";
@@ -25,6 +26,9 @@ export default function BackupHistory({ history }: BackupHistoryProps) {
           pending={history.isFetching}
           onRetry={history.retry}
         />
+      )}
+      {history.downloadError && (
+        <BackupMessage message={history.downloadError} error />
       )}
       <div
         className={styles.tableRegion}
@@ -59,35 +63,34 @@ export default function BackupHistory({ history }: BackupHistoryProps) {
               </tr>
             ) : (
               history.rows.map((backup) => (
-                <BackupHistoryRow key={backup.id} backup={backup} />
+                <BackupHistoryRow
+                  key={backup.id}
+                  backup={backup}
+                  onDownload={() => history.download(backup)}
+                />
               ))
             )}
           </tbody>
         </table>
       </div>
-      {history.hasPagination && (
+      {(history.hasData || history.page > 1) && (
         <footer className={styles.footer}>
-          <p>
-            {history.rows.length > 0
-              ? `Showing ${history.offset + 1}–${history.offset + history.rows.length}${history.total != null ? ` of ${history.total}` : ""}`
-              : "Backup history"}
-          </p>
-          <div className={styles.pagination}>
-            <button
-              type="button"
-              disabled={!history.canPrevious}
-              onClick={history.previous}
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              disabled={!history.canNext}
-              onClick={history.next}
-            >
-              Next
-            </button>
-          </div>
+          <p role="status">{history.rangeLabel}</p>
+          <fieldset
+            className={styles.paginationControls}
+            disabled={history.isFetching}
+            aria-label="Backup history pages"
+          >
+            <Pagination
+              compact
+              showSinglePage
+              page={history.page}
+              totalPages={history.totalPages}
+              canGoNext={!history.canNext}
+              onChange={history.changePage}
+              className={styles.pagination}
+            />
+          </fieldset>
         </footer>
       )}
     </section>

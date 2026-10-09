@@ -106,13 +106,13 @@
 }
 
 .exportDataButton {
-  background: #00488f;
+  background: var(--button-primary);
   color: #fff;
   border-radius: 8px;
 }
 
 .exportDataButton:hover:not(:disabled) {
-  background: #16304f;
+  background: var(--button-primary-hover);
 }
 
 .errorText {

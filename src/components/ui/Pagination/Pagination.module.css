@@ -42,11 +42,24 @@
 .pageBtn:hover {
   background: var(--neutral-50);
 }
+.btn:focus-visible,
+.pageBtn:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
 
 .active {
-  background: var(--primary-500);
-  border-color: var(--primary-500);
+  background: var(--button-primary);
+  border-color: var(--button-primary);
   color: #fff;
+}
+.active:hover {
+  background: var(--button-primary-hover);
+  border-color: var(--button-primary-hover);
+}
+.pageBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .dots {

@@ -26,7 +26,9 @@
   color: #24364b;
   font: inherit;
   font-size: 0.88rem;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .input::placeholder {
@@ -80,7 +82,10 @@
   color: #516175;
   text-align: center;
   cursor: pointer;
-  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
 }
 
 .uploadBox:hover {
@@ -186,6 +191,12 @@
 .removeFile:hover {
   background: #fbe9e9;
   color: #a92f2f;
+}
+.fileInput:focus-visible ~ .uploadBox,
+.fileInput:focus-visible ~ .filePreview,
+.removeFile:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {

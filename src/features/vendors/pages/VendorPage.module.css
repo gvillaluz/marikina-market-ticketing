@@ -26,12 +26,12 @@
 
 .filterBtn:hover {
   border-color: var(--primary-300);
-  color: var(--primary-600);
+  color: var(--button-primary-hover);
 }
 
 .active {
-  background: var(--primary-500);
-  border-color: var(--primary-500);
+  background: var(--button-primary);
+  border-color: var(--button-primary);
   color: #fff;
 }
 
@@ -96,7 +96,11 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--secondary-400), var(--secondary-500));
+  background: linear-gradient(
+    135deg,
+    var(--secondary-400),
+    var(--secondary-500)
+  );
   color: var(--neutral-900);
   display: flex;
   align-items: center;

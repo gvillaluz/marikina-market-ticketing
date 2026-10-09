@@ -5,6 +5,8 @@ import type { UpdateBackupScheduleRequest } from "@/api/types/backups.types";
 import {
   backupError,
   backupKeys,
+  backupWeekdays,
+  validateBackupScheduleResponse,
   validateBackupSchedule,
 } from "../backups.utils";
 
@@ -16,12 +18,14 @@ export function useBackupSchedule(canManage: boolean) {
   const saving = useRef(false);
   const query = useQuery({
     queryKey: backupKeys.schedule,
-    queryFn: ({ signal }) => backupsApi.getSchedule(signal),
+    queryFn: async ({ signal }) =>
+      validateBackupScheduleResponse(await backupsApi.getSchedule(signal)),
     enabled: canManage,
   });
   const fields = draft ?? query.data;
   const mutation = useMutation({
-    mutationFn: backupsApi.updateSchedule,
+    mutationFn: async (request: UpdateBackupScheduleRequest) =>
+      validateBackupScheduleResponse(await backupsApi.updateSchedule(request)),
     retry: false,
     onSuccess: (response) => {
       client.setQueryData(backupKeys.schedule, response);
@@ -41,15 +45,6 @@ export function useBackupSchedule(canManage: boolean) {
     },
   });
   const disabled = !canManage || !fields || mutation.isPending;
-  const weekdays = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
   const retentionDays = [
     ...new Set([
       7,
@@ -85,23 +80,23 @@ export function useBackupSchedule(canManage: boolean) {
       { value: "Daily", label: "Daily" },
       { value: "Weekly", label: "Weekly" },
     ] as const,
-    weekdayOptions: weekdays.map((label, value) => ({
-      value: String(value),
-      label,
+    weekdayOptions: backupWeekdays.map((day) => ({
+      value: day,
+      label: day,
     })),
     retentionOptions: retentionDays.map((days) => ({
       value: String(days),
       label: `${days} days`,
     })),
-    weekdayValue: fields?.dayOfWeek == null ? "" : String(fields.dayOfWeek),
-    weekdayLabel:
-      fields?.dayOfWeek == null ? "Select a day" : weekdays[fields.dayOfWeek],
+    weekdayValue: fields?.dayOfWeek ?? "",
+    weekdayLabel: fields?.dayOfWeek ?? "Select a day",
     retentionValue: String(fields?.retentionDays ?? ""),
     retentionLabel: fields
       ? `${fields.retentionDays} days`
       : "Select a retention period",
     changeWeekday(value: string) {
-      if (/^[0-6]$/.test(value)) change("dayOfWeek", Number(value));
+      const day = backupWeekdays.find((weekday) => weekday === value);
+      if (day) change("dayOfWeek", day);
     },
     changeRetention(value: string) {
       if (retentionDays.some((days) => String(days) === value))

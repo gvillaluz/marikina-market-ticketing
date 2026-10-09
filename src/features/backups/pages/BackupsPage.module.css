@@ -2,32 +2,24 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--backup-space-md);
+  gap: var(--backup-space-lg);
 }
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--backup-space-sm);
-  margin-bottom: var(--backup-space-lg);
-  font-size: var(--backup-font-small);
-  color: var(--text-body);
-}
-
-.breadcrumb a {
-  color: var(--backup-action);
-}
-.breadcrumb a:hover {
-  text-decoration: underline;
-}
-
-.header {
-  display: flex;
-  flex-wrap: wrap;
+.page .header {
   align-items: flex-end;
-  justify-content: space-between;
+  align-items: last baseline;
   gap: var(--backup-space-lg);
   margin-bottom: var(--backup-space-sm);
+}
+
+.header > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.header > div:last-child {
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .header h1 {
@@ -35,36 +27,36 @@
   letter-spacing: -0.025em;
 }
 
-.header p {
-  margin-top: var(--backup-space-sm);
-  font-size: var(--backup-font-body);
-  color: var(--text-body);
-}
-
 .backup {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--backup-space-sm);
+  flex-shrink: 0;
   padding: var(--backup-space-sm) var(--backup-space-lg);
+  width: 100%;
   min-height: var(--backup-control-height);
   border: 1px solid var(--backup-action);
   border-radius: var(--backup-control-radius);
   font-size: var(--backup-font-small);
   font-weight: 500;
+  line-height: 1.5;
   color: var(--text-on-primary);
   background: var(--backup-action);
 }
 
 .backup:hover:not(:disabled) {
+  border-color: var(--backup-action-hover);
   background: var(--backup-action-hover);
 }
 .backup:disabled {
+  border-color: var(--border-default);
+  color: var(--text-body);
+  background: var(--bg-page);
   cursor: not-allowed;
-  opacity: var(--backup-disabled-opacity);
+  opacity: 1;
 }
-.backup:focus-visible,
-.breadcrumb a:focus-visible {
+.backup:focus-visible {
   outline: 2px solid var(--backup-action);
   outline-offset: 2px;
 }
@@ -73,7 +65,16 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
-  gap: var(--backup-space-md);
+  gap: var(--backup-space-lg);
+}
+
+@media (min-width: 600px) {
+  .header > div:last-child {
+    width: auto;
+  }
+  .backup {
+    width: auto;
+  }
 }
 
 @media (min-width: 900px) {

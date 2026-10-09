@@ -1,0 +1,17 @@
+.form {
+  composes: form from "./RecoveryForm.module.css";
+}
+.inputs {
+  composes: inputs from "../OtpCodeInput.module.css";
+}
+.spinner {
+  composes: spinner from "./RecoveryForm.module.css";
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: var(--recovery-control-height);
+  font-size: var(--recovery-font-caption);
+  color: var(--text-body);
+}

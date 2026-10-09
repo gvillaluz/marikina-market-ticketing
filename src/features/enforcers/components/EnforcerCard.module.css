@@ -1,5 +1,5 @@
 .card {
-  border: 1px solid #C3C6D2;
+  border: 1px solid #c3c6d2;
   border-radius: 15px;
   padding: 1rem;
   background: #fff;
@@ -7,18 +7,20 @@
   flex-direction: column;
   gap: 0.875rem;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
-  transition: 
+  transition:
     transform 0.3s ease,
     box-shadow 0.3s ease,
     filter 0.3s ease;
 }
 
-.card:hover, .card:focus-visible {
+.card:hover,
+.card:focus-visible {
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .card:hover, .card:focus-visible {
+  .card:hover,
+  .card:focus-visible {
     transform: scale(1) translateY(-2px);
   }
 }
@@ -63,7 +65,7 @@
 .name {
   font-size: 1rem;
   font-weight: 700;
-  color: #1A1C1E;
+  color: #1a1c1e;
 }
 
 .badgeNo {
@@ -78,7 +80,7 @@
 
 .stat {
   flex: 1;
-  background: var(--neutral-50, #F5F6F8);
+  background: var(--neutral-50, #f5f6f8);
   border-radius: 6px;
   padding: 8px 10px;
   display: flex;
@@ -87,12 +89,12 @@
 }
 
 .statusPill {
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 1px 12px;
-    width: fit-content;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1px 12px;
+  width: fit-content;
 }
 
 .dot {
@@ -103,22 +105,28 @@
 }
 
 .pillLabel {
-    font-size: 0.8rem;
+  font-size: 0.8rem;
 }
 
-.active { background: #2e7d3228; color: #2E7D32; }
-.inactive { background: #6670851a; color: #667085; }
+.active {
+  background: #2e7d3228;
+  color: #2e7d32;
+}
+.inactive {
+  background: #6670851a;
+  color: #667085;
+}
 
 .statHeader {
-    display: flex;
-    gap: 5px;
-    align-items: center;
-    position: relative;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  position: relative;
 }
 
 .icon {
-    position: relative;
-    top: 0;
+  position: relative;
+  top: 0;
 }
 
 .statLabel {
@@ -131,7 +139,7 @@
 .statValue {
   font-size: 1rem;
   font-weight: 700;
-  color: #1A1C1E;
+  color: #1a1c1e;
 }
 
 .viewButton {
@@ -139,18 +147,18 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: #00488F;
+  color: var(--button-primary);
   border-radius: 10px;
   padding: 10px;
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  background: #F3F6F9;
+  background: #f3f6f9;
   border: 1px solid #cbddf5;
-  transition: .1s ease-in-out background;
+  transition: 0.1s ease-in-out background;
 }
 
 .viewButton:hover {
-  background: #00488F;
+  background: var(--button-primary);
   color: #fff;
 }
