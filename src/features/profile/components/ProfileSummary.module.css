@@ -1,0 +1,70 @@
+.summary {
+  min-width: 0;
+  padding: var(--space-xl);
+  border: 1px solid var(--border-default);
+  border-top: 3px solid var(--button-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  align-self: start;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--navbar-profile-size) * 2);
+  height: calc(var(--navbar-profile-size) * 2);
+  margin-bottom: var(--space-xl);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--market-radius-pill);
+  font-size: var(--font-size-h2);
+  font-weight: 700;
+  color: var(--button-primary);
+  background: var(--primary-50);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.name {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--font-size-h3);
+  overflow-wrap: anywhere;
+}
+
+.role {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--form-font-caption);
+}
+
+.username {
+  display: grid;
+  gap: var(--space-sm);
+  margin: var(--space-xl) 0;
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--border-default);
+  font-size: var(--form-font-caption);
+}
+
+.username dd {
+  margin: 0;
+  color: var(--text-heading);
+  overflow-wrap: anywhere;
+}
+
+.created {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin: 0;
+  font-size: var(--form-font-caption);
+}
+
+.created svg {
+  flex-shrink: 0;
+  color: var(--button-primary);
+}

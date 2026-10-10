@@ -1,0 +1,29 @@
+.message {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-lg);
+  font-size: var(--form-font-caption);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+.error {
+  color: var(--danger);
+  background: var(--form-error-surface);
+}
+.message .retry {
+  min-height: var(--account-control-height);
+  padding: var(--space-sm) var(--space-md);
+  border-color: var(--button-primary);
+  border-radius: var(--market-radius-button);
+  font-size: var(--form-font-caption);
+  color: var(--button-primary);
+  background: var(--bg-surface);
+}
+.message .retry:hover:not(:disabled) {
+  border-color: var(--button-primary-hover);
+  background: var(--button-primary-surface);
+}

@@ -24,6 +24,18 @@ const Toast: FC<ToastProps> = ({ toast, onDismiss }) => {
       <div className={styles.content}>
         <span className={styles.title}>{toast.title}</span>
         {toast.description && <span className={styles.description}>{toast.description}</span>}
+        {toast.actionLabel && toast.onAction && (
+          <button
+            className={styles.actionBtn}
+            type="button"
+            onClick={() => {
+              toast.onAction?.();
+              onDismiss();
+            }}
+          >
+            {toast.actionLabel}
+          </button>
+        )}
       </div>
       <button className={styles.closeBtn} onClick={onDismiss} aria-label="Dismiss notification">
         <X size={14} strokeWidth={2} />

@@ -1,0 +1,83 @@
+.filter {
+  position: relative;
+  min-width: 0;
+}
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  width: 100%;
+  min-height: var(--account-control-height);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--market-radius-button);
+  font-size: var(--market-font-size-small);
+  color: var(--text-heading);
+  background: var(--bg-surface);
+}
+.trigger span {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trigger svg {
+  flex-shrink: 0;
+  color: var(--text-body);
+}
+.trigger:hover:not(:disabled) {
+  border-color: var(--button-primary);
+  background: var(--button-primary-surface);
+}
+.trigger:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+.trigger:disabled {
+  color: var(--text-body);
+  background: var(--bg-card);
+  cursor: not-allowed;
+}
+.menu {
+  position: absolute;
+  top: calc(100% + var(--space-xs));
+  right: 0;
+  z-index: 20;
+  overflow-y: auto;
+  width: max(100%, var(--account-search-width));
+  max-width: calc(100vw - var(--space-section));
+  max-height: 50vh;
+  padding: var(--space-sm);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-lg);
+}
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border-radius: var(--market-radius-button);
+  font-size: var(--market-font-size-compact);
+  color: var(--text-heading);
+  cursor: pointer;
+}
+.option:first-child {
+  margin-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--border-default);
+}
+.option:hover {
+  background: var(--button-primary-surface);
+}
+.option:focus-within {
+  outline: 2px solid var(--button-primary);
+  outline-offset: -2px;
+  background: var(--button-primary-surface);
+}
+.option input {
+  width: var(--space-lg);
+  height: var(--space-lg);
+  accent-color: var(--button-primary);
+}

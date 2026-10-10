@@ -9,6 +9,7 @@ export const ROUTES = {
   register: "/register",
   changePassword: "/admin/change-password",
   dashboard: "/dashboard",
+  profile: "/profile",
   inspections: "/inspections",
   tickets: "/tickets",
   enforcers: "/enforcers",
@@ -35,4 +36,5 @@ export const ROUTES = {
   ordinance: "/system/ordinance",
   backups: "/configuration/backups",
   accounts: "/admin/accounts",
+  auditLogs: "/admin/audit-logs",
 } as const;

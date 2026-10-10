@@ -5,6 +5,8 @@ export interface ToastOptions {
   description?: string;
   variant?: ToastVariant;
   duration?: number; // ms, defaults to 4000; pass 0 to require manual dismiss
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 export interface ToastItem extends ToastOptions {

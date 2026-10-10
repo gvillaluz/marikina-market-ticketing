@@ -1,49 +1,74 @@
-import { FC, FormEvent, useState } from 'react';
-import Modal from '@/components/ui/Modal';
-import Button from '@/components/ui/Button';
-import { ticketsApi } from '@/api/endpoints/tickets.api';
-import { TICKET_TYPES, TICKET_SEVERITIES, MARIKINA_BARANGAYS } from '@/utils/constants';
-import { TICKET_TYPE_LABELS, SEVERITY_LABELS } from '@/utils/constants';
-import { isRequired } from '@/utils/validators';
-import type { CreateTicketInput } from '@/api/types/ticket.types';
-import styles from './CreateTicketModal.module.css';
-import { getApiErrorMessage } from '@/utils/apiErrors';
+import { FC, FormEvent, useState } from "react";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import {
+  TICKET_TYPES,
+  TICKET_SEVERITIES,
+  MARIKINA_BARANGAYS,
+} from "@/utils/constants";
+import { TICKET_TYPE_LABELS, SEVERITY_LABELS } from "@/utils/constants";
+import { isRequired } from "@/utils/validators";
+import type { TicketType } from "@/api/types/ticket.types";
+import styles from "./CreateTicketModal.module.css";
+import { getApiErrorMessage } from "@/utils/apiErrors";
+
+interface CreateTicketInput {
+  type: TicketType;
+  title: string;
+  description: string;
+  severity: (typeof TICKET_SEVERITIES)[number];
+  location: string;
+}
 
 interface CreateTicketModalProps {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
+  onCreate: (input: CreateTicketInput) => Promise<void>;
 }
 
-const CreateTicketModal: FC<CreateTicketModalProps> = ({ open, onClose, onCreated }) => {
+const CreateTicketModal: FC<CreateTicketModalProps> = ({
+  open,
+  onClose,
+  onCreated,
+  onCreate,
+}) => {
   const [form, setForm] = useState<CreateTicketInput>({
-    type: 'violation',
-    title: '',
-    description: '',
-    severity: 'medium',
+    type: "violation",
+    title: "",
+    description: "",
+    severity: "medium",
     location: MARIKINA_BARANGAYS[0],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const setField = <K extends keyof CreateTicketInput>(key: K, value: CreateTicketInput[K]) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const setField = <K extends keyof CreateTicketInput>(
+    key: K,
+    value: CreateTicketInput[K],
+  ) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!isRequired(form.title) || !isRequired(form.description)) {
-      setError('Please fill in the title and description.');
+      setError("Please fill in the title and description.");
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      await ticketsApi.create(form);
+      await onCreate(form);
       onCreated();
       onClose();
-      setForm({ type: 'violation', title: '', description: '', severity: 'medium', location: MARIKINA_BARANGAYS[0] });
+      setForm({
+        type: "violation",
+        title: "",
+        description: "",
+        severity: "medium",
+        location: MARIKINA_BARANGAYS[0],
+      });
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to create ticket.'));
+      setError(getApiErrorMessage(err, "Failed to create ticket."));
     } finally {
       setLoading(false);
     }
@@ -59,10 +84,14 @@ const CreateTicketModal: FC<CreateTicketModalProps> = ({ open, onClose, onCreate
           <select
             className={styles.input}
             value={form.type}
-            onChange={(e) => setField('type', e.target.value as CreateTicketInput['type'])}
+            onChange={(e) =>
+              setField("type", e.target.value as CreateTicketInput["type"])
+            }
           >
             {TICKET_TYPES.map((t) => (
-              <option key={t} value={t}>{TICKET_TYPE_LABELS[t]}</option>
+              <option key={t} value={t}>
+                {TICKET_TYPE_LABELS[t]}
+              </option>
             ))}
           </select>
         </div>
@@ -72,7 +101,7 @@ const CreateTicketModal: FC<CreateTicketModalProps> = ({ open, onClose, onCreate
           <input
             className={styles.input}
             value={form.title}
-            onChange={(e) => setField('title', e.target.value)}
+            onChange={(e) => setField("title", e.target.value)}
             placeholder="e.g. Expired Business Permit"
           />
         </div>
@@ -82,7 +111,7 @@ const CreateTicketModal: FC<CreateTicketModalProps> = ({ open, onClose, onCreate
           <textarea
             className={styles.input}
             value={form.description}
-            onChange={(e) => setField('description', e.target.value)}
+            onChange={(e) => setField("description", e.target.value)}
             placeholder="Provide details about the ticket…"
             rows={4}
           />
@@ -94,10 +123,17 @@ const CreateTicketModal: FC<CreateTicketModalProps> = ({ open, onClose, onCreate
             <select
               className={styles.input}
               value={form.severity}
-              onChange={(e) => setField('severity', e.target.value as CreateTicketInput['severity'])}
+              onChange={(e) =>
+                setField(
+                  "severity",
+                  e.target.value as CreateTicketInput["severity"],
+                )
+              }
             >
               {TICKET_SEVERITIES.map((s) => (
-                <option key={s} value={s}>{SEVERITY_LABELS[s]}</option>
+                <option key={s} value={s}>
+                  {SEVERITY_LABELS[s]}
+                </option>
               ))}
             </select>
           </div>
@@ -106,18 +142,24 @@ const CreateTicketModal: FC<CreateTicketModalProps> = ({ open, onClose, onCreate
             <select
               className={styles.input}
               value={form.location}
-              onChange={(e) => setField('location', e.target.value)}
+              onChange={(e) => setField("location", e.target.value)}
             >
               {MARIKINA_BARANGAYS.map((b) => (
-                <option key={b} value={b}>{b}</option>
+                <option key={b} value={b}>
+                  {b}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
         <div className={styles.actions}>
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" loading={loading}>Create Ticket</Button>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={loading}>
+            Create Ticket
+          </Button>
         </div>
       </form>
     </Modal>

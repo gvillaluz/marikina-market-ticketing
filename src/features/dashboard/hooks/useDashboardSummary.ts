@@ -1,51 +1,34 @@
-import { useEffect, useState } from 'react';
-import { getDashboardSummary, type DashboardSummary } from '@/api/endpoints/dashboard.api';
-import { getApiErrorMessage } from '@/utils/apiErrors';
+import { useQuery } from "@tanstack/react-query";
+import { dashboardApi } from "@/api/endpoints/dashboard.api";
+import { useAuth } from "@/context/AuthContext";
+import { ApiRequestError, getApiErrorMessage } from "@/utils/apiErrors";
+import { isAdministrator } from "@/utils/roles";
+import { validateDashboardSummary } from "../dashboard.validation";
 
-interface UseDashboardSummaryResult {
-  data: DashboardSummary | null;
-  isLoading: boolean;
-  isError: boolean;
-  errorMessage: string;
-}
+export function useDashboardSummary() {
+  const { user } = useAuth();
+  const canView = isAdministrator(user?.role);
+  const query = useQuery({
+    queryKey: ["dashboard", "summary", user?.userId],
+    enabled: canView,
+    gcTime: 0,
+    retry: false,
+    queryFn: async ({ signal }) => {
+      const summary = await dashboardApi.getSummary(signal);
+      validateDashboardSummary(summary);
+      return summary;
+    },
+  });
 
-export function useDashboardSummary(): UseDashboardSummaryResult {
-  const [data, setData] = useState<DashboardSummary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchSummary() {
-      setIsLoading(true);
-      setIsError(false);
-      setErrorMessage("");
-      try {
-        const result = await getDashboardSummary();
-        if (!cancelled) {
-          setData(result);
-        }
-      } catch (err) {
-        console.log('Dashboard summary error:', err);
-        if (!cancelled) {
-          setIsError(true);
-          setErrorMessage(getApiErrorMessage(err, "Unable to load dashboard summary."));
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    fetchSummary();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return { data, isLoading, isError, errorMessage };
+  return {
+    summary: query.data,
+    isLoading: canView && (query.isPending || query.isFetching),
+    error: query.isError
+      ? getApiErrorMessage(
+          query.error instanceof ApiRequestError ? query.error : undefined,
+          "Unable to load the dashboard summary. Please try again.",
+        )
+      : null,
+    retry: () => void query.refetch(),
+  };
 }

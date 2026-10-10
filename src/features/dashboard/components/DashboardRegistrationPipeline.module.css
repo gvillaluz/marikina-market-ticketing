@@ -1,0 +1,125 @@
+.panel {
+  min-width: 0;
+  padding: var(--space-lg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.heading h2 {
+  margin: 0;
+  color: var(--text-heading);
+  font-size: var(--font-size-h3);
+}
+
+.icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--registration-info-surface);
+  color: var(--info);
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.statusItem {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.statusItem span {
+  color: var(--text-body);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+.statusItem strong {
+  flex: 0 0 auto;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.pending {
+  color: var(--warning);
+}
+
+.information {
+  color: var(--info);
+}
+
+.approved {
+  color: var(--success);
+}
+
+.rejected {
+  color: var(--danger);
+}
+
+.loading {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.loadingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.error {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-sm);
+}
+
+.error p {
+  margin: 0;
+  color: var(--text-body);
+  font-size: var(--font-size-xs);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+  color: var(--button-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.link:focus-visible {
+  border-radius: var(--radius-sm);
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}

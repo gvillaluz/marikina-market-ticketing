@@ -1,13 +1,11 @@
-import apiClient from '../client'
+import client from "@/api/client";
+import type { DashboardSummary } from "@/api/types/dashboard.types";
 
-export interface DashboardSummary {
-  totalInspectionsToday: number;
-  totalWarnings: number;
-  totalTickets: number;
-  totalPendingFines: number;
-  complianceRate: number;
-}
-
-export function getDashboardSummary(): Promise<DashboardSummary> {
-  return apiClient.get('/dashboard/summary') as unknown as Promise<DashboardSummary>;
-}
+export const dashboardApi = {
+  async getSummary(signal?: AbortSignal): Promise<DashboardSummary> {
+    const { data } = await client.get<DashboardSummary>("/dashboard/summary", {
+      signal,
+    });
+    return data;
+  },
+};

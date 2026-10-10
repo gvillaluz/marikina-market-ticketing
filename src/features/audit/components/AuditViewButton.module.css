@@ -1,0 +1,14 @@
+.button {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--market-radius-button);
+  font-size: var(--market-font-size-micro);
+  font-weight: 500;
+  color: var(--button-primary);
+  background: var(--bg-surface);
+  box-shadow: none;
+}
+.button:hover:not(:disabled) {
+  border-color: var(--button-primary);
+  background: var(--button-primary-surface);
+}
