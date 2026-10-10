@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { Link } from "react-router-dom";
 import { Bell, UserRound } from "lucide-react";
+import { ROUTES } from "@/routes/routePaths";
 import styles from "./Navbar.module.css";
 
 interface NavbarProps {
@@ -30,19 +31,19 @@ const Navbar: FC<NavbarProps> = ({ onMenuClick, sidebarCollapsed }) => {
           <Bell size={18} strokeWidth={1.8} aria-hidden="true" />
         </Link>
         <div className={styles.divider} />
-        <span
+        <Link
+          to={ROUTES.profile}
           className={styles.profile}
-          role="img"
           aria-label="Profile"
           title="Profile"
         >
           <UserRound
             className={styles.profileIcon}
-            size={24}
+            size={20}
             strokeWidth={2}
             aria-hidden="true"
           />
-        </span>
+        </Link>
       </div>
     </header>
   );

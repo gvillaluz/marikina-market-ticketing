@@ -1,0 +1,31 @@
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border: 1px solid var(--ordinance-action-border);
+  border-radius: var(--market-radius-notice);
+  background: var(--ordinance-info-surface);
+}
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--account-control-height);
+  height: var(--account-control-height);
+  border-radius: var(--radius-sm);
+  color: var(--button-primary);
+  background: var(--button-primary-surface);
+}
+.notice h2 {
+  font-size: var(--market-font-size-small);
+  font-weight: 600;
+  color: var(--button-primary);
+}
+.notice p {
+  margin-top: var(--space-sm);
+  font-size: var(--market-font-size-caption);
+  line-height: 1.6;
+  color: var(--text-body);
+}

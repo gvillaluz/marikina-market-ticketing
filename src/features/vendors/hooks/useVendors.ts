@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
-import { vendorApi } from '@/api/endpoints/vendor.api';
-import type { Vendor } from '@/api/types/vendor.types';
-import type { Status } from '@/api/types/common.types';
-import { getApiErrorMessage } from '@/utils/apiErrors';
+import { useCallback, useEffect, useState } from "react";
+import { vendorApi } from "@/api/endpoints/vendor.api";
+import type { Vendor } from "@/api/types/vendor.types";
+import type { Status } from "@/api/types/common.types";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 
 interface UseVendorsOptions {
   status?: Status;
@@ -30,9 +30,11 @@ export function useVendors(options: UseVendorsOptions = {}) {
       });
       setVendors(res.items);
       setTotal(res.total);
-      setTotalPages(res.totalPages);
+      setTotalPages(
+        Math.max(1, Math.ceil(res.total / (options.pageSize ?? 10))),
+      );
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to load vendors.'));
+      setError(getApiErrorMessage(err, "Failed to load vendors."));
     } finally {
       setLoading(false);
     }

@@ -1,55 +1,171 @@
-.header {
-  padding-top: 24px;
-  margin-bottom: 20px;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.grid {
+.page {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  gap: var(--space-lg);
+  width: 100%;
+  min-width: 0;
 }
 
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+.connectionNotice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid
+    color-mix(in srgb, var(--button-primary) 22%, var(--border-default));
+  border-radius: var(--radius-md);
+  background: var(--button-primary-surface);
 }
 
-.cardLabel {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin: 0 0 8px;
-}
-
-.cardValue {
-  font-size: 28px;
-  font-weight: 800;
-  margin: 0;
-}
-
-.skeleton {
-  height: 20px;
+.noticeIcon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, #eef1f4 25%, #f7f9fb 37%, #eef1f4 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.4s ease infinite;
+  background: var(--bg-surface);
+  color: var(--button-primary);
 }
 
-@keyframes shimmer {
-  0% { background-position: 100% 50%; }
-  100% { background-position: 0 50%; }
+.connectionNotice > div {
+  min-width: 0;
+  flex: 1;
 }
 
-.errorState {
-  color: var(--color-danger);
-  font-size: 13px;
+.connectionNotice h2 {
+  margin: 0 0 var(--space-xs);
+  color: var(--text-heading);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.connectionNotice p {
+  margin: 0;
+  color: var(--text-body);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.status {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--bg-surface);
+  color: var(--text-body);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.statusReady {
+  border-color: color-mix(in srgb, var(--success) 24%, var(--border-default));
+  background: var(--registration-success-surface);
+  color: var(--success);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+.dashboardColumns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.85fr);
+  align-items: start;
+  gap: var(--space-lg);
+}
+
+.recentPanel,
+.attentionPanel {
+  min-width: 0;
+}
+
+.rightColumn {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--space-lg);
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.sectionHeading h2 {
+  margin: 0 0 var(--space-xs);
+  color: var(--text-heading);
+  font-size: var(--font-size-h3);
+}
+
+.sectionHeading p {
+  margin: 0;
+  color: var(--text-body);
+  font-size: var(--font-size-xs);
+}
+
+.sectionHeading > span {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.quickAccess {
+  min-width: 0;
+}
+
+.quickLinks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+@media (max-width: 1000px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboardColumns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rightColumn {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quickLinks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .connectionNotice {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: var(--space-md);
+  }
+
+  .connectionNotice > div {
+    flex-basis: calc(100% - 3rem);
+  }
+
+  .status {
+    margin-left: calc(2rem + var(--space-md));
+  }
+
+  .metrics,
+  .quickLinks,
+  .rightColumn {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sectionHeading {
+    align-items: flex-start;
+  }
+
 }

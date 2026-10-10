@@ -10,7 +10,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./Sidebar.module.css";
-import { Settings, UsersRound } from "lucide-react";
+import { History, Settings, UsersRound } from "lucide-react";
 
 interface NavItem {
   to: string;
@@ -178,6 +178,12 @@ const NAV_ITEMS: NavItem[] = [
     label: "Accounts",
     icon: <UsersRound size={18} strokeWidth={2} />,
     allowedRoles: HEAD_ADMIN_ROLES,
+  },
+  {
+    to: "/admin/audit-logs",
+    label: "Audit Logs",
+    icon: <History size={18} strokeWidth={2} />,
+    allowedRoles: ADMIN_ROLES,
   },
   {
     to: "/system/configuration",

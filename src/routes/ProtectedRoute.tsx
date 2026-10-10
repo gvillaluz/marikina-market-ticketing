@@ -10,9 +10,14 @@ import styles from "./ProtectedRoute.module.css";
 interface ProtectedRouteProps {
   children: ReactNode;
   roles?: readonly UserRole[];
+  redirectTo?: string;
 }
 
-const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
+const ProtectedRoute: FC<ProtectedRouteProps> = ({
+  children,
+  roles,
+  redirectTo,
+}) => {
   const { isAuthenticated, isAuthReady, user, mustChangePassword } = useAuth();
   const location = useLocation();
 
@@ -44,7 +49,7 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, roles }) => {
     return <Navigate to={ROUTES.changePassword} replace />;
   }
   if (roles && user.role !== "HeadAdmin" && !roles.includes(user.role)) {
-    return <Navigate to={roleHomePath(user.role)} replace />;
+    return <Navigate to={redirectTo ?? roleHomePath(user.role)} replace />;
   }
 
   return <>{children}</>;

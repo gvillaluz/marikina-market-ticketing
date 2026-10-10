@@ -21,6 +21,10 @@ export const ordinanceApi = {
     );
     if (response.status === 404) {
       const message = getApiResponseMessage(response.data);
+      throw new ApiRequestError(message);
+    }
+    if (!Array.isArray(response.data)) {
+      throw new ApiRequestError(getApiResponseMessage(response.data));
     }
     return response.data;
   },

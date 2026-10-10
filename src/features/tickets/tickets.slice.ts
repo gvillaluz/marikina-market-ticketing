@@ -1,8 +1,7 @@
-
-import type { Ticket } from '@/api/types/ticket.types';
+import type { TicketSummary } from "@/api/types/ticket.types";
 
 export interface TicketsSliceState {
-  tickets: Ticket[];
+  tickets: TicketSummary[];
   loading: boolean;
   error: string | null;
 }

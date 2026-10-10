@@ -32,9 +32,11 @@ import AdminVendorRegistrationInformationPage from "@/features/vendors/pages/Adm
 import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
 import SystemConfigurationPage from "@/features/configuration/pages/SystemConfigurationPage";
 import MarketSectionPage from "@/features/market-section/pages/MarketSectionPage";
-import { OrdinancesPage } from "@/features/ordinances";
-import { BackupsPage } from "@/features/backups";
-import { AccountsPage } from "@/features/accounts";
+import OrdinancesPage from "@/features/ordinances/pages/OrdinancesPage";
+import BackupsPage from "@/features/backups/pages/BackupsPage";
+import AccountsPage from "@/features/accounts/pages/AccountsPage";
+import ProfilePage from "@/features/profile/pages/ProfilePage";
+import AuditLogsPage from "@/features/audit/pages/AuditLogsPage";
 
 const AppRoutes = () => {
   return (
@@ -76,7 +78,22 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        <Route path={ROUTES.dashboard} element={<DashboardPage />} />
+        <Route
+          path={ROUTES.dashboard}
+          element={
+            <ProtectedRoute roles={ADMIN_ROLES} redirectTo={ROUTES.adminLogin}>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.auditLogs}
+          element={
+            <ProtectedRoute roles={ADMIN_ROLES}>
+              <AuditLogsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path={ROUTES.accounts}
           element={
@@ -202,6 +219,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
+        <Route path={ROUTES.profile} element={<ProfilePage />} />
         <Route path={ROUTES.vendors} element={<VendorsPage />} />
         <Route
           path={ROUTES.vendorDetail(":id")}

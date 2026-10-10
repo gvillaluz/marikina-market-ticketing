@@ -8,7 +8,7 @@ export interface UserProfileResponse {
   lastName: string;
   email: string;
   dateOfBirth: string;
-  mobileNumber: string;
+  phoneNumber: string;
   houseNumber: string;
   street: string;
   barangay: string;

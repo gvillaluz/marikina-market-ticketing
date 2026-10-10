@@ -1,0 +1,38 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  width: 100%;
+}
+.actions .button {
+  min-height: var(--account-control-height);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--market-radius-button);
+  font-size: var(--form-font-caption);
+  font-weight: 500;
+  line-height: 1.5;
+  box-shadow: none;
+}
+.actions .cancel {
+  border-color: var(--button-primary);
+  color: var(--button-primary);
+  background: var(--bg-surface);
+}
+.actions .cancel:hover:not(:disabled) {
+  border-color: var(--button-primary-hover);
+  color: var(--button-primary-hover);
+  background: var(--button-primary-surface);
+}
+.actions .button:disabled {
+  border: 1px solid var(--border-default);
+  color: var(--text-body);
+  background: var(--bg-card);
+  opacity: 1;
+  cursor: not-allowed;
+}
+@media (max-width: 400px) {
+  .actions .button {
+    flex: 1;
+  }
+}

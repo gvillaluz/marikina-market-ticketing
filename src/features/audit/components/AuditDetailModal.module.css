@@ -1,0 +1,30 @@
+.modal {
+  border-color: var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+.modal .header {
+  border-color: var(--border-default);
+  background: var(--bg-surface);
+}
+.modal .header p {
+  font-size: var(--form-font-caption);
+  line-height: 1.5;
+}
+.modal .footer {
+  border-color: var(--border-default);
+  background: var(--bg-page);
+}
+.modal .close {
+  min-height: var(--account-control-height);
+  padding: var(--space-sm) var(--space-md);
+  border-color: var(--button-primary);
+  border-radius: var(--market-radius-button);
+  font-size: var(--form-font-caption);
+  color: var(--button-primary);
+  background: var(--bg-surface);
+}
+.modal .close:hover:not(:disabled) {
+  border-color: var(--button-primary-hover);
+  background: var(--button-primary-surface);
+}
