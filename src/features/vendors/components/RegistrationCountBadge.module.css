@@ -1,0 +1,38 @@
+.badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+.badge .count {
+  justify-content: center;
+  padding: var(--space-xs) var(--space-sm);
+  min-width: var(--ordinance-badge-size);
+  border: 1px solid currentColor;
+  border-radius: var(--market-radius-pill);
+  font-size: var(--market-font-size-small);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary);
+  background-color: var(--text-on-primary);
+}
+
+.statusIcon {
+  display: block;
+  width: var(--space-lg);
+  height: var(--space-lg);
+}
+
+@media (min-width: 769px) {
+  .compact {
+    position: absolute;
+    inset-block-start: calc(-1 * var(--space-xs));
+    inset-inline-end: calc(-1 * var(--space-xs));
+    margin-inline-start: 0;
+  }
+
+  .compact .count {
+    padding: var(--space-xs);
+    font-size: var(--market-font-size-micro);
+  }
+}

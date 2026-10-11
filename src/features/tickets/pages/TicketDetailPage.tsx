@@ -63,16 +63,31 @@ const STATUS_OPTIONS = [
     title: "Cleared",
     description: "Resolved via community service or blotter donation.",
   },
+  {
+    value: "Overdue",
+    title: "Overdue",
+    description: "The settlement due date has passed.",
+  },
+  {
+    value: "InProgress",
+    title: "In Progress",
+    description: "Settlement is in progress.",
+  },
 ];
 
 const TicketDetailPage: FC = () => {
   const { id } = useParams();
   const statusOptions = useDisclosure();
   const { ticket, refetch, isLoading, isError, error } = useTicketDetails(
-    Number.parseInt(id || ""),
+    Number(id),
   );
-  const { selectedStatus, setSelectedStatus } =
-    useTicketStatusSelection(ticket);
+  const {
+    selectedStatus,
+    setSelectedStatus,
+    availableStatuses,
+    canUpdateStatus,
+    receiptUrls,
+  } = useTicketStatusSelection(ticket);
   const { mutateAsync: updateStatus, isPending } = useUpdateStatus(Number(id));
   const totalFineAmount = getTicketTotalFineAmount(ticket);
 
@@ -89,11 +104,15 @@ const TicketDetailPage: FC = () => {
     );
   }
 
-  if (isError) {
+  if (isError || !ticket) {
     return (
       <div className={styles.page}>
         <TicketDetailError
-          message={getApiErrorMessage(error, "Unable to load this ticket.")}
+          message={
+            !Number.isSafeInteger(Number(id)) || Number(id) <= 0
+              ? "Invalid ticket ID."
+              : getApiErrorMessage(error, "Unable to load this ticket.")
+          }
           onRetry={handleRetry}
         />
       </div>
@@ -229,16 +248,10 @@ const TicketDetailPage: FC = () => {
             Photo evidence submitted by the vendor as notification of penalty
             settlement and basis for record update.
           </p>
-          {ticket?.ticketReceipts.length === 0 ? (
+          {receiptUrls.length === 0 ? (
             <EvidenceThumbnail caption="Media not provided" />
           ) : (
-            <EvidenceSection
-              images={
-                ticket?.ticketReceipts.map(
-                  (receipt) => `https://localhost:5001/${receipt}`,
-                ) || []
-              }
-            />
+            <EvidenceSection images={receiptUrls} />
           )}
         </DetailCard>
 
@@ -257,7 +270,9 @@ const TicketDetailPage: FC = () => {
                 Select the most appropriate status for this ticket.
               </p>
               <div className={styles.statusOptions}>
-                {STATUS_OPTIONS.map((option) => (
+                {STATUS_OPTIONS.filter((option) =>
+                  availableStatuses.includes(option.value as RecordStatus),
+                ).map((option) => (
                   <StatusOptionCard
                     key={option.value}
                     title={option.title}
@@ -285,6 +300,7 @@ const TicketDetailPage: FC = () => {
             statusOptions.close();
             return;
           }
+          if (!canUpdateStatus) return;
           confirmModal.open();
         }}
         statusOptionsOpen={statusOptions.isOpen}
@@ -312,16 +328,21 @@ const TicketDetailPage: FC = () => {
               </button>
               <button
                 className={styles.modalConfirm}
-                disabled={isPending}
+                disabled={isPending || !canUpdateStatus}
                 onClick={async () => {
+                  if (
+                    !canUpdateStatus ||
+                    selectedStatus === undefined ||
+                    !ticket
+                  )
+                    return;
                   try {
                     await updateStatus({
-                      newStatus: selectedStatus!,
-                      version: ticket?.version ?? 0,
+                      newStatus: selectedStatus,
+                      version: ticket.version,
                     });
                     confirmModal.close();
                     statusOptions.close();
-                    refetch();
                   } catch {
                     // stays open, error toast already shown via onError in the hook
                   }

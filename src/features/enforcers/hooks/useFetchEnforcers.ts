@@ -6,52 +6,64 @@ import { useEffect, useState } from "react";
 import { getApiErrorMessage } from "@/utils/apiErrors";
 
 interface FetchEnforcersParams {
-    search?: string;
-    status?: AccountStatus;
-    sortBy?: string;
-    sortDirection?: 'asc' | 'desc';
+  search?: string;
+  status?: AccountStatus;
+  sortBy?: string;
+  sortDirection?: "asc" | "desc";
 }
 
 const PAGE_SIZE = 6;
 
-export function useFetchEnforcers(params: FetchEnforcersParams) { 
-    const [page, setPage] = useState(1);
+export function useFetchEnforcers(params: FetchEnforcersParams) {
+  const [page, setPage] = useState(1);
 
-    useEffect(() => {
-        setPage(1);
-    }, [params.search, params.status, params.sortBy, params.sortDirection]);
+  useEffect(() => {
+    setPage(1);
+  }, [params.search, params.status, params.sortBy, params.sortDirection]);
 
-    const offset = (page - 1) * PAGE_SIZE;
+  const offset = (page - 1) * PAGE_SIZE;
 
-    const query = useQuery({
-        queryKey: ['enforcers', params.search, params.status, params.sortBy, params.sortDirection, page, PAGE_SIZE],
-        queryFn: () => enforcersApi.enforcerList({
-            offset,
-            search: params.search,
-            status: params.status,
-            sortBy: params.sortBy,
-            sortDirection: params.sortDirection
-        })
-    })
+  const query = useQuery({
+    queryKey: [
+      "enforcers",
+      params.search,
+      params.status,
+      params.sortBy,
+      params.sortDirection,
+      page,
+      PAGE_SIZE,
+    ],
+    queryFn: () =>
+      enforcersApi.enforcerList({
+        offset,
+        search: params.search,
+        status: params.status,
+        sortBy: params.sortBy,
+        sortDirection: params.sortDirection,
+      }),
+  });
 
-    const enforcers: EnforcerSummary[] = query.data?.items ?? [];
-    const total: number = query.data?.total ?? 0;
-    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const enforcers: EnforcerSummary[] = query.data?.items ?? [];
+  const total: number = query.data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-    return {
-        enforcers,
-        total,
-        totalPages,
-        page,
-        pageSize: PAGE_SIZE,
-        setPage,
-        fetchProcess: {
-            isLoading: query.isLoading,
-            isFetching: query.isFetching,
-            isError: query.isError,
-            error: query.error,
-            errorMessage: getApiErrorMessage(query.error, "Something went wrong while fetching enforcer records."),
-            onRetry: query.refetch
-        }
-    }
+  return {
+    enforcers,
+    total,
+    totalPages,
+    page,
+    pageSize: PAGE_SIZE,
+    setPage,
+    fetchProcess: {
+      isLoading: query.isLoading,
+      isFetching: query.isFetching,
+      isError: query.isError,
+      error: query.error,
+      errorMessage: getApiErrorMessage(
+        query.error,
+        "Something went wrong while fetching enforcer records.",
+      ),
+      onRetry: query.refetch,
+    },
+  };
 }

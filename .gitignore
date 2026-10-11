@@ -23,3 +23,6 @@ dist-ssr
 *.sw?
 
 design-references
+
+.env
+.env.example

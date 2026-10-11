@@ -1,215 +1,167 @@
-import styles from './TicketsPage.module.css';
-import { FC, useState } from 'react';
-import PageHeader from '@/components/ui/PageHeader';
-import TicketList from '@/features/tickets/components/TicketList';
-import { formatCurrency, formatNumber } from '@/utils/formatters';
-import { MARKET_SECTION_LABELS, MarketSection } from '@/api/types/common.types';
-
-import useTicketAnalytics from '../hooks/useTicketAnalytics';
-import TicketAnalyticsCard from '../components/TicketAnalyticsCard';
-import { TicketModal } from '../../../components/ui/TicketModal/TicketModal';
-import { Dropdown } from '@/components/ui/Dropdown';
-import { Download, Printer, Search } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import { TicketStatusFilter, useTicketFilters } from '../hooks/useTicketFilters';
-import { useTickets } from '../hooks/useTickets';
-import { PrintConfigModal } from '@/features/inspections/components/PrintConfigModal';
-import { usePrintConfigForm } from '@/features/inspections/hooks/usePrintConfigForm';
-import { getApiErrorMessage } from '@/utils/apiErrors';
+import PageHeader from "@/components/ui/PageHeader";
+import { Dropdown } from "@/components/ui/Dropdown";
+import {
+  RecordsPanel,
+  RecordsToolbar,
+  RecordsFooter,
+  RecordsState,
+} from "@/components/ui/Records";
+import { TicketModal } from "@/components/ui/TicketModal/TicketModal";
+import { PrintConfigModal } from "@/features/inspections";
+import {
+  MARKET_SECTION_LABELS,
+  type MarketSectionFilter,
+} from "@/api/types/common.types";
+import { formatCurrency, formatNumber } from "@/utils/formatters";
+import { useTicketsPage } from "../hooks/useTicketsPage";
+import type { TicketStatusFilter } from "../hooks/useTicketFilters";
+import TicketList from "../components/TicketList";
+import TicketAnalyticsCard from "../components/TicketAnalyticsCard";
+import styles from "./TicketsPage.module.css";
 
 const FILTERS: TicketStatusFilter[] = [
-  'All Status',
-  'Pending',
-  'Contested',
-  'Paid',
-  'Overdue',
-  'Waived'
-] as const;
-
-const TicketsPage: FC = () => {
-  const { 
-    setFilters,
-    filters,
-    queryParams
-  } = useTicketFilters()
-  const [selectedTicketId, setSelectedTicketId] = useState<number>(0);
-  const [isExportOpen, setIsExportOpen] = useState(false);
-  const printConfig = usePrintConfigForm(
-    ["ticket"],
-    () => setIsExportOpen(false),
-  );
-  const { stats, isLoading: isAnalyticsLoading } = useTicketAnalytics();
-
-  const {
-    ticketSummary,
-    page,
-    setPage,
-    total,
-    totalPages,
-    pageSize,
-    isLoading,
-    isFetching,
-    isError,
-    error,
-    refetch,
-  } = useTickets(queryParams);
-
-  const goToPage = (target: number) => {
-    setPage(Math.min(Math.max(target, 1), totalPages));
-  };
-
+  "All Status",
+  "Pending",
+  "Contested",
+  "Paid",
+  "Overdue",
+  "Waived",
+];
+export default function TicketsPage() {
+  const page = useTicketsPage();
+  const { stats } = page.analytics;
   return (
     <div className={styles.page}>
       <PageHeader
         title="Tickets"
-        subtitle="Manage violations, complaints, inspections, and renewals."
+        subtitle="Review issued tickets, payment status, and violation severity."
       />
-
-      <div className={styles.stats}>
-        <TicketAnalyticsCard label="Total Tickets" value={stats ? formatNumber(stats.totalTicketsThisMonth) : '—'} change={stats?.ticketChangePercentage}  isLoading={isAnalyticsLoading}/>
-        <TicketAnalyticsCard label="Pending Payments" value={stats ? formatCurrency(stats.pendingPaymentsThisMonth) : '—'} change={stats?.paymentsChangePercentage}  isLoading={isAnalyticsLoading}/>
-        <TicketAnalyticsCard label="Resolved Violations" value={stats ? formatNumber(stats.resolvedViolationsThisMonth) : '—'} progress={stats?.resolutionRate}  isLoading={isAnalyticsLoading}/>
-        <TicketAnalyticsCard label="Critical Severities" value={stats ? formatNumber(stats.highSeveritiesThisMonth) : '—'} change={stats?.highSeveritiesChangePercentage}  isLoading={isAnalyticsLoading}/>
-      </div>
-
-      <section className={styles.recordsContainer}>
-        <div className={styles.recordsHeading}>
-          <div>
-            <h2 className={styles.recordsTitle}>Ticket register</h2>
-            <p className={styles.recordsSubtitle}>Search, filter, and review issued tickets</p>
-          </div>
-          <span className={styles.totalBadge}>{total} tickets</span>
+      {page.analyticsError && !stats ? (
+        <RecordsState
+          title="Ticket summary unavailable"
+          message={page.analyticsError}
+          onRetry={() => void page.analytics.refetch()}
+        />
+      ) : (
+        <div className={styles.stats}>
+          <TicketAnalyticsCard
+            label="Tickets this month"
+            value={stats ? formatNumber(stats.totalTicketsThisMonth) : "\u2014"}
+            change={stats?.ticketChangePercentage}
+            isLoading={page.analytics.isLoading}
+          />
+          <TicketAnalyticsCard
+            label="Pending payments"
+            value={
+              stats ? formatCurrency(stats.pendingPaymentsThisMonth) : "\u2014"
+            }
+            change={stats?.paymentsChangePercentage}
+            isLoading={page.analytics.isLoading}
+          />
+          <TicketAnalyticsCard
+            label="Resolved violations"
+            value={
+              stats ? formatNumber(stats.resolvedViolationsThisMonth) : "\u2014"
+            }
+            progress={stats?.resolutionRate}
+            isLoading={page.analytics.isLoading}
+          />
+          <TicketAnalyticsCard
+            label="High severity tickets"
+            value={
+              stats ? formatNumber(stats.highSeveritiesThisMonth) : "\u2014"
+            }
+            change={stats?.highSeveritiesChangePercentage}
+            isLoading={page.analytics.isLoading}
+          />
         </div>
-        <div className={styles.toolbar}>
-          <div className={styles.filters}>
-            <div className={styles.searchWrapper}>
-              <Search className={styles.searchIcon} size={14} strokeWidth={1.8} aria-hidden="true" />
-              <input
-                className={styles.searchInput}
-                placeholder="Search by control number or vendor..."
-                value={filters.search}
-                onChange={(e) => setFilters.setSearch(e.target.value)}
-                aria-label="Search tickets"
-              />
-            </div>
-
-            <div className={styles.filterGroup}>
-              <Dropdown
-                ariaLabel="Filter by Status"
-                triggerLabel={filters.status}
-                value={filters.status}
-                onChange={(value) => setFilters.setStatus(value as TicketStatusFilter)}
-                options={FILTERS.map((filter) => ({ value: filter, label: filter }))}
-              />
-              <Dropdown
-                ariaLabel="Filter by Market Section"
-                triggerLabel={filters.marketSection === 'All Sections'
-                    ? 'All Sections'
-                    : MARKET_SECTION_LABELS[filters.marketSection]
-                }
-                value={filters.marketSection}
-                onChange={(value) => setFilters.setMarketSection(value as MarketSection)}
-                options={[
-                  { value: 'All Sections', label: 'All Sections' },
-                  ...Object.entries(MARKET_SECTION_LABELS).map(([value, label]) => ({ value, label })),
-                ]}
-              />
-            </div>
-          </div>
-        </div>
-
-        {isError ? (
-          <div className={styles.errorState} role="alert">
-            <span>{getApiErrorMessage(error, "Couldn't load tickets.")}</span>
-            <Button size="sm" variant="outline" onClick={() => void refetch()}>
-              Try again
-            </Button>
-          </div>
+      )}
+      <RecordsPanel
+        title="Ticket register"
+        description="Search and filter issued tickets"
+        count={page.isLoading || page.isError ? undefined : page.total}
+        countLabel="tickets"
+        updating={page.isFetching && !page.isLoading}
+      >
+        <RecordsToolbar
+          search={page.filters.search}
+          onSearch={page.setFilters.setSearch}
+          searchLabel="Search tickets"
+          placeholder="Search control number or vendor..."
+        >
+          <Dropdown
+            triggerId="tickets-status-filter"
+            ariaLabel="Filter by status"
+            triggerLabel={page.filters.status}
+            value={page.filters.status}
+            onChange={(value) =>
+              page.setFilters.setStatus(value as TicketStatusFilter)
+            }
+            options={FILTERS.map((value) => ({ value, label: value }))}
+          />
+          <Dropdown
+            triggerId="tickets-section-filter"
+            ariaLabel="Filter by market section"
+            triggerLabel={
+              page.filters.marketSection === "All Sections"
+                ? "All Sections"
+                : MARKET_SECTION_LABELS[page.filters.marketSection]
+            }
+            value={page.filters.marketSection}
+            onChange={(value) =>
+              page.setFilters.setMarketSection(value as MarketSectionFilter)
+            }
+            options={[
+              { value: "All Sections", label: "All Sections" },
+              ...Object.entries(MARKET_SECTION_LABELS).map(
+                ([value, label]) => ({ value, label }),
+              ),
+            ]}
+          />
+        </RecordsToolbar>
+        {page.errorMessage ? (
+          <RecordsState
+            title="Unable to load tickets"
+            message={page.errorMessage}
+            onRetry={() => void page.refetch()}
+          />
         ) : (
           <TicketList
-            tickets={ticketSummary}
-            loading={isLoading || isFetching}
-            onView={(ticketId) => setSelectedTicketId(ticketId)}
+            tickets={page.ticketSummary}
+            loading={page.isLoading}
+            onView={page.openTicket}
           />
         )}
-
-        {ticketSummary.length !== 0 && !isError &&
-          <div className={styles.footer}>
-            <span className={styles.entries}>
-              Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, total)} of {total} tickets
-            </span>
-
-            <div className={styles.footerActions}>
-              <Button
-                className={styles.exportButton}
-                variant="outline"
-                icon={<Download size={14} strokeWidth={1.8} aria-hidden="true" />}
-                onClick={() => setIsExportOpen(true)}
-              >
-                Export
-              </Button>
-              <button
-                className={styles.printButton}
-                onClick={() => window.print()}
-                aria-label="Print ticket records"
-                title="Print ticket records"
-              >
-                <Printer size={15} strokeWidth={1.8} aria-hidden="true" />
-              </button>
-              <button
-                className={styles.pageButton}
-                disabled={page <= 1}
-                onClick={() => goToPage(page - 1)}
-                aria-label="Previous page"
-              >
-                ‹
-              </button>
-              {totalPages > 3 && page > 2 && <span className={styles.ellipsis}>...</span>}
-              {Array.from(
-                { length: Math.min(totalPages, 3) },
-                (_, index) => Math.min(Math.max(page - 1, 1), Math.max(1, totalPages - 2)) + index,
-              ).map((p) => (
-                <button
-                  key={p}
-                  className={`${styles.pageButton} ${page === p ? styles.currentPage : ''}`}
-                  onClick={() => goToPage(p)}
-                  aria-label={`Go to page ${p}`}
-                  aria-current={page === p ? 'page' : undefined}
-                >
-                  {p}
-                </button>
-              ))}
-              {totalPages > 3 && page + 1 < totalPages && <span className={styles.ellipsis}>...</span>}
-              <button
-                className={styles.pageButton}
-                disabled={page >= totalPages}
-                onClick={() => goToPage(page + 1)}
-                aria-label="Next page"
-              >
-                ›
-              </button>
-            </div>
-          </div>
-        }
-      </section>
-
-      {selectedTicketId != 0 &&
+        {!page.isLoading && !page.isError && (
+          <RecordsFooter
+            page={page.page}
+            pageSize={page.pageSize}
+            total={page.total}
+            totalPages={page.totalPages}
+            rowCount={page.ticketSummary.length}
+            label="tickets"
+            busy={page.isFetching}
+            onPageChange={page.goToPage}
+            onExport={page.openExport}
+            onPrint={page.print}
+          />
+        )}
+      </RecordsPanel>
+      {page.selectedTicketId !== 0 && (
         <TicketModal
-          isOpen={selectedTicketId != 0}
-          ticketId={selectedTicketId}
-          onClose={() => setSelectedTicketId(0)}
-        />}
-
-      {isExportOpen && (
+          isOpen
+          ticketId={page.selectedTicketId}
+          onClose={page.closeTicket}
+        />
+      )}
+      {page.isExportOpen && (
         <PrintConfigModal
-          isOpen={isExportOpen}
+          isOpen
           title="Export Ticket Records"
-          onClose={() => setIsExportOpen(false)}
-          form={printConfig}
+          onClose={page.closeExport}
+          form={page.printConfig}
         />
       )}
     </div>
   );
-};
-
-export default TicketsPage;
+}

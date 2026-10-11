@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./Sidebar.module.css";
 import { History, Settings, UsersRound } from "lucide-react";
+import { RegistrationCountBadge } from "@/features/vendors";
 
 interface NavItem {
   to: string;
@@ -250,9 +251,13 @@ const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
                     className={`${styles.link} ${isActive ? styles.active : ""}`}
                     onClick={onClose}
                     title={item.label}
+                    aria-label={item.label}
                   >
                     <span className={styles.linkIcon}>{item.icon}</span>
                     <span className={styles.linkLabel}>{item.label}</span>
+                    {item.to === "/admin/vendor-registrations" && (
+                      <RegistrationCountBadge compact={collapsed} />
+                    )}
                   </NavLink>
                 );
               })}

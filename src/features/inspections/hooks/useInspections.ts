@@ -1,14 +1,17 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { getInspections, ticketsApi } from '../../../api/endpoints/tickets.api';
-import type { InspectionRecord, InspectionSummary } from '../../../api/types/ticket.types';
-import { MARKET_SECTION_LABELS } from '../../../api/types/common.types';
-import type { MarketSection } from '../../../api/types/common.types';
-import { ViolationTypeFilter } from '../inspections.types';
-import { useEffect, useState } from 'react';
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { getInspections, ticketsApi } from "../../../api/endpoints/tickets.api";
+import type {
+  InspectionRecord,
+  InspectionSummary,
+} from "../../../api/types/ticket.types";
+import { MARKET_SECTION_LABELS } from "../../../api/types/common.types";
+import type { MarketSection } from "../../../api/types/common.types";
+import { ViolationTypeFilter } from "../inspections.types";
+import { useEffect, useState } from "react";
 
 interface Filters {
   search?: string;
-  type?: 'Warning' | 'Ticket';
+  type?: "Warning" | "Ticket";
   marketSectionId?: number;
 }
 
@@ -22,12 +25,13 @@ export function useInspections(filters: Filters = {}) {
   }, [filters.search, filters.type, filters.marketSectionId]);
 
   const query = useQuery({
-    queryKey: ['inspections', filters, page, PAGE_SIZE],
-    queryFn: () => ticketsApi.inspectionList({
-      ...filters,
-      offset: (page - 1) * PAGE_SIZE,
-    }),
-    placeholderData: keepPreviousData, 
+    queryKey: ["inspections", filters, page, PAGE_SIZE],
+    queryFn: () =>
+      ticketsApi.inspectionList({
+        ...filters,
+        offset: (page - 1) * PAGE_SIZE,
+      }),
+    placeholderData: keepPreviousData,
   });
 
   const inspections: InspectionSummary[] = query.data?.items ?? [];
@@ -41,7 +45,7 @@ export function useInspections(filters: Filters = {}) {
     page,
     pageSize: PAGE_SIZE,
     setPage,
-    isLoading: query.isLoading,
+    isLoading: query.isPending || query.isPlaceholderData,
     isFetching: query.isFetching,
     isError: query.isError,
     error: query.error,

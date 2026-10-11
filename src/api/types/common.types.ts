@@ -15,10 +15,7 @@ export interface PaginationParams {
 }
 
 export type UserRole =
-  | "HeadAdmin"
-  | "AdminOfficer"
-  | "MarketEnforcer"
-  | "MarketVendor";
+  "HeadAdmin" | "AdminOfficer" | "MarketEnforcer" | "MarketVendor";
 
 export type AuthAccess = "staff" | "vendor";
 
@@ -100,6 +97,7 @@ export type RecordStatus =
   | "Contested"
   | "Paid"
   | "Overdue"
+  | "InProgress"
   | "Waived";
 
 export type OffenseLevel = "1st offense" | "2nd offense" | "3rd offense";

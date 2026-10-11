@@ -10,6 +10,8 @@ import {
   useState,
 } from "react";
 import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
+import { logoutBrowserPushNotifications } from "@/features/notifications";
 import { useAuthStore } from "@/store/store";
 import { getApiErrorMessage } from "@/utils/apiErrors";
 import { useToast } from "@/components/ui/Toast/useToast";
@@ -69,6 +71,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const {
     user,
     token,
@@ -129,17 +132,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     cancelLogin();
-    const accessToken = useAuthStore.getState().token;
     invalidateAuthSession();
-    if (accessToken) {
-      void authApi.logout(accessToken).catch((error: unknown) => {
-        console.warn(
-          "The server could not invalidate the signed-out session.",
-          getApiErrorMessage(error, "Unknown logout error."),
-        );
+    const notificationLogout = logoutBrowserPushNotifications();
+    void queryClient.cancelQueries();
+    queryClient.clear();
+    void notificationLogout.catch((error: unknown) => {
+      showToast({
+        title: "Signed out; notification cleanup failed",
+        description: getApiErrorMessage(
+          error,
+          "We couldn't revoke this browser's notifications. Please sign in and try logging out again.",
+        ),
+        variant: "warning",
       });
-    }
-  }, [cancelLogin]);
+    });
+  }, [cancelLogin, queryClient, showToast]);
 
   const clearMustChangePassword = useCallback(() => {
     setMustChangePassword(false);

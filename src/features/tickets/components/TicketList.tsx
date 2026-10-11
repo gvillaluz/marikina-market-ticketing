@@ -1,126 +1,98 @@
-import { FC } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Table from '@/components/ui/Table';
-import StatusBadge from '@/components/ui/StatusBadge';
-import Button from '@/components/ui/Button';
-import type { TicketSummary } from '@/api/types/ticket.types';
-import { formatCurrency, formatDateTime } from '@/utils/formatters';
-import styles from './TicketList.module.css';
-import { Eye, RefreshCw, Ticket } from 'lucide-react';
-import { formatControlNumber } from '@/utils/formatters';
+import { useNavigate } from "react-router-dom";
+import Table from "@/components/ui/Table";
+import { RecordBadge, RecordActions } from "@/components/ui/Records";
+import type { TicketSummary } from "@/api/types/ticket.types";
+import { formatDateTime, formatControlNumber } from "@/utils/formatters";
+import styles from "./TicketList.module.css";
+import { formatPenaltyType } from "../tickets.utils";
 
 interface TicketListProps {
   tickets: TicketSummary[];
   loading?: boolean;
   onView: (ticketId: number) => void;
 }
-
-const TicketList: FC<TicketListProps> = ({ tickets, loading, onView }) => {
+export default function TicketList({
+  tickets,
+  loading,
+  onView,
+}: TicketListProps) {
   const navigate = useNavigate();
-
   return (
     <Table
+      responsive
+      className={styles.list}
       loading={loading}
       data={tickets}
       keyExtractor={(ticket) => ticket.id.toString()}
-      emptyMessage="No tickets found."
+      emptyMessage="No tickets match your search or filters."
       columns={[
-        { 
-          key: 'controlNumber', 
-          header: 'Ctrl No.', 
-          render: (ticket) => formatControlNumber(ticket.controlNumber)
+        {
+          key: "controlNumber",
+          header: "CTRL #",
+          align: "left",
+          render: (ticket) =>
+            formatControlNumber(ticket.controlNumber).replace(/^CTRL #/, "#") ||
+            "\u2014",
         },
         {
-          key: 'enforcer',
-          header: 'Enforcer',
-          render: (ticket) => 
-            `${ticket.enforcerFirstName ?? ''} ${ticket.enforcerLastName ?? ''}`.trim() || '—'
+          key: "enforcer",
+          header: "Enforcer",
+          align: "left",
+          render: (ticket) =>
+            `${ticket.enforcerFirstName ?? ""} ${ticket.enforcerLastName ?? ""}`.trim() ||
+            "\u2014",
         },
         {
-          key: 'vendor',
-          header: 'Vendor',
-          render: (ticket) => 
-            `${ticket.vendorFirstName ?? ''} ${ticket.vendorLastName ?? ''}`.trim() || '—'
-        },
-        { 
-          key: 'section', 
-          header: 'Market Section', 
-          render: (ticket) => ticket.marketSectionName || '—' 
+          key: "vendor",
+          header: "Vendor",
+          align: "left",
+          render: (ticket) =>
+            `${ticket.vendorFirstName ?? ""} ${ticket.vendorLastName ?? ""}`.trim() ||
+            "\u2014",
         },
         {
-          key: 'status',
-          header: 'Status',
-          render: (ticket) => {
-            const status = (ticket.status || '').toLowerCase();
-            return (
-              <div className={`${styles.status} ${styles[status] || ''}`}>
-                <Ticket size={20} className={`${styles.statusIcon} ${styles[status]}`} />
-                <span className={styles.span}>{ticket.status || '—'}</span>
-              </div>
-            );
-          },
-          align: 'center'
-        },
-        { 
-          key: 'penaltyType', 
-          header: 'Penalty Type', 
-          render: (ticket) => ticket.penaltyType || '—' ,
-          align: 'center'
+          key: "section",
+          header: "Market section",
+          align: "left",
+          render: (ticket) => ticket.marketSectionName || "\u2014",
         },
         {
-          key: 'amount',
-          header: 'Total Payment',
-          align: 'left',
-          render: (ticket) => formatCurrency(ticket.totalPaymentAmount ?? 0)
+          key: "status",
+          header: "Status",
+          align: "center",
+          render: (ticket) => <RecordBadge value={ticket.status || ""} />,
         },
         {
-          key: 'severity',
-          header: 'Severity',
-          render: (ticket) => {
-            const severity = (ticket.severity || '').toLowerCase();
-            return (
-              <div className={`${styles.severity} ${styles[severity] || ''}`}>
-                <span className={styles.span}>{ticket.severity || '—'}</span>
-              </div>
-            );
-          },
-          align: 'center'
+          key: "penaltyType",
+          header: "Penalty",
+          align: "center",
+          render: (ticket) => formatPenaltyType(ticket.penaltyType),
         },
         {
-          key: 'issuedAt',
-          header: 'Issued At',
-          render: (ticket) => formatDateTime(ticket.issuedAt)
+          key: "severity",
+          header: "Severity",
+          align: "center",
+          render: (ticket) => <RecordBadge value={ticket.severity || ""} />,
         },
         {
-          key: 'actions',
-          header: 'Action',
+          key: "issuedAt",
+          header: "Issued at",
+          align: "left",
+          render: (ticket) => formatDateTime(ticket.issuedAt),
+        },
+        {
+          key: "actions",
+          header: "Actions",
+          align: "center",
           render: (ticket) => (
-            <div className={styles.actions}>
-              <Button 
-                icon={<Eye size={14} strokeWidth={3} aria-hidden="true" />}
-                className={`${styles.actionBtn} ${styles.view}`}
-                size="sm" 
-                variant="ghost" 
-                onClick={() => onView(ticket.id ?? 0)}
-              >
-                View
-              </Button>
-              <Button 
-                icon={<RefreshCw size={14} strokeWidth={3} aria-hidden="true" />}
-                className={`${styles.actionBtn} ${styles.change}`}
-                size="sm" 
-                variant="outline" 
-                onClick={() => navigate(`/tickets/${ticket.id}`)}
-              >
-                Change
-              </Button>
-            </div>
+            <RecordActions
+              label={`ticket ${formatControlNumber(ticket.controlNumber)}`}
+              onView={() => onView(ticket.id)}
+              onChange={() => navigate(`/tickets/${ticket.id}`)}
+            />
           ),
-          align: 'center'
         },
       ]}
     />
   );
-};
-
-export default TicketList;
+}

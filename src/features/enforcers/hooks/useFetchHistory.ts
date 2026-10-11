@@ -15,7 +15,7 @@ export function useFetchHistory(enforcerId: number) {
   const offset = (page - 1) * PAGE_SIZE;
 
   const query = useQuery({
-    queryKey: ["history", enforcerId, "inspections"],
+    queryKey: ["history", enforcerId, "inspections", offset],
     queryFn: () => enforcersApi.enforcerHistory(enforcerId, { offset }),
     enabled: Number.isInteger(enforcerId) && enforcerId > 0,
   });

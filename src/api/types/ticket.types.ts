@@ -154,7 +154,6 @@ export interface TicketSummary {
   status: RecordStatus;
   severity: Severity;
   penaltyType: PenaltyType;
-  totalPaymentAmount: number;
   issuedAt: Date;
 }
 
@@ -177,6 +176,20 @@ export interface Violation {
   ordinanceCode: string;
   offenseCount: number;
   penaltyAmount?: number;
+}
+
+export interface TicketCommunityServiceLog {
+  serviceDate: string;
+  hoursWorked: number;
+  proofUrl: string | null;
+}
+
+export interface TicketStatusUpdateResponse {
+  ticketId: number;
+  controlNumber: string | null;
+  status: RecordStatus;
+  updatedAt: string;
+  version: number;
 }
 
 export interface TicketDetail {
@@ -207,5 +220,9 @@ export interface TicketDetail {
   totalPaymentAmount?: number;
   ticketEvidences: string[];
   ticketReceipts: string[];
+  proofUrls: string[];
+  communityServiceHours: number | null;
+  communityServiceLogs: TicketCommunityServiceLog[];
+  hoursCompleted: number;
   version: number;
 }

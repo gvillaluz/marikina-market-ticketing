@@ -2,6 +2,7 @@ import Modal from "@/components/ui/Modal/Modal";
 import Button from "@/components/ui/Button/Button";
 import type { AuditLogsModel } from "../hooks/useAuditLogs";
 import AuditDetailContent from "./AuditDetailContent";
+import AuditDetailSkeleton from "./AuditDetailSkeleton";
 import AuditRequestMessage from "./AuditRequestMessage";
 import styles from "./AuditDetailModal.module.css";
 
@@ -33,8 +34,8 @@ export default function AuditDetailModal({
         </Button>
       }
     >
-      {model.isLoading ? (
-        <AuditRequestMessage message="Loading audit details…" />
+      {model.isLoading || (model.isFetching && !model.record) ? (
+        <AuditDetailSkeleton />
       ) : model.error ? (
         <AuditRequestMessage
           message={model.error}

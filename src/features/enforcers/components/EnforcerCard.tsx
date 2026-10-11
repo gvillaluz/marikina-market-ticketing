@@ -1,13 +1,13 @@
-import { FC, useState } from 'react';
-import { ArrowRight, Ticket, TriangleAlert } from 'lucide-react';
-import styles from './EnforcerCard.module.css';
+import { FC, useState } from "react";
+import { ArrowRight, Ticket, TriangleAlert } from "lucide-react";
+import styles from "./EnforcerCard.module.css";
 
 interface EnforcerCardProps {
   name: string;
   initials: string;
   profileUrl: string | null;
   badgeNo: string;
-  status: 'Active' | 'Inactive';
+  status: "Active" | "Inactive";
   warnings: number;
   tickets: number;
   onViewInspections: () => void;
@@ -42,7 +42,9 @@ const EnforcerCard: FC<EnforcerCardProps> = ({
         <div className={styles.identity}>
           <span className={styles.name}>{name}</span>
           <span className={styles.badgeNo}>ID: {badgeNo}</span>
-          <div className={`${styles.statusPill} ${styles[status.toLowerCase()]}`}>
+          <div
+            className={`${styles.statusPill} ${styles[status.toLowerCase()]}`}
+          >
             <span className={styles.dot} />
             <span className={styles.pillLabel}>{status}</span>
           </div>
@@ -52,14 +54,14 @@ const EnforcerCard: FC<EnforcerCardProps> = ({
       <div className={styles.stats}>
         <div className={styles.stat}>
           <div className={styles.statHeader}>
-            <TriangleAlert size={12} color='#D37040' />
+            <TriangleAlert size={12} color="#D37040" />
             <span className={styles.statLabel}>Warnings</span>
           </div>
           <span className={styles.statValue}>{warnings}</span>
         </div>
         <div className={styles.stat}>
           <div className={styles.statHeader}>
-            <Ticket size={12} color='#00488F' />
+            <Ticket size={12} color="#00488F" />
             <span className={styles.statLabel}>Tickets</span>
           </div>
           <span className={styles.statValue}>{tickets}</span>

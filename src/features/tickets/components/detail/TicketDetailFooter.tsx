@@ -1,6 +1,7 @@
-import { FC } from 'react';
-import styles from './TicketDetailFooter.module.css';
-import { SquareCheck } from 'lucide-react';
+import { FC } from "react";
+import styles from "./TicketDetailFooter.module.css";
+import { SquareCheck } from "lucide-react";
+import Button from "@/components/ui/Button/Button";
 
 interface TicketDetailFooterProps {
   onViewFullRecord: () => void;
@@ -15,19 +16,23 @@ const TicketDetailFooter: FC<TicketDetailFooterProps> = ({
 }) => {
   return (
     <div className={styles.footer}>
-      <button type="button" className={styles.linkBtn} onClick={onViewFullRecord}>
-        View Full Ticket Record
-      </button>
       <button
         type="button"
-        className={styles.changeBtn}
+        className={styles.linkBtn}
+        onClick={onViewFullRecord}
+      >
+        View Full Ticket Record
+      </button>
+      <Button
+        type="button"
+        variant="primary"
+        icon={<SquareCheck size={18} aria-hidden="true" />}
         onClick={onChangeStatus}
         aria-expanded={statusOptionsOpen}
         aria-controls="ticket-status-options"
       >
-        <SquareCheck size={20} strokeWidth={3} />
-        <span className={styles.btnLabel}>Change Status</span>
-      </button>
+        Change Status
+      </Button>
     </div>
   );
 };

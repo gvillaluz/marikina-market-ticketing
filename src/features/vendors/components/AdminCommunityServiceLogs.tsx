@@ -68,18 +68,16 @@ export default function AdminCommunityServiceLogs({
   const columns: Column<AdminCommunityServiceLog>[] = [
     {
       key: "controlNumber",
-      header: "CTRL NO",
-      width: "12%",
+      header: "CTRL #",
+      width: "7%",
       render: (log) => (
-        <span className={styles.controlNumber}>
-          {formatControlNumber(log.controlNumber, "N/A")}
-        </span>
+        <span className={styles.controlNumber}>#{log.controlNumber}</span>
       ),
     },
     {
       key: "businessId",
       header: "Business ID",
-      width: "11%",
+      width: "8%",
       render: (log) => (
         <span className={styles.businessId}>{log.businessId}</span>
       ),
@@ -87,7 +85,7 @@ export default function AdminCommunityServiceLogs({
     {
       key: "vendorName",
       header: "Vendor Name",
-      width: "18%",
+      width: "14%",
       render: (log) => (
         <strong className={styles.vendorName}>{log.vendorName}</strong>
       ),
@@ -95,7 +93,7 @@ export default function AdminCommunityServiceLogs({
     {
       key: "hours",
       header: "Hours Completed",
-      width: "25%",
+      width: "20%",
       render: (log) => {
         const progress = getProgress(log);
         const progressStatus = getProgressStatus(log);
@@ -130,7 +128,7 @@ export default function AdminCommunityServiceLogs({
     {
       key: "lastUpdated",
       header: "Last Updated",
-      width: "14%",
+      width: "12%",
       render: (log) => (
         <span className={styles.lastUpdated}>
           {formatDate(log.lastUpdated)}
@@ -140,7 +138,7 @@ export default function AdminCommunityServiceLogs({
     {
       key: "proofDocumentCount",
       header: "Proof Documents",
-      width: "20%",
+      width: "17%",
       render: (log) => (
         <div className={styles.documentActions}>
           <span className={styles.documentCount}>

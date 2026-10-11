@@ -1,6 +1,6 @@
-import { FC } from 'react';
-import SkeletonBlock from '../../../components/ui/Skeleton/SkeletonBlock';
-import styles from './EnforcerCard.module.css';
+import { FC } from "react";
+import SkeletonBlock from "../../../components/ui/Skeleton/SkeletonBlock";
+import styles from "./EnforcerCard.module.css";
 
 const EnforcerCardSkeleton: FC = () => {
   return (
