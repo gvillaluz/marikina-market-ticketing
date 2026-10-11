@@ -42,6 +42,14 @@
   text-align: left;
 }
 
+.formDropdown :global([role="listbox"][aria-label="Market section"]) {
+  top: auto;
+  bottom: calc(100% + var(--space-xs));
+  max-height: min(calc(var(--form-control-height) * 5), 40dvh);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
 .fieldError {
   color: var(--danger);
   font-size: var(--form-font-caption);

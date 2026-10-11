@@ -1,6 +1,6 @@
-import { FC } from 'react';
-import SkeletonBlock from '@/components/ui/Skeleton/SkeletonBlock'; // reuse existing shimmer primitive
-import styles from './EnforcerActivityPanel.module.css';
+import { FC } from "react";
+import SkeletonBlock from "@/components/ui/Skeleton/SkeletonBlock"; // reuse existing shimmer primitive
+import styles from "./EnforcerActivityPanel.module.css";
 
 const EnforcerActivitySkeleton: FC = () => {
   return (

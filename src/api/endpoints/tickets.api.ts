@@ -1,7 +1,19 @@
-
 import apiClient from "../client";
 import type { PaginatedResponse, RecordStatus } from "../types/common.types";
-import type { InspectionRecord, WarningRecord, TicketRecord, PrintConfigPayload, ExportResult, TicketHistoryEntry, TicketSummary, TicketStats, TicketDetail, InspectionSummary } from "../types/ticket.types";
+import type {
+  InspectionRecord,
+  WarningRecord,
+  TicketRecord,
+  PrintConfigPayload,
+  ExportResult,
+  TicketHistoryEntry,
+  TicketSummary,
+  TicketStats,
+  TicketDetail,
+  InspectionSummary,
+  TicketStatusUpdateResponse,
+} from "../types/ticket.types";
+import { ApiRequestError } from "@/utils/apiErrors";
 
 interface GetInspectionsParams {
   search?: string;
@@ -58,6 +70,9 @@ export const ticketsApi = {
   },
 
   getTicketDetailById(id: number): Promise<TicketDetail> {
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      return Promise.reject(new ApiRequestError("Invalid ticket ID.", 400));
+    }
     return apiClient
       .get(`/admin/tickets/${id}`)
       .then((response) => response.data as TicketDetail);
@@ -73,10 +88,30 @@ export const ticketsApi = {
     ticketId,
     newStatus,
     version,
-  }: UpdateStatusParams): Promise<TicketDetail> {
+  }: UpdateStatusParams): Promise<TicketStatusUpdateResponse> {
+    if (
+      !Number.isSafeInteger(ticketId) ||
+      ticketId <= 0 ||
+      !Number.isSafeInteger(version) ||
+      version < 0 ||
+      version > 0xffffffff ||
+      ![
+        "Pending",
+        "Paid",
+        "Cleared",
+        "Waived",
+        "Contested",
+        "Overdue",
+        "InProgress",
+      ].includes(newStatus)
+    ) {
+      return Promise.reject(
+        new ApiRequestError("Invalid ticket status update.", 400),
+      );
+    }
     return apiClient
       .patch(`/admin/tickets/${ticketId}/update-status`, { newStatus, version })
-      .then((response) => response.data as TicketDetail);
+      .then((response) => response.data as TicketStatusUpdateResponse);
   },
 
   getHistory(ticketId: string): Promise<TicketHistoryEntry[]> {

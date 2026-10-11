@@ -110,12 +110,14 @@
 .primaryButton,
 .homeButton {
   background: var(--button-primary);
-  color: #fff;
+  color: var(--text-on-primary);
 }
 
 .primaryButton:hover:not(:disabled),
 .homeButton:hover {
+  border-color: var(--button-primary-hover);
   background: var(--button-primary-hover);
+  color: var(--text-on-primary);
   transform: translateY(-1px);
 }
 

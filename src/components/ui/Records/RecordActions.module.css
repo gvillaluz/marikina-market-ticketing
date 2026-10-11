@@ -1,0 +1,47 @@
+.actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: calc(var(--space-xs) / 2) var(--space-xs);
+  min-height: calc(var(--records-compact-control-size) - var(--space-xs));
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--market-font-size-small);
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  color: var(--records-info-text);
+  background: var(--records-info-surface);
+}
+.actions button:hover {
+  border-color: var(--button-primary);
+  background: var(--records-hover-surface);
+}
+.actions button:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+.actions .change {
+  border-color: var(--button-primary);
+  color: var(--text-on-primary);
+  background: var(--button-primary);
+}
+.actions .change:hover {
+  border-color: var(--button-primary-hover);
+  color: var(--text-on-primary);
+  background: var(--button-primary-hover);
+}
+
+@media (max-width: 700px) {
+  .actions {
+    flex-wrap: wrap;
+  }
+  .actions button {
+    min-height: var(--form-control-height);
+  }
+}

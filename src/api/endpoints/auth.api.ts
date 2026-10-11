@@ -1,4 +1,5 @@
 import client from "@/api/client";
+import { ApiRequestError } from "@/utils/apiErrors";
 import type {
   AuthResponse,
   LoginInput,
@@ -14,6 +15,10 @@ export interface MandatoryChangePasswordInput {
   currentPassword: string;
   newPassword: string;
   confirmNewPassword: string;
+}
+
+export interface LogoutResponse {
+  message: string;
 }
 
 export interface FindAccountResponse {
@@ -69,10 +74,14 @@ export const authApi = {
     return data;
   },
 
-  async logout(accessToken: string): Promise<void> {
-    await client.post("/auth/logout", undefined, {
-      headers: { Authorization: ["Bearer", accessToken].join(" ") },
+  async logout(deviceToken: string): Promise<LogoutResponse> {
+    if (!deviceToken || deviceToken.length > 500 || /\s/.test(deviceToken)) {
+      throw new ApiRequestError("The browser's notification token is invalid.");
+    }
+    const { data } = await client.post<LogoutResponse>("/Auth/logout", {
+      deviceToken,
     });
+    return data;
   },
 
   async mandatoryChangePassword(

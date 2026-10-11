@@ -18,8 +18,15 @@ const STATUS_FILTERS = ["Active", "Inactive"] as const;
 const EnforcersPage: FC = () => {
   const navigate = useNavigate();
   const { filters, setFilters, sortOptions, queryParams } = useEnforcerFilter();
-  const { enforcers, total, totalPages, page, pageSize, setPage, fetchProcess } =
-    useFetchEnforcers(queryParams);
+  const {
+    enforcers,
+    total,
+    totalPages,
+    page,
+    pageSize,
+    setPage,
+    fetchProcess,
+  } = useFetchEnforcers(queryParams);
   const { averageWarning, averageTicket, topEnforcers, activityProcess } =
     useFetchActivity();
 
@@ -39,7 +46,9 @@ const EnforcersPage: FC = () => {
           <div className={styles.sectionHeading}>
             <div>
               <h2 className={styles.sectionTitle}>Enforcer directory</h2>
-              <p className={styles.sectionSubtitle}>Profiles and issued inspection records</p>
+              <p className={styles.sectionSubtitle}>
+                Profiles and issued inspection records
+              </p>
             </div>
             <span className={styles.totalBadge}>{total} enforcers</span>
           </div>
@@ -113,7 +122,10 @@ const EnforcersPage: FC = () => {
                 <EnforcerCard
                   key={enforcer.enforcerId}
                   name={`${enforcer.lastName}, ${enforcer.firstName}`}
-                  initials={`${enforcer.lastName?.[0] ?? ""}${enforcer.firstName?.[0] ?? ""}`.toUpperCase() || "E"}
+                  initials={
+                    `${enforcer.lastName?.[0] ?? ""}${enforcer.firstName?.[0] ?? ""}`.toUpperCase() ||
+                    "E"
+                  }
                   profileUrl={enforcer.profileUrl}
                   badgeNo={enforcer.username}
                   status={enforcer.status}
@@ -131,7 +143,8 @@ const EnforcersPage: FC = () => {
             <div className={styles.footer}>
               <span className={styles.entries}>
                 Showing {(page - 1) * pageSize + 1} to{" "}
-                {Math.min((page - 1) * pageSize + enforcers.length, total)} of {total} enforcers
+                {Math.min((page - 1) * pageSize + enforcers.length, total)} of{" "}
+                {total} enforcers
               </span>
 
               <div className={styles.pagination}>
@@ -143,10 +156,16 @@ const EnforcersPage: FC = () => {
                 >
                   ‹
                 </button>
-                {totalPages > 3 && page > 2 && <span className={styles.ellipsis}>...</span>}
+                {totalPages > 3 && page > 2 && (
+                  <span className={styles.ellipsis}>...</span>
+                )}
                 {Array.from(
                   { length: Math.min(totalPages, 3) },
-                  (_, index) => Math.min(Math.max(page - 1, 1), Math.max(1, totalPages - 2)) + index,
+                  (_, index) =>
+                    Math.min(
+                      Math.max(page - 1, 1),
+                      Math.max(1, totalPages - 2),
+                    ) + index,
                 ).map((p) => (
                   <button
                     key={p}
@@ -158,7 +177,9 @@ const EnforcersPage: FC = () => {
                     {p}
                   </button>
                 ))}
-                {totalPages > 3 && page + 1 < totalPages && <span className={styles.ellipsis}>...</span>}
+                {totalPages > 3 && page + 1 < totalPages && (
+                  <span className={styles.ellipsis}>...</span>
+                )}
                 <button
                   className={styles.pageButton}
                   disabled={page >= totalPages}

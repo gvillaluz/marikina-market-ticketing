@@ -58,13 +58,13 @@
 
 .sectionTitle {
   display: block;
-  font-size: .9rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #002753;
   letter-spacing: 0.02em;
   margin-bottom: 10px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #C3C6D2;
+  border-bottom: 1px solid #c3c6d2;
 }
 
 .highlightList {
@@ -117,7 +117,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--neutral-100, #EDEEF1);
+  background: var(--neutral-100, #edeef1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,7 +131,7 @@
 .emptyIssuersTitle {
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #1A1C1E;
+  color: #1a1c1e;
 }
 
 .emptyIssuersText {

@@ -1,4 +1,5 @@
 import client from "@/api/client";
+import { ApiRequestError } from "@/utils/apiErrors";
 import type {
   AdminPendingTicketSettlement,
   AdminCommunityServiceLog,
@@ -85,10 +86,26 @@ export const adminVendorsApi = {
     return data;
   },
 
-  async getRegistrationStatusCounts(): Promise<VendorRegistrationStatusCounts> {
+  async getRegistrationStatusCounts(
+    signal?: AbortSignal,
+  ): Promise<VendorRegistrationStatusCounts> {
     const { data } = await client.get<VendorRegistrationStatusCounts>(
       "/admin/vendors/registration-status-counts",
+      { signal },
     );
+    if (
+      !data ||
+      ![
+        data.pendingReview,
+        data.needsInformation,
+        data.approved,
+        data.rejected,
+      ].every((count) => Number.isSafeInteger(count) && count >= 0)
+    ) {
+      throw new ApiRequestError(
+        "The server returned invalid registration counts. Please try again.",
+      );
+    }
     return data;
   },
 

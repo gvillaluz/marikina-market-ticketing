@@ -1,0 +1,45 @@
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-section) var(--space-lg);
+  min-height: var(--records-state-height);
+  text-align: center;
+  color: var(--text-body);
+}
+.state h3 {
+  font-size: var(--market-font-size-heading);
+  color: var(--text-heading);
+}
+.state p {
+  max-width: 100%;
+  font-size: var(--market-font-size-body);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.error {
+  border-radius: var(--radius-md);
+  color: var(--records-danger-text);
+  background: var(--records-danger-surface);
+}
+.state button {
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  min-height: var(--form-control-height);
+  border: 1px solid var(--button-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--market-font-size-small);
+  font-weight: 600;
+  color: var(--text-on-primary);
+  background: var(--button-primary);
+}
+.state button:hover {
+  border-color: var(--button-primary-hover);
+  background: var(--button-primary-hover);
+}
+.state button:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}

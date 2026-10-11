@@ -1,0 +1,104 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--market-radius-search);
+  background: var(--bg-surface);
+  box-shadow: var(--market-search-shadow);
+}
+.search:focus-within {
+  border-color: var(--market-search-focus);
+  box-shadow: var(--market-focus-shadow);
+}
+.search input {
+  padding: var(--space-xs) var(--space-md);
+  padding-inline-start: calc(var(--space-md) * 3);
+  width: 100%;
+  min-width: 0;
+  height: var(--ordinance-search-height);
+  border: 0;
+  border-radius: inherit;
+  font-size: var(--market-font-size-compact);
+  color: var(--market-search-text);
+  background: transparent;
+}
+.search input::placeholder {
+  color: var(--text-body);
+}
+.search input:focus-visible {
+  outline: none;
+}
+.icon {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: var(--space-md);
+  transform: translateY(-50%);
+  color: var(--market-search-icon);
+  pointer-events: none;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+.filters > div {
+  max-width: 100%;
+  min-width: 0;
+}
+.filters :global(button[aria-haspopup="listbox"]) {
+  max-width: 100%;
+}
+.filters :global(button[aria-haspopup="listbox"] > span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.filters :global(button:focus-visible) {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+.filters :global([role="listbox"]) {
+  max-height: min(var(--records-menu-height), 50dvh);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+.filters :global([role="option"] button) {
+  min-height: var(--form-control-height);
+  font-size: var(--market-font-size-small);
+}
+@media (min-width: 701px) {
+  .toolbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .search {
+    flex: 0 1 var(--ordinance-search-width);
+    width: var(--ordinance-search-width);
+  }
+  .filters {
+    justify-content: flex-end;
+    margin-inline-start: auto;
+  }
+}
+@media (max-width: 700px) {
+  .filters :global([role="listbox"]) {
+    left: 0;
+    right: auto;
+    width: 100%;
+    min-width: 0;
+  }
+}

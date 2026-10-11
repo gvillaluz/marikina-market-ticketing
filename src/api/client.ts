@@ -34,7 +34,9 @@ const PUBLIC_AUTH_PATHS = [
 ];
 
 function isPublicAuthRequest(url?: string): boolean {
-  return Boolean(url && PUBLIC_AUTH_PATHS.some((path) => url.includes(path)));
+  return Boolean(
+    url && PUBLIC_AUTH_PATHS.some((path) => url.toLowerCase().includes(path)),
+  );
 }
 
 const client: AxiosInstance = axios.create({
@@ -96,7 +98,7 @@ client.interceptors.response.use(
     const request = error.config as RetriableRequestConfig | undefined;
     const isAuthenticatedRequest = request && !isPublicAuthRequest(request.url);
     const apiMessage = getApiResponseMessage(error.response?.data);
-    const apiError = new ApiRequestError(apiMessage);
+    const apiError = new ApiRequestError(apiMessage, error.response?.status);
 
     if (error.response?.status === 401 && isAuthenticatedRequest) {
       const requestVersion = request.authSessionVersion;

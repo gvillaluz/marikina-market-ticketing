@@ -186,7 +186,6 @@ export function useAuditLogs() {
       )
         return;
       setPage(value);
-      void counts.refetch();
     },
     resetFilters() {
       if (exporter.isExporting) return;

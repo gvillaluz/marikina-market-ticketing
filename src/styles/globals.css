@@ -1,4 +1,34 @@
 :root {
+  /* Tickets, inspections, and staff records. */
+  --records-header-surface: color-mix(
+    in srgb,
+    var(--button-primary) 6%,
+    var(--bg-surface)
+  );
+  --records-hover-surface: color-mix(
+    in srgb,
+    var(--button-primary) 4%,
+    var(--bg-surface)
+  );
+  --records-info-text: #1d4f91;
+  --records-info-surface: #eaf2ff;
+  --records-success-text: #17613b;
+  --records-success-surface: #edf7f0;
+  --records-warning-text: #875113;
+  --records-warning-surface: #fff4df;
+  --records-danger-text: #a12b35;
+  --records-danger-surface: #fff0f1;
+  --records-violet-text: #68459b;
+  --records-violet-surface: #f1ebfa;
+  --records-table-width: 58rem;
+  --records-state-height: 12rem;
+  --records-menu-height: 18rem;
+  --records-compact-control-size: 2rem;
+  --records-pagination-radius: 0.5rem;
+  --records-export-control-height: 2.125rem;
+  --records-footer-action-text: #40546c;
+  --records-footer-action-hover-border: #a9bfd9;
+  --records-footer-action-hover-surface: #f3f7fc;
   --staff-modal-width: 47.5rem;
   --staff-panel-padding: 1.25rem;
   --staff-section-gap: 1.375rem;
