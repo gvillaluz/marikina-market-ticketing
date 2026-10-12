@@ -37,6 +37,7 @@ import BackupsPage from "@/features/backups/pages/BackupsPage";
 import AccountsPage from "@/features/accounts/pages/AccountsPage";
 import ProfilePage from "@/features/profile/pages/ProfilePage";
 import AuditLogsPage from "@/features/audit/pages/AuditLogsPage";
+import { ReportsPage } from "@/features/reports";
 
 const AppRoutes = () => {
   return (
@@ -91,6 +92,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={ADMIN_ROLES}>
               <AuditLogsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.reports}
+          element={
+            <ProtectedRoute roles={ADMIN_ROLES}>
+              <ReportsPage />
             </ProtectedRoute>
           }
         />

@@ -1,40 +1,54 @@
-import { FileWarning } from 'lucide-react';
-import TicketSectionHeader from './TicketSectionHeader';
-import TicketDetailRow from '../../../../features/tickets/components/TicketDetailRow';
-import OrdinanceCard from './OrdinanceCard';
-import styles from './TicketViolationDetailsSection.module.css';
-import TicketInfoRow from './TicketInfoRow';
-import { TicketDetail } from '@/api/types/ticket.types';
-import { formatCurrency, formatDateTime, formatOrdinal } from '@/utils/formatters';
+import { FileWarning } from "lucide-react";
+import TicketSectionHeader from "./TicketSectionHeader";
+import TicketDetailRow from "../../../../features/tickets/components/TicketDetailRow";
+import OrdinanceCard from "./OrdinanceCard";
+import styles from "./TicketViolationDetailsSection.module.css";
+import TicketInfoRow from "./TicketInfoRow";
+import { TicketDetail } from "@/api/types/ticket.types";
+import {
+  formatCurrency,
+  formatDateTime,
+  formatOrdinal,
+} from "@/utils/formatters";
 
 function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail }) {
-    return <>
-        <TicketSectionHeader title={"VIOLATION DETAILS"} icon={FileWarning} />
-        <section className={styles.detailsSection}>
-            <div className={styles.ordinanceList}>
-                {detail?.violations.map((violation, i) => (
-                    <OrdinanceCard
-                        key={i}
-                        title={violation.ordinanceNo}
-                        subtitle={violation.ordinanceCode}
-                        offense={formatOrdinal(violation.offenseCount)}
-                        price={violation.penaltyAmount ? formatCurrency(violation.penaltyAmount) : undefined}
-                    />
-                ))}
-            </div>
+  return (
+    <>
+      <TicketSectionHeader title={"VIOLATION DETAILS"} icon={FileWarning} />
+      <section className={styles.detailsSection}>
+        <div className={styles.ordinanceList}>
+          {detail?.violations.map((violation, i) => (
+            <OrdinanceCard
+              key={i}
+              title={violation.ordinanceNo}
+              subtitle={violation.ordinanceCode}
+              offense={formatOrdinal(violation.offenseCount)}
+              price={
+                violation.penaltyAmount
+                  ? formatCurrency(violation.penaltyAmount)
+                  : undefined
+              }
+            />
+          ))}
+        </div>
 
-            <TicketInfoRow label="DATE & TIME" value={`${formatDateTime(detail?.issuedAt || '')}`} />
-            <TicketInfoRow label="LOCATION" value={detail?.marketSectionName} />
-            <TicketInfoRow label="VIOLATION COMMITTED" value={detail?.categories} />
+        <TicketInfoRow
+          label="DATE & TIME"
+          value={`${formatDateTime(detail?.issuedAt || "")}`}
+        />
+        <TicketInfoRow label="LOCATION" value={detail?.marketSectionName} />
+        <TicketInfoRow
+          label="VIOLATION COMMITTED"
+          value={detail?.categories.join(", ")}
+        />
 
-            <div className={styles.descriptionBlock}>
-                <span className={styles.descriptionLabel}>DESCRIPTION</span>
-                <div className={styles.descriptionBox}>
-                    {detail?.description}
-                </div>
-            </div>
-        </section>
+        <div className={styles.descriptionBlock}>
+          <span className={styles.descriptionLabel}>DESCRIPTION</span>
+          <div className={styles.descriptionBox}>{detail?.description}</div>
+        </div>
+      </section>
     </>
+  );
 }
 
 export default TicketViolationDetailsSection;

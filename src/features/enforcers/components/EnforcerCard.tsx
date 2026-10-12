@@ -1,6 +1,7 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import { ArrowRight, Ticket, TriangleAlert } from "lucide-react";
 import styles from "./EnforcerCard.module.css";
+import UrlImage from "@/components/ui/UrlImage";
 
 interface EnforcerCardProps {
   name: string;
@@ -23,22 +24,16 @@ const EnforcerCard: FC<EnforcerCardProps> = ({
   tickets,
   onViewInspections,
 }) => {
-  const [imageFailed, setImageFailed] = useState(false);
-  const hasProfileImage = Boolean(profileUrl?.trim()) && !imageFailed;
-
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        {hasProfileImage ? (
-          <img
-            className={styles.profileImage}
-            src={profileUrl ?? undefined}
-            alt={`${name} profile`}
-            onError={() => setImageFailed(true)}
-          />
-        ) : (
-          <div className={styles.avatar}>{initials}</div>
-        )}
+        <UrlImage
+          className={styles.profileImage}
+          fallbackClassName={styles.avatar}
+          src={profileUrl}
+          alt={`${name} profile`}
+          fallback={initials}
+        />
         <div className={styles.identity}>
           <span className={styles.name}>{name}</span>
           <span className={styles.badgeNo}>ID: {badgeNo}</span>

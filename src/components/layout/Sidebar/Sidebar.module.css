@@ -29,6 +29,7 @@
   padding-inline: var(--sidebar-content-inset);
   overflow-y: auto;
   overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: var(--text-muted) transparent;
 }
@@ -37,9 +38,10 @@
   width: var(--sidebar-scrollbar-width);
 }
 .sidebarContent::-webkit-scrollbar-track {
-  background: transparent;
+  background: color-mix(in srgb, var(--text-on-primary) 12%, transparent);
 }
 .sidebarContent::-webkit-scrollbar-thumb {
+  min-height: var(--space-section);
   border-radius: var(--market-radius-pill);
   background: var(--text-muted);
 }
@@ -281,6 +283,13 @@
 
 .logoutBtn:hover {
   background-color: var(--bg-page);
+}
+
+@supports selector(::-webkit-scrollbar) {
+  .sidebarContent {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
 }
 
 @media (max-width: 768px) {

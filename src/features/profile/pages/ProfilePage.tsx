@@ -10,10 +10,12 @@ import ChangePasswordModal from "../components/ChangePasswordModal";
 import EditProfileModal from "../components/EditProfileModal";
 import { displayProfileValue, formatProfileDate } from "../profile.utils";
 import styles from "./ProfilePage.module.css";
+import { useProfilePhoto } from "../hooks/useProfilePhoto";
 
 export default function ProfilePage() {
   const { profile, isLoading, isRetrying, error, retry } = useProfile();
   const actions = useProfileActions();
+  const photo = useProfilePhoto(profile?.userId, actions.activeModal !== null);
 
   return (
     <div className={styles.page}>
@@ -23,7 +25,7 @@ export default function ProfilePage() {
         subtitle="Manage your personal information and account security."
         actions={
           <ProfileActions
-            disabled={!profile || isLoading || Boolean(error)}
+            disabled={!profile || isLoading || Boolean(error) || photo.isSaving}
             onChangePassword={actions.openPassword}
             onEditProfile={actions.openProfile}
           />
@@ -49,7 +51,7 @@ export default function ProfilePage() {
         </div>
       ) : (
         <div className={styles.layout}>
-          <ProfileSummary profile={profile} />
+          <ProfileSummary profile={profile} photo={photo} />
           <div className={styles.information}>
             <ProfileInformationSection
               title="Personal information"

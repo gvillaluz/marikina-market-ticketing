@@ -5,6 +5,7 @@
   border-radius: var(--radius-sm);
 }
 .documentCard img,
+.documentImage,
 .documentPreview {
   display: flex;
   align-items: center;

@@ -1,7 +1,8 @@
-import { FC } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
-import { ToastItem } from './types';
-import styles from './Toast.module.css';
+import { FC } from "react";
+import { CheckCircle2, XCircle, AlertTriangle, Info, X } from "lucide-react";
+import { ToastItem } from "./types";
+import styles from "./Toast.module.css";
+import Button from "@/components/ui/Button";
 
 const VARIANT_ICON = {
   success: CheckCircle2,
@@ -16,17 +17,34 @@ interface ToastProps {
 }
 
 const Toast: FC<ToastProps> = ({ toast, onDismiss }) => {
-  const Icon = VARIANT_ICON[toast.variant ?? 'info'];
+  const Icon = VARIANT_ICON[toast.variant ?? "info"];
 
   return (
-    <div className={`${styles.toast} ${styles[toast.variant ?? 'info']}`} role="alert">
-      <Icon className={styles.icon} size={18} strokeWidth={2} aria-hidden="true" />
+    <div
+      className={`${styles.toast} ${styles[toast.variant ?? "info"]}`}
+      role={
+        toast.variant === "error" || toast.variant === "warning"
+          ? "alert"
+          : "status"
+      }
+      aria-atomic="true"
+    >
+      <Icon
+        className={styles.icon}
+        size={18}
+        strokeWidth={2}
+        aria-hidden="true"
+      />
       <div className={styles.content}>
         <span className={styles.title}>{toast.title}</span>
-        {toast.description && <span className={styles.description}>{toast.description}</span>}
+        {toast.description && (
+          <span className={styles.description}>{toast.description}</span>
+        )}
         {toast.actionLabel && toast.onAction && (
-          <button
+          <Button
             className={styles.actionBtn}
+            variant="primary"
+            size="sm"
             type="button"
             onClick={() => {
               toast.onAction?.();
@@ -34,11 +52,16 @@ const Toast: FC<ToastProps> = ({ toast, onDismiss }) => {
             }}
           >
             {toast.actionLabel}
-          </button>
+          </Button>
         )}
       </div>
-      <button className={styles.closeBtn} onClick={onDismiss} aria-label="Dismiss notification">
-        <X size={14} strokeWidth={2} />
+      <button
+        type="button"
+        className={styles.closeBtn}
+        onClick={onDismiss}
+        aria-label="Dismiss notification"
+      >
+        <X size={16} strokeWidth={2} aria-hidden="true" />
       </button>
     </div>
   );

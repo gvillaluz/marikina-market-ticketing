@@ -2,36 +2,27 @@ import { CalendarDays } from "lucide-react";
 import { USER_ROLE_LABELS, type UserRole } from "@/api/types/common.types";
 import type { ProfileResponse } from "@/api/endpoints/profile.api";
 import { Badge } from "@/components/ui/Badge/Badge";
-import { useProfileAvatar } from "../hooks/useProfileAvatar";
+import ProfilePhotoUpload from "./ProfilePhotoUpload";
+import type { ProfilePhotoModel } from "../hooks/useProfilePhoto";
 import { displayProfileValue, formatProfileDate } from "../profile.utils";
 import styles from "./ProfileSummary.module.css";
 
 interface ProfileSummaryProps {
   profile: ProfileResponse & { role: UserRole };
+  photo: ProfilePhotoModel;
 }
 
-export default function ProfileSummary({ profile }: ProfileSummaryProps) {
-  const avatar = useProfileAvatar(profile.profileUrl);
+export default function ProfileSummary({
+  profile,
+  photo,
+}: ProfileSummaryProps) {
   const fullName = [profile.firstName, profile.lastName]
     .filter(Boolean)
     .join(" ");
-  const initials =
-    `${profile.firstName.trim().charAt(0)}${profile.lastName.trim().charAt(0)}`.toUpperCase();
 
   return (
     <aside className={styles.summary} aria-label="Account summary">
-      <div className={styles.avatar}>
-        {avatar.src ? (
-          <img
-            src={avatar.src}
-            alt={`${fullName} profile`}
-            onError={avatar.onError}
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <span aria-label="Profile initials">{initials || "?"}</span>
-        )}
-      </div>
+      <ProfilePhotoUpload profile={profile} photo={photo} />
       <h2 className={styles.name}>{displayProfileValue(fullName)}</h2>
       <p className={styles.role}>{USER_ROLE_LABELS[profile.role]}</p>
       <Badge tone={profile.status === "Active" ? "success" : "neutral"}>

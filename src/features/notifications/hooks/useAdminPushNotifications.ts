@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import type { User } from "@/features/auth/auth.types";
 import { ADMIN_ROLES, STAFF_ROLES } from "@/api/types/common.types";
@@ -12,9 +12,13 @@ import {
   getBrowserPushToken,
   subscribeToMessages,
 } from "../firebaseMessaging";
-import { getVendorRegistrationReviewPath } from "../notification.utils";
+import {
+  getVendorRegistrationReviewPath,
+  getVendorRegistrationPushKey,
+} from "../notification.utils";
 
 const tokenRegistrations = new Map<string, Promise<void>>();
+const seenMessages = new Set<string>();
 let registrationVersion = 0;
 let browserDeviceToken: string | null = null;
 let pushLogout: Promise<void> | null = null;
@@ -23,6 +27,7 @@ export function logoutBrowserPushNotifications(): Promise<void> {
   const deviceToken = browserDeviceToken;
   browserDeviceToken = null;
   registrationVersion += 1;
+  seenMessages.clear();
   const pending = [...tokenRegistrations.values()];
   tokenRegistrations.clear();
   if (!deviceToken && pushLogout) return pushLogout;
@@ -35,13 +40,6 @@ export function logoutBrowserPushNotifications(): Promise<void> {
   };
   void request.then(clearLogout, clearLogout);
   return request;
-}
-
-function logPushStep(
-  step: string,
-  details?: Record<string, string | boolean | null>,
-): void {
-  if (import.meta.env.DEV) console.info(`[Web push] ${step}`, details ?? {});
 }
 
 interface UseAdminPushNotificationsOptions {
@@ -84,14 +82,18 @@ export function useAdminPushNotifications({
 }: UseAdminPushNotificationsOptions): void {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const callbacks = useRef({ navigate, showToast });
+  callbacks.current = { navigate, showToast };
+  const userId = user?.userId;
+  const role = user?.role;
 
   useEffect(() => {
     if (
       !isAuthReady ||
       !isAuthenticated ||
-      !user ||
-      !user.role ||
-      !STAFF_ROLES.includes(user.role)
+      !userId ||
+      !role ||
+      !STAFF_ROLES.includes(role)
     ) {
       return;
     }
@@ -101,44 +103,48 @@ export function useAdminPushNotifications({
       typeof Notification === "undefined" ||
       !("serviceWorker" in navigator)
     ) {
-      logPushStep("Setup skipped", {
-        firebaseConfigured: isFirebasePushConfigured,
-        notificationSupported: typeof Notification !== "undefined",
-        serviceWorkerSupported: "serviceWorker" in navigator,
-      });
       return;
     }
 
-    const canReviewRegistrations = ADMIN_ROLES.includes(user.role);
+    const canReviewRegistrations = ADMIN_ROLES.includes(role);
     const version = registrationVersion;
     let cancelled = false;
     let unsubscribe: () => void = () => {};
-    let stage = "Firebase initialization";
     const isCancelled = () => cancelled || version !== registrationVersion;
 
     const initializePush = async () => {
       // A new sign-in must register after the previous browser token is revoked.
       await pushLogout?.catch(() => {});
       if (isCancelled()) return;
-      logPushStep(stage);
       const messaging = await getBrowserMessaging();
       if (isCancelled()) return;
       if (!messaging) {
-        logPushStep("Firebase messaging is unsupported in this browser");
         return;
       }
 
-      stage = "Foreground listener subscription";
       const stopListening = await subscribeToMessages(messaging, (payload) => {
         if (isCancelled() || !canReviewRegistrations) return;
         const reviewPath = getVendorRegistrationReviewPath(payload.data);
-        if (!reviewPath) return;
+        const messageKey = getVendorRegistrationPushKey(
+          payload.data,
+          payload.messageId,
+        );
+        if (!reviewPath || !messageKey) return;
+        const key = `${version}:${userId}:${messageKey}`;
+        if (seenMessages.has(key)) return;
+        seenMessages.add(key);
+        if (seenMessages.size > 500) {
+          const oldest = seenMessages.values().next().value;
+          if (oldest) seenMessages.delete(oldest);
+        }
 
-        showToast({
+        callbacks.current.showToast({
           title: "New vendor registration request",
           description: "A vendor submitted an application for review.",
           actionLabel: "Review registration",
-          onAction: () => navigate(reviewPath),
+          onAction: () => {
+            if (!isCancelled()) callbacks.current.navigate(reviewPath);
+          },
           duration: 12_000,
           variant: "info",
         });
@@ -149,34 +155,23 @@ export function useAdminPushNotifications({
       }
       unsubscribe = stopListening;
 
-      stage = "Notification permission";
-      logPushStep(stage, { permission: Notification.permission });
       let permission = Notification.permission;
       if (permission === "default") {
         permission = await Notification.requestPermission();
       }
-      logPushStep("Permission result", { permission });
       if (isCancelled() || permission !== "granted") return;
 
-      stage = "Service worker registration";
-      logPushStep(stage);
       const registration = await navigator.serviceWorker.register(
         serviceWorkerUrl().toString(),
         { scope: "/" },
       );
       if (isCancelled()) return;
-      stage = "Service worker activation / FCM token request";
-      logPushStep(stage);
       const deviceToken = await getBrowserPushToken(messaging, registration);
       if (isCancelled()) return;
       if (!deviceToken.trim())
         throw new Error("Firebase returned no device token.");
       browserDeviceToken = deviceToken;
-      logPushStep("FCM token received");
-      stage = "Device token API registration";
-      logPushStep(stage);
-      await registerTokenOnce(user.userId, deviceToken);
-      if (!isCancelled()) logPushStep("Device token registered successfully");
+      await registerTokenOnce(userId, deviceToken);
     };
 
     void initializePush().catch((failure: unknown) => {
@@ -184,21 +179,7 @@ export function useAdminPushNotifications({
         const pushServiceError =
           failure instanceof Error &&
           failure.message.toLowerCase().includes("push service error");
-        const firebaseCode =
-          typeof failure === "object" &&
-          failure !== null &&
-          "code" in failure &&
-          typeof failure.code === "string" &&
-          /^messaging\/[a-z-]+$/.test(failure.code)
-            ? failure.code
-            : null;
-        logPushStep("Setup failed", {
-          stage,
-          pushServiceError,
-          firebaseCode,
-          errorName: failure instanceof DOMException ? failure.name : "Error",
-        });
-        showToast({
+        callbacks.current.showToast({
           title: "Browser notifications unavailable",
           description:
             failure instanceof ApiRequestError
@@ -218,5 +199,5 @@ export function useAdminPushNotifications({
       cancelled = true;
       unsubscribe();
     };
-  }, [isAuthReady, isAuthenticated, navigate, showToast, user]);
+  }, [isAuthReady, isAuthenticated, userId, role]);
 }

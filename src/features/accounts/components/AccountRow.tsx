@@ -2,6 +2,7 @@ import type { AccountSummary } from "@/api/types/accounts.types";
 import { ACCOUNT_ROLE_LABELS } from "../accounts.constants";
 import { useAccountAvatar } from "../hooks/useAccountAvatar";
 import styles from "./AccountRow.module.css";
+import UrlImage from "@/components/ui/UrlImage";
 
 export default function AccountRow({ account }: { account: AccountSummary }) {
   const avatar = useAccountAvatar(account.profileUrl);
@@ -17,16 +18,13 @@ export default function AccountRow({ account }: { account: AccountSummary }) {
       <td>
         <div className={styles.identity}>
           <span className={styles.avatar}>
-            {avatar.src ? (
-              <img
-                src={avatar.src}
-                alt=""
-                onError={avatar.onError}
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              initials
-            )}
+            <UrlImage
+              src={avatar.src}
+              alt=""
+              fallback={initials}
+              onError={avatar.onError}
+              referrerPolicy="no-referrer"
+            />
           </span>
           <div>
             <p className={styles.name}>{name}</p>

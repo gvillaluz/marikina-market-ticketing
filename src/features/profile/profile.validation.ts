@@ -10,6 +10,30 @@ export interface PasswordValues {
   confirmNewPassword: string;
 }
 
+export async function validateProfilePhoto(file: File): Promise<string | null> {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
+    return "Choose a JPEG, PNG, or WebP image.";
+  if (!Number.isSafeInteger(file.size) || file.size <= 0)
+    return "The selected image is empty. Choose another photo.";
+  const source = URL.createObjectURL(file);
+  try {
+    return await new Promise<string | null>((resolve) => {
+      const image = new Image();
+      image.onload = () =>
+        resolve(
+          image.naturalWidth > 0 && image.naturalHeight > 0
+            ? null
+            : "The selected image could not be read. Choose another photo.",
+        );
+      image.onerror = () =>
+        resolve("The selected image could not be read. Choose another photo.");
+      image.src = source;
+    });
+  } finally {
+    URL.revokeObjectURL(source);
+  }
+}
+
 export function todayDate(): string {
   const date = new Date();
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;

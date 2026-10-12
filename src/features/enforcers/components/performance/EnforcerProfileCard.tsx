@@ -4,6 +4,7 @@ import styles from "./EnforcerProfileCard.module.css";
 import { EnforcerProfile } from "@/api/types/enforcer.types";
 import { formatDate, formatDateTime } from "@/utils/formatters";
 import { useEnforcerProfileImage } from "../../hooks/useEnforcerProfileImage";
+import UrlImage from "@/components/ui/UrlImage";
 
 interface EnforcerProfileProps {
   profile: EnforcerProfile;
@@ -15,11 +16,12 @@ const EnforcerProfileCard: FC<EnforcerProfileProps> = ({ profile }) => {
     <div className={styles.card}>
       <div className={styles.header}>
         {image.hasImage ? (
-          <img
+          <UrlImage
             className={`${styles.avatar} ${styles.profileImage}`}
             src={image.url}
             alt={`${profile.firstName} ${profile.lastName} profile`}
             onError={image.imageFailed}
+            fallback={image.initials}
           />
         ) : (
           <div className={styles.avatar} aria-hidden="true">

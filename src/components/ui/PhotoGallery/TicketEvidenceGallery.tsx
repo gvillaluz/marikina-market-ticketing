@@ -1,49 +1,53 @@
-import { useState } from 'react';
-import styles from './TicketEvidenceGallery.module.css';
-import Lightbox from 'yet-another-react-lightbox';
-import { Thumbnails, Zoom } from 'yet-another-react-lightbox/plugins';
-import { createPortal } from 'react-dom';
-import 'yet-another-react-lightbox/styles.css';
-import 'yet-another-react-lightbox/plugins/thumbnails.css';
+import UrlImage, { useImagePreview } from "@/components/ui/UrlImage";
+import styles from "./TicketEvidenceGallery.module.css";
+import Lightbox from "yet-another-react-lightbox";
+import { Thumbnails, Zoom } from "yet-another-react-lightbox/plugins";
+import { createPortal } from "react-dom";
+import "yet-another-react-lightbox/styles.css";
+import "yet-another-react-lightbox/plugins/thumbnails.css";
 
 interface TicketGalleryProps {
   images: string[];
 }
 
 function TicketEvidenceGallery({ images }: TicketGalleryProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [index, setIndex] = useState(0);
+  const gallery = useImagePreview(images);
 
-  const slides = images.map((src) => ({ src }));
-
-  return <div className={styles.imageContainer}>
-      {images.length <= 0 
-        ? (
-            <span>No photo evidence available</span>
-        ) : (
-            images.map((url, i) => (
-              <img 
-                key={i}
-                src={url}
-                className={styles.evidence}
-                onClick={() => {
-                  setIndex(i);
-                  setIsOpen(true)
-                }}
-              />
-            ))
+  return (
+    <div className={styles.imageContainer}>
+      {gallery.urls.length <= 0 ? (
+        <span>No photo evidence available</span>
+      ) : (
+        gallery.urls.map((url, i) => (
+          <button
+            key={url}
+            className={styles.preview}
+            type="button"
+            aria-label={`View photo evidence ${i + 1}`}
+            disabled={gallery.isFailed(url)}
+            onClick={() => gallery.open(url)}
+          >
+            <UrlImage
+              src={url}
+              className={styles.evidence}
+              alt={`Photo evidence ${i + 1}`}
+              loading="lazy"
+              onError={() => gallery.onError(url)}
+            />
+          </button>
+        ))
       )}
 
-      {isOpen &&
+      {gallery.isOpen &&
         createPortal(
           <Lightbox
-            open={isOpen}
-            close={() => setIsOpen(false)}
-            index={index}
-            slides={slides}
+            open={gallery.isOpen}
+            close={gallery.close}
+            index={gallery.index}
+            slides={gallery.slides}
             plugins={[Zoom, Thumbnails]}
             render={
-              images.length <= 1
+              gallery.slides.length <= 1
                 ? { buttonPrev: () => null, buttonNext: () => null }
                 : undefined
             }
@@ -52,9 +56,10 @@ function TicketEvidenceGallery({ images }: TicketGalleryProps) {
             }}
             className={styles.gallery}
           />,
-          document.body
+          document.body,
         )}
-  </div>
+    </div>
+  );
 }
 
 export default TicketEvidenceGallery;

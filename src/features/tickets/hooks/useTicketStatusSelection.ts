@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { RecordStatus } from "@/api/types/common.types";
 import { TicketDetail } from "@/api/types/ticket.types";
+import { getTicketReceiptUrls } from "../tickets.utils";
 
 export function useTicketStatusSelection(ticket: TicketDetail | undefined) {
   const [selectedStatus, setSelectedStatus] = useState<
@@ -13,20 +14,7 @@ export function useTicketStatusSelection(ticket: TicketDetail | undefined) {
     }
   }, [ticket?.ticketId, ticket?.status]);
 
-  const proofs = Array.isArray(ticket?.proofUrls)
-    ? ticket.proofUrls
-    : ticket?.ticketReceipts;
-  const receiptUrls = Array.isArray(proofs)
-    ? proofs.filter((proof) => {
-        if (typeof proof !== "string" || !proof.trim()) return false;
-        try {
-          const url = new URL(proof);
-          return url.protocol === "https:" || url.protocol === "http:";
-        } catch {
-          return false;
-        }
-      })
-    : [];
+  const receiptUrls = getTicketReceiptUrls(ticket);
   const required = ticket?.communityServiceHours;
   const completed = ticket?.hoursCompleted;
   const serviceCompleted =

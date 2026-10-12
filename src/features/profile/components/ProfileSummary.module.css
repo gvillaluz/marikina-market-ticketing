@@ -8,28 +8,6 @@
   align-self: start;
 }
 
-.avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: calc(var(--navbar-profile-size) * 2);
-  height: calc(var(--navbar-profile-size) * 2);
-  margin-bottom: var(--space-xl);
-  overflow: hidden;
-  border: 1px solid var(--border-default);
-  border-radius: var(--market-radius-pill);
-  font-size: var(--font-size-h2);
-  font-weight: 700;
-  color: var(--button-primary);
-  background: var(--primary-50);
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .name {
   margin: 0 0 var(--space-sm);
   font-size: var(--font-size-h3);
