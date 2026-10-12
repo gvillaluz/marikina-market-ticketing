@@ -1,4 +1,8 @@
 :root {
+  /* Report document and responsive history dimensions. */
+  --reports-paper-width: 53rem;
+  --reports-preview-height: 15rem;
+  --reports-table-width: 46rem;
   /* Tickets, inspections, and staff records. */
   --records-header-surface: color-mix(
     in srgb,

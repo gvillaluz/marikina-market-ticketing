@@ -17,6 +17,18 @@ export interface ProfileUpdateInput {
 }
 
 export const profileApi = {
+  async changePhoto(file: File): Promise<ProfileResponse> {
+    const form = new FormData();
+    form.append("file", file);
+    const { data } = await client.put<ProfileResponse>(
+      "/User/change-photo",
+      form,
+      {
+        headers: { "Content-Type": undefined },
+      },
+    );
+    return data;
+  },
   async update(input: ProfileUpdateInput): Promise<ProfileResponse> {
     const { data } = await client.post<ProfileResponse>("/user/profile", input);
     return data;

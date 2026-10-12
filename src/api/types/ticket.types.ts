@@ -200,7 +200,9 @@ export interface TicketDetail {
   vendorId: number;
   controlNumber?: string;
   type: "Warning" | "Ticket";
-  stallNumber: string;
+  businessId: string;
+  vendorType: "Public" | "Private" | 0 | 1;
+  stallNumber: string | null;
   businessName: string;
   lastName: string;
   firstName: string;
@@ -209,7 +211,7 @@ export interface TicketDetail {
   issuedAt: Date;
   updatedAt: Date;
   marketSectionName: string;
-  categories: TicketCategories;
+  categories: TicketCategories[];
   description: string;
   severity?: Severity;
   status?: RecordStatus;

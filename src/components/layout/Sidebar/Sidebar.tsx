@@ -12,6 +12,7 @@ import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./Sidebar.module.css";
 import { History, Settings, UsersRound } from "lucide-react";
 import { RegistrationCountBadge } from "@/features/vendors";
+import UrlImage from "@/components/ui/UrlImage";
 
 interface NavItem {
   to: string;
@@ -169,6 +170,12 @@ const NAV_ITEMS: NavItem[] = [
     allowedRoles: ADMIN_ROLES,
   },
   {
+    to: "/admin/reports",
+    label: "Reports",
+    icon: DocumentIcon,
+    allowedRoles: ADMIN_ROLES,
+  },
+  {
     to: "/vendors",
     label: "Vendors",
     icon: VendorIcon,
@@ -203,7 +210,6 @@ interface SidebarProps {
 const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const [profileImageFailed, setProfileImageFailed] = useState(false);
   const fullName = user
     ? [user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")
     : "User";
@@ -266,22 +272,18 @@ const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
           {/* Footer — user pill + log out */}
           <div className={styles.footer}>
             <div className={styles.userPill}>
-              {user?.profileUrl && !profileImageFailed ? (
-                <img
-                  className={styles.userAvatar}
-                  src={user.profileUrl}
-                  alt={`${fullName} profile`}
-                  onError={() => setProfileImageFailed(true)}
-                />
-              ) : (
-                <div className={styles.userAvatar} aria-hidden="true">
-                  {[user?.firstName, user?.lastName]
+              <UrlImage
+                className={styles.userAvatar}
+                src={user?.profileUrl}
+                alt={`${fullName} profile`}
+                fallback={
+                  [user?.firstName, user?.lastName]
                     .filter(Boolean)
                     .map((part) => part?.[0])
                     .join("")
-                    .toUpperCase() || "U"}
-                </div>
-              )}
+                    .toUpperCase() || "U"
+                }
+              />
               <div className={styles.userDetails}>
                 <span className={styles.userName}>{fullName}</span>
                 <span className={styles.userMeta}>

@@ -1,0 +1,17 @@
+.header {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.title {
+  composes: title from "./TicketPhotoEvidenceSection.module.css";
+}
+
+.subtitle {
+  composes: subtitle from "./TicketPhotoEvidenceSection.module.css";
+}
+
+.header .title,
+.header .subtitle {
+  margin: 0;
+}

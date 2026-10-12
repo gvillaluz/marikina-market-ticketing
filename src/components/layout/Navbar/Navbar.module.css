@@ -68,30 +68,6 @@
   gap: 0;
 }
 
-.iconBtn {
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  color: var(--neutral-700);
-}
-
-.iconBtn:hover {
-  background: var(--neutral-100);
-}
-
-.divider {
-  width: 1px;
-  height: 28px;
-  background: var(--neutral-200);
-  margin: 0 0.25rem;
-}
-
 .profile {
   display: flex;
   align-items: center;

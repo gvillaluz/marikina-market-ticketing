@@ -1,53 +1,59 @@
-import { useState } from 'react';
-import styles from './EvidenceSection.module.css';
-import { createPortal } from 'react-dom';
-import Lightbox from 'yet-another-react-lightbox';
-import { Thumbnails, Zoom } from 'yet-another-react-lightbox/plugins';
+import UrlImage, { useImagePreview } from "@/components/ui/UrlImage";
+import styles from "./EvidenceSection.module.css";
+import { createPortal } from "react-dom";
+import Lightbox from "yet-another-react-lightbox";
+import { Thumbnails, Zoom } from "yet-another-react-lightbox/plugins";
 
 interface EvidenceProps {
-    images: string[];
+  images: string[];
 }
 
 function EvidenceSection({ images }: EvidenceProps) {
-    const [index, setIndex] = useState(0);
-    const [isOpen, setIsOpen] = useState(false);
+  const gallery = useImagePreview(images);
 
-    const slides = images.map((src) => ({ src }));
+  return (
+    <div className={styles.imageContainer}>
+      {gallery.urls.map((url, i) => (
+        <button
+          className={styles.preview}
+          key={url}
+          type="button"
+          aria-label={`View evidence photo ${i + 1}`}
+          disabled={gallery.isFailed(url)}
+          onClick={() => gallery.open(url)}
+        >
+          <UrlImage
+            src={url}
+            className={styles.evidence}
+            alt={`Evidence photo ${i + 1}`}
+            loading="lazy"
+            onError={() => gallery.onError(url)}
+          />
+        </button>
+      ))}
 
-    return <div className={styles.imageContainer}>
-        {images.map((img, i) => (
-            <img 
-                key={i}
-                src={img}
-                className={styles.evidence}
-                onClick={() => {
-                    setIndex(i);
-                    setIsOpen(true)
-                }}
-            />
-        ))}
-
-        {isOpen &&
-            createPortal(
-            <Lightbox
-                open={isOpen}
-                close={() => setIsOpen(false)}
-                index={index}
-                slides={slides}
-                plugins={[Zoom, Thumbnails]}
-                render={
-                images.length <= 1
-                    ? { buttonPrev: () => null, buttonNext: () => null }
-                    : undefined
-                }
-                zoom={{
-                scrollToZoom: false,
-                }}
-                className={styles.gallery}
-            />,
-            document.body
+      {gallery.isOpen &&
+        createPortal(
+          <Lightbox
+            open={gallery.isOpen}
+            close={gallery.close}
+            index={gallery.index}
+            slides={gallery.slides}
+            plugins={[Zoom, Thumbnails]}
+            render={
+              gallery.slides.length <= 1
+                ? { buttonPrev: () => null, buttonNext: () => null }
+                : undefined
+            }
+            zoom={{
+              scrollToZoom: false,
+            }}
+            className={styles.gallery}
+          />,
+          document.body,
         )}
     </div>
+  );
 }
 
 export default EvidenceSection;

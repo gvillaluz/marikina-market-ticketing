@@ -211,13 +211,15 @@ const TicketDetailPage: FC = () => {
                 label="PENALTY TYPE"
                 value={formatPenaltyType(ticket?.penaltyType)}
               />
-              <FineSummaryBox
-                amount={
-                  totalFineAmount == null
-                    ? "—"
-                    : formatCurrency(totalFineAmount)
-                }
-              />
+              {ticket.penaltyType === "CashFine" && (
+                <FineSummaryBox
+                  amount={
+                    totalFineAmount == null
+                      ? "—"
+                      : formatCurrency(totalFineAmount)
+                  }
+                />
+              )}
               <div className={styles.fieldFlex}>
                 <InfoRowField
                   label="DUE DATE"
@@ -228,13 +230,15 @@ const TicketDetailPage: FC = () => {
                   }
                 />
               </div>
-              <div className={styles.noteBox}>
-                <HelpCircle className={styles.helpIcon} />
-                <span>
-                  Settlement must be paid at the Marikina City Treasury Office
-                  during municipal business hours.
-                </span>
-              </div>
+              {ticket.penaltyType === "CashFine" && (
+                <div className={styles.noteBox}>
+                  <HelpCircle className={styles.helpIcon} />
+                  <span>
+                    Settlement must be paid at the Marikina City Treasury Office
+                    during municipal business hours.
+                  </span>
+                </div>
+              )}
             </div>
           </DetailCard>
         </div>

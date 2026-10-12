@@ -37,4 +37,5 @@ export const ROUTES = {
   backups: "/configuration/backups",
   accounts: "/admin/accounts",
   auditLogs: "/admin/audit-logs",
+  reports: "/admin/reports",
 } as const;

@@ -3,7 +3,8 @@ import type { EnforcerProfile } from "@/api/types/enforcer.types";
 
 export function useEnforcerProfileImage(profile: EnforcerProfile) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  const url = profile.profileUrl?.trim() || "";
+  const url =
+    typeof profile.profileUrl === "string" ? profile.profileUrl.trim() : "";
   return {
     url,
     hasImage: Boolean(url && failedUrl !== url),

@@ -1,25 +1,51 @@
 .evidence {
-    width: 90px;
-    height: 90px;
-    border-radius: 6px;
-    cursor: pointer;
+  width: 90px;
+  height: 90px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .imageContainer {
-    width: 100%;
-    background-color: #F9F9FC;
-    border: 1px solid #C3C6D2;
-    border-radius: 10px;
-    min-height: 7rem;
-    height: auto;
-    padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  width: 100%;
+  background-color: #f9f9fc;
+  border: 1px solid #c3c6d2;
+  border-radius: 10px;
+  min-height: 7rem;
+  height: auto;
+  padding: 10px;
+}
+
+.preview {
+  display: inline-flex;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.preview:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+
+.preview:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.preview:disabled {
+  cursor: default;
 }
 
 .gallery {
-    z-index: 9999999;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+  z-index: 9999999;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
 }

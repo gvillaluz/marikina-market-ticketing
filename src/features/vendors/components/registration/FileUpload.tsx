@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
+import UrlImage from "@/components/ui/UrlImage";
+import { useFileUpload } from "../../hooks/useFileUpload";
 import { FileText, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 import styles from "./FormField.module.css";
 
@@ -19,20 +20,7 @@ export default function FileUpload({
   file,
   onChange,
 }: FileUploadProps) {
-  const inputId = useId();
-  const errorId = `${inputId}-error`;
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState("");
-
-  useEffect(() => {
-    if (!file || !file.type.startsWith("image/")) {
-      setPreviewUrl("");
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+  const { inputId, errorId, inputRef, previewUrl } = useFileUpload(file);
 
   return (
     <div className={styles.field}>
@@ -58,10 +46,11 @@ export default function FileUpload({
       {file ? (
         <div className={`${styles.filePreview} ${error ? styles.invalid : ""}`}>
           {previewUrl ? (
-            <img
+            <UrlImage
               className={styles.previewImage}
               src={previewUrl}
               alt={`${label} preview`}
+              fallback={<ImageIcon size={26} aria-hidden="true" />}
             />
           ) : (
             <span className={styles.fileIcon}>

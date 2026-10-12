@@ -1,5 +1,11 @@
 # Frontend rules (Marikina Market, React + TypeScript)
 
+## Workflow
+
+- Before any feature work, read `../feature-workflow.md` and follow it.
+- Commands for this repo: build `npm run build`, tests `[add the test command once a runner exists]`.
+- Dev server: `npm run dev`. Start it only when I ask or when a visual check is needed, and stop it afterward. Never leave background processes running.
+
 ## Architecture
 
 - Layers: api → hooks → UI. The api layer makes requests, hooks own data fetching and state, and UI components only render. No fetch or axios calls in components or hooks outside the api layer.

@@ -2,6 +2,7 @@ import { ExternalLink, FileText } from "lucide-react";
 import type { VendorRegistrationDocument } from "@/api/types/admin-vendor.types";
 import styles from "./ReviewDocumentCard.module.css";
 import { useReviewDocument } from "../../hooks/useReviewDocument";
+import UrlImage from "@/components/ui/UrlImage";
 
 function displayValue(value: string | number | null | undefined) {
   if (value === null || value === undefined || value === "") return "N/A";
@@ -18,11 +19,14 @@ export default function ReviewDocumentCard({
   return (
     <article className={styles.documentCard}>
       {isImage ? (
-        <img
+        <UrlImage
+          className={styles.documentImage}
+          fit="contain"
           src={url}
           alt={document.fileName}
           onError={onImageError}
           referrerPolicy="no-referrer"
+          fallback={<FileText size={38} aria-hidden="true" />}
         />
       ) : (
         <div className={styles.documentPreview}>
