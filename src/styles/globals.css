@@ -1,8 +1,24 @@
 :root {
+  /* Shared registry tables: reports, sections, ordinances, and backups. */
+  --registry-table-min-width: var(--backup-table-width);
+  --registry-table-layout: fixed;
+  --registry-actions-align: left;
+  --backup-actions-width: 13rem;
+  --registry-cell-padding-inline: var(--space-lg);
+  --registry-cell-padding-block: var(--space-lg);
+  --registry-font-body: var(--market-font-size-small);
   /* Report document and responsive history dimensions. */
   --reports-paper-width: 53rem;
-  --reports-preview-height: 15rem;
+  --reports-paper-height: 32.75rem;
+  --reports-paper-font: 0.6875rem;
+  --reports-paper-caption: 0.5625rem;
+  --reports-paper-title: 1rem;
+  --reports-paper-mark-size: 2.75rem;
+  --reports-paper-rule-width: 2px;
+  --reports-preview-height: 12rem;
   --reports-table-width: 46rem;
+  --reports-control-height: 2.5rem;
+  --reports-search-width: 13rem;
   /* Tickets, inspections, and staff records. */
   --records-header-surface: color-mix(
     in srgb,

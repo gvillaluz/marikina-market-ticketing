@@ -1,17 +1,3 @@
-.row > th,
-.row > td {
-  padding: var(--ordinance-space-lg) var(--ordinance-space-xl);
-  border-bottom: 1px solid var(--border-default);
-  color: var(--text-body);
-  font-size: var(--market-font-size-small);
-  text-align: left;
-  vertical-align: middle;
-}
-
-.row:hover {
-  background: var(--ordinance-row-hover);
-}
-
 .row > .identity strong {
   display: block;
   color: var(--text-heading);

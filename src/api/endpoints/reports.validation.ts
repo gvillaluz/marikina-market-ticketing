@@ -3,7 +3,6 @@ import type {
   ReportHistoryItem,
   ReportHistoryResponse,
   ReportMetric,
-  ReportBreakdown,
   ReportPreview,
   ReportSummary,
   ReportType,
@@ -31,14 +30,6 @@ function metric(value: unknown): value is ReportMetric {
     typeof value.assessedPenalties === "number" &&
     Number.isFinite(value.assessedPenalties) &&
     value.assessedPenalties >= 0
-  );
-}
-function breakdown(value: unknown): value is ReportBreakdown {
-  return (
-    object(value) &&
-    metric(value.total) &&
-    metric(value.resolved) &&
-    metric(value.pending)
   );
 }
 function base(
@@ -73,6 +64,8 @@ export function validateReport(value: unknown, saved: false): ReportPreview;
 export function validateReport(value: unknown, saved: boolean): ReportDocument {
   if (!base(value) || !summary(value.summary, value.type))
     throw new ApiRequestError();
+  if (!saved && value.dateRange.from !== value.dateRange.to)
+    throw new ApiRequestError();
   if (saved) {
     if (!history(value)) throw new ApiRequestError();
     return {
@@ -92,20 +85,27 @@ export function validateReport(value: unknown, saved: boolean): ReportDocument {
 }
 function summary(value: unknown, type: ReportType): value is ReportSummary {
   return (
-    breakdown(value) &&
     object(value) &&
+    metric(value.total) &&
+    metric(value.resolved) &&
+    metric(value.pending) &&
     (type === "Ticket"
       ? value.warningsIssued === null
-      : breakdown(value.warningsIssued)) &&
+      : metric(value.warningsIssued)) &&
     (type === "Warning"
-      ? value.ticketsIssued === null
-      : breakdown(value.ticketsIssued))
+      ? value.ticketsIssued === null &&
+        value.resolved.totalRecords === 0 &&
+        value.resolved.assessedPenalties === 0 &&
+        value.pending.totalRecords === 0 &&
+        value.pending.assessedPenalties === 0
+      : metric(value.ticketsIssued))
   );
 }
 export function validateReportHistory(value: unknown): ReportHistoryResponse {
   if (
     !object(value) ||
     !Array.isArray(value.items) ||
+    value.items.length > 10 ||
     !value.items.every(history) ||
     (value.hasMore === true && value.items.length === 0) ||
     typeof value.hasMore !== "boolean" ||

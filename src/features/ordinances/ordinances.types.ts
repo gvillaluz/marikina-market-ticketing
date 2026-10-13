@@ -13,7 +13,6 @@ export interface OrdinanceFields {
   series: string;
   marketCode: string;
   title: string;
-  description: string;
   category: TicketCategories | '';
 }
 

@@ -73,26 +73,28 @@ export function formatReportRange(range: { from: string; to: string }): string {
     ? formatReportDate(range.from)
     : `${formatReportDate(range.from)} – ${formatReportDate(range.to)}`;
 }
-export function reportRows(
+export function reportSummaryRows(
   report: ReportDocument,
 ): Array<ReportMetric & { label: string }> {
-  const rows = [
+  const rows: Array<ReportMetric & { label: string }> = [];
+  if (report.summary.warningsIssued) {
+    rows.push({
+      label: "Warnings issued",
+      ...report.summary.warningsIssued,
+    });
+  }
+  if (report.summary.ticketsIssued) {
+    rows.push({
+      label: "Tickets issued",
+      ...report.summary.ticketsIssued,
+    });
+  }
+  return [
+    ...rows,
     { label: "Resolved records", ...report.summary.resolved },
     { label: "Pending records", ...report.summary.pending },
     { label: "Total", ...report.summary.total },
   ];
-  for (const [label, breakdown] of [
-    ["Warnings issued", report.summary.warningsIssued],
-    ["Tickets issued", report.summary.ticketsIssued],
-  ] as const) {
-    if (!breakdown) continue;
-    rows.push(
-      { label: `${label} — resolved`, ...breakdown.resolved },
-      { label: `${label} — pending`, ...breakdown.pending },
-      { label: `${label} — total`, ...breakdown.total },
-    );
-  }
-  return rows;
 }
 export function filterReports(
   items: ReportHistoryItem[],
@@ -135,7 +137,7 @@ export function reportCsv(report: ReportDocument): string {
   rows.push(
     [],
     ["Summary", "Total Records", "Assessed Penalties (PHP)"],
-    ...reportRows(report).map((row) => [
+    ...reportSummaryRows(report).map((row) => [
       row.label,
       row.totalRecords,
       row.assessedPenalties,

@@ -1,4 +1,5 @@
 import Pagination from "@/components/ui/Pagination";
+import RegistryTable from "@/components/ui/RegistryTable";
 import type { BackupHistoryModel } from "../hooks/useBackupHistory";
 import BackupHistoryRow from "./BackupHistoryRow";
 import BackupMessage from "./BackupMessage";
@@ -30,49 +31,41 @@ export default function BackupHistory({ history }: BackupHistoryProps) {
       {history.downloadError && (
         <BackupMessage message={history.downloadError} error />
       )}
-      <div
-        className={styles.tableRegion}
-        role="region"
-        aria-label="Backup history"
-        tabIndex={0}
+      <RegistryTable
+        className={styles.table}
+        ariaLabel="Backup history"
+        labelledBy="backup-history-title"
+        busy={history.isFetching}
+        columns={[
+          { label: "Date & Time", className: styles.dateColumn },
+          { label: "Type", className: styles.typeColumn },
+          { label: "Size", className: styles.sizeColumn },
+          { label: "Status" },
+          { label: "Actions", className: styles.actionColumn, hidden: true },
+        ]}
       >
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th scope="col">Date &amp; Time</th>
-              <th scope="col">Type</th>
-              <th scope="col">Size</th>
-              <th scope="col">Status</th>
-              <th scope="col">
-                <span className={styles.srOnly}>Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.isLoading ? (
-              <tr>
-                <td colSpan={5}>
-                  <BackupMessage message="Loading backup history…" />
-                </td>
-              </tr>
-            ) : history.hasData && history.rows.length === 0 ? (
-              <tr>
-                <td colSpan={5}>
-                  <BackupMessage message="No backups have been recorded yet." />
-                </td>
-              </tr>
-            ) : (
-              history.rows.map((backup) => (
-                <BackupHistoryRow
-                  key={backup.id}
-                  backup={backup}
-                  onDownload={() => history.download(backup)}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+        {history.isLoading ? (
+          <tr>
+            <td colSpan={5}>
+              <BackupMessage message="Loading backup history…" />
+            </td>
+          </tr>
+        ) : history.hasData && history.rows.length === 0 ? (
+          <tr>
+            <td colSpan={5}>
+              <BackupMessage message="No backups have been recorded yet." />
+            </td>
+          </tr>
+        ) : (
+          history.rows.map((backup) => (
+            <BackupHistoryRow
+              key={backup.id}
+              backup={backup}
+              onDownload={() => history.download(backup)}
+            />
+          ))
+        )}
+      </RegistryTable>
       {(history.hasData || history.page > 1) && (
         <footer className={styles.footer}>
           <p role="status">{history.rangeLabel}</p>

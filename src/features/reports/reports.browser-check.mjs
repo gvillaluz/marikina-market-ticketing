@@ -10,6 +10,15 @@ const { chromium } = require(
   process.env.REPORTS_PLAYWRIGHT_MODULE || "playwright",
 );
 const baseUrl = process.env.REPORTS_TEST_URL || "http://127.0.0.1:5175";
+function pdfImages(bytes) {
+  return [
+    ...bytes
+      .toString("latin1")
+      .matchAll(
+        /\/Subtype \/Image\b[\s\S]*?stream\r?\n([\s\S]*?)\r?\nendstream/g,
+      ),
+  ].map((match) => Buffer.from(match[1], "latin1"));
+}
 const profile = {
   userId: 7,
   username: "reports.test",
@@ -26,30 +35,17 @@ const metric = (total_records, assessed_penalties) => ({
   assessed_penalties,
 });
 function summary(type) {
-  const warnings = {
-    total: metric(3, 0),
-    resolved: metric(3, 0),
-    pending: metric(0, 0),
-  };
-  const tickets = {
-    total: metric(4, 1200),
-    resolved: metric(2, 700),
-    pending: metric(2, 500),
-  };
-  const base =
-    type === "Warning"
-      ? warnings
-      : type === "Ticket"
-        ? tickets
-        : {
-            total: metric(7, 1200),
-            resolved: metric(5, 700),
-            pending: metric(2, 500),
-          };
   return {
-    ...base,
-    warnings_issued: type === "Ticket" ? null : warnings,
-    tickets_issued: type === "Warning" ? null : tickets,
+    total:
+      type === "Warning"
+        ? metric(3, 0)
+        : type === "Ticket"
+          ? metric(4, 1200)
+          : metric(7, 1200),
+    resolved: type === "Warning" ? metric(0, 0) : metric(2, 700),
+    pending: type === "Warning" ? metric(0, 0) : metric(2, 500),
+    warnings_issued: type === "Ticket" ? null : metric(3, 0),
+    tickets_issued: type === "Warning" ? null : metric(4, 1200),
   };
 }
 const saved = (
@@ -61,7 +57,7 @@ const saved = (
   id,
   type,
   date_range: { from, to },
-  date_generated: "2026-10-12T01:00:00Z",
+  date_generated: "2026-10-12T05:00:00Z",
   generated_by: {
     id: 7,
     name: id === 12 ? "Search Beyond First Page" : "Juan Dela Cruz",
@@ -92,6 +88,7 @@ test(
         generationFailure = false,
         malformedPreview = false,
         historyFailure = false;
+      let generationErrorStatus = 400;
       page.on("pageerror", (error) => runtimeErrors.push(error.message));
       // All API traffic stays at this boundary; no requests reach the configured remote API.
       await page.route(`${baseUrl}/api/**`, async (route) => {
@@ -111,8 +108,13 @@ test(
         if (request.method() === "POST") {
           if (generationFailure)
             return route.fulfill({
-              status: 400,
-              json: { message: "This reporting period is unavailable." },
+              status: generationErrorStatus,
+              json: {
+                message:
+                  generationErrorStatus === 403
+                    ? "Administrator identity is invalid."
+                    : "This reporting period is unavailable.",
+              },
             });
           const { from, to, type } = request.postDataJSON();
           const report = saved(100 + records.length, type, from, to);
@@ -190,6 +192,89 @@ test(
       await history
         .getByRole("button", { name: "View report 1", exact: true })
         .waitFor();
+      const historyAlignment = await history
+        .getByRole("table")
+        .evaluate((table) => {
+          const header = table.querySelector("thead th:last-child");
+          const dateRange = table.querySelector("thead th:nth-child(2)");
+          const button = table.querySelector(
+            "tbody tr:first-child td:last-child button",
+          );
+          const headingRect = header.getBoundingClientRect(),
+            buttonRect = button.getBoundingClientRect();
+          return {
+            align: getComputedStyle(header).textAlign,
+            actionWidth: headingRect.width,
+            dateWidth: dateRange.getBoundingClientRect().width,
+            centerOffset: Math.abs(
+              headingRect.x +
+                headingRect.width / 2 -
+                buttonRect.x -
+                buttonRect.width / 2,
+            ),
+          };
+        });
+      assert.equal(historyAlignment.align, "center");
+      assert.ok(historyAlignment.actionWidth < historyAlignment.dateWidth);
+      assert.ok(
+        historyAlignment.centerOffset < 1,
+        "View buttons should be centered beneath the Action heading",
+      );
+      const defaultPreview = await page.evaluate(async () => {
+        const { reportsApi } =
+          await import("/src/api/endpoints/reports.api.ts");
+        return reportsApi.preview("2026-10-12");
+      });
+      assert.equal(defaultPreview.type, "Warning & Ticket");
+      assert.deepEqual(defaultPreview.dateRange, {
+        from: "2026-10-12",
+        to: "2026-10-12",
+      });
+      assert.deepEqual(defaultPreview.summary.resolved, {
+        totalRecords: 2,
+        assessedPenalties: 700,
+      });
+      assert.deepEqual(defaultPreview.summary.warningsIssued, {
+        totalRecords: 3,
+        assessedPenalties: 0,
+      });
+      const requestsBeforeInvalidInput = requests.length;
+      await page.evaluate(async () => {
+        const { reportsApi } =
+          await import("/src/api/endpoints/reports.api.ts");
+        const results = await Promise.allSettled([
+          reportsApi.detail(0),
+          reportsApi.list(-1),
+          reportsApi.preview("2026-10-12", "Unsupported"),
+        ]);
+        if (results.some((result) => result.status !== "rejected"))
+          throw new Error("Invalid report arguments must be rejected");
+      });
+      assert.equal(requests.length, requestsBeforeInvalidInput);
+      const reportType = page.getByRole("button", {
+        name: "Report Type",
+        exact: true,
+      });
+      await reportType.click();
+      await page.keyboard.press("Escape");
+      assert.equal(await reportType.getAttribute("aria-expanded"), "false");
+      assert.equal(
+        await reportType.evaluate(
+          (element) => element === document.activeElement,
+        ),
+        true,
+      );
+      await reportType.click();
+      await page
+        .getByRole("option", { name: "Ticket", exact: true })
+        .getByRole("button")
+        .click();
+      assert.equal(await reportType.innerText(), "Ticket");
+      await reportType.click();
+      await page
+        .getByRole("option", { name: "Warning & Ticket", exact: true })
+        .getByRole("button")
+        .click();
       assert.equal(
         await page
           .getByRole("button", { name: "Download PDF", exact: true })
@@ -199,7 +284,36 @@ test(
       await page.screenshot({
         path: join(tmpdir(), "reports-desktop-before.png"),
         fullPage: true,
+        animations: "disabled",
       });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      const reportTable = history.getByRole("region", {
+        name: "Reports table",
+        exact: true,
+      });
+      await reportTable.focus();
+      await page.keyboard.press("ArrowRight");
+      await page.waitForFunction(() => {
+        const region = document.querySelector('[aria-label="Reports table"]');
+        return region && region.scrollLeft > 0;
+      });
+      await reportTable.evaluate((element) => {
+        element.scrollTo({ left: 0, behavior: "instant" });
+      });
+      await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+      assert.equal(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth > innerWidth,
+        ),
+        false,
+      );
+      await page.screenshot({
+        path: join(tmpdir(), "reports-mobile-before.png"),
+        fullPage: true,
+        animations: "disabled",
+      });
+      await page.setViewportSize({ width: 1440, height: 1000 });
       await page
         .getByRole("button", { name: "Generate Report", exact: true })
         .click();
@@ -229,10 +343,35 @@ test(
         requests.find((request) => request.method === "POST").body,
         { from: "2026-10-01", to: "2026-10-12", type: "Warning & Ticket" },
       );
-      assert.equal(await preview.locator("tbody tr").count(), 9);
+      assert.deepEqual(await preview.locator("tbody th").allTextContents(), [
+        "Warnings issued",
+        "Tickets issued",
+        "Resolved records",
+        "Pending records",
+        "Total",
+      ]);
+      assert.match(
+        await preview
+          .getByRole("row", { name: /^Warnings issued / })
+          .innerText(),
+        /3/,
+      );
+      assert.match(
+        await preview
+          .getByRole("row", { name: /^Tickets issued / })
+          .innerText(),
+        /4/,
+      );
       const total = preview.getByRole("row", { name: /^Total / });
       assert.match(await total.innerText(), /7/);
       assert.match(await total.innerText(), /1,200.00/);
+      assert.deepEqual(
+        await preview
+          .getByRole("row", { name: /^Resolved records / })
+          .locator("td")
+          .allTextContents(),
+        ["2", "₱700.00"],
+      );
       await history
         .getByRole("button", { name: "View report 112", exact: true })
         .waitFor();
@@ -240,6 +379,7 @@ test(
       await page.screenshot({
         path: join(tmpdir(), "reports-desktop-after.png"),
         fullPage: true,
+        animations: "disabled",
       });
       const csvDownload = page.waitForEvent("download");
       await page
@@ -251,16 +391,38 @@ test(
         await readFile(await csv.path(), "utf8"),
         /"Total","7","1200"/,
       );
+      const csvText = await readFile(await csv.path(), "utf8");
+      assert.match(csvText, /"Warnings issued","3","0"/);
+      assert.match(csvText, /"Resolved records","2","700"/);
+      assert.equal(csvText.includes("undefined"), false);
       const pdfDownload = page.waitForEvent("download");
       await page
         .getByRole("button", { name: "Download PDF", exact: true })
         .click();
       const pdf = await pdfDownload;
       assert.match(pdf.suggestedFilename(), /Report-112.*\.pdf$/);
+      await pdf.saveAs(join(tmpdir(), "reports-layout-export.pdf"));
       assert.equal(
         (await readFile(await pdf.path())).subarray(0, 4).toString(),
         "%PDF",
       );
+      const desktopImages = pdfImages(await readFile(await pdf.path()));
+      assert.ok(desktopImages.length > 0);
+      await page.setViewportSize({ width: 390, height: 844 });
+      const savedMobileDownload = page.waitForEvent("download");
+      await page
+        .getByRole("button", { name: "Download PDF", exact: true })
+        .click();
+      const savedMobilePdf = await savedMobileDownload;
+      await savedMobilePdf.saveAs(
+        join(tmpdir(), "reports-layout-mobile-saved-export.pdf"),
+      );
+      assert.deepEqual(
+        pdfImages(await readFile(await savedMobilePdf.path())),
+        desktopImages,
+        "Exported report artwork must be identical at desktop and mobile widths",
+      );
+      await page.setViewportSize({ width: 1440, height: 1000 });
       await history
         .getByRole("button", { name: "Go to page 2", exact: true })
         .click();
@@ -271,7 +433,16 @@ test(
         .getByRole("button", { name: "View report 12", exact: true })
         .click();
       await preview.getByRole("article", { name: "Saved report 12" }).waitFor();
-      assert.equal(await preview.locator("tbody tr").count(), 6);
+      assert.deepEqual(await preview.locator("tbody th").allTextContents(), [
+        "Tickets issued",
+        "Resolved records",
+        "Pending records",
+        "Total",
+      ]);
+      assert.equal(
+        await preview.getByRole("row", { name: /^Warnings issued / }).count(),
+        0,
+      );
       await page
         .getByRole("searchbox", { name: "Search reports" })
         .fill("Search Beyond");
@@ -287,16 +458,24 @@ test(
       await history
         .getByRole("button", { name: "View report 1", exact: true })
         .waitFor();
-      await page
-        .getByRole("combobox", { name: "Filter report type", exact: true })
-        .selectOption("Warning");
+      await history
+        .getByRole("button", { name: "All report types", exact: true })
+        .click();
+      await history
+        .getByRole("option", { name: "Warning", exact: true })
+        .getByRole("button")
+        .click();
       await history
         .getByRole("button", { name: "View report 2", exact: true })
         .waitFor();
       assert.equal(await history.locator("tbody tr").count(), 4);
-      await page
-        .getByRole("combobox", { name: "Filter report type", exact: true })
-        .selectOption("all");
+      await history
+        .getByRole("button", { name: "Warning", exact: true })
+        .click();
+      await history
+        .getByRole("option", { name: "All report types", exact: true })
+        .getByRole("button")
+        .click();
       await history
         .getByRole("button", { name: "View report 1", exact: true })
         .waitFor();
@@ -317,6 +496,14 @@ test(
       await page
         .getByText("This reporting period is unavailable.", { exact: true })
         .waitFor();
+      generationErrorStatus = 403;
+      await page
+        .getByRole("button", { name: "Generate Report", exact: true })
+        .click();
+      await page
+        .getByText("Administrator identity is invalid.", { exact: true })
+        .waitFor();
+      generationErrorStatus = 400;
       generationFailure = false;
       malformedPreview = true;
       await page.getByLabel("From", { exact: true }).fill("2026-10-02");
@@ -333,6 +520,70 @@ test(
       await preview
         .getByRole("article", { name: "Unsaved report preview" })
         .waitFor();
+      const typeDropdown = page.getByRole("button", {
+        name: "Report Type",
+        exact: true,
+      });
+      await typeDropdown.click();
+      await page
+        .getByRole("option", { name: "Warning", exact: true })
+        .getByRole("button")
+        .click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector(
+            '[aria-label="Unsaved report preview"] tbody tr:first-child th',
+          )?.textContent === "Warnings issued" &&
+          document.querySelector(
+            '[aria-label="Unsaved report preview"] tbody tr:last-child td',
+          )?.textContent === "3",
+      );
+      assert.deepEqual(await preview.locator("tbody th").allTextContents(), [
+        "Warnings issued",
+        "Resolved records",
+        "Pending records",
+        "Total",
+      ]);
+      assert.deepEqual(
+        await preview
+          .getByRole("row", { name: /^Resolved records / })
+          .locator("td")
+          .allTextContents(),
+        ["0", "₱0.00"],
+      );
+      assert.deepEqual(
+        await preview
+          .getByRole("row", { name: /^Pending records / })
+          .locator("td")
+          .allTextContents(),
+        ["0", "₱0.00"],
+      );
+      await page.screenshot({
+        path: join(tmpdir(), "reports-warning-preview.png"),
+        fullPage: true,
+        animations: "disabled",
+      });
+      await page
+        .getByRole("button", { name: "Generate Report", exact: true })
+        .click();
+      await preview
+        .getByRole("article", { name: "Saved report 113" })
+        .waitFor();
+      assert.equal(
+        await preview.getByRole("row", { name: /^Tickets issued / }).count(),
+        0,
+      );
+      await typeDropdown.click();
+      await page
+        .getByRole("option", { name: "Warning & Ticket", exact: true })
+        .getByRole("button")
+        .click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector(
+            '[aria-label="Unsaved report preview"] tbody tr:last-child td',
+          )?.textContent === "7",
+      );
       await page.setViewportSize({ width: 390, height: 844 });
       await page.evaluate(() => scrollTo(0, 0));
       assert.equal(
@@ -344,7 +595,15 @@ test(
       await page.screenshot({
         path: join(tmpdir(), "reports-mobile.png"),
         fullPage: true,
+        animations: "disabled",
       });
+      const mobileDownload = page.waitForEvent("download");
+      await page
+        .getByRole("button", { name: "Download PDF", exact: true })
+        .click();
+      await (
+        await mobileDownload
+      ).saveAs(join(tmpdir(), "reports-layout-mobile-export.pdf"));
       await page.emulateMedia({ reducedMotion: "reduce" });
       assert.equal(
         await preview

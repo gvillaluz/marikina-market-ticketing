@@ -16,7 +16,7 @@ const output = ts.transpileModule(source, {
 const {
   validateReportRange,
   reportPreset,
-  reportRows,
+  reportSummaryRows,
   reportCsv,
   filterReports,
   manilaToday,
@@ -33,22 +33,14 @@ const report = {
   id: 1,
   type: "Warning & Ticket",
   dateRange: { from: "2026-10-01", to: "2026-10-12" },
-  dateGenerated: "2026-10-12T01:00:00Z",
+  dateGenerated: "2026-10-12T05:00:00Z",
   generatedBy: { id: 7, name: "Juan Dela Cruz" },
   summary: {
     total: metric(7, 1200),
-    resolved: metric(5, 700),
+    resolved: metric(2, 700),
     pending: metric(2, 500),
-    warningsIssued: {
-      total: metric(3, 0),
-      resolved: metric(3, 0),
-      pending: metric(0, 0),
-    },
-    ticketsIssued: {
-      total: metric(4, 1200),
-      resolved: metric(2, 700),
-      pending: metric(2, 500),
-    },
+    warningsIssued: metric(3, 0),
+    ticketsIssued: metric(4, 1200),
   },
 };
 
@@ -103,25 +95,77 @@ test("report responses require valid metadata, dates and non-negative finite met
     );
   }
 });
-test("preview strips saved metadata and single types require null unused breakdowns", () => {
+test("preview strips saved metadata and single types require null unused metrics", () => {
   const result = validateReport(
-    { ...report, id: undefined, generatedBy: null },
+    {
+      ...report,
+      id: undefined,
+      generatedBy: null,
+      dateRange: { from: "2026-10-12", to: "2026-10-12" },
+    },
     false,
   );
+  assert.throws(() => validateReport(report, false));
   assert.equal("id" in result, false);
   assert.equal("generatedBy" in result, false);
   assert.throws(() => validateReport({ ...report, type: "Warning" }, true));
-  assert.equal(
+  const warning = {
+    ...report,
+    type: "Warning",
+    summary: {
+      total: metric(3, 0),
+      resolved: metric(0, 0),
+      pending: metric(0, 0),
+      warningsIssued: metric(3, 0),
+      ticketsIssued: null,
+    },
+  };
+  assert.deepEqual(validateReport(warning, true), warning);
+  assert.throws(() =>
+    validateReport(
+      { ...warning, summary: { ...warning.summary, resolved: metric(1, 0) } },
+      true,
+    ),
+  );
+  const ticket = {
+    ...report,
+    type: "Ticket",
+    summary: {
+      total: metric(4, 1200),
+      resolved: metric(2, 700),
+      pending: metric(2, 500),
+      warningsIssued: null,
+      ticketsIssued: metric(4, 1200),
+    },
+  };
+  assert.deepEqual(validateReport(ticket, true), ticket);
+  assert.throws(() =>
     validateReport(
       {
-        ...report,
-        type: "Warning",
-        summary: { ...report.summary, ticketsIssued: null },
+        ...ticket,
+        summary: { ...ticket.summary, warningsIssued: metric(0, 0) },
       },
       true,
-    ).type,
-    "Warning",
+    ),
   );
+});
+test("flat issuer metrics reject old nested shapes and malformed values", () => {
+  for (const field of ["warningsIssued", "ticketsIssued"]) {
+    for (const invalid of [
+      undefined,
+      metric(-1, 0),
+      metric(1, -1),
+      metric(1, Infinity),
+      { total: metric(3, 0), resolved: metric(3, 0), pending: metric(0, 0) },
+    ]) {
+      assert.throws(() =>
+        validateReport(
+          { ...report, summary: { ...report.summary, [field]: invalid } },
+          true,
+        ),
+      );
+    }
+  }
 });
 test("history rejects invalid paging and malformed records", () => {
   const { summary, ...item } = report;
@@ -132,6 +176,13 @@ test("history rejects invalid paging and malformed records", () => {
   );
   assert.throws(() =>
     validateReportHistory({ items: [], total: 12, hasMore: true }),
+  );
+  assert.throws(() =>
+    validateReportHistory({
+      items: Array.from({ length: 11 }, () => item),
+      total: 11,
+      hasMore: false,
+    }),
   );
   assert.throws(() =>
     validateReportHistory({ items: [item], total: 0, hasMore: false }),
@@ -188,32 +239,33 @@ test("presets respect calendar boundaries and inclusive Manila dates", () => {
   assert.equal(manilaToday(new Date("2026-10-11T16:30:00Z")), "2026-10-12");
   assert.match(formatReportDate("2026-10-12"), /Oct 12, 2026/);
 });
-test("summary rows preserve saved totals and both type breakdowns", () => {
-  const rows = reportRows(report);
-  assert.equal(rows.length, 9);
-  assert.deepEqual(rows[0], { label: "Resolved records", ...metric(5, 700) });
-  assert.deepEqual(rows[2], { label: "Total", ...metric(7, 1200) });
-  assert.deepEqual(rows[8], {
-    label: "Tickets issued — total",
-    ...metric(4, 1200),
-  });
-  assert.equal(
-    reportRows({
+test("paper summary uses issue totals and saved resolution totals without duplicating records", () => {
+  assert.deepEqual(reportSummaryRows(report), [
+    { label: "Warnings issued", totalRecords: 3, assessedPenalties: 0 },
+    { label: "Tickets issued", totalRecords: 4, assessedPenalties: 1200 },
+    { label: "Resolved records", totalRecords: 2, assessedPenalties: 700 },
+    { label: "Pending records", totalRecords: 2, assessedPenalties: 500 },
+    { label: "Total", totalRecords: 7, assessedPenalties: 1200 },
+  ]);
+  assert.deepEqual(
+    reportSummaryRows({
       ...report,
       type: "Warning",
       summary: { ...report.summary, ticketsIssued: null },
-    }).length,
-    6,
+    }).map((row) => row.label),
+    ["Warnings issued", "Resolved records", "Pending records", "Total"],
   );
 });
-test("CSV includes complete numeric breakdowns and protects spreadsheet formulas", () => {
+test("CSV exports the flat API summary and protects spreadsheet formulas", () => {
   const csv = reportCsv({
     ...report,
     generatedBy: { id: 7, name: '=HYPERLINK("https://example.com")' },
   });
   assert.ok(csv.startsWith("\uFEFF"));
   assert.match(csv, /"Total","7","1200"/);
-  assert.match(csv, /"Tickets issued — pending","2","500"/);
+  assert.match(csv, /"Tickets issued","4","1200"/);
+  assert.match(csv, /"Resolved records","2","700"/);
+  assert.equal(csv.includes("undefined"), false);
   assert.match(csv, /'=/);
   assert.match(csv, /"2026-10-01"/);
 });
@@ -225,4 +277,37 @@ test("history search combines report type, dates, generator, and ID", () => {
   );
   assert.equal(filterReports([report], "", "Ticket").length, 0);
   assert.equal(filterReports([report], "missing", "all").length, 0);
+});
+
+test("Warning summary and CSV hide tickets and preserve zero resolution metrics", () => {
+  const warning = {
+    ...report,
+    type: "Warning",
+    summary: {
+      total: metric(3, 0),
+      resolved: metric(0, 0),
+      pending: metric(0, 0),
+      warningsIssued: metric(3, 0),
+      ticketsIssued: null,
+    },
+  };
+  assert.deepEqual(reportSummaryRows(warning), [
+    { label: "Warnings issued", totalRecords: 3, assessedPenalties: 0 },
+    { label: "Resolved records", totalRecords: 0, assessedPenalties: 0 },
+    { label: "Pending records", totalRecords: 0, assessedPenalties: 0 },
+    { label: "Total", totalRecords: 3, assessedPenalties: 0 },
+  ]);
+  const csv = reportCsv(warning);
+  assert.equal(csv.includes("Tickets issued"), false);
+  assert.match(csv, /"Resolved records","0","0"/);
+  const ticket = {
+    ...report,
+    type: "Ticket",
+    summary: { ...report.summary, warningsIssued: null },
+  };
+  assert.equal(
+    reportSummaryRows(ticket).some((row) => row.label === "Warnings issued"),
+    false,
+  );
+  assert.equal(reportCsv(ticket).includes("Warnings issued"), false);
 });

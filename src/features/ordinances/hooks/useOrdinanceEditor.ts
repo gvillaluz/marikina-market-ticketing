@@ -37,7 +37,6 @@ function fieldsFrom(item: OrdinanceSummary): OrdinanceFields {
     series: item.series,
     marketCode: item.marketCode,
     title: item.title,
-    description: item.description,
     category: item.category,
   };
 }

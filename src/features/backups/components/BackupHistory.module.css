@@ -17,54 +17,29 @@
   font-size: var(--backup-font-caption);
   color: var(--text-body);
 }
-.tableRegion {
-  position: relative;
-  overflow-x: auto;
-}
 .table {
-  width: 100%;
-  min-width: var(--backup-table-width);
-  table-layout: auto;
-  border-collapse: collapse;
+  --registry-cell-padding-block: var(--space-md);
+  --registry-table-min-width: var(--reports-table-width);
+  --registry-actions-align: right;
 }
-.table th {
-  padding: var(--backup-space-md) var(--backup-space-lg);
-  border-top: 1px solid var(--border-default);
-  border-bottom: 1px solid var(--border-default);
-  font-size: var(--backup-font-micro);
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-align: left;
-  text-transform: uppercase;
-  color: var(--text-body);
-  background: var(--backup-table-surface);
+.dateColumn {
+  padding-inline-start: var(--space-xl);
+  width: 30%;
 }
-.table th:first-child {
-  padding-left: var(--backup-space-xl);
-  width: 25%;
+.typeColumn {
+  width: 14%;
 }
-.table th:nth-child(2) {
-  width: 13%;
+.sizeColumn {
+  width: 12%;
 }
-.table th:nth-child(3) {
-  width: 10%;
-}
-.table th:nth-child(4) {
-  width: auto;
-}
-.table th:last-child {
-  padding-right: var(--backup-space-xl);
-  width: 1%;
+.actionColumn {
+  padding-inline-end: var(--space-xl);
+  width: var(--backup-actions-width);
   white-space: nowrap;
 }
-.srOnly {
-  position: absolute;
-  padding: 0;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+.table > table > :is(thead, tbody) > tr > :nth-child(2),
+.table > table > :is(thead, tbody) > tr > :nth-child(3) {
+  text-align: center;
 }
 .footer {
   display: flex;
@@ -135,8 +110,7 @@
 .pagination span {
   color: var(--text-body);
 }
-.pagination button:focus-visible,
-.tableRegion:focus-visible {
+.pagination button:focus-visible {
   outline: 2px solid var(--backup-action);
   outline-offset: -2px;
 }

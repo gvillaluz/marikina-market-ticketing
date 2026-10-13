@@ -29,37 +29,46 @@
   gap: var(--space-sm);
 }
 .actions button {
+  min-height: var(--backup-control-height);
+  border-color: var(--backup-action-border);
   border-radius: var(--backup-control-radius);
   font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--button-primary);
+}
+.actions button:hover:not(:disabled) {
+  border-color: var(--button-primary);
+  background: var(--button-primary-surface);
 }
 .document {
   padding: var(--space-lg);
   overflow-x: auto;
+  background: var(--backup-table-surface);
 }
 .state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   padding: var(--space-section) var(--space-lg);
   min-height: var(--reports-preview-height);
   text-align: center;
   color: var(--text-body);
 }
 .state h3 {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-heading);
 }
 .state p {
-  max-width: 48ch;
+  max-width: 36ch;
   font-size: var(--font-size-xs);
 }
 .icon {
   display: grid;
   place-items: center;
-  margin-bottom: var(--space-xs);
+  margin-bottom: var(--space-sm);
   width: var(--backup-health-icon-size);
   height: var(--backup-health-icon-size);
   border-radius: 50%;

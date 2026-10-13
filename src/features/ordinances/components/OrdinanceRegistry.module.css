@@ -79,57 +79,35 @@
   color: var(--text-muted);
 }
 
-.region {
-  overflow-x: auto;
-}
-
-.region:focus-visible {
-  outline: 2px solid var(--info);
-  outline-offset: -2px;
-}
-
 .table {
-  width: 100%;
-  min-width: var(--ordinance-table-min-width);
-  border-collapse: collapse;
-  table-layout: fixed;
+  --registry-table-min-width: var(--account-table-width);
+  --registry-table-layout: fixed;
+  --registry-actions-align: center;
+  --registry-cell-padding-inline: var(--space-xl);
 }
 
-.table thead {
-  border-top: 1px solid var(--border-default);
-  background: var(--ordinance-muted-surface);
-}
-
-.table thead th {
-  padding: var(--ordinance-space-md) var(--ordinance-space-xl);
-  color: var(--text-body);
-  font-size: var(--market-font-size-column);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-align: left;
-  text-transform: uppercase;
-}
-
-.table thead th:first-child {
+.identityColumn {
   width: 29%;
 }
-
-.table thead th:last-child {
+.categoryColumn {
+  width: 18%;
+}
+.tiersColumn {
+  width: 12%;
+}
+.dateColumn {
+  width: 14%;
+}
+.statusColumn {
+  width: 13%;
+}
+.actionColumn {
+  width: 14%;
   text-align: center;
 }
-
-.table thead th:nth-child(2) {
-  width: 15%;
-}
-
-.table thead th:nth-child(3),
-.table thead th:nth-child(4) {
-  width: 15%;
-}
-
-.table thead th:nth-child(5),
-.table thead th:nth-child(6) {
-  width: 13%;
+.table > table > :is(thead, tbody) > tr > :nth-child(3),
+.table > table > :is(thead, tbody) > tr > :nth-child(5) {
+  text-align: center;
 }
 
 .footer {

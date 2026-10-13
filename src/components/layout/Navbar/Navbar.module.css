@@ -75,6 +75,7 @@
   margin-left: var(--ordinance-space-sm);
   width: calc(var(--navbar-profile-size) - var(--space-sm));
   height: calc(var(--navbar-profile-size) - var(--space-sm));
+  overflow: hidden;
   border: 1px solid var(--backup-action);
   border-radius: var(--market-radius-pill);
   background: var(--backup-action);

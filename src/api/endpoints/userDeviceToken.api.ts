@@ -4,7 +4,7 @@ export const userDeviceTokenApi = {
   async register(deviceToken: string): Promise<void> {
     await client.post(
       "/user/device-token",
-      { deviceToken },
+      { device_token: deviceToken },
       {
         headers: { "Content-Type": "application/json" },
         validateStatus: (status) => {

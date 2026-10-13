@@ -194,99 +194,29 @@
   cursor: wait !important;
 }
 
-.tableRegion {
-  overflow-x: auto;
-}
-
-.tableRegion:focus-visible {
-  outline-style: solid;
-  outline-width: 2px;
-  outline-offset: 2px;
-  outline-color: var(--info);
-}
-
 .table {
-  width: 100%;
-  min-width: 45rem;
-  table-layout: fixed;
-  border-collapse: collapse;
-  color: var(--text-body);
+  --registry-table-min-width: var(--reports-table-width);
+  --registry-table-layout: fixed;
+  --registry-actions-align: center;
 }
-
-.tableHeader {
-  background-color: var(--bg-page);
-}
-
-@supports (color: color-mix(in lab, red, red)) {
-  .tableHeader {
-    background-color: color-mix(in srgb, var(--bg-page) 70%, var(--bg-surface));
-  }
-}
-
 .nameColumn {
-  position: relative;
-  width: 17%;
-  padding: 1rem;
-  padding-left: 1.125rem !important;
-  text-align: left;
-  font-size: var(--market-font-size-column);
-  line-height: 1.5;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  color: var(--text-body);
-  text-transform: uppercase;
+  width: 22%;
 }
-
 .descriptionColumn {
-  position: relative;
-  width: 42%;
-  padding: 1rem;
-  text-align: left;
-  font-size: var(--market-font-size-column);
-  line-height: 1.5;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  color: var(--text-body);
-  text-transform: uppercase;
+  width: 34%;
 }
-
 .vendorColumn {
-  position: relative;
   width: 12%;
-  padding: 1rem;
-  text-align: left;
-  font-size: var(--market-font-size-column);
-  line-height: 1.5;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  color: var(--text-body);
-  text-transform: uppercase;
 }
-
 .statusColumn {
-  position: relative;
-  width: 17%;
-  padding: 1rem;
-  text-align: left;
-  font-size: var(--market-font-size-column);
-  line-height: 1.5;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  color: var(--text-body);
-  text-transform: uppercase;
+  width: 16%;
 }
-
 .actionsColumn {
-  position: relative;
-  width: 6.875rem;
-  padding: 1rem;
-  text-align: left;
-  font-size: var(--market-font-size-column);
-  line-height: 1.5;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  color: var(--text-body);
-  text-transform: uppercase;
+  width: 16%;
+}
+.table > table > :is(thead, tbody) > tr > :nth-child(3),
+.table > table > :is(thead, tbody) > tr > :nth-child(4) {
+  text-align: center;
 }
 
 .message {

@@ -1,49 +1,23 @@
-.row {
-  border-bottom: 1px solid var(--border-default);
-  transition: background var(--form-motion-duration) var(--form-motion-ease);
-}
-.row:hover {
-  background: var(--records-hover-surface);
-}
-.row td {
-  padding: var(--space-lg);
-  font-size: var(--font-size-xs);
-  color: var(--text-body);
-}
 .actor {
   max-width: var(--account-search-width);
   overflow-wrap: anywhere;
 }
 .view {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: var(--space-xs);
   padding: var(--space-xs) var(--space-sm);
   min-height: var(--backup-control-height);
-  border: 1px solid var(--backup-action-border);
+  border-color: var(--backup-action-border);
   border-radius: var(--backup-control-radius);
   font-size: var(--font-size-xs);
+  font-weight: 500;
   color: var(--button-primary);
   background: var(--bg-surface);
-  transition:
-    background var(--form-motion-duration) var(--form-motion-ease),
-    border-color var(--form-motion-duration) var(--form-motion-ease);
 }
 .view:hover:not(:disabled) {
   border-color: var(--button-primary);
   background: var(--button-primary-surface);
 }
-.view:focus-visible {
-  outline: 2px solid var(--button-primary);
-  outline-offset: 2px;
-}
-.view:disabled {
-  opacity: var(--backup-disabled-opacity);
-  cursor: not-allowed;
-}
 @media (prefers-reduced-motion: reduce) {
-  .row,
   .view {
     transition: none;
   }

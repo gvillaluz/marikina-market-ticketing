@@ -1,6 +1,6 @@
 import { FilePlus2 } from "lucide-react";
 import Button from "@/components/ui/Button";
-import type { ReportType } from "@/api/types/reports.types";
+import { Dropdown } from "@/components/ui/Dropdown";
 import type { ReportsModel } from "../hooks/useReports";
 import { REPORT_TYPES } from "../reports.utils";
 import ReportNotice from "./ReportNotice";
@@ -86,23 +86,20 @@ export default function ReportGenerator({
             required
           />
         </label>
-        <label className={styles.field} htmlFor="report-type">
-          Report Type
-          <select
-            id="report-type"
+        <div className={styles.field}>
+          <label htmlFor="report-type">Report Type</label>
+          <Dropdown
+            triggerId="report-type"
+            ariaLabel="Report Type"
+            triggerLabel={reports.input.type}
             value={reports.input.type}
             disabled={reports.generating}
-            onChange={(event) =>
-              reports.updateType(event.target.value as ReportType)
-            }
-          >
-            {REPORT_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </label>
+            onChange={reports.updateType}
+            options={REPORT_TYPES.map((type) => ({ value: type, label: type }))}
+            className={styles.dropdown}
+            fullWidth
+          />
+        </div>
         <Button
           type="submit"
           size="sm"

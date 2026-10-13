@@ -1,17 +1,24 @@
+import type { RefObject } from "react";
 import type { ReportDocument } from "@/api/types/reports.types";
 import {
   formatReportRange,
   formatReportDate,
-  reportRows,
-  reportCurrency,
+  reportSummaryRows,
 } from "../reports.utils";
 import ReportSummaryRow from "./ReportSummaryRow";
 import styles from "./ReportPaper.module.css";
 
-export default function ReportPaper({ report }: { report: ReportDocument }) {
+export default function ReportPaper({
+  report,
+  paperRef,
+}: {
+  report: ReportDocument;
+  paperRef?: RefObject<HTMLElement>;
+}) {
   const saved = "id" in report;
   return (
     <article
+      ref={paperRef}
       className={styles.paper}
       aria-label={
         saved ? `Saved report ${report.id}` : "Unsaved report preview"
@@ -58,13 +65,13 @@ export default function ReportPaper({ report }: { report: ReportDocument }) {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th scope="col">Record classification</th>
+                <th scope="col">Summary</th>
                 <th scope="col">Total Records</th>
                 <th scope="col">Assessed Penalties</th>
               </tr>
             </thead>
             <tbody>
-              {reportRows(report).map((row) => (
+              {reportSummaryRows(report).map((row) => (
                 <ReportSummaryRow key={row.label} row={row} />
               ))}
             </tbody>
@@ -76,17 +83,11 @@ export default function ReportPaper({ report }: { report: ReportDocument }) {
           </p>
         )}
       </section>
-      <div className={styles.totals}>
-        <span>Total assessed penalties</span>
-        <strong>
-          {reportCurrency.format(report.summary.total.assessedPenalties)}
-        </strong>
-      </div>
       <div className={styles.signatures}>
         <div>
           <p>Prepared by</p>
           <strong>{saved ? report.generatedBy.name : "Unsaved preview"}</strong>
-          <span>Marikina Public Market Administration</span>
+          <span>Name and signature of preparer</span>
         </div>
         <div>
           <p>Reviewed by</p>

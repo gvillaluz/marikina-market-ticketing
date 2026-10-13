@@ -1,6 +1,9 @@
 import { FC } from "react";
 import { Link } from "react-router-dom";
 import { UserRound } from "lucide-react";
+import UrlImage from "@/components/ui/UrlImage";
+import { useAuth } from "@/context/AuthContext";
+import { useProfileAvatar } from "@/features/profile";
 import { ROUTES } from "@/routes/routePaths";
 import styles from "./Navbar.module.css";
 
@@ -10,6 +13,9 @@ interface NavbarProps {
 }
 
 const Navbar: FC<NavbarProps> = ({ onMenuClick, sidebarCollapsed }) => {
+  const { user } = useAuth();
+  const avatar = useProfileAvatar(user?.profileUrl ?? null);
+
   return (
     <header className={styles.navbar}>
       <div className={styles.left}>
@@ -33,11 +39,19 @@ const Navbar: FC<NavbarProps> = ({ onMenuClick, sidebarCollapsed }) => {
           aria-label="Profile"
           title="Profile"
         >
-          <UserRound
-            className={styles.profileIcon}
-            size={20}
-            strokeWidth={2}
-            aria-hidden="true"
+          <UrlImage
+            src={avatar.src}
+            alt=""
+            onError={avatar.onError}
+            referrerPolicy="no-referrer"
+            fallback={
+              <UserRound
+                className={styles.profileIcon}
+                size={20}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            }
           />
         </Link>
       </div>

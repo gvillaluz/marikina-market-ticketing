@@ -7,7 +7,6 @@ export interface OrdinanceSummaryResponse {
   series: string;
   marketCode: string;
   title: string;
-  description: string;
   category: TicketCategories | number;
   createdAt: string;
   updatedAt: string;
@@ -39,6 +38,5 @@ export interface SaveOrdinanceRequest {
   marketCode: string;
   category: TicketCategories;
   title: string;
-  description: string;
   penaltyTiers: SavePenaltyTierRequest[];
 }

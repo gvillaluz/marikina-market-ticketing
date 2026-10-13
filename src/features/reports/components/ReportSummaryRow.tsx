@@ -6,7 +6,7 @@ export default function ReportSummaryRow({
 }: {
   row: ReportMetric & { label: string };
 }) {
-  const total = row.label === "Total" || row.label.endsWith("— total");
+  const total = row.label === "Total";
   return (
     <tr className={total ? styles.total : styles.row}>
       <th scope="row">{row.label}</th>
