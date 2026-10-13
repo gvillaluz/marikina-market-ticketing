@@ -70,7 +70,7 @@ export default function ReportPreview({ reports }: { reports: ReportsModel }) {
         />
       ) : reports.report ? (
         <div className={styles.document}>
-          <ReportPaper report={reports.report} />
+          <ReportPaper report={reports.report} paperRef={exports.paperRef} />
         </div>
       ) : (
         <div className={styles.state} role="status">

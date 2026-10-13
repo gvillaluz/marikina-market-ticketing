@@ -1,0 +1,78 @@
+.region {
+  position: relative;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.region:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: -2px;
+}
+
+.table {
+  width: 100%;
+  min-width: var(--registry-table-min-width);
+  border-collapse: collapse;
+  table-layout: var(--registry-table-layout);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-body);
+}
+
+:where(.table) > thead > tr > th {
+  padding: var(--space-md) var(--registry-cell-padding-inline);
+  border-block: 1px solid var(--border-default);
+  font-size: var(--backup-font-micro);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--text-body);
+  background: var(--backup-table-surface);
+}
+
+:where(.table) > tbody > tr > :is(th, td) {
+  padding: var(--registry-cell-padding-block)
+    var(--registry-cell-padding-inline);
+  height: var(--backup-row-height);
+  font-size: var(--registry-font-body);
+  font-weight: 400;
+  text-align: left;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+  color: var(--text-body);
+}
+
+:where(.table) > tbody > tr + tr > :is(th, td) {
+  border-top: 1px solid var(--border-default);
+}
+
+:where(.table) > tbody > tr {
+  transition: background-color var(--form-motion-duration)
+    var(--form-motion-ease);
+}
+
+:where(.table) > tbody > tr:hover {
+  background: var(--records-hover-surface);
+}
+
+:where(.table) > thead > tr > th:last-child,
+:where(.table) > tbody > tr > :is(th, td):last-child {
+  text-align: var(--registry-actions-align);
+}
+
+.srOnly {
+  position: absolute;
+  padding: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.table) > tbody > tr {
+    transition: none;
+  }
+}

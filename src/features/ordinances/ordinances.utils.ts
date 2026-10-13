@@ -43,7 +43,7 @@ export function hasDraftChanges(draft: OrdinanceDraft, baseline: OrdinanceDraft)
   const comparable = (value: OrdinanceDraft) => ({
     fields: {
       ordinanceNumber: text(value.fields.ordinanceNumber), series: text(value.fields.series), marketCode: text(value.fields.marketCode),
-      title: text(value.fields.title), description: text(value.fields.description), category: isCategory(value.fields.category) ? value.fields.category : '',
+      title: text(value.fields.title), category: isCategory(value.fields.category) ? value.fields.category : '',
     },
     tiers: value.tiers.map(tier => ({ severity: isSeverity(tier.severity) ? tier.severity : '', amount: parsePenaltyAmount(tier.amount) ?? text(tier.amount) })),
   });
@@ -51,7 +51,7 @@ export function hasDraftChanges(draft: OrdinanceDraft, baseline: OrdinanceDraft)
 }
 
 export function emptyOrdinanceFields(): OrdinanceFields {
-  return { ordinanceNumber: '', series: '', marketCode: '', title: '', description: '', category: '' };
+  return { ordinanceNumber: '', series: '', marketCode: '', title: '', category: '' };
 }
 
 export function parsePenaltyAmount(value: string): number | null {
@@ -66,7 +66,7 @@ export function validateOrdinance(fields: OrdinanceFields, tiers: DraftPenaltyTi
   const fieldErrors: OrdinanceFieldErrors = {};
   const required: readonly [Exclude<keyof OrdinanceFields, 'category'>, string][] = [
     ['ordinanceNumber', 'Ordinance number'], ['series', 'Series'], ['marketCode', 'Market code'],
-    ['title', 'Title'], ['description', 'Description'],
+    ['title', 'Title'],
   ];
   for (const [name, label] of required) if (typeof fields[name] !== 'string' || !fields[name].trim()) fieldErrors[name] = `${label} is required.`;
   if (!isCategory(fields.category)) fieldErrors.category = 'Select a category.';
@@ -91,7 +91,7 @@ export function buildOrdinanceRequest(fields: OrdinanceFields, tiers: DraftPenal
   }
   return {
     ordinanceNumber: fields.ordinanceNumber.trim(), series: fields.series.trim(), marketCode: fields.marketCode.trim(),
-    title: fields.title.trim(), description: fields.description.trim(), category: fields.category, penaltyTiers,
+    title: fields.title.trim(), category: fields.category, penaltyTiers,
   };
 }
 

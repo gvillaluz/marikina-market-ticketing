@@ -2,7 +2,7 @@
 .row td,
 .total th,
 .total td {
-  padding: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
   border: 1px solid var(--border-default);
   text-align: right;
 }
@@ -13,7 +13,7 @@
 }
 .total {
   font-weight: 600;
-  background: var(--records-header-surface);
+  background: var(--backup-table-surface);
 }
 .total th {
   font-weight: 600;

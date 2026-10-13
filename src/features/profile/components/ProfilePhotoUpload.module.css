@@ -10,7 +10,7 @@
   width: calc(var(--navbar-profile-size) * 2);
   height: calc(var(--navbar-profile-size) * 2);
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid var(--border-default);
   border-radius: var(--market-radius-pill);
   font-size: var(--font-size-h2);
@@ -35,13 +35,21 @@
 
 .camera {
   position: absolute;
-  right: var(--space-sm);
-  bottom: var(--space-sm);
+  right: calc(var(--space-xs) * -1);
+  bottom: calc(var(--space-xs) * -1);
   display: inline-flex;
-  padding: var(--space-xs);
-  border-radius: var(--radius-sm);
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--space-lg) + var(--space-sm));
+  height: calc(var(--space-lg) + var(--space-sm));
+  border: 2px solid var(--bg-surface);
+  border-radius: var(--market-radius-pill);
   color: var(--text-on-primary);
   background: var(--button-primary);
+}
+
+.avatar:hover:not(:disabled) .camera {
+  background: var(--button-primary-hover);
 }
 
 .pending {
@@ -52,6 +60,7 @@
   justify-content: center;
   flex-direction: column;
   gap: var(--space-xs);
+  border-radius: inherit;
   font-size: var(--form-font-caption);
   color: var(--text-on-primary);
   background: color-mix(in srgb, var(--text-heading) 85%, transparent);

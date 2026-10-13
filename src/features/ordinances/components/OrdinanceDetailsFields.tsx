@@ -75,20 +75,6 @@ export default function OrdinanceDetailsFields({ editor }: Props) {
         error={editor.touched.title ? editor.fieldErrors.title : undefined}
       />
       <OrdinanceField
-        label="Description"
-        value={editor.fields.description}
-        placeholder="Summarize the rule and the conduct it covers…"
-        multiline
-        disabled={editor.disabled}
-        onChange={(value) => editor.changeField("description", value)}
-        onBlur={() => editor.touchField("description")}
-        error={
-          editor.touched.description
-            ? editor.fieldErrors.description
-            : undefined
-        }
-      />
-      <OrdinanceField
         label="Category"
         value={editor.fields.category}
         options={CATEGORY_OPTIONS}

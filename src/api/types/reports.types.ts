@@ -12,14 +12,12 @@ export interface ReportMetric {
   totalRecords: number;
   assessedPenalties: number;
 }
-export interface ReportBreakdown {
+export interface ReportSummary {
   total: ReportMetric;
   resolved: ReportMetric;
   pending: ReportMetric;
-}
-export interface ReportSummary extends ReportBreakdown {
-  warningsIssued: ReportBreakdown | null;
-  ticketsIssued: ReportBreakdown | null;
+  warningsIssued: ReportMetric | null;
+  ticketsIssued: ReportMetric | null;
 }
 export interface ReportPreview {
   type: ReportType;

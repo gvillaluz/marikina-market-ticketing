@@ -48,7 +48,7 @@ export default function ProfilePhotoUpload({
           </span>
         ) : (
           <span className={styles.camera}>
-            <Camera size={16} aria-hidden="true" />
+            <Camera size={12} strokeWidth={2} aria-hidden="true" />
           </span>
         )}
       </button>

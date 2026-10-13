@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import RegistryTable from "@/components/ui/RegistryTable";
 import type { useOrdinances } from "../hooks/useOrdinances";
 import type { OrdinanceSummary } from "../ordinances.types";
 import OrdinanceRegistryRow from "./OrdinanceRegistryRow";
@@ -60,43 +61,36 @@ export default function OrdinanceRegistry({
           </button>
         </div>
       )}
-      <div
-        className={styles.region}
-        role="region"
-        aria-label="Ordinance registry table"
-        tabIndex={0}
-        aria-busy={directory.isFetching}
+      <RegistryTable
+        className={styles.table}
+        ariaLabel="Ordinance registry table"
+        labelledBy="ordinance-registry-heading"
+        busy={directory.isFetching}
+        columns={[
+          { label: "Ordinance", className: styles.identityColumn },
+          { label: "Category", className: styles.categoryColumn },
+          { label: "Penalty Tiers", className: styles.tiersColumn },
+          { label: "Last Updated", className: styles.dateColumn },
+          { label: "Status", className: styles.statusColumn },
+          { label: "Actions", className: styles.actionColumn },
+        ]}
       >
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th scope="col">Ordinance</th>
-              <th scope="col">Category</th>
-              <th scope="col">Penalty Tiers</th>
-              <th scope="col">Last Updated</th>
-              <th scope="col">Status</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {message ? (
-              <OrdinanceRegistryMessage
-                message={message}
-                loading={directory.isLoading}
-              />
-            ) : (
-              directory.ordinances.map((item) => (
-                <OrdinanceRegistryRow
-                  key={item.id}
-                  ordinance={item}
-                  disabled={disabled}
-                  onManage={() => onManage(item)}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+        {message ? (
+          <OrdinanceRegistryMessage
+            message={message}
+            loading={directory.isLoading}
+          />
+        ) : (
+          directory.ordinances.map((item) => (
+            <OrdinanceRegistryRow
+              key={item.id}
+              ordinance={item}
+              disabled={disabled}
+              onManage={() => onManage(item)}
+            />
+          ))
+        )}
+      </RegistryTable>
       {directory.hasData && (
         <p className={styles.footer} role="status">
           Showing {directory.ordinances.length} of {directory.total}{" "}

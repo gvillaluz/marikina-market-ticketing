@@ -1,4 +1,5 @@
 import { FileText } from "lucide-react";
+import Button from "@/components/ui/Button";
 import type { ReportHistoryItem } from "@/api/types/reports.types";
 import { formatReportRange, formatReportDate } from "../reports.utils";
 import ReportTypeBadge from "./ReportTypeBadge";
@@ -13,7 +14,7 @@ export default function ReportHistoryRow({
   disabled: boolean;
 }) {
   return (
-    <tr className={styles.row}>
+    <tr>
       <td>
         <ReportTypeBadge type={report.type} />
       </td>
@@ -21,16 +22,18 @@ export default function ReportHistoryRow({
       <td>{formatReportDate(report.dateGenerated)}</td>
       <td className={styles.actor}>{report.generatedBy.name}</td>
       <td>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           className={styles.view}
           onClick={() => onView(report.id)}
           disabled={disabled}
           aria-label={`View report ${report.id}`}
+          icon={<FileText size={14} aria-hidden="true" />}
         >
-          <FileText size={14} aria-hidden="true" />
           View
-        </button>
+        </Button>
       </td>
     </tr>
   );

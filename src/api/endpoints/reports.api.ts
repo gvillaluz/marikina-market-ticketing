@@ -3,6 +3,9 @@ import type {
   GenerateReportInput,
   ReportType,
   ReportHistoryItem,
+  ReportHistoryResponse,
+  ReportPreview,
+  SavedReport,
 } from "../types/reports.types";
 import { ApiRequestError } from "@/utils/apiErrors";
 import { validateReport, validateReportHistory } from "./reports.validation";
@@ -10,16 +13,21 @@ import { validateReport, validateReportHistory } from "./reports.validation";
 const path = "/admin/reports";
 const types: readonly ReportType[] = ["Warning", "Ticket", "Warning & Ticket"];
 export const reportsApi = {
-  async generate(input: GenerateReportInput) {
-    const { data } = await client.post<unknown>(path, input);
+  async generate(input: GenerateReportInput): Promise<SavedReport> {
+    const { from, to, type } = input;
+    const { data } = await client.post<unknown>(path, { from, to, type });
     return validateReport(data, true);
   },
-  async detail(id: number, signal?: AbortSignal) {
+  async detail(id: number, signal?: AbortSignal): Promise<SavedReport> {
     if (!Number.isSafeInteger(id) || id <= 0) throw new ApiRequestError();
     const { data } = await client.get<unknown>(`${path}/${id}`, { signal });
     return validateReport(data, true);
   },
-  async preview(date: string, type: ReportType, signal?: AbortSignal) {
+  async preview(
+    date: string,
+    type: ReportType = "Warning & Ticket",
+    signal?: AbortSignal,
+  ): Promise<ReportPreview> {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !types.includes(type))
       throw new ApiRequestError();
     const { data } = await client.get<unknown>(`${path}/preview`, {
@@ -28,7 +36,7 @@ export const reportsApi = {
     });
     return validateReport(data, false);
   },
-  async list(offset = 0, signal?: AbortSignal) {
+  async list(offset = 0, signal?: AbortSignal): Promise<ReportHistoryResponse> {
     if (!Number.isSafeInteger(offset) || offset < 0)
       throw new ApiRequestError();
     const { data } = await client.get<unknown>(path, {

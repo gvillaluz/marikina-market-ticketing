@@ -25,26 +25,31 @@
   font-weight: 600;
   color: var(--text-heading);
 }
-.heading span {
-  display: block;
-  margin-top: var(--space-xs);
-  font-size: var(--font-size-xs);
-}
 .controls {
   width: 100%;
   min-width: 0;
 }
 .controls > div {
+  gap: var(--space-sm);
   padding: 0;
   margin-bottom: 0;
   border: 0;
 }
-.panel > footer {
-  padding: var(--space-md) var(--space-lg);
+.controls input[type="search"] {
+  height: var(--backup-control-height);
+  font-size: var(--font-size-xs);
 }
-.filter {
+.controls > div > div:first-child {
+  border-radius: var(--backup-control-radius);
+}
+.panel > footer {
+  margin-top: 0;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--backup-table-surface);
+}
+.filter > button {
   padding: var(--space-sm) var(--space-md);
-  min-height: var(--form-control-height);
+  height: var(--backup-control-height);
   max-width: 100%;
   border: 1px solid var(--border-default);
   border-radius: var(--backup-control-radius);
@@ -52,34 +57,39 @@
   font-size: var(--font-size-xs);
   color: var(--text-heading);
   background: var(--bg-surface);
+  box-shadow: none;
 }
-.filter:hover {
+.filter > button:hover:not(:disabled) {
   border-color: var(--button-primary);
+  background: var(--bg-surface);
 }
-.filter:focus-visible {
+.filter > button:focus-visible {
   outline: 2px solid var(--button-primary);
   outline-offset: 2px;
 }
-.filter:disabled {
+.filter > button:disabled {
   opacity: var(--backup-disabled-opacity);
   cursor: not-allowed;
 }
-.tableWrap {
-  overflow-x: auto;
-}
 .table {
-  width: 100%;
-  min-width: var(--reports-table-width);
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
+  --registry-table-min-width: var(--reports-table-width);
+  --registry-font-body: var(--font-size-xs);
+  --registry-actions-align: center;
 }
-.table th {
-  padding: var(--space-md) var(--space-lg);
-  font-size: var(--backup-font-micro);
-  font-weight: 500;
-  text-align: left;
-  color: var(--text-body);
-  background: var(--records-header-surface);
+.typeColumn {
+  width: 18%;
+}
+.rangeColumn {
+  width: 26%;
+}
+.dateColumn {
+  width: 20%;
+}
+.actorColumn {
+  width: 22%;
+}
+.actionColumn {
+  width: 14%;
 }
 .state {
   display: grid;
@@ -91,5 +101,9 @@
 @media (min-width: 1000px) {
   .controls {
     width: auto;
+  }
+  .controls > div > div:first-child {
+    flex-basis: var(--reports-search-width);
+    width: var(--reports-search-width);
   }
 }

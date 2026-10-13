@@ -4,6 +4,7 @@ import { Plus, Search, ShieldCheck } from "lucide-react";
 
 import { ROUTES } from "@/routes/routePaths";
 import PageHeader from "@/components/ui/PageHeader";
+import RegistryTable from "@/components/ui/RegistryTable";
 import MarketSectionRow from "../components/MarketSectionRow";
 import { useMarketSections } from "../hooks/useMarketSections";
 import { useMarketSectionEditor } from "../hooks/useMarketSectionEditor";
@@ -92,66 +93,46 @@ export default function MarketSectionPage() {
           </div>
         )}
 
-        <div
-          className={styles.tableRegion}
-          role="region"
-          aria-label="Market sections table"
-          tabIndex={0}
-          aria-busy={directory.isFetching}
+        <RegistryTable
+          className={styles.table}
+          ariaLabel="Market sections table"
+          labelledBy="section-directory-title"
+          busy={directory.isFetching}
+          columns={[
+            { label: "Section Name", className: styles.nameColumn },
+            { label: "Description", className: styles.descriptionColumn },
+            { label: "Vendors", className: styles.vendorColumn },
+            { label: "Status", className: styles.statusColumn },
+            { label: "Actions", className: styles.actionsColumn },
+          ]}
         >
-          <table
-            className={styles.table}
-            aria-labelledby="section-directory-title"
-          >
-            <thead className={styles.tableHeader}>
-              <tr>
-                <th scope="col" className={styles.nameColumn}>
-                  Section Name
-                </th>
-                <th scope="col" className={styles.descriptionColumn}>
-                  Description
-                </th>
-                <th scope="col" className={styles.vendorColumn}>
-                  Vendors
-                </th>
-                <th scope="col" className={styles.statusColumn}>
-                  Status
-                </th>
-                <th scope="col" className={styles.actionsColumn}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {directory.isLoading ? (
-                <tr>
-                  <td colSpan={5} className={styles.message}>
-                    <span role="status">Loading market sections…</span>
-                  </td>
-                </tr>
-              ) : directory.hasData && directory.sections.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className={styles.message}>
-                    {directory.total === 0
-                      ? "No market sections configured yet."
-                      : "No sections match your search."}
-                  </td>
-                </tr>
-              ) : (
-                directory.sections.map((section) => (
-                  <MarketSectionRow
-                    key={section.id}
-                    section={section}
-                    disabled={!editor.canManage || editor.pendingId !== null}
-                    pending={editor.pendingId === section.id}
-                    onEdit={() => editor.launch(section)}
-                    onToggle={() => editor.toggle(section)}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+          {directory.isLoading ? (
+            <tr>
+              <td colSpan={5} className={styles.message}>
+                <span role="status">Loading market sections…</span>
+              </td>
+            </tr>
+          ) : directory.hasData && directory.sections.length === 0 ? (
+            <tr>
+              <td colSpan={5} className={styles.message}>
+                {directory.total === 0
+                  ? "No market sections configured yet."
+                  : "No sections match your search."}
+              </td>
+            </tr>
+          ) : (
+            directory.sections.map((section) => (
+              <MarketSectionRow
+                key={section.id}
+                section={section}
+                disabled={!editor.canManage || editor.pendingId !== null}
+                pending={editor.pendingId === section.id}
+                onEdit={() => editor.launch(section)}
+                onToggle={() => editor.toggle(section)}
+              />
+            ))
+          )}
+        </RegistryTable>
         {directory.hasData && (
           <p className={styles.footer} role="status">
             Showing {directory.sections.length} of {directory.total}{" "}
