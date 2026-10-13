@@ -1,0 +1,1 @@
+enum AvatarAction { changePhoto, removePhoto }

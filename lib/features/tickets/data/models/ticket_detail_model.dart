@@ -1,0 +1,141 @@
+import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
+import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
+import 'package:marikina_market_mobile/features/tickets/data/models/violation_summary_model.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/ordinance_category.dart';
+import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
+
+class TicketDetailModel {
+  final int ticketId;
+  final String? controlNumber;
+  final int enforcerId;
+  final int vendorId;
+  final ViolationType violationType;
+  final VendorType vendorType;
+  final String businessId;
+  final String? stallNumber;
+  final String tradeName;
+  final String lastName;
+  final String firstName;
+  final String? address;
+  final List<ViolationSummaryModel> violations;
+  final DateTime issuedAt;
+  final String marketSectionName;
+  final List<OrdinanceCategory> categories;
+  final String description;
+  final Severity? severity;
+  final PenaltyType? penaltyType;
+  final DateTime? dueDate;
+  final double? totalFineAmount;
+  final int? communityServiceHours;
+  final TicketStatus? ticketStatus;
+  final List<String>? evidenceUrls;
+
+  const TicketDetailModel({
+    required this.ticketId,
+    this.controlNumber,
+    required this.enforcerId,
+    required this.vendorId,
+    required this.violationType,
+    required this.vendorType,
+    required this.businessId,
+    this.stallNumber,
+    required this.tradeName,
+    required this.lastName,
+    required this.firstName,
+    required this.address,
+    required this.violations,
+    required this.issuedAt,
+    required this.marketSectionName,
+    required this.categories,
+    required this.description,
+    this.severity,
+    this.penaltyType,
+    this.dueDate,
+    this.totalFineAmount,
+    this.communityServiceHours,
+    this.ticketStatus,
+    this.evidenceUrls,
+  });
+
+  factory TicketDetailModel.fromJson(Map<String, dynamic> json) {
+    return TicketDetailModel(
+      ticketId: json['ticket_id'] as int,
+      controlNumber: json['control_number'] as String?,
+      enforcerId: json['enforcer_id'] as int,
+      vendorId: json['vendor_id'] as int,
+      violationType: ViolationType.fromValue(json['type'] as String),
+      vendorType: VendorType.fromValue(json['vendor_type'] as String),
+      businessId: json['business_id'] as String,
+      stallNumber: json['stall_number'] != null
+          ? json['stall_number'] as String
+          : null,
+      tradeName: json['business_name'] as String,
+      lastName: json['last_name'] as String,
+      firstName: json['first_name'] as String,
+      address: json['address'] as String?,
+      violations: (json['violations'] as List<dynamic>)
+          .map(
+            (item) =>
+                ViolationSummaryModel.fromJson(item as Map<String, dynamic>),
+          )
+          .toList(),
+      issuedAt: DateTime.parse(json['issued_at'] as String),
+      marketSectionName: json['market_section_name'] as String,
+      categories: (json['categories'] as List<dynamic>)
+          .map((value) => OrdinanceCategory.fromValue(value as String))
+          .toList(),
+      description: json['description'] as String,
+      severity: json['severity'] == null
+          ? null
+          : Severity.fromValue(json['severity'] as String),
+      penaltyType: json['penalty_type'] == null
+          ? null
+          : PenaltyType.fromValue(json['penalty_type'] as String),
+      dueDate: json['due_date'] == null
+          ? null
+          : DateTime.parse(json['due_date'] as String),
+      totalFineAmount: json['total_fine_amount'] == null
+          ? null
+          : (json['total_fine_amount'] as num).toDouble(),
+      communityServiceHours: (json['community_service_hours'] as num?)?.toInt(),
+      ticketStatus: json['status'] != null
+          ? TicketStatus.fromValue(json['status'] as String)
+          : null,
+      evidenceUrls: json['ticket_evidences'] == null
+          ? null
+          : List<String>.from(json['ticket_evidences'] as List),
+    );
+  }
+
+  TicketDetail toEntity() {
+    return TicketDetail(
+      ticketId: ticketId,
+      controlNumber: controlNumber,
+      enforcerId: enforcerId,
+      vendorId: vendorId,
+      violationType: violationType,
+      vendorType: vendorType,
+      businessId: businessId,
+      stallNumber: stallNumber,
+      tradeName: tradeName,
+      lastName: lastName,
+      firstName: firstName,
+      address: address,
+      violations: violations.map((m) => m.toEntity()).toList(),
+      issuedAt: issuedAt,
+      marketSectionName: marketSectionName,
+      categories: categories,
+      description: description,
+      severity: severity,
+      penaltyType: penaltyType,
+      dueDate: dueDate,
+      totalFineAmount: totalFineAmount,
+      communityServiceHours: communityServiceHours,
+      ticketStatus: ticketStatus,
+      evidenceUrls: evidenceUrls,
+    );
+  }
+}

@@ -1,0 +1,443 @@
+import 'dart:convert';
+import 'dart:async';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
+import 'package:marikina_market_mobile/core/di/dependency_injection.dart';
+import 'package:marikina_market_mobile/core/router/app_router.dart';
+import 'package:marikina_market_mobile/core/router/routes.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
+import 'package:marikina_market_mobile/features/auth/presentation/widgets/change_password_card.dart';
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/features/auth/data/models/user_model.dart';
+import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
+import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
+import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:marikina_market_mobile/features/layout/presentation/pages/vendor_placeholder_page.dart';
+import 'package:marikina_market_mobile/features/records/data/data_sources/records_remote_data_source.dart';
+import 'package:marikina_market_mobile/features/records/data/repositories/records_repository_impl.dart';
+import 'package:marikina_market_mobile/features/records/domain/use_cases/load_records_use_case.dart';
+import 'package:marikina_market_mobile/features/records/presentation/bloc/records/records_bloc.dart';
+import 'package:marikina_market_mobile/features/records/presentation/pages/records_page.dart';
+import 'features/auth/login_mobile_flow_test.dart' show loginBloc, startLogin;
+import 'features/auth/login_test_network_info.dart';
+import 'features/auth/data/login_mobile_contract_test.dart'
+    show profileResponse, otpResponse, tokenResponse, reply, contractClient;
+import 'dashboard_ui_test.dart' show dashboardBloc, summaryResponse;
+
+Future<void> authenticate(
+  AuthBloc bloc,
+  String role, {
+  int userId = 1,
+  bool mustChangePassword = false,
+}) async {
+  final finished = bloc.stream.firstWhere(
+    (state) =>
+        state is Authenticated &&
+        state.user.role.value == role &&
+        state.user.userId == userId,
+  );
+  bloc.add(
+    UserUpdated(
+      UserModel.fromJson({
+        ...profileResponse,
+        'role': role,
+        'userId': userId,
+        'mustChangedPassword': mustChangePassword,
+      }).toEntity(),
+    ),
+  );
+  await finished;
+}
+
+Future<void> showRoleApp(
+  WidgetTester tester,
+  AppRouter appRouter,
+  AuthBloc auth,
+) => tester.pumpWidget(
+  MultiBlocProvider(
+    providers: [
+      BlocProvider.value(value: auth),
+      BlocProvider.value(value: auth.connectivityCubit),
+    ],
+    child: MaterialApp.router(
+      theme: AppTheme.light,
+      routerConfig: appRouter.router,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: true),
+        child: child!,
+      ),
+    ),
+  ),
+);
+
+void main() {
+  setUp(() {
+    FlutterSecureStorage.setMockInitialValues({});
+    final client = contractClient(
+      (options) async =>
+          reply(options, {'items': [], 'has_more': false, 'total': 0}),
+    );
+    addTearDown(client.dio.close);
+    sl.registerFactory<RecordsBloc>(
+      () => RecordsBloc(
+        LoadRecordsUseCase(
+          RecordsRepositoryImpl(RecordsRemoteDataSource(client)),
+        ),
+      ),
+    );
+    addTearDown(() => sl.unregister<RecordsBloc>());
+  });
+
+  testWidgets('login header has no enforcer label or replacement role text', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: const Scaffold(body: LoginCardHeader()),
+      ),
+    );
+    expect(find.text('Enforcer Access'), findsNothing);
+    expect(find.text('Vendor Access'), findsNothing);
+    expect(
+      find.text('Marikina Public Market Inspection System'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'vendor OTP login reaches vendor tabs and cannot enter enforcer pages',
+    (tester) async {
+      tester.view.physicalSize = const Size(280, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+      addTearDown(connectivity.close);
+      final requests = <String>[];
+      final auth = loginBloc(connectivity, (options) async {
+        requests.add(options.path);
+        if (options.path == '/auth/login-mobile') {
+          return reply(options, otpResponse);
+        }
+        if (options.path == '/auth/verify-login-mobile') {
+          return reply(options, tokenResponse);
+        }
+        return reply(options, {...profileResponse, 'role': 'MarketVendor'});
+      });
+      addTearDown(auth.close);
+      final appRouter = AppRouter(authBloc: auth);
+      addTearDown(appRouter.dispose);
+      await tester.runAsync(() => startLogin(auth));
+      await showRoleApp(tester, appRouter, auth);
+      await tester.pumpAndSettle();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.loginOtp,
+      );
+      await tester.runAsync(() async {
+        final authenticated = auth.stream.firstWhere(
+          (state) => state is Authenticated,
+        );
+        auth.add(VerifyLoginSubmitted('001234'));
+        await authenticated;
+      });
+      await tester.pumpAndSettle();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.vendorDashboard,
+      );
+      final destinations = tester
+          .widgetList<NavigationDestination>(find.byType(NavigationDestination))
+          .map((destination) => destination.label);
+      expect(destinations, [
+        'Dashboard',
+        'Records',
+        'Notifications',
+        'Profile',
+      ]);
+      final initialRequests = requests.length;
+      for (var index = 0; index < 4; index++) {
+        await tester.tap(find.byType(NavigationDestination).at(index));
+        await tester.pumpAndSettle();
+        expect(
+          find.byType(index == 1 ? RecordsPage : VendorPlaceholderPage),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+      }
+      expect(requests.length, initialRequests);
+      for (final path in [
+        Routes.newInspection,
+        '/ticket/42',
+        Routes.editProfile,
+        Routes.notifications,
+      ]) {
+        appRouter.router.go(path);
+        await tester.pumpAndSettle();
+        expect(
+          appRouter.router.routeInformationProvider.value.uri.path,
+          Routes.vendorDashboard,
+        );
+        expect(find.byType(VendorPlaceholderPage), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
+      expect(find.byTooltip('Logout'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets('account changes discard tab stacks and enforce the new role', (
+    tester,
+  ) async {
+    final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+    addTearDown(connectivity.close);
+    final auth = loginBloc(connectivity, (options) async => reply(options, {}));
+    addTearDown(auth.close);
+    await tester.runAsync(
+      () => auth.stream.firstWhere((state) => state is Unauthenticated),
+    );
+    final appRouter = AppRouter(authBloc: auth);
+    addTearDown(appRouter.dispose);
+    sl.registerFactory<DashboardBloc>(
+      () => dashboardBloc((options) async => reply(options, summaryResponse)),
+    );
+    addTearDown(() => sl.unregister<DashboardBloc>());
+    await tester.runAsync(() => authenticate(auth, 'MarketVendor'));
+    await showRoleApp(tester, appRouter, auth);
+    await tester.pumpAndSettle();
+    final oldShell = tester.state<State>(find.byType(StatefulNavigationShell));
+    appRouter.router.go(Routes.vendorRecords);
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => authenticate(auth, 'MarketVendor', userId: 2));
+    await tester.pumpAndSettle();
+    expect(
+      appRouter.router.routeInformationProvider.value.uri.path,
+      Routes.vendorDashboard,
+    );
+    expect(
+      identical(
+        oldShell,
+        tester.state<State>(find.byType(StatefulNavigationShell)),
+      ),
+      isFalse,
+    );
+    appRouter.router.go(Routes.vendorRecords);
+    await tester.pumpAndSettle();
+    final sameAccountShell = tester.state<State>(
+      find.byType(StatefulNavigationShell),
+    );
+    await tester.runAsync(() => authenticate(auth, 'MarketVendor', userId: 2));
+    await tester.pumpAndSettle();
+    expect(
+      appRouter.router.routeInformationProvider.value.uri.path,
+      Routes.vendorRecords,
+    );
+    expect(
+      identical(
+        sameAccountShell,
+        tester.state<State>(find.byType(StatefulNavigationShell)),
+      ),
+      isTrue,
+    );
+    await tester.runAsync(
+      () => authenticate(auth, 'MarketEnforcer', userId: 3),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      appRouter.router.routeInformationProvider.value.uri.path,
+      Routes.dashboard,
+    );
+    expect(
+      tester
+          .widgetList<NavigationDestination>(find.byType(NavigationDestination))
+          .map((destination) => destination.label),
+      ['Dashboard', 'Inspections', 'Tickets', 'Profile'],
+    );
+    appRouter.router.go(Routes.vendorRecords);
+    await tester.pumpAndSettle();
+    expect(
+      appRouter.router.routeInformationProvider.value.uri.path,
+      Routes.dashboard,
+    );
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets(
+    'logout and restored vendor sessions cannot expose prior navigation',
+    (tester) async {
+      final vendor = UserModel.fromJson({
+        ...profileResponse,
+        'role': 'MarketVendor',
+      });
+      final payload = base64Url
+          .encode(
+            utf8.encode(
+              jsonEncode({
+                'exp':
+                    DateTime.now()
+                        .add(const Duration(days: 1))
+                        .millisecondsSinceEpoch ~/
+                    1000,
+              }),
+            ),
+          )
+          .replaceAll('=', '');
+      FlutterSecureStorage.setMockInitialValues({
+        'access_token': 'eyJhbGciOiJub25lIn0.$payload.test',
+        'refresh_token': 'test-refresh-token',
+        'device_token': 'test-device-token',
+        'refresh_expiration': DateTime.now()
+            .add(const Duration(days: 2))
+            .toIso8601String(),
+        'user_info_key': jsonEncode(vendor.toJson()),
+      });
+      final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+      addTearDown(connectivity.close);
+      final auth = loginBloc(
+        connectivity,
+        (options) async => reply(options, {}),
+      );
+      addTearDown(auth.close);
+      final appRouter = AppRouter(authBloc: auth);
+      addTearDown(appRouter.dispose);
+      await tester.runAsync(
+        () => auth.stream.firstWhere((state) => state is Authenticated),
+      );
+      await showRoleApp(tester, appRouter, auth);
+      await tester.pumpAndSettle();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.vendorDashboard,
+      );
+      appRouter.router.go(Routes.vendorRecords);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Logout'));
+      await tester.pumpAndSettle();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.login,
+      );
+      appRouter.router.go(Routes.vendorProfile);
+      await tester.pumpAndSettle();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.login,
+      );
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+  testWidgets(
+    'required password update preserves its form and reaches vendor access after success',
+    (tester) async {
+      final pending = List.generate(2, (_) => Completer<Response<Object?>>());
+      final requests = List.generate(2, (_) => Completer<RequestOptions>());
+      var updates = 0;
+      final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+      addTearDown(connectivity.close);
+      final auth = loginBloc(connectivity, (options) async {
+        final index = updates++;
+        requests[index].complete(options);
+        return pending[index].future;
+      });
+      addTearDown(auth.close);
+      await tester.runAsync(
+        () => auth.stream.firstWhere((state) => state is Unauthenticated),
+      );
+      await tester.runAsync(() async {
+        await const FlutterSecureStorage().write(
+          key: 'user_info_key',
+          value: jsonEncode(
+            UserModel.fromJson({
+              ...profileResponse,
+              'role': 'MarketVendor',
+              'mustChangedPassword': true,
+            }).toJson(),
+          ),
+        );
+        await authenticate(auth, 'MarketVendor', mustChangePassword: true);
+      });
+      final appRouter = AppRouter(authBloc: auth);
+      addTearDown(appRouter.dispose);
+      await showRoleApp(tester, appRouter, auth);
+      await tester.pumpAndSettle();
+      final originalForm = tester.state<State>(find.byType(ChangePasswordCard));
+      await tester.enterText(find.byType(TextField).at(0), 'OldPass123');
+      await tester.enterText(find.byType(TextField).at(1), 'NewPass123');
+      await tester.enterText(find.byType(TextField).at(2), 'NewPass123');
+      final confirm = tester.widget<AuthBtn>(find.byType(AuthBtn)).onPressed!;
+      confirm();
+      confirm();
+      final firstRequest = await tester.runAsync(() => requests[0].future);
+      await tester.pump();
+      expect(updates, 1);
+      expect((firstRequest!.data as Map<String, Object?>)['user_id'], 1);
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.mandatoryChangePassword,
+      );
+      expect(
+        identical(
+          originalForm,
+          tester.state<State>(find.byType(ChangePasswordCard)),
+        ),
+        isTrue,
+      );
+      await tester.runAsync(() async {
+        final failed = auth.stream.firstWhere(
+          (state) => state is AuthChangePasswordNetworkError,
+        );
+        pending[0].completeError(
+          DioException(
+            requestOptions: firstRequest,
+            type: DioExceptionType.connectionError,
+          ),
+        );
+        await failed;
+      });
+      await tester.pumpAndSettle();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.mandatoryChangePassword,
+      );
+      expect(
+        identical(
+          originalForm,
+          tester.state<State>(find.byType(ChangePasswordCard)),
+        ),
+        isTrue,
+      );
+      expect(
+        tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
+        'NewPass123',
+      );
+      tester.widget<AuthBtn>(find.byType(AuthBtn)).onPressed!();
+      final secondRequest = await tester.runAsync(() => requests[1].future);
+      await tester.runAsync(() async {
+        final success = auth.stream.firstWhere(
+          (state) => state is Authenticated && !state.user.mustChangePassword,
+        );
+        pending[1].complete(reply(secondRequest!, {}));
+        await success;
+      });
+      await tester.pumpAndSettle();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.vendorDashboard,
+      );
+      expect(find.byType(VendorPlaceholderPage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+}

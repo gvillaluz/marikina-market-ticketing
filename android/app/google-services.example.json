@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "578588543367",
+    "project_id": "marikina-market",
+    "storage_bucket": "marikina-market.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578588543367:android:7c2ebb4951b465839ceb22",
+        "android_client_info": {
+          "package_name": "com.example.marikina_market_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "<YOUR_FIREBASE_ANDROID_API_KEY>"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
