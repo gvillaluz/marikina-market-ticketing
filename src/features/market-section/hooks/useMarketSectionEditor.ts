@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/Toast/useToast";
 import { useAuthStore } from "@/store/store";
+import { ADMIN_ROLES } from "@/api/types/common.types";
 import { ApiRequestError } from "@/utils/apiErrors";
 import { marketSectionApi } from "@/api/endpoints/marketSection.api";
 import type { MarketSectionResponse } from "@/api/types/market-section.types";
@@ -10,7 +11,9 @@ import { marketSectionsListKey } from "./useMarketSections";
 export function useMarketSectionEditor() {
   const client = useQueryClient();
   const { showToast } = useToast();
-  const canManage = useAuthStore((state) => state.user?.role === "HeadAdmin");
+  const role = useAuthStore((state) => state.user?.role);
+  const canManage =
+    role !== undefined && role !== null && ADMIN_ROLES.includes(role);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<MarketSectionResponse | null>(null);
   const [name, setName] = useState("");
@@ -40,6 +43,12 @@ export function useMarketSectionEditor() {
         variant: "success",
         title: selected ? "Market section updated" : "Market section added",
       });
+      await Promise.all([
+        client.invalidateQueries({ queryKey: marketSectionsListKey }),
+        client.invalidateQueries({
+          queryKey: ["market_sections", "configurations"],
+        }),
+      ]);
     },
     onError: (cause) =>
       setError(
@@ -74,6 +83,12 @@ export function useMarketSectionEditor() {
           ? "Market section marked inactive"
           : "Market section marked active",
       });
+      await Promise.all([
+        client.invalidateQueries({ queryKey: marketSectionsListKey }),
+        client.invalidateQueries({
+          queryKey: ["market_sections", "configurations"],
+        }),
+      ]);
     },
     onError: (cause) =>
       showToast({
@@ -98,6 +113,7 @@ export function useMarketSectionEditor() {
     setDescription,
     error,
     canManage,
+    canOpenConfiguration: role === "HeadAdmin",
     isSaving: save.isPending,
     pendingId,
     launch(section: MarketSectionResponse | null = null) {
@@ -112,9 +128,17 @@ export function useMarketSectionEditor() {
       if (!lock.current) setOpen(false);
     },
     submit() {
-      if (!canManage || lock.current) return;
+      if (!canManage || lock.current || !open) return;
       if (!name.trim() || !description.trim()) {
         setError("Section name and description are required.");
+        return;
+      }
+      if (name.trim().length > 150) {
+        setError("Section name must not exceed 150 characters.");
+        return;
+      }
+      if (description.trim().length > 500) {
+        setError("Description must not exceed 500 characters.");
         return;
       }
       setError("");

@@ -6,10 +6,13 @@ import AccountDirectory from "../components/AccountDirectory";
 import styles from "./AccountsPage.module.css";
 import { useAddStaffAccount } from "../hooks/useAddStaffAccount";
 import AddStaffAccountModal from "../components/AddStaffAccountModal";
+import CurrentAccountCard from "../components/CurrentAccountCard";
+import { useManageAccount } from "../hooks/useManageAccount";
 
 export default function AccountsPage() {
   const accounts = useAccounts();
   const staff = useAddStaffAccount();
+  const manage = useManageAccount();
   return (
     <div className={styles.page}>
       <div>
@@ -32,7 +35,10 @@ export default function AccountsPage() {
         />
       </div>
       <AccountOverview model={accounts} />
-      <AccountDirectory model={accounts} />
+      {accounts.currentUser && (
+        <CurrentAccountCard user={accounts.currentUser} />
+      )}
+      <AccountDirectory model={accounts} onManage={manage.show} />
       <aside className={styles.notice}>
         <ShieldCheck size={18} aria-hidden="true" />
         <p>
@@ -42,6 +48,7 @@ export default function AccountsPage() {
         </p>
       </aside>
       <AddStaffAccountModal model={staff} />
+      <AddStaffAccountModal model={manage} />
     </div>
   );
 }

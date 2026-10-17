@@ -40,7 +40,11 @@ export default function AdminVendorRegistrationActionPage({
   const navigate = useNavigate();
   const registrationId = Number(rawId);
   const review = useAdminVendorRegistrationReview(registrationId);
-  const action = useAdminVendorRegistrationAction(mode, review.details);
+  const action = useAdminVendorRegistrationAction(
+    mode,
+    review.details,
+    review.refetch,
+  );
   const options = mode === "decline" ? DECLINE_OPTIONS : INFORMATION_OPTIONS;
 
   if (!Number.isInteger(registrationId) || registrationId < 1) {
@@ -99,24 +103,33 @@ export default function AdminVendorRegistrationActionPage({
           <ReviewApplicantHeader details={details} />
 
           {mode !== "approve" && (
-            <section className={styles.card}>
-              <h2 className={styles.reasonTitle}>
+            <fieldset
+              className={styles.card}
+              aria-describedby="reason-hint reason-error"
+              aria-invalid={Boolean(action.reasonError)}
+            >
+              <legend className={styles.reasonTitle}>
                 {mode === "decline"
-                  ? "PRIMARY REJECTION REASON"
-                  : "MISSING-DOCUMENT REASON"}
-              </h2>
-              <p className={styles.hint}>
+                  ? "Primary rejection reason"
+                  : "Reason for requesting information"}
+                <span className={styles.required}>Required</span>
+              </legend>
+              <p className={styles.hint} id="reason-hint">
                 Choose the primary reason that will be recorded on the case.
               </p>
               <div className={styles.options}>
-                {options.map((option) => (
+                {options.map((option, index) => (
                   <label className={styles.option} key={option.value}>
                     <input
+                      ref={index === 0 ? action.reasonInputRef : undefined}
                       type="radio"
                       name="reviewReason"
                       value={option.value}
                       checked={action.selectedReason === option.value}
                       disabled={action.isSubmitting || !action.canSubmit}
+                      aria-invalid={Boolean(action.reasonError)}
+                      aria-describedby="reason-hint reason-error"
+                      onBlur={action.validateReason}
                       onChange={(event) =>
                         action.setSelectedReason(event.target.value)
                       }
@@ -128,7 +141,14 @@ export default function AdminVendorRegistrationActionPage({
                   </label>
                 ))}
               </div>
-            </section>
+              <p
+                className={styles.fieldError}
+                id="reason-error"
+                aria-live="polite"
+              >
+                {action.reasonError}
+              </p>
+            </fieldset>
           )}
 
           {mode === "approve" ? (
@@ -149,25 +169,51 @@ export default function AdminVendorRegistrationActionPage({
             <section className={`${styles.card} ${styles.remarks}`}>
               <h2 className={styles.reasonTitle}>
                 {mode === "decline"
-                  ? "DETAILED REMARKS"
-                  : "MESSAGE TO APPLICANT"}
+                  ? "Detailed remarks"
+                  : "Message to applicant"}
               </h2>
-              <p className={styles.hint}>
+              <p className={styles.hint} id="remarks-hint">
                 {mode === "decline"
-                  ? "Use factual, specific language suitable for the audit record."
-                  : "This message will appear in the applicant notification."}
+                  ? "Describe the verified issue and why it prevents approval. Use factual language suitable for the audit record."
+                  : "Name the document or detail needed, explain the issue, and tell the applicant how to correct it. This message appears in their notification."}
               </p>
               <label>
-                Review remarks
+                <span>
+                  {mode === "decline"
+                    ? "Rejection details"
+                    : "Requested corrections"}
+                  <span className={styles.required}>Required</span>
+                </span>
                 <textarea
+                  ref={action.remarksInputRef}
+                  id="review-remarks"
+                  required
+                  aria-invalid={Boolean(action.remarksError)}
+                  aria-describedby="remarks-hint remarks-error remarks-count"
                   value={action.remarks}
                   onChange={(event) => action.setRemarks(event.target.value)}
-                  placeholder="Write the details the applicant needs to know."
+                  onBlur={action.validateRemarks}
+                  placeholder={
+                    mode === "decline"
+                      ? "Explain the specific findings behind this decision."
+                      : "Explain what to submit and what must be visible or corrected."
+                  }
                   maxLength={2000}
                   disabled={action.isSubmitting || !action.canSubmit}
                 />
               </label>
-              <small>{action.remarks.length}/2000 characters</small>
+              <div className={styles.fieldFeedback}>
+                <p
+                  className={styles.fieldError}
+                  id="remarks-error"
+                  aria-live="polite"
+                >
+                  {action.remarksError}
+                </p>
+                <small id="remarks-count">
+                  {action.remarks.length.toLocaleString()}/2,000 characters
+                </small>
+              </div>
             </section>
           )}
 
@@ -177,8 +223,8 @@ export default function AdminVendorRegistrationActionPage({
               <Button
                 variant="outline"
                 size="sm"
-                disabled={action.isSubmitting}
-                onClick={() => void review.refetch()}
+                disabled={action.isSubmitting || action.isReloading}
+                onClick={() => void action.reloadLatestDetails()}
               >
                 Reload latest details
               </Button>
@@ -187,8 +233,8 @@ export default function AdminVendorRegistrationActionPage({
 
           {!action.canSubmit && (
             <p className={styles.error} role="status">
-              This request is already processed or its version is unavailable.
-              Return to the review page and reload the latest details.
+              A decision is unavailable. Reload the latest details to check
+              whether this request can still be reviewed.
             </p>
           )}
           <footer className={styles.actions}>
@@ -211,17 +257,13 @@ export default function AdminVendorRegistrationActionPage({
                 size="sm"
                 loading={action.isSubmitting}
                 disabled={!action.canSubmit}
-                onClick={() =>
-                  mode === "approve"
-                    ? action.setShowApprovalModal(true)
-                    : void action.submit()
-                }
+                onClick={action.openConfirmation}
               >
                 {mode === "approve"
                   ? "Approve Registration"
                   : mode === "decline"
-                    ? "Confirm Rejection"
-                    : "Send Request"}
+                    ? "Review Rejection"
+                    : "Review Request"}
               </Button>
             </div>
           </footer>
@@ -250,37 +292,98 @@ export default function AdminVendorRegistrationActionPage({
       </div>
 
       <Modal
-        open={action.showApprovalModal}
-        onClose={() => {
-          if (!action.isSubmitting) action.setShowApprovalModal(false);
-        }}
-        title="Approve registration?"
-        subtitle="This action will create the vendor account."
+        open={action.showConfirmationModal}
+        onClose={action.closeConfirmation}
+        closeDisabled={action.isSubmitting}
+        title={
+          mode === "approve"
+            ? "Approve registration?"
+            : mode === "decline"
+              ? "Reject this registration?"
+              : "Send this information request?"
+        }
+        subtitle={
+          mode === "approve"
+            ? "This action will create the vendor account."
+            : "Check the reason and message before confirming."
+        }
         footer={
           <div className={styles.modalActions}>
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => action.setShowApprovalModal(false)}
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={action.closeConfirmation}
               disabled={action.isSubmitting}
             >
-              Cancel
+              {mode === "approve" ? "Cancel" : "Back to edit"}
             </Button>
             <Button
-              size="sm"
+              type="button"
+              variant={mode === "decline" ? "danger" : "primary"}
+              size="md"
               loading={action.isSubmitting}
+              aria-busy={action.isSubmitting}
               disabled={!action.canSubmit}
               onClick={() => void action.submit()}
             >
-              Confirm Approval
+              {action.isSubmitting
+                ? mode === "approve"
+                  ? "Approving registration…"
+                  : mode === "decline"
+                    ? "Rejecting registration…"
+                    : "Sending request…"
+                : mode === "approve"
+                  ? "Approve registration"
+                  : mode === "decline"
+                    ? "Reject registration"
+                    : "Send information request"}
             </Button>
           </div>
         }
       >
-        <p className={styles.modalMessage}>
-          Approve {details.businessName} for registration? The applicant will be
-          assigned as an active vendor and this decision will be recorded.
-        </p>
+        <div className={styles.confirmation}>
+          <p className={styles.modalMessage}>
+            <strong>{details.businessName}</strong>
+            <span className={styles.caseReference}>
+              REG-{String(registrationId).padStart(4, "0")}
+            </span>
+          </p>
+          {mode !== "approve" && (
+            <dl className={styles.decisionSummary}>
+              <div>
+                <dt>Reason</dt>
+                <dd>{action.selectedReason}</dd>
+              </div>
+              <div>
+                <dt>
+                  {mode === "decline"
+                    ? "Rejection details"
+                    : "Message to applicant"}
+                </dt>
+                <dd className={styles.messagePreview}>
+                  {action.remarks.trim()}
+                </dd>
+              </div>
+            </dl>
+          )}
+          <div
+            className={`${styles.confirmationNotice} ${mode === "decline" ? styles.rejectionNotice : ""}`}
+          >
+            {mode === "decline" ? (
+              <AlertTriangle size={18} aria-hidden="true" />
+            ) : (
+              <Info size={18} aria-hidden="true" />
+            )}
+            <p>
+              {mode === "approve"
+                ? "The applicant will become an active vendor. This decision will be recorded in the case history."
+                : mode === "decline"
+                  ? "The status will change to Rejected. No vendor account will be created. The reason and remarks will be recorded, and an email notification will be attempted."
+                  : "The status will change to Needs Information. The reason and message will be recorded, and an email notification will be attempted."}
+            </p>
+          </div>
+        </div>
       </Modal>
     </div>
   );

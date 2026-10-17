@@ -24,6 +24,22 @@
 }
 .card {
   composes: surface from "./review/RegistrationLayout.module.css";
+  min-width: 0;
+}
+fieldset.card {
+  padding-top: var(--space-md);
+}
+fieldset.card legend {
+  padding-inline: var(--space-sm);
+}
+fieldset.card[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.required {
+  margin-inline-start: var(--space-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: var(--text-body);
 }
 .sideCard {
   composes: surface from "./review/RegistrationLayout.module.css";
@@ -101,6 +117,7 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   font: inherit;
+  font-size: max(1rem, var(--font-size-body));
   font-weight: 400;
   color: var(--text-heading);
   background: var(--bg-surface);
@@ -114,12 +131,33 @@
   cursor: not-allowed;
   opacity: 0.65;
 }
-.remarks > small {
-  display: block;
+.remarks textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.fieldFeedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
   margin-top: var(--space-sm);
-  font-size: var(--font-size-xs);
+}
+.fieldFeedback small {
+  margin-inline-start: auto;
+  font-size: var(--font-size-sm);
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+.fieldError {
+  margin-top: var(--space-sm);
+  font-size: var(--font-size-sm);
+  color: var(--danger);
+}
+.fieldError:empty {
+  display: none;
+}
+.fieldFeedback .fieldError {
+  margin-top: 0;
 }
 .sideCard p {
   margin-top: var(--space-md);
@@ -153,11 +191,78 @@
 }
 .modalActions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   justify-content: flex-end;
-  gap: var(--space-sm);
+  gap: var(--space-md);
+  width: 100%;
+}
+.modalActions > button {
+  min-height: var(--registration-control-height);
+  padding: var(--space-md) var(--space-lg);
+  white-space: normal;
+  line-height: 1.5;
+}
+.modalActions > button:first-child:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--registration-info-surface);
 }
 .modalMessage {
   font-size: var(--font-size-sm);
   line-height: 1.65;
+}
+.confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+  overflow-wrap: anywhere;
+}
+.modalMessage strong {
+  display: block;
+  color: var(--text-heading);
+}
+.caseReference {
+  display: block;
+  margin-top: var(--space-xs);
+  color: var(--text-body);
+}
+.decisionSummary {
+  display: grid;
+  gap: var(--space-lg);
+}
+.decisionSummary dt {
+  margin-bottom: var(--space-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.decisionSummary dd {
+  font-size: var(--font-size-body);
+  color: var(--text-body);
+}
+.messagePreview {
+  white-space: pre-wrap;
+}
+.confirmationNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--primary);
+  background: var(--registration-info-surface);
+}
+.confirmationNotice svg {
+  flex-shrink: 0;
+}
+.rejectionNotice {
+  color: var(--records-danger-text);
+  background: var(--registration-danger-surface);
+}
+@media (min-width: 641px) {
+  .modalActions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 }

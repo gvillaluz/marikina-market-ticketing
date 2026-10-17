@@ -57,6 +57,7 @@
 }
 
 .donutCenter span {
+  text-align: center;
   color: #818c9b;
   font-size: 0.68rem;
 }
@@ -76,7 +77,9 @@
   gap: 5px;
   color: #5b6572;
   font-size: 0.7rem;
-  transition: transform 140ms ease, color 140ms ease;
+  transition:
+    transform 140ms ease,
+    color 140ms ease;
 }
 
 .categoryList li:hover {

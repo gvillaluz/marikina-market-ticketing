@@ -14,6 +14,7 @@ export default function OrdinanceEditorModal({ editor }: Props) {
     <Modal
       open={editor.open}
       onClose={editor.close}
+      closeDisabled={editor.isSaving}
       size="md"
       title={editor.selected ? "Manage Ordinance" : "Create Ordinance"}
       footer={<OrdinanceEditorActions editor={editor} />}

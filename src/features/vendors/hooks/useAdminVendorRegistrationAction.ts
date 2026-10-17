@@ -9,7 +9,7 @@ import type {
   VendorRegistrationDetails,
 } from "@/api/types/admin-vendor.types";
 import { ROUTES } from "@/routes/routePaths";
-import { getApiErrorMessage } from "@/utils/apiErrors";
+import { ApiRequestError, getApiErrorMessage } from "@/utils/apiErrors";
 
 export type RegistrationActionMode = "approve" | "decline" | "information";
 
@@ -69,16 +69,42 @@ export const INFORMATION_OPTIONS: RegistrationActionOption[] = [
 export function useAdminVendorRegistrationAction(
   mode: RegistrationActionMode,
   details: VendorRegistrationDetails | undefined,
+  reloadDetails: () => Promise<boolean>,
 ) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const submitting = useRef(false);
+  const refreshRequired = useRef(false);
+  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const [remarks, setRemarks] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [reasonTouched, setReasonTouched] = useState(false);
+  const [remarksTouched, setRemarksTouched] = useState(false);
+  const reasonInputRef = useRef<HTMLInputElement>(null);
+  const remarksInputRef = useRef<HTMLTextAreaElement>(null);
+  const options = mode === "decline" ? DECLINE_OPTIONS : INFORMATION_OPTIONS;
+  const reasonValidation =
+    mode === "approve" ||
+    options.some((option) => option.value === selectedReason)
+      ? ""
+      : mode === "decline"
+        ? "Select a rejection reason."
+        : "Select the reason more information is needed.";
+  const remarksValidation =
+    mode === "approve"
+      ? ""
+      : !remarks.trim()
+        ? mode === "decline"
+          ? "Enter the specific findings that support this rejection."
+          : "Enter what the applicant needs to correct or provide."
+        : remarks.length > 2000
+          ? "Keep your message within 2,000 characters."
+          : "";
   const canDecide = Boolean(
     details &&
       !["approved", "rejected"].includes(String(details.status).toLowerCase()),
@@ -86,10 +112,9 @@ export function useAdminVendorRegistrationAction(
   const hasVersion =
     details?.version != null &&
     Number.isSafeInteger(details.version) &&
-    details.version >= 0;
+    details.version > 0;
 
-  const submit = async () => {
-    if (submitting.current) return false;
+  const validateDecision = () => {
     setSubmitError("");
     if (
       !details ||
@@ -103,23 +128,37 @@ export function useAdminVendorRegistrationAction(
       );
       return false;
     }
-    const options = mode === "decline" ? DECLINE_OPTIONS : INFORMATION_OPTIONS;
-    if (
-      mode !== "approve" &&
-      (!options.some((option) => option.value === selectedReason) ||
-        !remarks.trim() ||
-        remarks.length > 2000)
-    ) {
-      setSubmitError("Select a reason and provide detailed remarks.");
+    setReasonTouched(true);
+    setRemarksTouched(true);
+    if (reasonValidation || remarksValidation) {
+      if (reasonValidation) reasonInputRef.current?.focus();
+      else remarksInputRef.current?.focus();
       return false;
     }
+    return true;
+  };
+
+  const openConfirmation = () => {
+    if (submitting.current || refreshRequired.current || isReloading) return;
+    if (validateDecision()) setShowConfirmationModal(true);
+  };
+
+  const closeConfirmation = () => {
+    if (!submitting.current) setShowConfirmationModal(false);
+  };
+
+  const submit = async () => {
+    if (submitting.current || refreshRequired.current || isReloading)
+      return false;
+    if (!validateDecision()) return false;
+    if (!details) return false;
 
     submitting.current = true;
     setIsSubmitting(true);
     try {
       const request = {
         vendorRegistrationId: details.registrationId,
-        version: details.version!,
+        version: details.version,
       };
       let result: RegistrationApprovalResponse | RegistrationDeclinedResponse;
       if (mode === "approve") {
@@ -168,6 +207,10 @@ export function useAdminVendorRegistrationAction(
       navigate(ROUTES.adminVendorRegistrations);
       return true;
     } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 409) {
+        refreshRequired.current = true;
+        setNeedsRefresh(true);
+      }
       setSubmitError(
         getApiErrorMessage(
           error,
@@ -178,7 +221,21 @@ export function useAdminVendorRegistrationAction(
     } finally {
       submitting.current = false;
       setIsSubmitting(false);
-      setShowApprovalModal(false);
+      setShowConfirmationModal(false);
+    }
+  };
+
+  const reloadLatestDetails = async () => {
+    if (submitting.current || isReloading) return;
+    setIsReloading(true);
+    try {
+      if (await reloadDetails()) {
+        refreshRequired.current = false;
+        setNeedsRefresh(false);
+        setSubmitError("");
+      }
+    } finally {
+      setIsReloading(false);
     }
   };
 
@@ -200,17 +257,24 @@ export function useAdminVendorRegistrationAction(
     setRemarks: (value: string) => {
       if (!submitting.current)
         setRemarks(
-          value
-            .slice(0, 2000)
-            .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ""),
+          value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ""),
         );
     },
     submitError,
     isSubmitting,
-    showApprovalModal,
-    setShowApprovalModal,
+    isReloading,
+    reloadLatestDetails,
+    reasonError: reasonTouched ? reasonValidation : "",
+    remarksError: remarksTouched ? remarksValidation : "",
+    validateReason: () => setReasonTouched(true),
+    validateRemarks: () => setRemarksTouched(true),
+    reasonInputRef,
+    remarksInputRef,
+    showConfirmationModal,
+    openConfirmation,
+    closeConfirmation,
     submit,
     cancel,
-    canSubmit: canDecide && hasVersion,
+    canSubmit: canDecide && hasVersion && !needsRefresh && !isReloading,
   };
 }

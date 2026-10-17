@@ -13,6 +13,50 @@
   min-width: 0;
   border: 0;
 }
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+  padding: var(--space-lg);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  font-size: var(--staff-font-body);
+  color: var(--danger);
+  background: var(--form-error-surface);
+}
+.noticeIcon {
+  flex-shrink: 0;
+}
+.noticeContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.noticeContent p,
+.loadState p {
+  margin: 0;
+}
+.noticeContent p:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: var(--space-xs);
+}
+.loadState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xl) 0;
+  font-size: var(--staff-font-body);
+  text-align: center;
+  color: var(--text-body);
+}
+.loadState strong {
+  color: var(--text-heading);
+}
 .role {
   display: flex;
   flex-direction: column;

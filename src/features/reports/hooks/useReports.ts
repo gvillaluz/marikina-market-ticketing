@@ -71,7 +71,7 @@ export function useReports() {
     history,
     previewRef,
     report: query?.data,
-    loading: query?.isPending ?? false,
+    loading: query ? query.isPending || query.isFetching : false,
     generating: generation.isPending,
     validation,
     error: query?.isError

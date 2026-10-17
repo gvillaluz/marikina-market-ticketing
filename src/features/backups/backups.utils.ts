@@ -136,6 +136,15 @@ export function getBackupHealthView(
         health.latestAttempt.errorMessage ||
         "The latest backup could not be completed. Try running a backup again.",
     };
+  const scheduled = health.nextScheduledAt
+    ? new Date(health.nextScheduledAt)
+    : null;
+  if (health.enabled && scheduled && scheduled <= now)
+    return {
+      state: "scheduled",
+      title: "Scheduled backup pending",
+      message: `The backup scheduled for ${formatBackupDate(health.nextScheduledAt, zone)} (${health.timeZoneDisplay || "Philippine Time (UTC+8)"}) is waiting to run.`,
+    };
   if (today && completed)
     return {
       state: "success",

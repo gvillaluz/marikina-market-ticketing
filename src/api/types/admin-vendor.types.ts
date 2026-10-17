@@ -127,6 +127,7 @@ export interface VendorRegistrationStatusCounts {
 
 export interface VendorRegistrationSummary {
   registrationId: number;
+  version: number;
   businessId: string;
   businessName: string;
   vendorName: string;
@@ -147,6 +148,7 @@ export interface VendorRegistrationDocument {
 
 export interface VendorRegistrationDetails {
   registrationId: number;
+  version: number;
   businessId: string;
   businessName: string;
   natureOfBusiness: string;
@@ -171,8 +173,9 @@ export interface VendorRegistrationDetails {
   reviewedAt: string | null;
   reviewerName: string | null;
   remarksOrReason: string | null;
+  reviewReason: string | null;
+  reviewRemarks: string | null;
   documents: VendorRegistrationDocument[] | null;
-  version?: number;
 }
 
 export interface RegistrationApprovalRequest {
@@ -180,8 +183,7 @@ export interface RegistrationApprovalRequest {
   version: number;
 }
 
-export interface RegistrationDeclineRequest
-  extends RegistrationApprovalRequest {
+export interface RegistrationDeclineRequest extends RegistrationApprovalRequest {
   reviewReason: string;
   reviewRemarks: string;
 }

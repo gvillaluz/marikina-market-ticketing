@@ -39,58 +39,85 @@ export function useAdminAnalyticsPage() {
   return {
     trend: {
       data: trendQuery.data ?? [],
-      isLoading: trendQuery.isLoading,
+      isLoading: trendQuery.isLoading || trendQuery.isFetching,
       isError: trendQuery.isError,
-      errorMessage: getApiErrorMessage(trendQuery.error, "We couldn't load this section. Please try again."),
+      errorMessage: getApiErrorMessage(
+        trendQuery.error,
+        "We couldn't load this section. Please try again.",
+      ),
       refetch: trendQuery.refetch,
     },
     peakTimes: {
       data: peakTimesQuery.data ?? [],
-      isLoading: peakTimesQuery.isLoading,
+      isLoading: peakTimesQuery.isLoading || peakTimesQuery.isFetching,
       isError: peakTimesQuery.isError,
-      errorMessage: getApiErrorMessage(peakTimesQuery.error, "We couldn't load this section. Please try again."),
+      errorMessage: getApiErrorMessage(
+        peakTimesQuery.error,
+        "We couldn't load this section. Please try again.",
+      ),
       refetch: peakTimesQuery.refetch,
     },
     distribution: {
       data: distributionQuery.data ?? [],
-      isLoading: distributionQuery.isLoading,
+      isLoading: distributionQuery.isLoading || distributionQuery.isFetching,
       isError: distributionQuery.isError,
-      errorMessage: getApiErrorMessage(distributionQuery.error, "We couldn't load this section. Please try again."),
+      errorMessage: getApiErrorMessage(
+        distributionQuery.error,
+        "We couldn't load this section. Please try again.",
+      ),
       refetch: distributionQuery.refetch,
     },
     inspectionRatio: {
       data: inspectionRatioQuery.data,
-      isLoading: inspectionRatioQuery.isLoading,
+      isLoading:
+        inspectionRatioQuery.isLoading || inspectionRatioQuery.isFetching,
       isError: inspectionRatioQuery.isError,
-      errorMessage: getApiErrorMessage(inspectionRatioQuery.error, "We couldn't load this section. Please try again."),
+      errorMessage: getApiErrorMessage(
+        inspectionRatioQuery.error,
+        "We couldn't load this section. Please try again.",
+      ),
       refetch: inspectionRatioQuery.refetch,
     },
     resolutionRate: {
       data: resolutionRateQuery.data,
-      isLoading: resolutionRateQuery.isLoading,
+      isLoading:
+        resolutionRateQuery.isLoading || resolutionRateQuery.isFetching,
       isError: resolutionRateQuery.isError,
-      errorMessage: getApiErrorMessage(resolutionRateQuery.error, "We couldn't load this section. Please try again."),
+      errorMessage: getApiErrorMessage(
+        resolutionRateQuery.error,
+        "We couldn't load this section. Please try again.",
+      ),
       refetch: resolutionRateQuery.refetch,
     },
     marketSections: {
       data: marketSectionsQuery.data ?? [],
-      isLoading: marketSectionsQuery.isLoading,
+      isLoading:
+        marketSectionsQuery.isLoading || marketSectionsQuery.isFetching,
       isError: marketSectionsQuery.isError,
-      errorMessage: getApiErrorMessage(marketSectionsQuery.error, "We couldn't load this section. Please try again."),
+      errorMessage: getApiErrorMessage(
+        marketSectionsQuery.error,
+        "We couldn't load this section. Please try again.",
+      ),
       refetch: marketSectionsQuery.refetch,
     },
     hotspots: {
       data: hotspotsQuery.data ?? [],
-      isLoading: hotspotsQuery.isLoading,
+      isLoading: hotspotsQuery.isLoading || hotspotsQuery.isFetching,
       isError: hotspotsQuery.isError,
-      errorMessage: getApiErrorMessage(hotspotsQuery.error, "We couldn't load this section. Please try again."),
+      errorMessage: getApiErrorMessage(
+        hotspotsQuery.error,
+        "We couldn't load this section. Please try again.",
+      ),
       refetch: hotspotsQuery.refetch,
     },
     vendorRisk: {
       data: vendorRiskQuery.data ?? [],
-      isLoading: vendorRiskQuery.isLoading,
+      isLoading: vendorRiskQuery.isLoading || vendorRiskQuery.isFetching,
       isError: vendorRiskQuery.isError,
-      errorMessage: getApiErrorMessage(vendorRiskQuery.error, "We couldn't load this section. Please try again."),
+      errorMessage: getApiErrorMessage(
+        vendorRiskQuery.error,
+        "We couldn't load this section. Please try again.",
+      ),
       refetch: vendorRiskQuery.refetch,
     },
   };

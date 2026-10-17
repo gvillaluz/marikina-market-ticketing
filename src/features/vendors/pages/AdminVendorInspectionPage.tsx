@@ -34,7 +34,7 @@ export default function AdminVendorInspectionPage() {
   } = useAdminVendorProfile(vendorId);
   const inspectionPage = useAdminVendorInspectionPage(vendorId);
 
-  if (!Number.isInteger(vendorId) || vendorId < 1) {
+  if (!Number.isSafeInteger(vendorId) || vendorId < 1) {
     return (
       <div className={styles.errorPage}>
         <h2>Vendor record unavailable</h2>

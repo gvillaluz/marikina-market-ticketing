@@ -13,6 +13,7 @@ export default function ReportPreview({ reports }: { reports: ReportsModel }) {
     !reports.report ||
     reports.loading ||
     reports.generating ||
+    Boolean(reports.error) ||
     exports.busy !== null;
   return (
     <section

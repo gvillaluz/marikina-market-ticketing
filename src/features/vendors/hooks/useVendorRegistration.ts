@@ -55,6 +55,7 @@ function validateFile(
   fieldName: string,
 ): string | undefined {
   if (!file) return `${fieldName} is required.`;
+  if (file.size === 0) return `${fieldName} cannot be empty.`;
   if (!ALLOWED_FILE_TYPES.includes(file.type)) {
     return `${fieldName} must be a JPG, PNG, or PDF file.`;
   }

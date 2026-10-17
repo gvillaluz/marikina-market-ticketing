@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useDebounce from "@/hooks/useDebounce";
 import type {
@@ -29,7 +29,15 @@ function isCommunityServiceSettlement(
 
 function exportVendorPage(vendors: AdminVendorSummary[]) {
   const rows = [
-    ["Business ID", "Vendor Name", "Market Section", "Type", "Compliance Score", "Warnings", "Tickets"],
+    [
+      "Business ID",
+      "Vendor Name",
+      "Market Section",
+      "Type",
+      "Compliance Score",
+      "Warnings",
+      "Tickets",
+    ],
     ...vendors.map((vendor) => [
       vendor.businessId,
       vendor.vendorName,
@@ -41,9 +49,13 @@ function exportVendorPage(vendors: AdminVendorSummary[]) {
     ]),
   ];
   const csv = rows
-    .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+    .map((row) =>
+      row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","),
+    )
     .join("\r\n");
-  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const url = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8" }),
+  );
   const link = document.createElement("a");
   link.href = url;
   link.download = "vendor-registry.csv";
@@ -57,17 +69,15 @@ export function useAdminVendorsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [section, setSection] = useState("all");
-  const [complianceScore, setComplianceScore] =
-    useState<"all" | ComplianceScoreRange>("all");
+  const [complianceScore, setComplianceScore] = useState<
+    "all" | ComplianceScoreRange
+  >("all");
   const [page, setPage] = useState(1);
   const [settlementPage, setSettlementPage] = useState(1);
-  const debouncedSearch = useDebounce(search, 350);
+  const debouncedSearch = useDebounce(search.trim(), 350);
+  const waitingForSearch = search.trim() !== debouncedSearch;
   const offset = (page - 1) * PAGE_SIZE;
   const settlementOffset = (settlementPage - 1) * SETTLEMENT_PAGE_SIZE;
-
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, section, complianceScore]);
 
   const filters = useMemo<AdminVendorSummaryFilters>(
     () => ({
@@ -97,17 +107,43 @@ export function useAdminVendorsPage() {
   return {
     registry: {
       search,
-      setSearch,
+      setSearch(value: string) {
+        setSearch(value);
+        setPage(1);
+      },
       section,
-      setSection,
+      setSection(value: string) {
+        setSection(value);
+        setPage(1);
+      },
       complianceScore,
-      setComplianceScore,
+      setComplianceScore(value: "all" | ComplianceScoreRange) {
+        setComplianceScore(value);
+        setPage(1);
+      },
       page,
-      setPage,
+      setPage(value: number) {
+        const totalPages =
+          vendorQuery.total === null
+            ? page + (vendorQuery.hasMore ? 1 : 0)
+            : vendorQuery.totalPages;
+        if (
+          vendorQuery.isFetching ||
+          waitingForSearch ||
+          vendorQuery.isError ||
+          !Number.isSafeInteger(value) ||
+          value < 1 ||
+          (value > totalPages && value >= page) ||
+          (value > page && !vendorQuery.hasMore)
+        )
+          return;
+        setPage(Math.min(value, totalPages));
+      },
       vendors: vendorQuery.vendors,
       total: vendorQuery.total,
       hasMore: vendorQuery.hasMore,
-      isLoading: vendorQuery.isLoading,
+      isLoading: vendorQuery.isLoading || waitingForSearch,
+      isFetching: vendorQuery.isFetching || waitingForSearch,
       isError: vendorQuery.isError,
       errorMessage: vendorQuery.errorMessage,
       refetch: vendorQuery.refetch,

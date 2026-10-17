@@ -25,6 +25,28 @@ import type {
   RegistrationDeclinedResponse,
 } from "@/api/types/admin-vendor.types";
 
+function validateRegistrationVersion(version: unknown) {
+  if (
+    typeof version !== "number" ||
+    !Number.isSafeInteger(version) ||
+    version < 1
+  ) {
+    throw new ApiRequestError(
+      "The registration version is missing or invalid. Please reload the latest registration details.",
+    );
+  }
+}
+
+function validateRegistrationAction(request: RegistrationApprovalRequest) {
+  if (
+    !Number.isSafeInteger(request.vendorRegistrationId) ||
+    request.vendorRegistrationId < 1
+  ) {
+    throw new ApiRequestError("The registration ID is invalid.");
+  }
+  validateRegistrationVersion(request.version);
+}
+
 export const adminVendorsApi = {
   async list(
     filters: AdminVendorSummaryFilters,
@@ -115,6 +137,12 @@ export const adminVendorsApi = {
     const { data } = await client.get<
       AdminVendorPageResponse<VendorRegistrationSummary>
     >("/admin/vendors/registration-requests", { params: filters });
+    if (!data || !Array.isArray(data.items)) {
+      throw new ApiRequestError(
+        "Unable to load vendor registration requests. Please try again.",
+      );
+    }
+    for (const item of data.items) validateRegistrationVersion(item?.version);
     return data;
   },
 
@@ -124,6 +152,7 @@ export const adminVendorsApi = {
     const { data } = await client.get<VendorRegistrationDetails>(
       `/admin/vendors/registration-requests/${registrationId}`,
     );
+    validateRegistrationVersion(data?.version);
     return data;
   },
 
@@ -149,6 +178,7 @@ export const adminVendorsApi = {
   async approveRegistration(
     request: RegistrationApprovalRequest,
   ): Promise<RegistrationApprovalResponse> {
+    validateRegistrationAction(request);
     const { data } = await client.post<RegistrationApprovalResponse>(
       "/vendor/approve-registry",
       request,
@@ -159,6 +189,7 @@ export const adminVendorsApi = {
   async declineRegistration(
     request: RegistrationDeclineRequest,
   ): Promise<RegistrationDeclinedResponse> {
+    validateRegistrationAction(request);
     const { data } = await client.post<RegistrationDeclinedResponse>(
       "/vendor/decline-registry",
       request,
@@ -169,6 +200,7 @@ export const adminVendorsApi = {
   async requestMoreInformation(
     request: RegistrationDeclineRequest,
   ): Promise<RegistrationDeclinedResponse> {
+    validateRegistrationAction(request);
     const { data } = await client.post<RegistrationDeclinedResponse>(
       "/vendor/request-more-information",
       request,

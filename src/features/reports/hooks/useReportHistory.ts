@@ -43,12 +43,16 @@ export function useReportHistory() {
     search,
     type,
     busy,
-    loading: query.isPending || query.isPlaceholderData,
-    error: query.isError
-      ? query.error instanceof ApiRequestError && query.error.serverMessage
-        ? query.error.serverMessage
-        : "Unable to load report history. Please try again."
-      : "",
+    loading:
+      query.isPending ||
+      query.isPlaceholderData ||
+      (query.isError && query.isFetching),
+    error:
+      query.isError && !query.isFetching
+        ? query.error instanceof ApiRequestError && query.error.serverMessage
+          ? query.error.serverMessage
+          : "Unable to load report history. Please try again."
+        : "",
     changeSearch(value: string) {
       setSearch(value.slice(0, 200));
       setPage(1);

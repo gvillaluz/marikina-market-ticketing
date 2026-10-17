@@ -111,6 +111,107 @@ export function useAdminPushNotifications({
     let cancelled = false;
     let unsubscribe: () => void = () => {};
     const isCancelled = () => cancelled || version !== registrationVersion;
+    const pendingMessages = new Map<string, string>();
+
+    const showRegistrationToast = (reviewPath: string) => {
+      callbacks.current.showToast({
+        title: "New vendor registration request",
+        description: "A vendor submitted an application for review.",
+        actionLabel: "Review registration",
+        onAction: () => {
+          if (!isCancelled()) callbacks.current.navigate(reviewPath);
+        },
+        duration: 12_000,
+        variant: "info",
+      });
+    };
+
+    const receiveMessage = (payload: unknown) => {
+      if (isCancelled() || !canReviewRegistrations) return;
+      if (
+        typeof payload !== "object" ||
+        payload === null ||
+        !("data" in payload)
+      )
+        return;
+      const data = payload.data;
+      if (
+        typeof data !== "object" ||
+        data === null ||
+        !("type" in data) ||
+        data.type !== "vendor_registration" ||
+        !("registration_id" in data) ||
+        typeof data.registration_id !== "string"
+      )
+        return;
+      const reviewData = {
+        type: data.type,
+        registration_id: data.registration_id,
+      };
+      const messageId =
+        "messageId" in payload && typeof payload.messageId === "string"
+          ? payload.messageId
+          : undefined;
+      const reviewPath = getVendorRegistrationReviewPath(reviewData);
+      const messageKey = getVendorRegistrationPushKey(reviewData, messageId);
+      if (!reviewPath || !messageKey) return;
+      const key = `${version}:${userId}:${messageKey}`;
+      if (seenMessages.has(key)) return;
+      seenMessages.add(key);
+      if (seenMessages.size > 500) {
+        const oldest = seenMessages.values().next().value;
+        if (oldest) seenMessages.delete(oldest);
+      }
+      if (document.visibilityState !== "visible") {
+        pendingMessages.set(key, reviewPath);
+        if (pendingMessages.size > 500) {
+          const oldest = pendingMessages.keys().next().value;
+          if (oldest) pendingMessages.delete(oldest);
+        }
+        return;
+      }
+      showRegistrationToast(reviewPath);
+    };
+
+    const receiveWorkerMessage = (event: MessageEvent<unknown>) => {
+      const source = event.source;
+      if (
+        !source ||
+        !("scriptURL" in source) ||
+        typeof source.scriptURL !== "string"
+      )
+        return;
+      try {
+        const url = new URL(source.scriptURL);
+        if (
+          url.origin !== window.location.origin ||
+          url.pathname !== "/firebase-messaging-sw.js"
+        )
+          return;
+      } catch {
+        return;
+      }
+      const message = event.data;
+      if (
+        typeof message !== "object" ||
+        message === null ||
+        !("type" in message) ||
+        message.type !== "vendor-registration-push" ||
+        !("payload" in message)
+      )
+        return;
+      receiveMessage(message.payload);
+    };
+
+    const showPendingMessages = () => {
+      if (isCancelled() || document.visibilityState !== "visible") return;
+      for (const reviewPath of pendingMessages.values())
+        showRegistrationToast(reviewPath);
+      pendingMessages.clear();
+    };
+
+    navigator.serviceWorker.addEventListener("message", receiveWorkerMessage);
+    document.addEventListener("visibilitychange", showPendingMessages);
 
     const initializePush = async () => {
       // A new sign-in must register after the previous browser token is revoked.
@@ -122,33 +223,10 @@ export function useAdminPushNotifications({
         return;
       }
 
-      const stopListening = await subscribeToMessages(messaging, (payload) => {
-        if (isCancelled() || !canReviewRegistrations) return;
-        const reviewPath = getVendorRegistrationReviewPath(payload.data);
-        const messageKey = getVendorRegistrationPushKey(
-          payload.data,
-          payload.messageId,
-        );
-        if (!reviewPath || !messageKey) return;
-        const key = `${version}:${userId}:${messageKey}`;
-        if (seenMessages.has(key)) return;
-        seenMessages.add(key);
-        if (seenMessages.size > 500) {
-          const oldest = seenMessages.values().next().value;
-          if (oldest) seenMessages.delete(oldest);
-        }
-
-        callbacks.current.showToast({
-          title: "New vendor registration request",
-          description: "A vendor submitted an application for review.",
-          actionLabel: "Review registration",
-          onAction: () => {
-            if (!isCancelled()) callbacks.current.navigate(reviewPath);
-          },
-          duration: 12_000,
-          variant: "info",
-        });
-      });
+      const stopListening = await subscribeToMessages(
+        messaging,
+        receiveMessage,
+      );
       if (isCancelled()) {
         stopListening();
         return;
@@ -198,6 +276,12 @@ export function useAdminPushNotifications({
     return () => {
       cancelled = true;
       unsubscribe();
+      navigator.serviceWorker.removeEventListener(
+        "message",
+        receiveWorkerMessage,
+      );
+      document.removeEventListener("visibilitychange", showPendingMessages);
+      pendingMessages.clear();
     };
   }, [isAuthReady, isAuthenticated, userId, role]);
 }

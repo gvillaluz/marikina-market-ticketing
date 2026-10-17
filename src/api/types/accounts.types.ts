@@ -5,6 +5,7 @@ import type {
 } from "./common.types";
 
 export interface AccountCounts {
+  totalUsers: number;
   totalStaffUsers: number;
   totalMarketVendorUsers: number;
   totalAdministrators: number;
@@ -31,6 +32,32 @@ export interface AccountFilters {
 }
 
 export type AccountPageResponse = PaginatedResponse<AccountSummary>;
+
+export interface AccountDetails
+  extends Omit<AccountSummary, "profileUrl" | "role"> {
+  role: UserRole | null;
+  dateOfBirth: string;
+  houseNumber: string;
+  street: string;
+  barangay: string;
+  city: string;
+  version: number;
+}
+
+export type UpdateAccountRequest = Pick<
+  AccountDetails,
+  | "firstName"
+  | "middleName"
+  | "lastName"
+  | "dateOfBirth"
+  | "email"
+  | "phoneNumber"
+  | "houseNumber"
+  | "street"
+  | "barangay"
+  | "city"
+  | "version"
+>;
 
 export type StaffRole = Exclude<UserRole, "MarketVendor">;
 

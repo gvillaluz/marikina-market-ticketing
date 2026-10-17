@@ -31,21 +31,25 @@ export default function ViolationTypeDistribution({
 }: ViolationTypeDistributionProps) {
   const total = data.reduce((sum, item) => sum + item.ticketCount, 0);
   let angle = 0;
-  const gradient = data.length > 0
-    ? data.map((item, index) => {
-        const start = angle;
-        const proportion = total > 0
-          ? (Math.max(0, item.ticketCount) / total) * 100
-          : Math.max(0, item.percentage);
-        angle += proportion;
-        return `${CATEGORY_COLORS[index % CATEGORY_COLORS.length]} ${start}% ${angle}%`;
-      }).join(", ")
-    : "#e8edf3 0% 100%";
+  const gradient =
+    total > 0
+      ? data
+          .map((item, index) => {
+            const start = angle;
+            const proportion =
+              total > 0
+                ? (Math.max(0, item.ticketCount) / total) * 100
+                : Math.max(0, item.percentage);
+            angle += proportion;
+            return `${CATEGORY_COLORS[index % CATEGORY_COLORS.length]} ${start}% ${angle}%`;
+          })
+          .join(", ")
+      : "#e8edf3 0% 100%";
 
   return (
     <AnalyticsPanel
       title="Violation Type Distribution"
-      subtitle="Percentage share of violations by recorded category."
+      subtitle="Share of ticket-category matches. A ticket can have multiple categories."
       skeletonVariant="distribution"
       isLoading={isLoading}
       isError={isError}
@@ -56,27 +60,45 @@ export default function ViolationTypeDistribution({
       <div className={styles.content}>
         <div
           className={styles.donut}
-          style={{ "--distribution-gradient": `conic-gradient(${gradient})` } as CSSProperties}
+          style={
+            {
+              "--distribution-gradient": `conic-gradient(${gradient})`,
+            } as CSSProperties
+          }
           role="img"
-          aria-label={`Distribution of ${total} violations across ${data.length} categories`}
+          aria-label={`Distribution of ${total} ticket-category matches across ${data.length} categories`}
         >
           <div className={styles.donutCenter}>
             <strong>{total.toLocaleString()}</strong>
-            <span>Tickets</span>
+            <span>Category matches</span>
           </div>
         </div>
         <ul className={styles.categoryList}>
           {data.map((item, index) => (
             <li key={item.category}>
               <span className={styles.categoryName}>
-                <i style={{ backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }} />
+                <i
+                  style={{
+                    backgroundColor:
+                      CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+                  }}
+                />
                 {item.category}
               </span>
               <strong>{item.ticketCount.toLocaleString()}</strong>
-              <span>{Math.round(total > 0 ? (item.ticketCount / total) * 100 : item.percentage)}%</span>
+              <span>
+                {Math.round(
+                  total > 0
+                    ? (item.ticketCount / total) * 100
+                    : item.percentage,
+                )}
+                %
+              </span>
             </li>
           ))}
-          {data.length === 0 && <li className={styles.empty}>No category data available.</li>}
+          {data.length === 0 && (
+            <li className={styles.empty}>No category data available.</li>
+          )}
         </ul>
       </div>
     </AnalyticsPanel>

@@ -6,7 +6,7 @@ import AccountMessage from "./AccountMessage";
 
 export default function AccountOverview({ model }: { model: AccountsModel }) {
   const metrics = [
-    { label: "Total Users", value: model.counts?.totalStaffUsers },
+    { label: "Total Users", value: model.counts?.totalUsers },
     { label: "Active", value: model.counts?.totalActiveAccounts },
     { label: "Administrators", value: model.counts?.totalAdministrators },
     { label: "Vendors", value: model.counts?.totalMarketVendorUsers },

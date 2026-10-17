@@ -1,26 +1,32 @@
 import { useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { accountsApi } from "@/api/endpoints/accounts.api";
 import type { UserRole } from "@/api/types/common.types";
+import type { AccountPageResponse } from "@/api/types/accounts.types";
 import useDebounce from "@/hooks/useDebounce";
 import { ApiRequestError, getApiErrorMessage } from "@/utils/apiErrors";
 import { ACCOUNT_TABS } from "../accounts.constants";
+import { useAuthStore } from "@/store/store";
 
 const PAGE_SIZE = 10;
 
 export function useAccounts() {
+  const currentUser = useAuthStore((state) => state.user);
+  const canRead = currentUser?.role === "HeadAdmin";
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<UserRole | "all">("all");
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search.trim(), 350);
   const offset = (page - 1) * PAGE_SIZE;
   const counts = useQuery({
-    queryKey: ["account-counts"],
+    queryKey: ["account-counts", currentUser?.userId],
+    enabled: canRead,
     queryFn: async ({ signal }) => {
       const data = await accountsApi.getCounts(signal);
       if (
         !data ||
         ![
+          data.totalUsers,
           data.totalStaffUsers,
           data.totalMarketVendorUsers,
           data.totalAdministrators,
@@ -31,9 +37,13 @@ export function useAccounts() {
       return data;
     },
   });
-  const directory = useQuery({
-    queryKey: ["accounts", offset, role, debouncedSearch],
-    placeholderData: keepPreviousData,
+  const directory = useQuery<AccountPageResponse>({
+    queryKey: ["accounts", currentUser?.userId, offset, role, debouncedSearch],
+    enabled: canRead,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[1] === currentUser?.userId
+        ? previousData
+        : undefined,
     queryFn: async ({ signal }) => {
       const data = await accountsApi.list(
         {
@@ -83,6 +93,7 @@ export function useAccounts() {
     directory.isPending || directory.isPlaceholderData || waitingForSearch;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   return {
+    currentUser,
     counts: counts.data,
     countsLoading: counts.isPending,
     countsError: counts.isError

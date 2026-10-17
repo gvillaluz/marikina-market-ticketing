@@ -17,7 +17,12 @@ export default function OrdinancesPage() {
     <div className={styles.page}>
       <Breadcrumb
         items={[
-          { label: "System Configuration", to: ROUTES.systemConfiguration },
+          {
+            label: "System Configuration",
+            to: editor.canOpenConfiguration
+              ? ROUTES.systemConfiguration
+              : undefined,
+          },
           { label: "Ordinances & Penalties" },
         ]}
       />

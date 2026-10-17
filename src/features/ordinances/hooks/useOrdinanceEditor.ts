@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/store";
+import { ADMIN_ROLES } from "@/api/types/common.types";
 import { useToast } from "@/components/ui/Toast/useToast";
 import { ordinanceApi } from "@/api/endpoints/ordinance.api";
 import type { SaveOrdinanceRequest } from "@/api/types/ordinance.types";
@@ -44,7 +45,9 @@ function fieldsFrom(item: OrdinanceSummary): OrdinanceFields {
 export function useOrdinanceEditor() {
   const client = useQueryClient();
   const { showToast } = useToast();
-  const canManage = useAuthStore((state) => state.user?.role === "HeadAdmin");
+  const role = useAuthStore((state) => state.user?.role);
+  const canManage =
+    role !== undefined && role !== null && ADMIN_ROLES.includes(role);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<OrdinanceSummary | null>(null);
   const [fields, setFields] = useState<OrdinanceFields>(emptyOrdinanceFields);
@@ -190,6 +193,7 @@ export function useOrdinanceEditor() {
     hasChanges,
     error,
     canManage,
+    canOpenConfiguration: role === "HeadAdmin",
     disabled,
     isSaving: save.isPending,
     canSave:

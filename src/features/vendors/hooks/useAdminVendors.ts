@@ -12,9 +12,8 @@ export function useAdminVendors(filters: AdminVendorSummaryFilters) {
   });
 
   const total = query.data?.total ?? null;
-  const totalPages = total === null
-    ? 1
-    : Math.max(1, Math.ceil(total / VENDOR_PAGE_SIZE));
+  const totalPages =
+    total === null ? 1 : Math.max(1, Math.ceil(total / VENDOR_PAGE_SIZE));
 
   return {
     vendors: query.data?.items ?? [],
@@ -22,8 +21,12 @@ export function useAdminVendors(filters: AdminVendorSummaryFilters) {
     totalPages,
     hasMore: query.data?.hasMore ?? false,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isError: query.isError,
-    errorMessage: getApiErrorMessage(query.error, "Unable to load vendors. Please try again."),
+    errorMessage: getApiErrorMessage(
+      query.error,
+      "Unable to load vendors. Please try again.",
+    ),
     refetch: query.refetch,
   };
 }

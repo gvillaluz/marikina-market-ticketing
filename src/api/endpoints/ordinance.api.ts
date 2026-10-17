@@ -21,6 +21,7 @@ export const ordinanceApi = {
     );
     if (response.status === 404) {
       const message = getApiResponseMessage(response.data);
+      if (message === "Ordinance list not found.") return [];
       throw new ApiRequestError(message);
     }
     if (!Array.isArray(response.data)) {

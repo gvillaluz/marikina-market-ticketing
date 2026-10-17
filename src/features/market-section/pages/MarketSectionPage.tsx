@@ -18,7 +18,12 @@ export default function MarketSectionPage() {
     <div className={styles.page}>
       <Breadcrumb
         items={[
-          { label: "System Configuration", to: ROUTES.systemConfiguration },
+          {
+            label: "System Configuration",
+            to: editor.canOpenConfiguration
+              ? ROUTES.systemConfiguration
+              : undefined,
+          },
           { label: "Market Sections" },
         ]}
       />
@@ -34,7 +39,9 @@ export default function MarketSectionPage() {
             disabled={
               !editor.canManage ||
               !directory.hasData ||
-              editor.pendingId !== null
+              editor.pendingId !== null ||
+              editor.isSaving ||
+              editor.open
             }
             onClick={() => editor.launch()}
           >
@@ -125,7 +132,12 @@ export default function MarketSectionPage() {
               <MarketSectionRow
                 key={section.id}
                 section={section}
-                disabled={!editor.canManage || editor.pendingId !== null}
+                disabled={
+                  !editor.canManage ||
+                  editor.pendingId !== null ||
+                  editor.isSaving ||
+                  editor.open
+                }
                 pending={editor.pendingId === section.id}
                 onEdit={() => editor.launch(section)}
                 onToggle={() => editor.toggle(section)}

@@ -19,7 +19,7 @@ export default function AdminAnalyticsPage() {
     <div className={styles.page}>
       <PageHeader
         title="Violation Analytics"
-        subtitle="Explore violation trends, peak times, market hotspots, and vendor risk."
+        subtitle="Year-to-date violation counts and trends in Manila time."
       />
 
       <section className={styles.section}>

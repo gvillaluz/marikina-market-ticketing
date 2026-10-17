@@ -44,14 +44,18 @@ export function useAdminVendorInspectionPage(vendorId: number) {
   const [type, setType] = useState<VendorInspectionTypeFilter>("all");
   const [sortDirection, setSortDirection] =
     useState<AdminVendorInspectionFilters["sortDirection"]>("desc");
-  const [page, setPage] = useState(1);
-  const [selectedTicketId, setSelectedTicketId] = useState(0);
-  const debouncedSearch = useDebounce(search, SEARCH_DELAY_MS);
+  const [pagination, setPagination] = useState({ vendorId, page: 1 });
+  const [selection, setSelection] = useState({ vendorId, ticketId: 0 });
+  const page = pagination.vendorId === vendorId ? pagination.page : 1;
+  const selectedTicketId =
+    selection.vendorId === vendorId ? selection.ticketId : 0;
+  const debouncedSearch = useDebounce(search.trim(), SEARCH_DELAY_MS);
+  const waitingForSearch = search.trim() !== debouncedSearch;
   const offset = (page - 1) * PAGE_SIZE;
-
   useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, type, sortDirection, vendorId]);
+    setPagination({ vendorId, page: 1 });
+    setSelection({ vendorId, ticketId: 0 });
+  }, [vendorId]);
 
   const filters = useMemo<AdminVendorInspectionFilters>(
     () => ({
@@ -70,24 +74,47 @@ export function useAdminVendorInspectionPage(vendorId: number) {
 
   return {
     search,
-    setSearch,
+    setSearch(value: string) {
+      setSearch(value);
+      setPagination({ vendorId, page: 1 });
+    },
     type,
-    setType,
+    setType(value: VendorInspectionTypeFilter) {
+      setType(value);
+      setPagination({ vendorId, page: 1 });
+    },
     sortDirection,
-    setSortDirection,
+    setSortDirection(value: AdminVendorInspectionFilters["sortDirection"]) {
+      setSortDirection(value);
+      setPagination({ vendorId, page: 1 });
+    },
     page,
-    setPage,
+    setPage(value: number) {
+      if (
+        query.isFetching ||
+        waitingForSearch ||
+        query.isError ||
+        !Number.isSafeInteger(value) ||
+        value < 1 ||
+        (value > totalPages && value >= page) ||
+        (value > page && !query.hasMore)
+      )
+        return;
+      setPagination({ vendorId, page: Math.min(value, totalPages) });
+    },
     totalPages,
     inspections: query.inspections,
     total: query.total,
     hasMore: query.hasMore,
-    isLoading: query.isLoading,
-    isFetching: query.isFetching,
+    isLoading: query.isLoading || waitingForSearch,
+    isFetching: query.isFetching || waitingForSearch,
     isError: query.isError,
     errorMessage: query.errorMessage,
     refetch: query.refetch,
     selectedTicketId,
-    setSelectedTicketId,
+    setSelectedTicketId(ticketId: number) {
+      setSelection({ vendorId, ticketId });
+    },
     exportCurrentPage: () => exportInspectionRecords(query.inspections),
     print: () => window.print(),
   };

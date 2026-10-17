@@ -4,9 +4,7 @@ import Card from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
 import Table, { type Column } from "@/components/ui/Table";
-import type {
-  AdminVendorInspection,
-} from "@/api/types/admin-vendor.types";
+import type { AdminVendorInspection } from "@/api/types/admin-vendor.types";
 import { formatControlNumber, formatDateTime } from "@/utils/formatters";
 import styles from "./AdminVendorInspectionHistory.module.css";
 
@@ -70,7 +68,8 @@ export default function AdminVendorInspectionHistory({
   onView,
 }: AdminVendorInspectionHistoryProps) {
   const offset = (page - 1) * 10;
-  const displayedTotal = total ?? `${offset + inspections.length}${hasMore ? "+" : ""}`;
+  const displayedTotal =
+    total ?? `${offset + inspections.length}${hasMore ? "+" : ""}`;
 
   const columns: Column<AdminVendorInspection>[] = [
     {
@@ -170,9 +169,10 @@ export default function AdminVendorInspectionHistory({
             />
             <Dropdown
               ariaLabel="Sort by date"
-              triggerLabel={SORT_OPTIONS.find(
-                (option) => option.value === sortDirection,
-              )?.label}
+              triggerLabel={
+                SORT_OPTIONS.find((option) => option.value === sortDirection)
+                  ?.label
+              }
               value={sortDirection}
               onChange={onSortDirectionChange}
               options={SORT_OPTIONS}
@@ -183,8 +183,8 @@ export default function AdminVendorInspectionHistory({
         {isError ? (
           <div className={styles.errorState} role="alert">
             <span>{errorMessage}</span>
-            <button type="button" onClick={onRetry}>
-              Try again
+            <button type="button" onClick={onRetry} disabled={isFetching}>
+              {isFetching ? "Retrying…" : "Try again"}
             </button>
           </div>
         ) : (
@@ -202,9 +202,9 @@ export default function AdminVendorInspectionHistory({
 
             <footer className={styles.footer}>
               <span>
-                Showing{" "}
-                {inspections.length > 0 ? offset + 1 : 0} to{" "}
-                {offset + inspections.length} of {displayedTotal} entries
+                Showing {inspections.length > 0 ? offset + 1 : 0} to{" "}
+                {inspections.length ? offset + inspections.length : 0} of{" "}
+                {displayedTotal} entries
               </span>
               <div className={styles.footerActions}>
                 <Button
@@ -227,7 +227,8 @@ export default function AdminVendorInspectionHistory({
                 <Pagination
                   compact
                   showSinglePage
-                  canGoNext={!isFetching && hasMore}
+                  canGoNext={!hasMore}
+                  disabled={isLoading || isFetching}
                   className={styles.pagination}
                   page={page}
                   totalPages={totalPages}
@@ -238,7 +239,6 @@ export default function AdminVendorInspectionHistory({
           </>
         )}
       </Card>
-
     </>
   );
 }

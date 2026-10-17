@@ -61,6 +61,9 @@ export function useBackupHistory(canManage: boolean, timeZone?: string) {
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
     },
+    onError: () => {
+      void client.invalidateQueries({ queryKey: backupKeys.history });
+    },
     onSettled: () => {
       downloading.current = false;
     },

@@ -7,7 +7,13 @@ import AccountRowsSkeleton from "./AccountRowsSkeleton";
 import AccountMessage from "./AccountMessage";
 import styles from "./AccountDirectory.module.css";
 
-export default function AccountDirectory({ model }: { model: AccountsModel }) {
+export default function AccountDirectory({
+  model,
+  onManage,
+}: {
+  model: AccountsModel;
+  onManage: (id: number) => void;
+}) {
   return (
     <section
       className={styles.directory}
@@ -85,7 +91,11 @@ export default function AccountDirectory({ model }: { model: AccountsModel }) {
               </tr>
             ) : (
               model.items.map((account) => (
-                <AccountRow key={account.id} account={account} />
+                <AccountRow
+                  key={account.id}
+                  account={account}
+                  onManage={onManage}
+                />
               ))
             )}
           </tbody>

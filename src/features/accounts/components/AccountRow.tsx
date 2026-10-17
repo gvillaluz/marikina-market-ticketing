@@ -4,7 +4,13 @@ import { useAccountAvatar } from "../hooks/useAccountAvatar";
 import styles from "./AccountRow.module.css";
 import UrlImage from "@/components/ui/UrlImage";
 
-export default function AccountRow({ account }: { account: AccountSummary }) {
+export default function AccountRow({
+  account,
+  onManage,
+}: {
+  account: AccountSummary;
+  onManage: (id: number) => void;
+}) {
   const avatar = useAccountAvatar(account.profileUrl);
   const name =
     [account.firstName, account.middleName, account.lastName]
@@ -54,8 +60,7 @@ export default function AccountRow({ account }: { account: AccountSummary }) {
         <button
           className={styles.manage}
           type="button"
-          disabled
-          title="Account management is not available yet"
+          onClick={() => onManage(account.id)}
           aria-label={`Manage ${name}`}
         >
           Manage

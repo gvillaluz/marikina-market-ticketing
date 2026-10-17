@@ -6,12 +6,12 @@ export function useAdminVendorProfile(vendorId: number) {
   const profileQuery = useQuery({
     queryKey: ["admin-vendor-profile", vendorId],
     queryFn: () => adminVendorsApi.getProfile(vendorId),
-    enabled: Number.isInteger(vendorId) && vendorId > 0,
+    enabled: Number.isSafeInteger(vendorId) && vendorId > 0,
   });
   const scoreQuery = useQuery({
     queryKey: ["admin-vendor-compliance-score", vendorId],
     queryFn: () => adminVendorsApi.getComplianceScore(vendorId),
-    enabled: Number.isInteger(vendorId) && vendorId > 0,
+    enabled: Number.isSafeInteger(vendorId) && vendorId > 0,
   });
 
   return {
@@ -21,8 +21,14 @@ export function useAdminVendorProfile(vendorId: number) {
     isScoreLoading: scoreQuery.isLoading,
     isProfileError: profileQuery.isError,
     isScoreError: scoreQuery.isError,
-    profileErrorMessage: getApiErrorMessage(profileQuery.error, "We couldn't load this vendor's profile."),
-    scoreErrorMessage: getApiErrorMessage(scoreQuery.error, "We couldn't load this vendor's compliance score."),
+    profileErrorMessage: getApiErrorMessage(
+      profileQuery.error,
+      "We couldn't load this vendor's profile.",
+    ),
+    scoreErrorMessage: getApiErrorMessage(
+      scoreQuery.error,
+      "We couldn't load this vendor's compliance score.",
+    ),
     refetchProfile: profileQuery.refetch,
     refetchScore: scoreQuery.refetch,
   };

@@ -1,6 +1,20 @@
-import { AlertTriangle, Download, Eye, Printer, RefreshCw, Search } from "lucide-react";
-import { MARKET_SECTION_IDS, MARKET_SECTION_LABELS, type MarketSection } from "@/api/types/common.types";
-import type { AdminVendorSummary, ComplianceScoreRange } from "@/api/types/admin-vendor.types";
+import {
+  AlertTriangle,
+  Download,
+  Eye,
+  Printer,
+  RefreshCw,
+  Search,
+} from "lucide-react";
+import {
+  MARKET_SECTION_IDS,
+  MARKET_SECTION_LABELS,
+  type MarketSection,
+} from "@/api/types/common.types";
+import type {
+  AdminVendorSummary,
+  ComplianceScoreRange,
+} from "@/api/types/admin-vendor.types";
 import Card from "@/components/ui/Card";
 import { Badge, type BadgeTone } from "@/components/ui/Badge/Badge";
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -18,13 +32,14 @@ const SECTION_OPTIONS = [
   })),
 ];
 
-const SCORE_OPTIONS: { value: "all" | ComplianceScoreRange; label: string }[] = [
-  { value: "all", label: "All Scores" },
-  { value: "85-100", label: "85-100%" },
-  { value: "70-84", label: "70-84%" },
-  { value: "50-69", label: "50-69%" },
-  { value: "Below 50", label: "Below 50%" },
-];
+const SCORE_OPTIONS: { value: "all" | ComplianceScoreRange; label: string }[] =
+  [
+    { value: "all", label: "All Scores" },
+    { value: "85-100", label: "85-100%" },
+    { value: "70-84", label: "70-84%" },
+    { value: "50-69", label: "50-69%" },
+    { value: "Below 50", label: "Below 50%" },
+  ];
 
 function getScoreTone(score: number): BadgeTone {
   if (score >= 85) return "success";
@@ -52,6 +67,7 @@ interface AdminVendorRegistryProps {
   total: number | null;
   hasMore: boolean;
   isLoading: boolean;
+  isFetching: boolean;
   isError: boolean;
   errorMessage: string;
   refetch: () => void;
@@ -73,6 +89,7 @@ export default function AdminVendorRegistry({
   total,
   hasMore,
   isLoading,
+  isFetching,
   isError,
   errorMessage,
   refetch,
@@ -91,23 +108,35 @@ export default function AdminVendorRegistry({
       key: "businessId",
       header: "Business ID",
       width: "11%",
-      render: (vendor) => <span className={styles.businessId}>{vendor.businessId}</span>,
+      render: (vendor) => (
+        <span className={styles.businessId}>{vendor.businessId}</span>
+      ),
     },
     {
       key: "vendorName",
       header: "Vendor Name",
       width: "19%",
-      render: (vendor) => <span className={styles.vendorName}>{vendor.vendorName}</span>,
+      render: (vendor) => (
+        <span className={styles.vendorName}>{vendor.vendorName}</span>
+      ),
     },
     { key: "marketSectionName", header: "Market Section", width: "17%" },
-    { key: "type", header: "Type", width: "9%", render: (vendor) => getTypeLabel(vendor.type) },
+    {
+      key: "type",
+      header: "Type",
+      width: "9%",
+      render: (vendor) => getTypeLabel(vendor.type),
+    },
     {
       key: "complianceScore",
       header: "Compliance Score",
       align: "center",
       width: "14%",
       render: (vendor) => (
-        <Badge className={styles.scoreBadge} tone={getScoreTone(vendor.complianceScore)}>
+        <Badge
+          className={styles.scoreBadge}
+          tone={getScoreTone(vendor.complianceScore)}
+        >
           {vendor.complianceScore}%
         </Badge>
       ),
@@ -160,7 +189,9 @@ export default function AdminVendorRegistry({
             ariaLabel="Filter by compliance score"
             triggerLabel={`Compliance Score: ${SCORE_OPTIONS.find((option) => option.value === complianceScore)?.label}`}
             value={complianceScore}
-            onChange={(value) => setComplianceScore(value as "all" | ComplianceScoreRange)}
+            onChange={(value) =>
+              setComplianceScore(value as "all" | ComplianceScoreRange)
+            }
             options={SCORE_OPTIONS}
           />
         </div>
@@ -171,8 +202,14 @@ export default function AdminVendorRegistry({
           <AlertTriangle size={22} />
           <strong>Unable to load vendors</strong>
           <span>{errorMessage}</span>
-          <button type="button" onClick={refetch}>
-            <RefreshCw size={14} /> Try again
+          <button type="button" onClick={refetch} disabled={isFetching}>
+            {isFetching ? (
+              "Retrying…"
+            ) : (
+              <>
+                <RefreshCw size={14} /> Try again
+              </>
+            )}
           </button>
         </div>
       ) : (
@@ -182,15 +219,16 @@ export default function AdminVendorRegistry({
             columns={columns}
             data={vendors}
             keyExtractor={(vendor) => String(vendor.vendorId)}
-            loading={isLoading}
+            loading={isLoading || isFetching}
             loadingMessage="Loading vendor records..."
             emptyMessage="No vendors match these filters."
           />
           <footer className={styles.tableFooter}>
             <span>
               Showing {vendors.length ? offset + 1 : 0} to{" "}
-              {offset + vendors.length} of{" "}
-              {total ?? `${offset + vendors.length}${hasMore ? "+" : ""}`} entries
+              {vendors.length ? offset + vendors.length : 0} of{" "}
+              {total ?? `${offset + vendors.length}${hasMore ? "+" : ""}`}{" "}
+              entries
             </span>
             <div className={styles.footerActions}>
               <button
@@ -212,7 +250,8 @@ export default function AdminVendorRegistry({
               <Pagination
                 compact
                 showSinglePage
-                canGoNext={!isLoading && hasMore}
+                canGoNext={!hasMore}
+                disabled={isLoading || isFetching}
                 className={styles.pagination}
                 page={page}
                 totalPages={totalPages}

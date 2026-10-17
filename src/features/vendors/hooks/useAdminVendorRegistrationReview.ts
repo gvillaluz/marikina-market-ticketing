@@ -9,35 +9,27 @@ export function useAdminVendorRegistrationReview(registrationId: number) {
     enabled: Number.isSafeInteger(registrationId) && registrationId > 0,
   });
 
-  const documentsQuery = useQuery({
-    queryKey: ["admin-vendor-registration-documents", registrationId],
-    queryFn: () => adminVendorsApi.getRegistrationDocuments(registrationId),
-    enabled:
-      Number.isSafeInteger(registrationId) &&
-      registrationId > 0 &&
-      detailsQuery.isSuccess &&
-      !String(detailsQuery.data?.status ?? "")
-        .toLowerCase()
-        .includes("approve"),
-  });
-
   return {
     details: detailsQuery.data,
     canDecide: Boolean(
+      detailsQuery.isSuccess &&
       detailsQuery.data &&
-        !["approved", "rejected"].includes(
-          String(detailsQuery.data.status).toLowerCase(),
-        ),
+      Number.isSafeInteger(detailsQuery.data.version) &&
+      detailsQuery.data.version > 0 &&
+      !["approved", "rejected"].includes(
+        String(detailsQuery.data.status).toLowerCase(),
+      ),
     ),
-    documents: documentsQuery.data ?? [],
-    isLoading: detailsQuery.isLoading || documentsQuery.isLoading,
-    isError: detailsQuery.isError || documentsQuery.isError,
+    documents: detailsQuery.data?.documents ?? [],
+    isLoading: detailsQuery.isLoading,
+    isError: detailsQuery.isError,
     errorMessage: getApiErrorMessage(
-      detailsQuery.error ?? documentsQuery.error,
+      detailsQuery.error,
       "Unable to load the registration request.",
     ),
     refetch: async () => {
-      await Promise.all([detailsQuery.refetch(), documentsQuery.refetch()]);
+      const result = await detailsQuery.refetch();
+      return result.isSuccess;
     },
   };
 }

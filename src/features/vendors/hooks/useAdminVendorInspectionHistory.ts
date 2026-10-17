@@ -10,7 +10,7 @@ export function useAdminVendorInspectionHistory(
   const query = useQuery({
     queryKey: ["admin-vendor-inspections", vendorId, filters],
     queryFn: () => adminVendorsApi.getInspectionHistory(vendorId, filters),
-    enabled: Number.isInteger(vendorId) && vendorId > 0,
+    enabled: Number.isSafeInteger(vendorId) && vendorId > 0,
   });
 
   return {
@@ -20,7 +20,10 @@ export function useAdminVendorInspectionHistory(
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,
-    errorMessage: getApiErrorMessage(query.error, "Unable to load inspection history."),
+    errorMessage: getApiErrorMessage(
+      query.error,
+      "Unable to load inspection history.",
+    ),
     refetch: query.refetch,
   };
 }

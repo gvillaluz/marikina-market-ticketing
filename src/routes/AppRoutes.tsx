@@ -197,7 +197,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.marketSection}
           element={
-            <ProtectedRoute roles={HEAD_ADMIN_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <MarketSectionPage />
             </ProtectedRoute>
           }
@@ -205,7 +205,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.ordinance}
           element={
-            <ProtectedRoute roles={HEAD_ADMIN_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <OrdinancesPage />
             </ProtectedRoute>
           }

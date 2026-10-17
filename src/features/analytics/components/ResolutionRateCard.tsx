@@ -43,7 +43,7 @@ export default function ResolutionRateCard({
                   data.ticketCount - data.resolvedWithinSevenDays,
                 ).toLocaleString()}
               </strong>
-              <span>Remaining</span>
+              <span>Other tickets</span>
             </div>
             <div>
               <strong>{data.ticketCount.toLocaleString()}</strong>

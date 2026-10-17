@@ -61,7 +61,7 @@ const STATUS_OPTIONS = [
   {
     value: "Cleared",
     title: "Cleared",
-    description: "Resolved via community service or blotter donation.",
+    description: "Resolved via community service or blood donation.",
   },
   {
     value: "Overdue",
