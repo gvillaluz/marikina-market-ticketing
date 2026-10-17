@@ -1,20 +1,19 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/duplicate_ordinance.dart';
 
 class DuplicateWarningBanner extends StatelessWidget {
   final List<DuplicateOrdinance> duplicateOrdinances;
 
-  const DuplicateWarningBanner({
-    required this.duplicateOrdinances,
-    super.key,
-  });
+  const DuplicateWarningBanner({required this.duplicateOrdinances, super.key});
 
   @override
   Widget build(BuildContext context) {
     if (duplicateOrdinances.isEmpty) return const SizedBox.shrink();
 
     final count = duplicateOrdinances.length;
-    final titleText = '$count ${count == 1 ? 'ordinance was' : 'ordinances were'} already ticketed for this vendor and was excluded.';
+    final titleText =
+        '$count ${count == 1 ? 'ordinance was' : 'ordinances were'} already ticketed for this vendor and was excluded.';
 
     return Container(
       width: double.infinity,
@@ -23,7 +22,9 @@ class DuplicateWarningBanner extends StatelessWidget {
         color: const Color(0xFF2A1C08), // Dark amber/brown background
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFE65100).withValues(alpha: 0.3), // Amber border highlight
+          color: const Color(
+            0xFFE65100,
+          ).withValues(alpha: 0.3), // Amber border highlight
           width: 1,
         ),
       ),
@@ -47,7 +48,7 @@ class DuplicateWarningBanner extends StatelessWidget {
                   titleText,
                   style: const TextStyle(
                     color: Color(0xFFF57C00),
-                    fontSize: 13,
+                    fontSize: AppTheme.captionFontSize,
                     fontWeight: FontWeight.bold,
                     height: 1.3,
                   ),
@@ -60,7 +61,7 @@ class DuplicateWarningBanner extends StatelessWidget {
                       ord.ordinanceNo,
                       style: const TextStyle(
                         color: Color(0xFFD7CCC8),
-                        fontSize: 12,
+                        fontSize: AppTheme.captionFontSize,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

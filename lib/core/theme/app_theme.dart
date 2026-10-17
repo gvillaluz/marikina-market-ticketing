@@ -4,6 +4,48 @@ import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 class AppTheme {
   AppTheme._();
 
+  static const pageTitleFontSize = 26.0;
+  static const sectionHeadingFontSize = 16.0;
+  static const bodyFontSize = 14.0;
+  static const captionFontSize = 12.0;
+  static const actionFontSize = 14.0;
+  static const pageTitleStyle = TextStyle(
+    fontSize: pageTitleFontSize,
+    fontWeight: FontWeight.w700,
+  );
+  static const pageSubtitleStyle = bodyTextStyle;
+  // Preserve the original hierarchy of detail and edit screens.
+  static const detailTitleFontSize = 20.0;
+  static const inspectionFormTitleFontSize = 24.0;
+  static const profileEditTitleFontSize = 22.0;
+  static const detailTitleStyle = TextStyle(
+    fontSize: detailTitleFontSize,
+    fontWeight: FontWeight.w700,
+  );
+  static const profileEditTitleStyle = TextStyle(
+    fontSize: profileEditTitleFontSize,
+    fontWeight: FontWeight.w400,
+  );
+  static const detailSubtitleStyle = TextStyle(fontSize: 14, height: 1.4);
+  static const sectionHeadingStyle = TextStyle(
+    fontSize: sectionHeadingFontSize,
+    fontWeight: FontWeight.w700,
+  );
+  static const cardHeadingStyle = TextStyle(
+    fontSize: sectionHeadingFontSize,
+    fontWeight: FontWeight.w600,
+    height: 1.4,
+  );
+  static const bodyTextStyle = TextStyle(fontSize: bodyFontSize, height: 1.45);
+  static const captionTextStyle = TextStyle(
+    fontSize: captionFontSize,
+    height: 1.4,
+  );
+  static const actionTextStyle = TextStyle(
+    fontSize: actionFontSize,
+    fontWeight: FontWeight.w600,
+  );
+
   static const controlRadius = BorderRadius.all(Radius.circular(12));
   static const buttonPadding = EdgeInsets.symmetric(
     horizontal: 20,
@@ -12,10 +54,7 @@ class AppTheme {
   static const buttonMinSize = Size(48, 52);
   static const buttonIconSize = 20.0;
   static const buttonProgressStrokeWidth = 2.0;
-  static const buttonTextStyle = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-  );
+  static const buttonTextStyle = actionTextStyle;
   static const buttonAnimationDuration = Duration(milliseconds: 160);
   static const skeletonDuration = Duration(milliseconds: 1000);
   static const skeletonMinOpacity = 0.5;
@@ -30,6 +69,31 @@ class AppTheme {
   static const tabInitialOpacity = 0.85;
 
   static const dashboardMaxWidth = 760.0;
+  static const vendorDashboardPadding = EdgeInsets.all(20);
+  static const vendorDashboardTotalsSkeletonHeight = 110.0;
+  static const vendorDashboardScoreSkeletonHeight = 190.0;
+  static const vendorDashboardTaskSkeletonHeight = 76.0;
+  static const vendorDashboardHeadingSkeletonWidth = 180.0;
+  static const vendorDashboardHeadingSkeletonHeight = 18.0;
+  static const vendorDashboardNoticeIconSize = 40.0;
+  static const vendorDashboardSectionRadius = BorderRadius.vertical(
+    top: Radius.circular(20),
+  );
+  static const vendorDashboardCardBorder = Color(0xFFDDE8F2);
+  static const vendorDashboardWarningBackground = Color(0xFFFFF6E6);
+  static const vendorDashboardWarningColor = Color(0xFFA56B00);
+  static const vendorDashboardTicketBackground = Color(0xFFE7F2FF);
+  static const vendorDashboardGoodColor = Color(0xFF398245);
+  static const vendorDashboardGoodBackground = Color(0xFFEAF5E9);
+  static const vendorDashboardMutedColor = Color(0xFF788898);
+  static const vendorDashboardRingSize = 112.0;
+  static const vendorDashboardRingStroke = 8.0;
+  static const vendorDashboardScoreDuration = Duration(milliseconds: 850);
+  static const vendorDashboardDetailStyle = TextStyle(
+    fontSize: 12,
+    height: 1.4,
+  );
+  static const vendorDashboardLabelStyle = TextStyle(fontSize: 11, height: 1.4);
   static const dashboardWideBreakpoint = 720.0;
   static const dashboardGridMaxTextScale = 1.3;
   static const dashboardPagePadding = EdgeInsets.all(20);
@@ -41,15 +105,9 @@ class AppTheme {
   static const dashboardTinyGap = 6.0;
   static const dashboardMetricMinHeight = 140.0;
   static const dashboardCardRadius = BorderRadius.all(Radius.circular(16));
-  static const dashboardTitleStyle = TextStyle(
-    fontSize: 26,
-    fontWeight: FontWeight.w700,
-  );
-  static const dashboardHeadingStyle = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w700,
-  );
-  static const dashboardBodyStyle = TextStyle(fontSize: 14, height: 1.45);
+  static const dashboardTitleStyle = pageTitleStyle;
+  static const dashboardHeadingStyle = sectionHeadingStyle;
+  static const dashboardBodyStyle = bodyTextStyle;
   static const dashboardCountStyle = TextStyle(
     fontSize: 32,
     fontWeight: FontWeight.w700,
@@ -72,12 +130,9 @@ class AppTheme {
     horizontal: 6,
     vertical: 2,
   );
-  static const recordsBodyStyle = TextStyle(fontSize: 12, height: 1.4);
-  static const recordsCardTitleStyle = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w600,
-  );
-  static const recordsCaptionStyle = TextStyle(fontSize: 10, height: 1.4);
+  static const recordsBodyStyle = bodyTextStyle;
+  static const recordsCardTitleStyle = cardHeadingStyle;
+  static const recordsCaptionStyle = captionTextStyle;
   static const recordsSkeletonHeight = 120.0;
   static const settlementCardPadding = EdgeInsets.all(14);
   static const settlementCardRadius = BorderRadius.all(Radius.circular(14));
@@ -100,15 +155,9 @@ class AppTheme {
   static const inspectionSmallGap = 12.0;
   static const inspectionTinyGap = 6.0;
   static const inspectionCardRadius = BorderRadius.all(Radius.circular(16));
-  static const inspectionTitleStyle = TextStyle(
-    fontSize: 26,
-    fontWeight: FontWeight.w700,
-  );
-  static const inspectionHeadingStyle = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w700,
-  );
-  static const inspectionBodyStyle = TextStyle(fontSize: 14, height: 1.45);
+  static const inspectionTitleStyle = pageTitleStyle;
+  static const inspectionHeadingStyle = sectionHeadingStyle;
+  static const inspectionBodyStyle = bodyTextStyle;
   static const inspectionCaptionStyle = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w600,
@@ -161,6 +210,43 @@ class AppTheme {
   static const ticketPageAheadExtent = inspectionPageAheadExtent;
   static const ticketSearchDelay = inspectionSearchDelay;
   static const notificationHeaderPadding = EdgeInsets.fromLTRB(20, 12, 20, 16);
+  static const vendorNotificationBackground = Color(0xFFF5FAFF);
+  static const vendorNotificationUnreadBackground = Color(0xFFE9F3FF);
+  static const vendorNotificationBorder = Color(0xFFD6E3F2);
+  static const vendorNotificationPrimary = Color(0xFF0055A6);
+  static const vendorNotificationText = Color(0xFF17212D);
+  static const vendorNotificationMuted = Color(0xFF64748B);
+  static const vendorNotificationUnreadDot = Color(0xFFEF4444);
+  static const vendorNotificationPagePadding = EdgeInsets.fromLTRB(
+    13,
+    14,
+    16,
+    0,
+  );
+  static const vendorNotificationListPadding = EdgeInsets.symmetric(
+    horizontal: 13,
+  );
+  static const vendorNotificationCardPadding = EdgeInsets.all(12);
+  static const vendorNotificationItemPadding = EdgeInsets.only(bottom: 9);
+  static const vendorNotificationCardRadius = BorderRadius.all(
+    Radius.circular(8),
+  );
+  static const vendorNotificationTitleStyle = pageTitleStyle;
+  static const vendorNotificationSubtitleStyle = pageSubtitleStyle;
+  static const vendorNotificationHeadingStyle = cardHeadingStyle;
+  static const vendorNotificationBodyStyle = bodyTextStyle;
+  static const vendorNotificationCaptionStyle = captionTextStyle;
+  static const vendorNotificationCountStyle = captionTextStyle;
+  static const vendorNotificationActionStyle = actionTextStyle;
+  static const vendorNotificationIconSize = notificationStatusIconSize;
+  static const vendorNotificationIconGap = 10.0;
+  static const vendorNotificationTextGap = notificationSmallGap;
+  static const vendorNotificationCountMinSize = Size(48, 42);
+  static const vendorNotificationFooterMinSize = Size(48, 32);
+  static const vendorNotificationDotSize = 4.5;
+  static const vendorNotificationHeadingGap = 8.0;
+  static const vendorNotificationActionsGap = 16.0;
+  static const vendorNotificationListGap = 16.0;
   static const notificationListPadding = EdgeInsets.symmetric(horizontal: 20);
   static const notificationCardPadding = EdgeInsets.all(16);
   static const notificationItemPadding = EdgeInsets.symmetric(vertical: 6);
@@ -168,18 +254,18 @@ class AppTheme {
   static const notificationSmallGap = 6.0;
   static const notificationMaxWidth = 760.0;
   static const notificationCardRadius = BorderRadius.all(Radius.circular(16));
-  static const notificationBodyStyle = TextStyle(fontSize: 14, height: 1.45);
-  static const notificationCaptionStyle = TextStyle(fontSize: 12, height: 1.4);
-  static const notificationHeadingStyle = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w700,
-  );
+  static const notificationBodyStyle = bodyTextStyle;
+  static const notificationCaptionStyle = captionTextStyle;
+  static const notificationHeadingStyle = sectionHeadingStyle;
   static const notificationPageAheadExtent = 320.0;
   static const notificationStatusIconSize = 20.0;
+  static const notificationSkeletonStatusWidth = 90.0;
+  static const notificationSkeletonTimestampWrapWidth = 220.0;
 
   static Color ticketStatusColor(String status) => switch (status) {
     'Pending' => AppColors.yellowTextColor,
     'Paid' => AppColors.blueTextColor,
+    'InProgress' => AppColors.blueTextColor,
     'Waived' => AppColors.purpleTextColor,
     'Contested' => AppColors.orangeTextColor,
     'Overdue' => AppColors.primaryRed,
@@ -188,6 +274,7 @@ class AppTheme {
   static Color ticketStatusBackground(String status) => switch (status) {
     'Pending' => AppColors.yellowBackgroundColor,
     'Paid' => AppColors.blueBackgroundColor,
+    'InProgress' => AppColors.blueBackgroundColor,
     'Waived' => AppColors.purpleBackgroundColor,
     'Contested' => AppColors.orangeBackgroundColor,
     'Overdue' => AppColors.redBackgroundColor,
@@ -222,12 +309,48 @@ class AppTheme {
       Theme.of(context).colorScheme.surfaceContainerHighest;
 
   static const profileFormMaxWidth = 600.0;
+  static const profileDialogMaxWidth = 400.0;
+  static const profileDialogInset = EdgeInsets.symmetric(
+    horizontal: 20,
+    vertical: 24,
+  );
+  static const profileDialogPadding = EdgeInsets.fromLTRB(24, 0, 24, 20);
+  static const profileDialogIconSize = 28.0;
+  static const profileHeroColor = Color(0xFF003C7A);
+  static const profileHeroForeground = Colors.white;
+  static const profileHeroOverlay = Color(0x18FFFFFF);
+  static const profileHeroCircleSize = 240.0;
+  static const profileHeroTitleStyle = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: profileHeroForeground,
+  );
+  static const profileQrSize = 220.0;
+  static const profileQrTopCircleOverlay = Color(0x08FFFFFF);
+  static const profileQrBottomCircleOverlay = Color(0x06FFFFFF);
+  static const profileQrBackButtonPadding = EdgeInsets.all(8);
+  static const profileQrBackButtonRadius = BorderRadius.all(Radius.circular(8));
+  static const profileQrAvatarSize = 72.0;
+  static const profileQrMaxWidth = 400.0;
+  static const profileQrExportScale = 3.0;
+  static const profileQrPadding = EdgeInsets.all(24);
+  static const profileQrActionPadding = EdgeInsets.symmetric(
+    horizontal: 16,
+    vertical: 12,
+  );
   static const profilePagePadding = EdgeInsets.all(20);
   static const profileCardPadding = EdgeInsets.all(20);
   static const profileHeaderPadding = EdgeInsets.all(16);
+  static const profileInfoHeadingPadding = EdgeInsets.symmetric(
+    horizontal: 20,
+    vertical: 6,
+  );
+  static const profileSheetRadius = BorderRadius.vertical(
+    top: Radius.circular(16),
+  );
   static const profileCompactGap = 6.0;
   static const profilePhotoButtonSize = 32.0;
-  static const profilePhotoIconSize = 18.0;
+  static const profilePhotoIconSize = 16.0;
   static const profileDetailPadding = EdgeInsets.symmetric(
     horizontal: 20,
     vertical: 10,
@@ -252,17 +375,16 @@ class AppTheme {
   static const datePickerDialogPadding = EdgeInsets.all(16);
   static const datePickerHeight = 216.0;
   static const datePickerItemExtent = 36.0;
-  static const datePickerTextStyle = TextStyle(fontSize: 18);
-  static const profileAvatarSize = 80.0;
+  static const datePickerTextStyle = bodyTextStyle;
+  static const profileAvatarSize = 92.0;
+  static const profilePhotoMenuPadding = EdgeInsets.all(20);
+  static const profilePhotoBorderWidth = 2.0;
   static const profileAvatarDecodeMaxWidth = 320;
   static const profileSectionGap = 24.0;
   static const profileActionGap = 12.0;
-  static const profileHeadingStyle = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w700,
-  );
-  static const profileBodyStyle = TextStyle(fontSize: 14, height: 1.45);
-  static const profileCaptionStyle = TextStyle(fontSize: 12, height: 1.4);
+  static const profileHeadingStyle = sectionHeadingStyle;
+  static const profileBodyStyle = bodyTextStyle;
+  static const profileCaptionStyle = captionTextStyle;
   static const profileStatusPadding = EdgeInsets.symmetric(
     horizontal: 10,
     vertical: 4,
@@ -303,11 +425,22 @@ class AppTheme {
   );
   static const authHeaderLogoSize = 80.0;
   static const authFieldPadding = EdgeInsets.symmetric(horizontal: 20);
-  static const authHeadingStyle = TextStyle(
+  static const authHeadingStyle = pageTitleStyle;
+  static const authPageTitleStyle = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: authVerificationTitleColor,
+  );
+  static const authHeaderTextStyle = TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.w700,
   );
-  static const authBodyStyle = TextStyle(fontSize: 14, height: 1.45);
+  static const authErrorPadding = EdgeInsets.all(12);
+  static const authErrorIconSize = 20.0;
+  static const authLogoutBarrierColor = Colors.black54;
+  static const authLogoutMaxWidth = 280.0;
+  static const authLogoutIndicatorSize = 32.0;
+  static const authBodyStyle = bodyTextStyle;
 
   static BoxDecoration authCardDecoration(BuildContext context) =>
       BoxDecoration(
@@ -326,6 +459,20 @@ class AppTheme {
   static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
+      textTheme: const TextTheme(
+        headlineLarge: pageTitleStyle,
+        headlineMedium: pageTitleStyle,
+        headlineSmall: pageTitleStyle,
+        titleLarge: sectionHeadingStyle,
+        titleMedium: sectionHeadingStyle,
+        titleSmall: cardHeadingStyle,
+        bodyLarge: bodyTextStyle,
+        bodyMedium: bodyTextStyle,
+        bodySmall: captionTextStyle,
+        labelLarge: actionTextStyle,
+        labelMedium: captionTextStyle,
+        labelSmall: captionTextStyle,
+      ),
 
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
@@ -367,7 +514,10 @@ class AppTheme {
           horizontal: 14,
           vertical: 15,
         ),
-        labelStyle: TextStyle(color: AppColors.primaryBlack, fontSize: 14),
+        labelStyle: TextStyle(
+          color: AppColors.primaryBlack,
+          fontSize: bodyFontSize,
+        ),
         iconColor: AppColors.lightGrey,
         prefixIconColor: AppColors.lightGrey,
         suffixIconColor: AppColors.lightGrey,
@@ -387,7 +537,10 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
 
-        errorStyle: const TextStyle(color: AppColors.primaryRed, fontSize: 12),
+        errorStyle: const TextStyle(
+          color: AppColors.primaryRed,
+          fontSize: captionFontSize,
+        ),
         errorBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
           borderSide: BorderSide(color: AppColors.primaryRed, width: 1.2),

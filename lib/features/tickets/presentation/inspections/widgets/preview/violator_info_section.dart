@@ -24,7 +24,10 @@ class ViolatorInfoSection extends StatelessWidget {
             Icon(Icons.person, color: AppColors.primary),
             Text(
               'VIOLATOR DETAILS',
-              style: TextStyle(color: AppColors.primary, fontSize: 18),
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: AppTheme.sectionHeadingFontSize,
+              ),
             ),
           ],
         ),

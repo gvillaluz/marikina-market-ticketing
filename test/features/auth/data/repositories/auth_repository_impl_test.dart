@@ -102,7 +102,7 @@ void main() {
     expect(remoteDataSource.refreshCalls, 1);
     remoteDataSource.refreshCompleter!.complete(_freshTokens);
 
-    expect(await refreshWaiter, isTrue);
+    expect(await refreshWaiter, isA<Success>());
     expect(await firstRefresh, isA<Success>());
     expect(await secondRefresh, isA<Success>());
     expect(remoteDataSource.refreshCalls, 1);

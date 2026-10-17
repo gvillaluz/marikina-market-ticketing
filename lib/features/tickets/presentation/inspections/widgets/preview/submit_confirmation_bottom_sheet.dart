@@ -95,7 +95,7 @@ class _SubmitConfirmationBottomSheetState
             InspectionConfirmationDetail(
               label: 'Due date',
               value:
-                  '${DateTimeFormatter.getDate(DateTime.now().add(const Duration(days: 15)))} (15 days from issuance)',
+                  '${DateTimeFormatter.getDate(DateTime.now().add(const Duration(days: 5)))} (5 days from issuance)',
             ),
             const Divider(),
             Text(

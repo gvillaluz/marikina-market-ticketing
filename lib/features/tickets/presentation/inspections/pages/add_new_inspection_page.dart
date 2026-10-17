@@ -327,7 +327,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
               '$ordinanceCount $ordinanceLabel excluded from this inspection.',
               style: const TextStyle(
                 color: AppColors.secondaryYellow,
-                fontSize: 13,
+                fontSize: AppTheme.captionFontSize,
               ),
             ),
           ],
@@ -492,8 +492,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                       const Text(
                         'Inspection details',
                         style: TextStyle(
-                          color: AppColors.primaryBlack,
-                          fontSize: 24,
+                          color: AppColors.primary,
+                          fontSize: AppTheme.inspectionFormTitleFontSize,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -504,7 +504,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                             : 'Complete the inspection details, then review them before submitting.',
                         style: const TextStyle(
                           color: AppColors.mediumGrey,
-                          fontSize: 14,
+                          fontSize: AppTheme.bodyFontSize,
                           height: 1.4,
                         ),
                       ),
@@ -612,7 +612,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                                     _photoError!,
                                     style: const TextStyle(
                                       color: AppColors.primaryRed,
-                                      fontSize: 12,
+                                      fontSize: AppTheme.captionFontSize,
                                     ),
                                   ),
                                 ),

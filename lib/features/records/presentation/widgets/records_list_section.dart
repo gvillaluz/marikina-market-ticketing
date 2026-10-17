@@ -5,7 +5,7 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/skeleton
 import '../bloc/records/records_bloc.dart';
 import '../bloc/records/records_state.dart';
 import 'record_card.dart';
-import 'records_notice.dart';
+import 'records_list_notice.dart';
 
 class RecordsListSection extends StatelessWidget {
   final VoidCallback onRetry, onLoadMore;
@@ -19,7 +19,7 @@ class RecordsListSection extends StatelessWidget {
     builder: (context, state) {
       if (state.isInitialLoading) {
         return SliverPadding(
-          padding: AppTheme.recordsPagePadding,
+          padding: AppTheme.inspectionListPadding,
           sliver: SliverList.list(
             children: [
               for (var i = 0; i < 3; i++)
@@ -32,67 +32,71 @@ class RecordsListSection extends StatelessWidget {
         );
       }
       if (state.items.isEmpty) {
-        return SliverMainAxisGroup(
-          slivers: [
-            if (state.error == null)
-              SliverPadding(
-                padding: AppTheme.recordsSummaryPadding,
-                sliver: SliverToBoxAdapter(
-                  child: Text(
-                    '${state.total} records',
-                    style: AppTheme.recordsCaptionStyle,
-                  ),
+        return SliverPadding(
+          padding: AppTheme.inspectionListPadding,
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              children: [
+                RecordsListNotice(
+                  title: state.error == null
+                      ? 'No records found'
+                      : 'Unable to load records',
+                  message: state.error == null
+                      ? 'Try changing your search or record type. New records will appear here.'
+                      : state.error!.trim().isEmpty
+                      ? 'Please try again to load your records.'
+                      : state.error!,
+                  onRetry: state.error == null ? null : onRetry,
+                  icon: state.error == null
+                      ? Icons.assignment_outlined
+                      : Icons.cloud_off_outlined,
                 ),
-              ),
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: RecordsNotice(
-                message:
-                    state.error ??
-                    (state.search.isEmpty
-                        ? 'No records found.'
-                        : 'No records match your search.'),
-                onRetry: state.error == null ? null : onRetry,
-                icon: state.error == null
-                    ? Icons.description_outlined
-                    : Icons.cloud_off_outlined,
-              ),
+                if (state.isRefreshing)
+                  Padding(
+                    padding: AppTheme.inspectionCardPadding,
+                    child: _progress(context),
+                  ),
+              ],
             ),
-          ],
+          ),
         );
       }
       return SliverMainAxisGroup(
         slivers: [
           SliverPadding(
-            padding: AppTheme.recordsSummaryPadding,
+            padding: AppTheme.inspectionListPadding,
             sliver: SliverToBoxAdapter(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${state.total} record${state.total == 1 ? '' : 's'}',
-                      style: AppTheme.recordsCaptionStyle,
-                    ),
+              child: Padding(
+                padding: AppTheme.inspectionItemPadding,
+                child: Text(
+                  'Records • ${state.items.length}',
+                  style: AppTheme.inspectionCaptionStyle.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                  if (state.isRefreshing) _progress(context),
-                ],
+                ),
               ),
             ),
           ),
           if (state.error != null && !state.isLoadMoreError)
-            SliverToBoxAdapter(
-              child: RecordsNotice(
-                message: state.error!,
-                onRetry: onRetry,
-                icon: Icons.cloud_off_outlined,
+            SliverPadding(
+              padding: AppTheme.inspectionListPadding,
+              sliver: SliverToBoxAdapter(
+                child: RecordsListNotice(
+                  title: 'Refresh failed',
+                  message: state.error!.trim().isEmpty
+                      ? 'Please try again.'
+                      : state.error!,
+                  onRetry: onRetry,
+                  icon: Icons.cloud_off_outlined,
+                ),
               ),
             ),
           SliverPadding(
-            padding: AppTheme.recordsListPadding,
+            padding: AppTheme.inspectionListPadding,
             sliver: SliverList.builder(
               itemCount: state.items.length,
               itemBuilder: (context, index) => Padding(
-                padding: AppTheme.selectionSheetItemPadding,
+                padding: AppTheme.inspectionItemPadding,
                 child: RecordCard(
                   key: ValueKey(state.items[index].ticketId),
                   record: state.items[index],
@@ -101,17 +105,25 @@ class RecordsListSection extends StatelessWidget {
             ),
           ),
           SliverToBoxAdapter(
-            child: state.isLoadingMore
+            child: state.isLoadingMore || state.isRefreshing
                 ? Center(
                     child: Padding(
-                      padding: AppTheme.recordsPagePadding,
+                      padding: AppTheme.inspectionCardPadding,
                       child: _progress(context),
                     ),
                   )
                 : state.isLoadMoreError
-                ? RecordsNotice(
-                    message: state.error ?? 'Unable to load more records.',
-                    onRetry: onRetry,
+                ? Padding(
+                    padding: AppTheme.inspectionListPadding,
+                    child: RecordsListNotice(
+                      title: 'Unable to load more records',
+                      message:
+                          state.error == null || state.error!.trim().isEmpty
+                          ? 'Please try again.'
+                          : state.error!,
+                      icon: Icons.cloud_off_outlined,
+                      onRetry: onRetry,
+                    ),
                   )
                 : state.hasMore
                 ? TextButton(

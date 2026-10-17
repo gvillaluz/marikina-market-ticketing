@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:marikina_market_mobile/core/constants/app_colors.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
 import 'package:marikina_market_mobile/core/router/route_args.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
@@ -11,6 +11,7 @@ import 'package:marikina_market_mobile/features/password_recovery/presentation/b
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_event.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_state.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/reset_password_fields.dart';
+import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/back_to_login_button.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   final ResetPasswordArgs args;
@@ -58,17 +59,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 ),
                 child: BlocListener<PasswordRecoveryBloc, PasswordRecoveryState>(
                   listener: (context, state) {
-                    if (state is ResetPasswordFailed) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            state.message.trim().isEmpty
-                                ? 'Unable to reset your password. Please try again.'
-                                : state.message,
-                          ),
-                        ),
-                      );
-                    }
                     if (state is ResetPasswordSuccessfully &&
                         state.result.success) {
                       context.goNamed(Routes.loginName);
@@ -88,18 +78,14 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                             children: [
                               const Text(
                                 'Create a new password',
-                                style: TextStyle(
-                                  color: AppColors.primaryBlack,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: AppTheme.authPageTitleStyle,
                               ),
                               const SizedBox(height: 4),
                               const Text(
                                 'Use at least 8 characters with a combination of letters and numbers.',
                                 style: TextStyle(
-                                  color: AppColors.mediumGrey,
-                                  fontSize: 14,
+                                  color: AppTheme.authVerificationBodyColor,
+                                  fontSize: AppTheme.bodyFontSize,
                                 ),
                               ),
                               const SizedBox(height: 24),
@@ -119,6 +105,14 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                 PasswordRecoveryState
                               >(
                                 builder: (context, state) {
+                                  final error = switch (state) {
+                                    ResetPasswordFailed(:final message) =>
+                                      message,
+                                    ResetPasswordSuccessfully(:final result)
+                                        when !result.success =>
+                                      result.message,
+                                    _ => null,
+                                  };
                                   return Column(
                                     children: [
                                       AuthBtn(
@@ -127,22 +121,13 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                             state is ResetPasswordLoading,
                                         label: 'Change Password',
                                       ),
-                                      if (state is ResetPasswordSuccessfully &&
-                                          !state.result.success) ...[
+                                      if (error != null) ...[
                                         const SizedBox(height: 12),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                          ),
-                                          child: Text(
-                                            state.result.message,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              color: AppColors.primaryRed,
-                                            ),
-                                          ),
-                                        ),
+                                        AuthErrorNotice(message: error),
                                       ],
+                                      BackToLoginButton(
+                                        enabled: state is! ResetPasswordLoading,
+                                      ),
                                     ],
                                   );
                                 },

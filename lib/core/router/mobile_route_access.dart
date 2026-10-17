@@ -17,6 +17,9 @@ class MobileRouteAccess {
     Routes.vendorRecords,
     Routes.vendorNotifications,
     Routes.vendorProfile,
+    Routes.vendorQr,
+    Routes.editProfile,
+    Routes.changePassword,
   };
   static const _enforcerRoutes = {
     Routes.dashboard,
@@ -71,13 +74,18 @@ class MobileRouteAccess {
 
   static String? notificationLocation(AuthState state, Object? ticketId) {
     if (state is! Authenticated || state.user.mustChangePassword) return null;
-    if (state.user.role == Role.marketVendor) return Routes.vendorNotifications;
-    if (state.user.role != Role.marketEnforcer) return null;
     final id = ticketId is int
         ? ticketId
         : ticketId is String
         ? int.tryParse(ticketId)
         : null;
-    return id != null && id > 0 ? '/ticket/$id' : Routes.notifications;
+    final validId = id != null && id > 0 && id <= 2147483647;
+    if (state.user.role == Role.marketVendor) {
+      return validId ? '/vendor/records/$id' : Routes.vendorNotifications;
+    }
+    if (state.user.role == Role.marketEnforcer) {
+      return validId ? '/ticket/$id' : Routes.notifications;
+    }
+    return null;
   }
 }

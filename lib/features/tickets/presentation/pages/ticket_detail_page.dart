@@ -100,6 +100,13 @@ class TicketDetailPage extends StatelessWidget {
                             ),
                     ),
                     onRetrySettlementLoad: () {
+                      if (state.ticket.penaltyType ==
+                          PenaltyType.communityService) {
+                        context.read<TicketBloc>().add(
+                          LoadTicketDetail(state.ticket.ticketId),
+                        );
+                        return;
+                      }
                       context.read<TicketBloc>().add(
                         LoadTicketSettlement(
                           ticketId: state.ticket.ticketId,

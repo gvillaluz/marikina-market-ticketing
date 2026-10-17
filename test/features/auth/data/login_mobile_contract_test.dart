@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/core/errors/failure.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
 import 'package:marikina_market_mobile/core/network/client.dart';
+import 'package:marikina_market_mobile/core/utils/unit.dart';
 import 'package:marikina_market_mobile/core/storage/secure_storage_service_impl.dart';
 import 'package:marikina_market_mobile/features/auth/data/data_sources/auth_local_data_source.dart';
 import 'package:marikina_market_mobile/features/auth/data/data_sources/auth_remote_data_source.dart';
@@ -50,9 +51,15 @@ const profileResponse = <String, Object?>{
 
 ApiClient contractClient(
   Future<Response<Object?>> Function(RequestOptions) respond, {
-  Future<bool> Function()? refreshAction,
+  Future<Result<Unit>> Function()? refreshAction,
+  Future<Result<Unit>> Function()? waitForRefresh,
+  Future<void> Function()? onAuthFailure,
 }) {
-  final client = ApiClient(refreshAction: refreshAction);
+  final client = ApiClient(
+    refreshAction: refreshAction,
+    waitForRefresh: waitForRefresh,
+    onAuthFailure: onAuthFailure,
+  );
   client.dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -320,7 +327,7 @@ void main() {
       ),
       refreshAction: () async {
         refreshes++;
-        return false;
+        return Result.failure(const UnauthorizedFailure('Session expired.'));
       },
     );
     await contractRepository(client).loginUser('enforcer01', 'ExamplePass123');

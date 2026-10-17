@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
@@ -72,16 +73,7 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
                 ),
                 if (errorMessage != null) ...[
                   const SizedBox(height: AppTheme.authSmallGap),
-                  Semantics(
-                    liveRegion: true,
-                    child: Text(
-                      errorMessage,
-                      textAlign: TextAlign.start,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.error,
-                      ),
-                    ),
-                  ),
+                  AuthErrorNotice(message: errorMessage),
                 ],
                 const SizedBox(height: AppTheme.authGap),
                 AuthBtn(
@@ -94,18 +86,18 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
                       : null,
                 ),
                 const SizedBox(height: AppTheme.authSmallGap),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: AppTheme.authSmallGap,
+                  runSpacing: AppTheme.authSmallGap,
                   children: [
-                    Flexible(
-                      child: Text(
-                        'Didn’t receive the email?',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.authVerificationBodyColor,
-                        ),
+                    Text(
+                      'Didn’t receive the email?',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.authVerificationBodyColor,
                       ),
                     ),
-                    const SizedBox(width: AppTheme.authSmallGap),
                     TextButton(
                       onPressed: state.canResend
                           ? () => context.read<AuthBloc>().add(ResendLoginOtp())

@@ -29,13 +29,13 @@ class InspectionListHeader extends StatelessWidget {
       Text(
         'Inspections',
         style: AppTheme.inspectionTitleStyle.copyWith(
-          color: Theme.of(context).colorScheme.onSurface,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
       const SizedBox(height: AppTheme.inspectionTinyGap),
       Text(
         'Review and manage issued inspection tickets.',
-        style: AppTheme.inspectionBodyStyle.copyWith(
+        style: AppTheme.pageSubtitleStyle.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),

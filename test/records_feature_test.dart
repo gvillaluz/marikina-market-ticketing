@@ -137,6 +137,7 @@ void main() {
       controller.jumpTo(controller.position.maxScrollExtent / 2);
       await tester.pumpAndSettle();
       expect(offsets, [0]);
+      expect(find.text('Records • 10'), findsOneWidget);
       controller.jumpTo(controller.position.maxScrollExtent);
       await tester.pumpAndSettle();
       expect(offsets, [0, 10]);
@@ -180,20 +181,27 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Unable to load records'), findsOneWidget);
     expect(find.text('Unavailable right now.'), findsOneWidget);
     await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
-    expect(find.text('No records found.'), findsOneWidget);
-    expect(find.text('0 records'), findsOneWidget);
+    expect(find.text('No records found'), findsOneWidget);
+    expect(
+      find.text(
+        'Try changing your search or record type. New records will appear here.',
+      ),
+      findsOneWidget,
+    );
     expect(find.byType(RefreshIndicator), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });
 
   testWidgets(
-    'View Details uses the vendor endpoint and Back preserves the Records list',
+    'View Details uses the vendor endpoint and Back refreshes the Records list',
     (tester) async {
       final paths = <String>[];
+      var recordStatus = 'Pending';
       final repository = recordsRepository((options) async {
         paths.add(options.path);
         if (options.path.endsWith('/settlement/receipt')) {
@@ -207,26 +215,30 @@ void main() {
           options,
           options.path.endsWith('/inspections')
               ? {
-                  'items': [recordResponse],
+                  'items': [
+                    {...recordResponse, 'ticket_status': recordStatus},
+                  ],
                   'has_more': false,
                   'total': 1,
                 }
               : detailResponse,
         );
       });
-      sl.registerFactory<RecordsBloc>(
-        () => RecordsBloc(LoadRecordsUseCase(repository)),
-      );
-      sl.registerFactory<RecordDetailBloc>(
-        () => RecordDetailBloc(LoadRecordDetailUseCase(repository)),
-      );
-      sl.registerFactory<VendorSettlementBloc>(
-        () => VendorSettlementBloc(
+      late RecordsBloc recordsBloc;
+      late RecordDetailBloc detailBloc;
+      late VendorSettlementBloc settlementBloc;
+      await tester.runAsync(() async {
+        recordsBloc = RecordsBloc(LoadRecordsUseCase(repository));
+        detailBloc = RecordDetailBloc(LoadRecordDetailUseCase(repository));
+        settlementBloc = VendorSettlementBloc(
           loadReceipt: LoadVendorReceiptUseCase(repository),
           loadProgress: LoadVendorServiceProgressUseCase(repository),
           submitReceipt: SubmitVendorReceiptUseCase(repository),
-        ),
-      );
+        );
+      });
+      sl.registerFactory<RecordsBloc>(() => recordsBloc);
+      sl.registerFactory<RecordDetailBloc>(() => detailBloc);
+      sl.registerFactory<VendorSettlementBloc>(() => settlementBloc);
       addTearDown(() => sl.unregister<VendorSettlementBloc>());
       addTearDown(() => sl.unregister<RecordsBloc>());
       addTearDown(() => sl.unregister<RecordDetailBloc>());
@@ -237,27 +249,63 @@ void main() {
             MobileRouteAccess.redirect(account('MarketVendor'), state.uri.path),
       );
       addTearDown(router.dispose);
-      await tester.pumpWidget(
-        MaterialApp.router(theme: AppTheme.light, routerConfig: router),
-      );
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          MaterialApp.router(theme: AppTheme.light, routerConfig: router),
+        );
+        if (recordsBloc.state.isInitialLoading) {
+          await recordsBloc.stream
+              .firstWhere((state) => !state.isInitialLoading)
+              .timeout(const Duration(seconds: 5));
+        }
+      });
       await tester.pumpAndSettle();
-      await tester.tap(find.text('View Details ›'));
+      await tester.runAsync(() async {
+        await tester.tap(find.text('View Details ›'));
+        await tester.pump();
+        if (detailBloc.state.isLoading) {
+          await detailBloc.stream
+              .firstWhere((state) => !state.isLoading)
+              .timeout(const Duration(seconds: 5));
+        }
+      });
+      await tester.runAsync(() async {
+        await tester.pump();
+        if (!settlementBloc.state.isLoaded) {
+          await settlementBloc.stream
+              .firstWhere((state) => state.isLoaded)
+              .timeout(const Duration(seconds: 5));
+        }
+      });
       await tester.pumpAndSettle();
-      expect(
-        router.routeInformationProvider.value.uri.path,
-        '/vendor/records/101',
-      );
+      expect(router.state.matchedLocation, '/vendor/records/101');
       expect(find.text('Reyes Fresh Seafood'), findsOneWidget);
       expect(paths, [
         '/vendor/tickets/inspections',
         '/vendor/tickets/101',
         '/vendor/tickets/101/settlement/receipt',
       ]);
-      await tester.tap(find.byTooltip('Back to records'));
+      recordStatus = 'Paid';
+      await tester.runAsync(() async {
+        await tester.tap(find.byTooltip('Back to records'));
+        await tester.pump();
+        await Future<void>.delayed(Duration.zero);
+        if (recordsBloc.state.isRefreshing) {
+          await recordsBloc.stream
+              .firstWhere((state) => !state.isRefreshing)
+              .timeout(const Duration(seconds: 5));
+        }
+      });
       await tester.pumpAndSettle();
       expect(router.routeInformationProvider.value.uri.path, '/vendor/records');
       expect(find.text('My Records'), findsOneWidget);
-      expect(paths, hasLength(3));
+      expect(paths, [
+        '/vendor/tickets/inspections',
+        '/vendor/tickets/101',
+        '/vendor/tickets/101/settlement/receipt',
+        '/vendor/tickets/inspections',
+      ]);
+      expect(find.text('Paid'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
     },

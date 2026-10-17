@@ -192,7 +192,7 @@ void main() {
     () async {
       var readCalls = 0;
       final started = Completer<RequestOptions>();
-      final pending = Completer<Response<Object?>>();
+      final pending = Completer<void>();
       final bloc = notificationBloc((options) async {
         if (options.method == 'GET') {
           return reply(options, {
@@ -202,7 +202,11 @@ void main() {
         }
         readCalls++;
         started.complete(options);
-        return pending.future;
+        await pending.future;
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+        );
       });
       final loaded = bloc.stream.firstWhere(
         (state) => state is NotificationLoaded,
@@ -210,7 +214,7 @@ void main() {
       bloc.add(LoadNotifications(0, 'All'));
       await loaded;
       bloc.add(MarkAsRead(1));
-      final options = await started.future;
+      await started.future;
       bloc.add(MarkAsRead(1));
       await Future<void>.delayed(Duration.zero);
       expect(readCalls, 1);
@@ -222,12 +226,7 @@ void main() {
         (state) =>
             state is NotificationLoaded && state.readErrorMessage != null,
       );
-      pending.completeError(
-        DioException(
-          requestOptions: options,
-          type: DioExceptionType.connectionError,
-        ),
-      );
+      pending.complete();
       await failed;
       expect(
         (bloc.state as NotificationLoaded).notifications.single.isRead,
@@ -240,13 +239,17 @@ void main() {
     () async {
       var calls = 0;
       final started = Completer<RequestOptions>();
-      final pending = Completer<Response<Object?>>();
+      final pending = Completer<void>();
       final bloc = notificationBloc((options) async {
         if (++calls == 1) {
           return reply(options, {'items': [], 'has_more': false});
         }
         started.complete(options);
-        return pending.future;
+        await pending.future;
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+        );
       });
       final loaded = bloc.stream.firstWhere(
         (state) => state is NotificationLoaded,
@@ -254,18 +257,13 @@ void main() {
       bloc.add(LoadNotifications(0, 'All'));
       await loaded;
       final refresh = bloc.refreshNotifications('All');
-      final options = await started.future;
+      await started.future;
       bloc.add(LoadNotifications(0, 'All'));
       bloc.add(LoadNotifications(1, 'All'));
       await Future<void>.delayed(Duration.zero);
       expect(calls, 2);
       expect(bloc.state, isA<NotificationLoaded>());
-      pending.completeError(
-        DioException(
-          requestOptions: options,
-          type: DioExceptionType.connectionError,
-        ),
-      );
+      pending.complete();
       await refresh;
       expect((bloc.state as NotificationLoaded).errorMessage, isNotNull);
     },

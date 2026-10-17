@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_summary.dart';
@@ -46,7 +47,7 @@ class VendorSummaryBanner extends StatelessWidget {
                         vendor.tradeName,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: AppTheme.sectionHeadingFontSize,
                         ),
                       ),
                       Text('Business ID: ${vendor.businessId}'),

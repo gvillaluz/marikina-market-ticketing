@@ -89,7 +89,7 @@ class ViolatorInfoCard extends StatelessWidget {
           'Find Vendor',
           style: TextStyle(
             color: AppColors.primary,
-            fontSize: 20,
+            fontSize: AppTheme.sectionHeadingFontSize,
             fontWeight: FontWeight.bold,
           ),
         ),

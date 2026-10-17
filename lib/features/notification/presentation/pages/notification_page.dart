@@ -9,9 +9,11 @@ import 'package:marikina_market_mobile/features/notification/presentation/widget
 import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_list_sliver.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_list_skeleton.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_notice.dart';
+import 'package:marikina_market_mobile/features/notification/presentation/widgets/vendor_notification_header.dart';
 
 class NotificationPage extends StatefulWidget {
-  const NotificationPage({super.key});
+  final bool isVendor;
+  const NotificationPage({this.isVendor = false, super.key});
   @override
   State<NotificationPage> createState() => _NotificationPageState();
 }
@@ -33,6 +35,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
   void _onScroll() {
     if (!_scrollController.hasClients ||
+        _scrollController.position.pixels <= 0 ||
         _scrollController.position.extentAfter >
             AppTheme.notificationPageAheadExtent) {
       return;
@@ -42,6 +45,8 @@ class _NotificationPageState extends State<NotificationPage> {
         state.hasMore &&
         !state.isLoadingMore &&
         !state.isRefreshing &&
+        !state.isMarkingAll &&
+        state.markingReadIds.isEmpty &&
         state.errorMessage == null) {
       context.read<NotificationBloc>().add(
         LoadNotifications(state.notifications.length, _filter),
@@ -53,6 +58,20 @@ class _NotificationPageState extends State<NotificationPage> {
     if (_filter == filter) return;
     setState(() => _filter = filter);
     context.read<NotificationBloc>().add(LoadNotifications(0, filter));
+  }
+
+  void _loadMore() {
+    final state = context.read<NotificationBloc>().state;
+    if (state is NotificationLoaded &&
+        state.hasMore &&
+        !state.isRefreshing &&
+        !state.isLoadingMore &&
+        !state.isMarkingAll &&
+        state.markingReadIds.isEmpty) {
+      context.read<NotificationBloc>().add(
+        LoadNotifications(state.notifications.length, _filter),
+      );
+    }
   }
 
   void _retry() {
@@ -69,7 +88,10 @@ class _NotificationPageState extends State<NotificationPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Notifications')),
+    backgroundColor: widget.isVendor
+        ? AppTheme.vendorNotificationBackground
+        : null,
+    appBar: widget.isVendor ? null : AppBar(title: const Text('Notifications')),
     body: SafeArea(
       child: BlocListener<NotificationBloc, NotificationState>(
         listenWhen: (previous, current) =>
@@ -106,26 +128,60 @@ class _NotificationPageState extends State<NotificationPage> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverPadding(
-                    padding: AppTheme.notificationHeaderPadding,
+                    padding: widget.isVendor
+                        ? AppTheme.inspectionHeaderPadding
+                        : AppTheme.notificationHeaderPadding,
                     sliver: SliverToBoxAdapter(
-                      child: NotificationHeader(
-                        filter: _filter,
-                        onChange: _changeFilter,
-                      ),
+                      child: widget.isVendor
+                          ? BlocBuilder<NotificationBloc, NotificationState>(
+                              builder: (context, state) =>
+                                  VendorNotificationHeader(
+                                    isLoading:
+                                        state is NotificationInitial ||
+                                        state is NotificationLoading,
+                                    unreadCount: state is NotificationLoaded
+                                        ? state.unreadCount
+                                        : null,
+                                    unreadOnly: _filter == 'Unread',
+                                    isBusy:
+                                        state is! NotificationLoaded ||
+                                        state.isRefreshing ||
+                                        state.isLoadingMore ||
+                                        state.isMarkingAll ||
+                                        state.markingReadIds.isNotEmpty,
+                                    onToggleUnread: () => _changeFilter(
+                                      _filter == 'All' ? 'Unread' : 'All',
+                                    ),
+                                    onMarkAll: () => context
+                                        .read<NotificationBloc>()
+                                        .add(MarkAllAsRead()),
+                                  ),
+                            )
+                          : NotificationHeader(
+                              filter: _filter,
+                              onChange: _changeFilter,
+                            ),
                     ),
                   ),
                   BlocBuilder<NotificationBloc, NotificationState>(
                     builder: (context, state) {
                       if (state is NotificationInitial ||
                           state is NotificationLoading) {
-                        return const SliverToBoxAdapter(
-                          child: NotificationListSkeleton(),
+                        return SliverToBoxAdapter(
+                          child: NotificationListSkeleton(
+                            isVendor: widget.isVendor,
+                          ),
                         );
                       }
                       if (state is NotificationLoaded) {
                         return SliverPadding(
-                          padding: AppTheme.notificationListPadding,
+                          padding:
+                              widget.isVendor && state.notifications.isNotEmpty
+                              ? AppTheme.vendorNotificationListPadding
+                              : AppTheme.notificationListPadding,
                           sliver: NotificationListSliver(
+                            isVendor: widget.isVendor,
+                            isBusy: state.isMarkingAll,
                             data: NotificationListData(
                               notifications: state.notifications,
                               hasMore: state.hasMore,
@@ -138,7 +194,9 @@ class _NotificationPageState extends State<NotificationPage> {
                             onRead: (id) => context
                                 .read<NotificationBloc>()
                                 .add(MarkAsRead(id)),
-                            onRetry: _retry,
+                            onRetry: state.errorMessage != null
+                                ? _retry
+                                : _loadMore,
                           ),
                         );
                       }

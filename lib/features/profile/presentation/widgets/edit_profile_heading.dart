@@ -10,12 +10,16 @@ class EditProfileHeading extends StatelessWidget {
     children: [
       Text(
         'Update your account information',
-        style: Theme.of(context).textTheme.titleLarge,
+        style: AppTheme.profileEditTitleStyle.copyWith(
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
       const SizedBox(height: AppTheme.profileSmallGap),
       Text(
         'Keep your personal and contact details up to date.',
-        style: Theme.of(context).textTheme.bodyMedium,
+        style: AppTheme.detailSubtitleStyle.copyWith(
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
       const SizedBox(height: AppTheme.profileGap),
     ],

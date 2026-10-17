@@ -21,7 +21,7 @@ class VendorRecordDetailContent extends StatelessWidget {
       children: [
         Text(
           warning ? 'Written Warning Record' : 'Ticket Record',
-          style: AppTheme.profileHeadingStyle.copyWith(
+          style: AppTheme.detailTitleStyle.copyWith(
             color: Theme.of(context).colorScheme.primary,
           ),
         ),
@@ -114,7 +114,7 @@ class VendorRecordDetailContent extends StatelessWidget {
                   if (detail.status != null)
                     RecordDetailRow(
                       label: 'Status',
-                      value: detail.status!.value,
+                      value: detail.status!.label,
                     ),
                   if (detail.dueDate != null)
                     RecordDetailRow(

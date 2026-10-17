@@ -20,6 +20,8 @@ class NotificationLoaded extends NotificationState {
   final bool isLoadMoreError;
   final Set<int> markingReadIds;
   final String? readErrorMessage;
+  final int? unreadCount;
+  final bool isMarkingAll;
 
   NotificationLoaded(
     this.notifications,
@@ -30,6 +32,8 @@ class NotificationLoaded extends NotificationState {
     this.isLoadMoreError = false,
     this.markingReadIds = const {},
     this.readErrorMessage,
+    this.unreadCount,
+    this.isMarkingAll = false,
   });
 
   NotificationLoaded copyWith({
@@ -43,6 +47,9 @@ class NotificationLoaded extends NotificationState {
     Set<int>? markingReadIds,
     String? readErrorMessage,
     bool clearReadErrorMessage = false,
+    int? unreadCount,
+    bool clearUnreadCount = false,
+    bool? isMarkingAll,
   }) {
     return NotificationLoaded(
       notifications ?? this.notifications,
@@ -57,6 +64,8 @@ class NotificationLoaded extends NotificationState {
       readErrorMessage: clearReadErrorMessage
           ? null
           : readErrorMessage ?? this.readErrorMessage,
+      unreadCount: clearUnreadCount ? null : unreadCount ?? this.unreadCount,
+      isMarkingAll: isMarkingAll ?? this.isMarkingAll,
     );
   }
 }

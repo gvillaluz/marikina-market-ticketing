@@ -8,32 +8,30 @@ class ViolationSummaryModel {
   final int offenseNumber;
 
   ViolationSummaryModel({
-    required this.ordinanceId, 
-    required this.ordinanceNo, 
-    required this.ordinanceCode, 
-    this.paymentAmount, 
-    required this.offenseNumber
+    required this.ordinanceId,
+    required this.ordinanceNo,
+    required this.ordinanceCode,
+    this.paymentAmount,
+    required this.offenseNumber,
   });
 
   factory ViolationSummaryModel.fromJson(Map<String, dynamic> json) {
     return ViolationSummaryModel(
-      ordinanceId: json['ordinance_id'] as int, 
-      ordinanceNo: json['ordinance_no'] as String, 
-      ordinanceCode: json['ordinance_code'] as String, 
+      ordinanceId: json['ordinance_id'] as int,
+      ordinanceNo: json['ordinance_no'] as String,
+      ordinanceCode: json['ordinance_code'] as String,
       offenseNumber: json['offense_count'] as int,
-      paymentAmount: json['penalty_amount'] != null
-        ? json['penalty_amount'] as double
-        : null
+      paymentAmount: (json['penalty_amount'] as num?)?.toDouble(),
     );
   }
 
   ViolationSummary toEntity() {
     return ViolationSummary(
-      ordinanceId: ordinanceId, 
-      ordinanceNo: ordinanceNo, 
-      ordinanceCode: ordinanceCode, 
+      ordinanceId: ordinanceId,
+      ordinanceNo: ordinanceNo,
+      ordinanceCode: ordinanceCode,
       offenseNumber: offenseNumber,
-      paymentAmount: paymentAmount
+      paymentAmount: paymentAmount,
     );
   }
 }

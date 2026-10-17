@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:marikina_market_mobile/core/constants/app_colors.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/router/route_args.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
@@ -100,12 +100,13 @@ class _LoginCardState extends State<LoginCard> {
                     if (state
                         case AuthInvalidCredentials(:final message) ||
                             AuthConnectionError(:final message)) ...{
-                      Text(
-                        message,
-                        style: TextStyle(color: AppColors.primaryRed),
-                        textAlign: TextAlign.center,
-                      ),
+                      AuthErrorNotice(message: message),
                     },
+                    if (state is Unauthenticated && state.sessionExpired)
+                      const AuthErrorNotice(
+                        message:
+                            'Your session has expired. Please sign in again.',
+                      ),
                   ],
                 ),
               );

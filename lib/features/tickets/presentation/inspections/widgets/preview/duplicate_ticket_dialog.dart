@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/duplicate_ordinance.dart';
@@ -11,7 +12,7 @@ class DuplicateTicketDialog extends StatelessWidget {
     required this.message,
     required this.duplicateOrdinances,
     required this.onEditOrdinances,
-    super.key
+    super.key,
   });
 
   @override
@@ -41,7 +42,7 @@ class DuplicateTicketDialog extends StatelessWidget {
               'Ticket not created',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 15,
+                fontSize: AppTheme.bodyFontSize,
               ),
             ),
             const SizedBox(height: 4),
@@ -49,7 +50,7 @@ class DuplicateTicketDialog extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: AppTheme.captionFontSize,
                 color: AppColors.mediumGrey,
                 height: 1.4,
               ),
@@ -66,21 +67,26 @@ class DuplicateTicketDialog extends StatelessWidget {
               child: Column(
                 children: duplicateOrdinances.map((ordinance) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
                           child: Text(
                             ordinance.ordinanceNo,
-                            style: const TextStyle(fontSize: 13),
+                            style: const TextStyle(
+                              fontSize: AppTheme.captionFontSize,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           ordinance.ordinanceCode,
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: AppTheme.captionFontSize,
                             color: AppColors.mediumGrey,
                           ),
                         ),
@@ -99,7 +105,9 @@ class DuplicateTicketDialog extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.primaryLight,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onPressed: () {

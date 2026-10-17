@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 
@@ -12,8 +13,11 @@ class StatusPlaceholder extends StatelessWidget {
     this.child,
     required this.title,
     required this.subtitle,
-    super.key
-  }) : assert(icon != null || child != null, 'Provide either an icon or a custom child.');
+    super.key,
+  }) : assert(
+         icon != null || child != null,
+         'Provide either an icon or a custom child.',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +42,7 @@ class StatusPlaceholder extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
-                fontSize: 15,
+                fontSize: AppTheme.bodyFontSize,
               ),
               textAlign: TextAlign.center,
             ),
@@ -47,7 +51,7 @@ class StatusPlaceholder extends StatelessWidget {
               subtitle,
               style: const TextStyle(
                 color: AppColors.mediumGrey,
-                fontSize: 13,
+                fontSize: AppTheme.captionFontSize,
               ),
               textAlign: TextAlign.center,
             ),

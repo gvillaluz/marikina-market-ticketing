@@ -25,13 +25,37 @@ class RecordsHeader extends StatelessWidget {
       children: [
         Text(
           'My Records',
-          style: AppTheme.profileHeadingStyle.copyWith(color: colors.primary),
+          style: AppTheme.inspectionTitleStyle.copyWith(color: colors.primary),
         ),
         const SizedBox(height: AppTheme.inspectionTinyGap),
         Text(
           'View your recorded warnings and violation tickets.',
-          style: AppTheme.recordsBodyStyle.copyWith(
+          style: AppTheme.pageSubtitleStyle.copyWith(
             color: colors.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppTheme.inspectionGap),
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: searchController,
+          builder: (context, value, child) => TextField(
+            controller: searchController,
+            maxLength: 200,
+            textInputAction: TextInputAction.search,
+            onChanged: onSearchChanged,
+            onSubmitted: (_) => onSearchSubmitted(),
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
+            decoration: InputDecoration(
+              hintText: 'Search control number',
+              counterText: '',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: value.text.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Clear search',
+                      onPressed: onClear,
+                      icon: const Icon(Icons.close),
+                    ),
+            ),
           ),
         ),
         const SizedBox(height: AppTheme.inspectionSmallGap),
@@ -65,30 +89,6 @@ class RecordsHeader extends StatelessWidget {
                     ),
                   ),
               ],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppTheme.inspectionSmallGap),
-        TextField(
-          controller: searchController,
-          maxLength: 200,
-          textInputAction: TextInputAction.search,
-          onChanged: onSearchChanged,
-          onSubmitted: (_) => onSearchSubmitted(),
-          onTapOutside: (_) => FocusScope.of(context).unfocus(),
-          decoration: InputDecoration(
-            hintText: 'Search control number',
-            counterText: '',
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: ValueListenableBuilder<TextEditingValue>(
-              valueListenable: searchController,
-              builder: (context, value, _) => value.text.isEmpty
-                  ? const SizedBox.shrink()
-                  : IconButton(
-                      tooltip: 'Clear search',
-                      onPressed: onClear,
-                      icon: const Icon(Icons.clear),
-                    ),
             ),
           ),
         ),

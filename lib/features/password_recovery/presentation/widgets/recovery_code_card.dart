@@ -8,10 +8,12 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/otp_code_field.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_bloc.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_event.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_state.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/resend_text.dart';
+import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/back_to_login_button.dart';
 
 class RecoveryCodeCard extends StatefulWidget {
   final CodeValidationArgs args;
@@ -73,14 +75,6 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
               resetToken: token,
             ),
           );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Verification could not be completed. Please try again.',
-              ),
-            ),
-          );
         }
       }
     },
@@ -90,6 +84,10 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
         SendOtpFailed(:final message) ||
         VerificationFailed(:final message) => message,
         OtpVerified(:final result) when !result.success => result.message,
+        OtpVerified(:final result)
+            when result.resetToken == null ||
+                result.resetToken!.trim().isEmpty =>
+          'Verification could not be completed. Please try again.',
         _ => null,
       };
       final channelValue = widget.args.channel == 'email'
@@ -109,12 +107,14 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
                 children: [
                   Text(
                     'Check your ${widget.args.channel}',
-                    style: AppTheme.authHeadingStyle,
+                    style: AppTheme.authPageTitleStyle,
                   ),
                   const SizedBox(height: AppTheme.authSmallGap),
                   Text(
                     'Enter the 6-digit verification code sent to $channelValue.',
-                    style: AppTheme.authBodyStyle,
+                    style: AppTheme.authBodyStyle.copyWith(
+                      color: AppTheme.authVerificationBodyColor,
+                    ),
                   ),
                   const SizedBox(height: AppTheme.authGap),
                   OtpCodeField(controller: _code, enabled: !busy),
@@ -144,25 +144,13 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
                   ),
                   if (error != null) ...[
                     const SizedBox(height: AppTheme.authSmallGap),
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        error.trim().isEmpty
-                            ? 'Please try again to verify your code.'
-                            : error,
-                        textAlign: TextAlign.center,
-                        style: AppTheme.authBodyStyle.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
+                    AuthErrorNotice(
+                      message: error.trim().isEmpty
+                          ? 'Please try again to verify your code.'
+                          : error,
                     ),
                   ],
-                  TextButton(
-                    onPressed: busy
-                        ? null
-                        : () => context.goNamed(Routes.loginName),
-                    child: const Text('Back to login'),
-                  ),
+                  BackToLoginButton(enabled: !busy),
                 ],
               ),
             ),

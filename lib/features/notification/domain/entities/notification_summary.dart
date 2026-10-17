@@ -8,10 +8,11 @@ class NotificationSummary {
   final String controlNumber;
   final String tradeName;
   final String marketSection;
-  final PenaltyType penaltyType;
+  final PenaltyType? penaltyType;
   final double? totalFineAmount;
-  final DateTime dueDate;
-  final TicketStatus status;
+  final DateTime? dueDate;
+  final TicketStatus? status;
+  final bool isWarning;
   final String message;
   final bool isRead;
   final DateTime createdAt;
@@ -30,5 +31,6 @@ class NotificationSummary {
     required this.message,
     required this.isRead,
     required this.createdAt,
+    this.isWarning = false,
   });
 }

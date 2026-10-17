@@ -1,13 +1,11 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 
 class ErrorBanner extends StatelessWidget {
   final String message;
 
-  const ErrorBanner({
-    super.key,
-    required this.message,
-  });
+  const ErrorBanner({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +20,14 @@ class ErrorBanner extends StatelessWidget {
       child: IntrinsicHeight(
         child: Row(
           children: [
-            Container(
-              width: 4,
-              color: AppColors.primaryRed,
-            ),
-            
+            Container(width: 4, color: AppColors.primaryRed),
+
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: [
                     const Icon(
@@ -43,7 +41,7 @@ class ErrorBanner extends StatelessWidget {
                         message,
                         style: const TextStyle(
                           color: AppColors.primaryRed,
-                          fontSize: 12,
+                          fontSize: AppTheme.captionFontSize,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

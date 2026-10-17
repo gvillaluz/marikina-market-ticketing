@@ -21,7 +21,7 @@ class LoginCardHeader extends StatelessWidget {
         const SizedBox(height: AppTheme.authSmallGap),
         Text(
           'Marikina Public Market Inspection System',
-          style: AppTheme.authHeadingStyle.copyWith(
+          style: AppTheme.authHeaderTextStyle.copyWith(
             color: Theme.of(context).colorScheme.onPrimary,
           ),
           textAlign: TextAlign.center,

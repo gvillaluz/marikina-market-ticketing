@@ -32,6 +32,8 @@ class ChangePasswordSubmitted extends AuthEvent {
 
 class RefreshTokens extends AuthEvent {}
 
+class RegisterDeviceTokenRequested extends AuthEvent {}
+
 class LogoutUser extends AuthEvent {
   final bool sessionExpired;
   LogoutUser(this.sessionExpired);

@@ -24,15 +24,6 @@ class MandatoryChangePasswordPage extends StatelessWidget {
                 ),
                 child: BlocListener<AuthBloc, AuthState>(
                   listener: (context, state) {
-                    if (state is AuthChangePasswordNetworkError) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(state.message),
-                          backgroundColor: AppColors.primaryRed,
-                        ),
-                      );
-                    }
-
                     if (state is Authenticated) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

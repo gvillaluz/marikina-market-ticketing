@@ -1,3 +1,5 @@
+import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
+import 'package:marikina_market_mobile/features/profile/presentation/pages/vendor_qr_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +15,6 @@ import 'package:marikina_market_mobile/features/records/presentation/bloc/record
 import 'package:marikina_market_mobile/features/records/presentation/bloc/record_detail/record_detail_bloc.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/record_detail/load_record_detail.dart';
 import 'package:marikina_market_mobile/features/layout/presentation/widgets/root_branch_container.dart';
-import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/pages/login_page.dart';
@@ -22,8 +23,10 @@ import 'package:marikina_market_mobile/features/auth/presentation/pages/mandator
 import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:marikina_market_mobile/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:marikina_market_mobile/features/dashboard/presentation/pages/vendor_dashboard_page.dart';
+import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/vendor_dashboard_bloc.dart';
+import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/load_vendor_dashboard.dart';
 import 'package:marikina_market_mobile/features/layout/presentation/pages/root_screen.dart';
-import 'package:marikina_market_mobile/features/layout/presentation/pages/vendor_placeholder_page.dart';
 import 'package:marikina_market_mobile/features/layout/presentation/pages/mobile_access_unavailable_page.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_event.dart';
@@ -178,15 +181,32 @@ List<RouteBase> buildAppRoutes({String? sessionKey}) => [
     },
   ),
   GoRoute(
+    name: Routes.vendorQrName,
+    path: Routes.vendorQr,
+    builder: (context, state) {
+      final auth = context.read<AuthBloc>().state;
+      if (auth is! Authenticated) return const SizedBox.shrink();
+      return BlocProvider(
+        create: (_) => sl<ProfileBloc>(instanceName: 'vendorProfile'),
+        child: VendorQrPage(user: auth.user),
+      );
+    },
+  ),
+  GoRoute(
     name: Routes.editProfileName,
     path: Routes.editProfile,
     pageBuilder: (context, state) {
-      final user = state.extra as User;
+      final auth = context.read<AuthBloc>().state as Authenticated;
+      final user = auth.user;
 
       return CupertinoPage(
         key: state.pageKey,
         child: BlocProvider(
-          create: (_) => sl<ProfileBloc>(),
+          create: (_) => sl<ProfileBloc>(
+            instanceName: user.role == Role.marketVendor
+                ? 'vendorProfile'
+                : null,
+          ),
           child: EditProfilePage(user: user),
         ),
       );
@@ -196,7 +216,7 @@ List<RouteBase> buildAppRoutes({String? sessionKey}) => [
     name: Routes.changePasswordName,
     path: Routes.changePassword,
     pageBuilder: (context, state) {
-      final user = state.extra as User;
+      final user = (context.read<AuthBloc>().state as Authenticated).user;
 
       return CupertinoPage(
         key: state.pageKey,
@@ -321,7 +341,29 @@ List<RouteBase> buildAppRoutes({String? sessionKey}) => [
                           sl<RecordsBloc>()..add(const LoadRecords()),
                       child: const RecordsPage(),
                     )
-                  : const VendorPlaceholderPage(),
+                  : path == Routes.vendorNotifications
+                  ? BlocProvider(
+                      create: (_) => sl<NotificationBloc>(
+                        instanceName: 'vendorNotifications',
+                      )..add(LoadNotifications(0, 'All')),
+                      child: const NotificationPage(isVendor: true),
+                    )
+                  : path == Routes.vendorProfile
+                  ? BlocProvider(
+                      create: (_) =>
+                          sl<ProfileBloc>(instanceName: 'vendorProfile'),
+                      child: const ProfilePage(),
+                    )
+                  : BlocProvider(
+                      create: (_) =>
+                          sl<VendorDashboardBloc>()
+                            ..add(const LoadVendorDashboard()),
+                      child: BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, auth) => auth is Authenticated
+                            ? VendorDashboardPage(user: auth.user)
+                            : const SizedBox.shrink(),
+                      ),
+                    ),
             ),
           ],
         ),

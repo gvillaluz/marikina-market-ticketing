@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marikina_market_mobile/core/errors/failure.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/page_result.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
@@ -328,16 +329,24 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
     final result = await submitCommunityServiceLogUseCase(event.params);
 
     final latest = state;
-    if (latest is! TicketDetailLoaded ||
+    if (emit.isDone ||
+        latest is! TicketDetailLoaded ||
         latest.ticket.ticketId != event.params.ticketId) {
       return;
     }
     switch (result) {
       case ResultFailure(:final failure):
+        final uncertain =
+            failure is NetworkFailure ||
+            failure is ServerFailure ||
+            failure is UnauthorizedFailure;
         emit(
           latest.copyWith(
+            isSettlementLoaded: !uncertain,
             isSubmittingSettlement: false,
-            settlementMessage: failure.message,
+            settlementMessage: uncertain
+                ? '${failure.message} Reload the ticket before trying again.'
+                : failure.message,
           ),
         );
       case Success(:final data):
@@ -345,10 +354,10 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
           latest.copyWith(
             communityServiceProgress: data,
             isSettlementLoaded: true,
-            isSubmittingSettlement: false,
             settlementMessage: 'Community service hours saved.',
           ),
         );
+        add(LoadTicketDetail(event.params.ticketId));
     }
   }
 }

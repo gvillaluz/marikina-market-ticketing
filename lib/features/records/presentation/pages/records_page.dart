@@ -107,7 +107,7 @@ class _RecordsPageState extends State<RecordsPage> {
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             SliverPadding(
-              padding: AppTheme.recordsPagePadding,
+              padding: AppTheme.inspectionHeaderPadding,
               sliver: SliverToBoxAdapter(
                 child: RecordsHeader(
                   searchController: _search,

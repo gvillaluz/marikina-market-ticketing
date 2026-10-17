@@ -214,6 +214,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       throw ServerException('Something went wrong. Please try again later');
+    } on FormatException {
+      throw ServerException('Unable to renew your session. Please try again.');
+    } on TypeError {
+      throw ServerException('Unable to renew your session. Please try again.');
     }
   }
 

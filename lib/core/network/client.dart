@@ -5,15 +5,18 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:marikina_market_mobile/core/errors/failure.dart';
+import 'package:marikina_market_mobile/core/errors/result.dart';
+import 'package:marikina_market_mobile/core/utils/unit.dart';
 
 class ApiClient {
   final Dio dio;
   static const _storage = FlutterSecureStorage();
-  final Future<bool> Function()? refreshAction;
-  final Future<bool> Function()? waitForRefresh;
+  final Future<Result<Unit>> Function()? refreshAction;
+  final Future<Result<Unit>> Function()? waitForRefresh;
   final Future<void> Function()? onAuthFailure;
 
-  Completer<bool>? _refreshCompleter;
+  Completer<Result<Unit>>? _refreshCompleter;
 
   ApiClient({
     Dio? dio,
@@ -24,24 +27,31 @@ class ApiClient {
     _configure();
   }
 
-  Future<bool> handleRefresh() {
+  Future<Result<Unit>> handleRefresh() {
     if (_refreshCompleter != null) {
       return _refreshCompleter!.future;
     }
 
-    _refreshCompleter = Completer<bool>();
+    final completer = Completer<Result<Unit>>();
+    _refreshCompleter = completer;
 
     refreshAction!()
         .then((success) {
-          _refreshCompleter!.complete(success);
+          completer.complete(success);
           _refreshCompleter = null;
         })
         .catchError((_) {
-          _refreshCompleter!.complete(false);
+          completer.complete(
+            Result.failure(
+              const ServerFailure(
+                'Unable to renew your session. Please try again.',
+              ),
+            ),
+          );
           _refreshCompleter = null;
         });
 
-    return _refreshCompleter!.future;
+    return completer.future;
   }
 
   void _configure() {
@@ -78,30 +88,15 @@ class ApiClient {
           }
           if (!skipAuth) {
             if (_refreshCompleter != null) {
-              final refreshSucceeded = await _refreshCompleter!.future;
-              if (!refreshSucceeded) {
-                await onAuthFailure?.call();
-                return handler.reject(
-                  DioException(
-                    requestOptions: options,
-                    type: DioExceptionType.cancel,
-                    error: 'Authentication refresh failed.',
-                  ),
-                );
+              final result = await _refreshCompleter!.future;
+              if (result case ResultFailure(failure: final failure)) {
+                return handler.reject(await _refreshError(options, failure));
               }
             }
 
-            final pendingRefreshSucceeded =
-                await waitForRefresh?.call() ?? true;
-            if (!pendingRefreshSucceeded) {
-              await onAuthFailure?.call();
-              return handler.reject(
-                DioException(
-                  requestOptions: options,
-                  type: DioExceptionType.cancel,
-                  error: 'Authentication refresh failed.',
-                ),
-              );
+            final pendingRefresh = await waitForRefresh?.call();
+            if (pendingRefresh case ResultFailure(failure: final failure)) {
+              return handler.reject(await _refreshError(options, failure));
             }
 
             final token = await _storage.read(key: 'access_token');
@@ -121,9 +116,15 @@ class ApiClient {
               e.requestOptions.extra['skipAuth'] != true &&
               !isAlreadyRetried &&
               !isRefreshCall) {
-            final isRefreshSuccess = await handleRefresh();
+            final refreshResult = await handleRefresh();
 
-            if (isRefreshSuccess) {
+            if (refreshResult case ResultFailure(failure: final failure)) {
+              return handler.next(
+                await _refreshError(e.requestOptions, failure),
+              );
+            }
+
+            if (refreshResult is Success<Unit>) {
               final requestOptions = e.requestOptions;
               requestOptions.extra['isRetry'] = true;
 
@@ -158,15 +159,36 @@ class ApiClient {
               }
             }
 
-            await onAuthFailure?.call();
             return handler.next(e);
-          } else if (isRefreshCall && e.response?.statusCode == 401) {
-            await onAuthFailure?.call();
           }
 
           return handler.next(e);
         },
       ),
+    );
+  }
+
+  Future<DioException> _refreshError(
+    RequestOptions options,
+    Failure failure,
+  ) async {
+    final unauthorized = failure is UnauthorizedFailure;
+    if (unauthorized) await onAuthFailure?.call();
+    return DioException(
+      requestOptions: options,
+      type: unauthorized
+          ? DioExceptionType.badResponse
+          : failure is NetworkFailure
+          ? DioExceptionType.connectionError
+          : DioExceptionType.unknown,
+      response: unauthorized
+          ? Response<Object?>(
+              requestOptions: options,
+              statusCode: 401,
+              data: {'message': failure.message},
+            )
+          : null,
+      error: failure.message,
     );
   }
 

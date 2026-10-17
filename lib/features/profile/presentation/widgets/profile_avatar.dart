@@ -1,10 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_portrait.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/utils/image_picker_util.dart';
 import 'package:marikina_market_mobile/features/profile/domain/enums/avatar_action.dart';
+import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_photo_options.dart';
 
 class ProfileAvatar extends StatefulWidget {
   final String? profileUrl;
@@ -54,119 +55,69 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
     }
   }
 
+  Future<void> _openPhotoOptions() async {
+    if (_selecting || widget.isUpdating) return;
+    final action = await showModalBottomSheet<AvatarAction>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => ProfilePhotoOptions(
+        hasPhoto: widget.profileUrl?.trim().isNotEmpty == true,
+      ),
+    );
+    if (!mounted || widget.isUpdating) return;
+    if (action == AvatarAction.changePhoto) {
+      await _choosePhoto();
+    } else if (action == AvatarAction.removePhoto) {
+      widget.onRemovePhoto();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final busy = _selecting || widget.isUpdating;
-    final url = widget.profileUrl;
-    final pixels =
-        (AppTheme.profileAvatarSize * MediaQuery.devicePixelRatioOf(context))
-            .ceil()
-            .clamp(1, AppTheme.profileAvatarDecodeMaxWidth)
-            .toInt();
+    final colors = Theme.of(context).colorScheme;
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        ClipOval(
-          child: Container(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            width: AppTheme.profileAvatarSize,
-            height: AppTheme.profileAvatarSize,
-            child: url == null || url.trim().isEmpty
-                ? Icon(
-                    Icons.person_outline,
-                    size: AppTheme.profileAvatarSize / 2,
-                    color: Theme.of(context).colorScheme.primary,
-                  )
-                : CachedNetworkImage(
-                    key: ValueKey(url),
-                    imageUrl: url,
-                    memCacheWidth: pixels,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Icon(
-                      Icons.person_outline,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    errorWidget: (context, url, error) => Icon(
-                      Icons.person_outline,
-                      semanticLabel: 'Profile photo unavailable',
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-          ),
-        ),
+        ProfilePortrait(profileUrl: widget.profileUrl),
         Positioned(
           bottom: 0,
           right: 0,
-          child: PopupMenuButton<AvatarAction>(
+          child: IconButton.filled(
             tooltip: busy ? 'Updating profile photo' : 'Profile photo actions',
-            enabled: !busy,
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: AvatarAction.changePhoto,
-                child: Text(
-                  url == null || url.trim().isEmpty
-                      ? 'Add Photo'
-                      : 'Change Photo',
-                ),
-              ),
-              if (url != null && url.trim().isNotEmpty)
-                const PopupMenuItem(
-                  value: AvatarAction.removePhoto,
-                  child: Text('Remove Photo'),
-                ),
-            ],
-            onSelected: (action) {
-              if (action == AvatarAction.changePhoto) {
-                _choosePhoto();
-              } else {
-                widget.onRemovePhoto();
-              }
-            },
-            child: Material(
-              type: MaterialType.transparency,
-              child: SizedBox.square(
-                dimension: AppTheme.buttonMinSize.width,
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: Ink(
-                    decoration: ShapeDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      shape: CircleBorder(
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.surface,
-                        ),
-                      ),
-                    ),
-                    child: SizedBox.square(
-                      dimension: AppTheme.profilePhotoButtonSize,
-                      child: Center(
-                        child: busy
-                            ? SizedBox.square(
-                                dimension: AppTheme.profilePhotoIconSize,
-                                child: CircularProgressIndicator(
-                                  value: MediaQuery.disableAnimationsOf(context)
-                                      ? 0.75
-                                      : null,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimary,
-                                  strokeWidth:
-                                      AppTheme.buttonProgressStrokeWidth,
-                                  semanticsLabel: 'Updating profile photo',
-                                  semanticsValue: 'In progress',
-                                ),
-                              )
-                            : Icon(
-                                Icons.camera_alt_outlined,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                size: AppTheme.profilePhotoIconSize,
-                              ),
-                      ),
-                    ),
-                  ),
-                ),
+            onPressed: busy ? null : _openPhotoOptions,
+            style: IconButton.styleFrom(
+              backgroundColor: colors.primary,
+              foregroundColor: colors.onPrimary,
+              disabledBackgroundColor: colors.primary,
+              disabledForegroundColor: colors.onPrimary,
+              minimumSize: const Size.square(AppTheme.profilePhotoButtonSize),
+              maximumSize: const Size.square(AppTheme.profilePhotoButtonSize),
+              padding: EdgeInsets.zero,
+              tapTargetSize: MaterialTapTargetSize.padded,
+              side: BorderSide(
+                color: colors.surface,
+                width: AppTheme.profilePhotoBorderWidth,
               ),
             ),
+            icon: busy
+                ? SizedBox.square(
+                    dimension: AppTheme.profilePhotoIconSize,
+                    child: CircularProgressIndicator(
+                      value: MediaQuery.disableAnimationsOf(context)
+                          ? 0.75
+                          : null,
+                      color: colors.onPrimary,
+                      strokeWidth: AppTheme.buttonProgressStrokeWidth,
+                      semanticsLabel: 'Updating profile photo',
+                    ),
+                  )
+                : const Icon(
+                    Icons.camera_alt_outlined,
+                    size: AppTheme.profilePhotoIconSize,
+                  ),
           ),
         ),
       ],

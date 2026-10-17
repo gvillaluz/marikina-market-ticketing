@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show SemanticsRole;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,16 +34,16 @@ import 'features/auth/data/login_mobile_contract_test.dart'
     show contractClient, reply;
 
 void main() {
-  testWidgets(
-    'forgot password with a username opens its named recovery route',
-    (tester) async {
-      final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
-      addTearDown(connectivity.close);
-      final auth = loginBloc(
-        connectivity,
-        (options) async => reply(options, {}),
-      );
-      addTearDown(auth.close);
+  testWidgets('forgot password with a username opens its named recovery route', (
+    tester,
+  ) async {
+    final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+    addTearDown(connectivity.close);
+    final auth = loginBloc(connectivity, (options) async => reply(options, {}));
+    addTearDown(() async {
+      if (!auth.isClosed) await auth.close();
+    });
+    try {
       await auth.stream.firstWhere((state) => state is Unauthenticated);
       final router = GoRouter(
         initialLocation: '/login',
@@ -79,9 +80,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Recover enforcer01'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    } finally {
       await tester.pumpWidget(const SizedBox());
-    },
-  );
+      await tester.runAsync(auth.close);
+    }
+  });
   testWidgets('recovery countdown changes only the resend subtree', (
     tester,
   ) async {
@@ -102,54 +105,69 @@ void main() {
       verifyOtpUseCase: VerifyCodeUseCase(repository),
       resetPasswordUseCase: ResetPasswordUseCase(repository),
     );
-    addTearDown(bloc.close);
-    final sent = bloc.stream.firstWhere((state) => state is OtpSent);
-    await tester.pumpWidget(
-      BlocProvider.value(
-        value: bloc,
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: RecoveryCodeCard(
-                args: CodeValidationArgs(
-                  username: 'enforcer01',
-                  channel: 'email',
-                  account: AccountLookup(
-                    found: true,
-                    maskedEmail: 'e***@example.com',
-                    masketPhoneNumber: '***',
+    addTearDown(() async {
+      if (!bloc.isClosed) await bloc.close();
+    });
+    try {
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: bloc,
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: RecoveryCodeCard(
+                  args: CodeValidationArgs(
+                    username: 'enforcer01',
+                    channel: 'email',
+                    account: AccountLookup(
+                      found: true,
+                      maskedEmail: 'e***@example.com',
+                      masketPhoneNumber: '***',
+                    ),
                   ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.runAsync(() => sent);
-    await tester.pump();
-    final field = tester.widget<OtpCodeField>(find.byType(OtpCodeField));
-    expect(find.text('Resend in 00:30'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Resend in 00:29'), findsOneWidget);
-    expect(
-      identical(field, tester.widget<OtpCodeField>(find.byType(OtpCodeField))),
-      isTrue,
-    );
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox());
+      );
+      for (var pumps = 0; pumps < 20 && bloc.state is! OtpSent; pumps++) {
+        await tester.pump(Duration.zero);
+      }
+      expect(bloc.state, isA<OtpSent>());
+      await tester.pump();
+      final field = tester.widget<OtpCodeField>(find.byType(OtpCodeField));
+      expect(find.text('Resend in 00:30'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('Resend in 00:29'), findsOneWidget);
+      expect(
+        identical(
+          field,
+          tester.widget<OtpCodeField>(find.byType(OtpCodeField)),
+        ),
+        isTrue,
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox());
+      await tester.runAsync(bloc.close);
+    }
   });
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
   testWidgets('loading auth button retains label and respects reduced motion', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     var taps = 0;
-    await tester.pumpWidget(
+    Future<void> showLoading({required bool reduceMotion}) => tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
         home: MediaQuery(
-          data: const MediaQueryData(disableAnimations: true),
+          data: MediaQueryData(disableAnimations: reduceMotion),
           child: Scaffold(
             body: AuthBtn(
               label: 'Verify',
@@ -160,11 +178,38 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
-    expect(find.text('Verify'), findsOneWidget);
-    await tester.tap(find.byType(ElevatedButton));
-    expect(taps, 0);
-    expect(tester.binding.hasScheduledFrame, isFalse);
+    try {
+      await showLoading(reduceMotion: true);
+      await tester.pumpAndSettle();
+      expect(find.text('Verify'), findsOneWidget);
+      await tester.tap(find.byType(ElevatedButton));
+      expect(taps, 0);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+      final reducedSemantics = tester
+          .getSemantics(find.byType(CircularProgressIndicator))
+          .getSemanticsData();
+      expect(reducedSemantics.label, 'Loading\nVerify');
+      expect(reducedSemantics.role, SemanticsRole.progressBar);
+      expect(reducedSemantics.value, '75');
+      expect(reducedSemantics.minValue, '0');
+      expect(reducedSemantics.maxValue, '100');
+      expect(tester.takeException(), isNull);
+
+      await showLoading(reduceMotion: false);
+      await tester.pump();
+      expect(find.text('Verify'), findsOneWidget);
+      await tester.tap(find.byType(ElevatedButton));
+      expect(taps, 0);
+      final normalSemantics = tester
+          .getSemantics(find.byType(CircularProgressIndicator))
+          .getSemanticsData();
+      expect(normalSemantics.label, 'Loading\nVerify');
+      expect(normalSemantics.role, SemanticsRole.loadingSpinner);
+      expect(normalSemantics.value, isEmpty);
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox());
+    }
   });
   testWidgets('resend control wraps while sending and enforces cooldown', (
     tester,

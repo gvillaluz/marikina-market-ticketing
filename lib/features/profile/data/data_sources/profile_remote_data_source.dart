@@ -25,16 +25,20 @@ abstract class ProfileRemoteDataSource {
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final ApiClient apiClient;
+  final bool isVendor;
 
-  ProfileRemoteDataSourceImpl(this.apiClient);
+  ProfileRemoteDataSourceImpl(this.apiClient, {this.isVendor = false});
 
   @override
   Future<UserModel> updateUser(EditProfileParams params) async {
     try {
       final date = params.dateOfBirth;
-      final response = await apiClient.post(
-        '/User/profile',
-        options: Options(contentType: Headers.jsonContentType),
+      final response = await apiClient.dio.request<Object?>(
+        isVendor ? '/vendor/profile' : '/User/profile',
+        options: Options(
+          contentType: Headers.jsonContentType,
+          method: isVendor ? 'PUT' : 'POST',
+        ),
         data: {
           'first_name': params.firstName,
           'middle_name': params.middleName,
@@ -51,7 +55,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       );
       final data = response.data;
       if (data is! Map<String, Object?>) throw const FormatException();
-      return UserModel.fromJson(data);
+      final account = isVendor ? data['user'] : data;
+      if (account is! Map<String, Object?>) throw const FormatException();
+      return UserModel.fromJson(account);
     } on DioException catch (e) {
       final message = ApiErrorMessage.fromBody(e.response?.data) ?? '';
       switch (e.response?.statusCode) {

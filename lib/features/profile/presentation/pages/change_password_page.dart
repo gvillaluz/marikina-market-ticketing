@@ -87,19 +87,19 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Update your account password',
+                        'Update your password',
                         style: TextStyle(
-                          color: AppColors.primaryBlack,
-                          fontSize: 22,
+                          color: AppColors.primary,
+                          fontSize: AppTheme.profileEditTitleFontSize,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Choose a strong password to keep your account secure.',
+                        'Keep your account secure.',
                         style: TextStyle(
                           color: AppColors.mediumGrey,
-                          fontSize: 14,
+                          fontSize: AppTheme.bodyFontSize,
                         ),
                       ),
                       const SizedBox(height: 20),

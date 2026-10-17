@@ -11,13 +11,13 @@ class DashboardHeader extends StatelessWidget {
       Text(
         'Dashboard',
         style: AppTheme.dashboardTitleStyle.copyWith(
-          color: Theme.of(context).colorScheme.onSurface,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
       const SizedBox(height: AppTheme.dashboardTinyGap),
       Text(
         'Your market activity at a glance.',
-        style: AppTheme.dashboardBodyStyle.copyWith(
+        style: AppTheme.pageSubtitleStyle.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),

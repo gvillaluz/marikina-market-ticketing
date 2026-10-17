@@ -23,9 +23,7 @@ class LoginOtpHeading extends StatelessWidget {
             Expanded(
               child: Text(
                 'SIGN-IN VERIFICATION',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: AppTheme.authVerificationTitleColor,
-                ),
+                style: AppTheme.authPageTitleStyle,
               ),
             ),
           ],

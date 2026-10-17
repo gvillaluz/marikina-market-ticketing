@@ -141,6 +141,8 @@ void main() {
 }
 
 class _NotificationRepository implements NotificationRepository {
+  @override
+  Future<Result<int>> loadUnreadCount() async => const Success(0);
   _NotificationRepository({
     this.firstPageItems = const [],
     this.firstPageHasMore = true,

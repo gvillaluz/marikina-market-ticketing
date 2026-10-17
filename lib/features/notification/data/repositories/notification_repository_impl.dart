@@ -12,6 +12,27 @@ class NotificationRepositoryImpl implements NotificationRepository {
   NotificationRepositoryImpl(this.remoteDataSource);
 
   @override
+  Future<Result<int>> loadUnreadCount() async {
+    try {
+      return Result.success(await remoteDataSource.getUnreadCount());
+    } on UnauthorizedException catch (e) {
+      return Result.failure(UnauthorizedFailure(e.message));
+    } on NetworkException catch (e) {
+      return Result.failure(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Result.failure(ServerFailure(e.message));
+    } on FormatException {
+      return Result.failure(
+        ServerFailure('Unable to load the unread count. Please refresh.'),
+      );
+    } on TypeError {
+      return Result.failure(
+        ServerFailure('Unable to load the unread count. Please refresh.'),
+      );
+    }
+  }
+
+  @override
   Future<Result<PageResult<NotificationSummary>>> loadNotifications(
     int offset,
     String filter,
@@ -30,6 +51,18 @@ class NotificationRepositoryImpl implements NotificationRepository {
       return Result.failure(NetworkFailure(e.message));
     } on ServerException catch (e) {
       return Result.failure(ServerFailure(e.message));
+    } on FormatException {
+      return Result.failure(
+        ServerFailure('Unable to read notifications. Please try again.'),
+      );
+    } on TypeError {
+      return Result.failure(
+        ServerFailure('Unable to read notifications. Please try again.'),
+      );
+    } on ArgumentError {
+      return Result.failure(
+        ServerFailure('Unable to read notifications. Please try again.'),
+      );
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:photo_view/photo_view.dart';
@@ -129,7 +130,7 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
                     'Image ${_currentIndex + 1} of ${_imageProviders.length}',
                     style: TextStyle(
                       color: AppColors.primaryLight,
-                      fontSize: 16,
+                      fontSize: AppTheme.sectionHeadingFontSize,
                     ),
                   ),
 

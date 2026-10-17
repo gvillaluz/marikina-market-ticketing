@@ -72,7 +72,7 @@ class TicketDetailContent extends StatelessWidget {
                         style: TextStyle(
                           color: AppColors.secondaryYellow,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: AppTheme.bodyFontSize,
                         ),
                       ),
                     ),
@@ -86,7 +86,7 @@ class TicketDetailContent extends StatelessWidget {
                             style: TextStyle(
                               color: AppColors.secondaryYellow,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: AppTheme.sectionHeadingFontSize,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -94,7 +94,7 @@ class TicketDetailContent extends StatelessWidget {
                             'This vendor already has an open ticket for multiple ordinance, so it wasn\'t added again.',
                             style: TextStyle(
                               color: Colors.black87,
-                              fontSize: 13,
+                              fontSize: AppTheme.captionFontSize,
                             ),
                           ),
                         ],
@@ -128,13 +128,16 @@ class TicketDetailContent extends StatelessWidget {
                       title: Text(
                         droppedOrdinances[index].ordinanceNo,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: AppTheme.bodyFontSize,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       subtitle: Text(
                         droppedOrdinances[index].ordinanceCode,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: AppTheme.captionFontSize,
+                        ),
                       ),
                     ),
                   ),
@@ -150,7 +153,7 @@ class TicketDetailContent extends StatelessWidget {
           isTicket ? 'Ticket Record' : 'Written Warning Record',
           style: TextStyle(
             color: AppColors.primary,
-            fontSize: 20,
+            fontSize: AppTheme.detailTitleFontSize,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -186,7 +189,7 @@ class TicketDetailContent extends StatelessWidget {
                       'City of Marikina',
                       style: TextStyle(
                         color: AppColors.primary,
-                        fontSize: 18,
+                        fontSize: AppTheme.sectionHeadingFontSize,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -206,7 +209,7 @@ class TicketDetailContent extends StatelessWidget {
                           isTicket ? 'VIOLATION TICKET' : 'WRITTEN WARNING',
                           style: TextStyle(
                             color: AppColors.primary,
-                            fontSize: 16,
+                            fontSize: AppTheme.sectionHeadingFontSize,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -219,7 +222,7 @@ class TicketDetailContent extends StatelessWidget {
                                 'CONTROL NO.',
                                 style: TextStyle(
                                   color: AppColors.mediumGrey,
-                                  fontSize: 12,
+                                  fontSize: AppTheme.captionFontSize,
                                 ),
                               ),
                               Text(
@@ -227,7 +230,7 @@ class TicketDetailContent extends StatelessWidget {
                                 style: TextStyle(
                                   color: AppColors.primaryRed,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: AppTheme.sectionHeadingFontSize,
                                 ),
                               ),
                             ],
@@ -343,7 +346,7 @@ class TicketDetailContent extends StatelessWidget {
             'Photo Evidence Record',
             style: TextStyle(
               color: AppColors.primary,
-              fontSize: 20,
+              fontSize: AppTheme.sectionHeadingFontSize,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -383,14 +386,17 @@ class TicketDetailContent extends StatelessWidget {
                   const SizedBox(height: 12),
                   const Text(
                     'No Photo Evidences Found',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: AppTheme.sectionHeadingFontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
                     'There are no captured or recorded photo evidences for this ticket.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppTheme.captionFontSize,
                       color: AppColors.mediumGrey,
                       height: 1.4,
                     ),

@@ -81,6 +81,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<UserUpdated>(_onUserUpdated);
     on<ChangePasswordSubmitted>(_onChangePasswordSubmitted);
     on<RefreshTokens>(_onRefreshTokens);
+    on<RegisterDeviceTokenRequested>(_onRegisterDeviceToken);
     on<SyncPendingLogouts>(_onSyncPendingLogouts);
 
     _connectivitySubscription = connectivityCubit.stream.listen((status) {
@@ -125,6 +126,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       case Success(data: final user):
         if (user != null) {
           emit(Authenticated(user: user));
+          add(RegisterDeviceTokenRequested());
         } else {
           emit(Unauthenticated(false));
         }
@@ -240,7 +242,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       case Success(data: final user):
         _clearPendingLogin();
         emit(Authenticated(user: user));
-        unawaited(registerDeviceTokenUseCase());
+        add(RegisterDeviceTokenRequested());
     }
   }
 
@@ -337,6 +339,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     _loggingOut = true;
     try {
       _clearPendingLogin();
+      final current = state;
+      if (current is Authenticated) emit(AuthLoggingOut(user: current.user));
       final logoutResult = await logoutUserUseCase();
       if (emit.isDone) return;
       switch (logoutResult) {
@@ -360,10 +364,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     SyncPendingLogouts event,
     Emitter<AuthState> emit,
   ) async {
+    final wasAuthenticated = state is Authenticated;
     final result = await syncPendingLogoutsUseCase();
     if (emit.isDone) return;
-    if (result is Success && state is Authenticated) {
-      await registerDeviceTokenUseCase();
+    if (result is Success && wasAuthenticated && state is Authenticated) {
+      add(RegisterDeviceTokenRequested());
     } else if (result case ResultFailure(
       failure: ValidationFailure(:final message),
     )) {
@@ -379,10 +384,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<void> _onRegisterDeviceToken(
+    RegisterDeviceTokenRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    if (state is! Authenticated ||
+        _loggingOut ||
+        connectivityCubit.state != ConnectivityStatus.online) {
+      return;
+    }
+    await registerDeviceTokenUseCase();
+  }
+
   Future<void> _onUserUpdated(
     UserUpdated event,
     Emitter<AuthState> emit,
-  ) async => emit(Authenticated(user: event.user));
+  ) async {
+    if (_loggingOut) return;
+    emit(Authenticated(user: event.user));
+  }
 
   Future<void> _onRefreshTokens(
     RefreshTokens event,
@@ -397,8 +417,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       case Success():
         break;
 
+      case ResultFailure(failure: UnauthorizedFailure()):
+        emit(Unauthenticated(true));
+
       case ResultFailure():
-        emit(Unauthenticated(false));
+        break;
     }
   }
 }

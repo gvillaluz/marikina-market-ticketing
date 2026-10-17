@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
@@ -23,7 +24,7 @@ class TicketViolationCard extends StatelessWidget {
     required this.capturedPhotos,
     required this.fineSummary,
     required this.isTicket,
-    required this.errorMessage
+    required this.errorMessage,
   });
 
   @override
@@ -35,27 +36,21 @@ class TicketViolationCard extends StatelessWidget {
           'VIOLATION',
           style: TextStyle(
             color: AppColors.primary,
-            fontSize: 20,
-            fontWeight: FontWeight.bold
+            fontSize: AppTheme.sectionHeadingFontSize,
+            fontWeight: FontWeight.bold,
           ),
         ),
 
-        const Divider(height: 20,),
-        const Text(
-          'ORDINANCE',
-        ),
-        const SizedBox(height: 5,),
+        const Divider(height: 20),
+        const Text('ORDINANCE'),
+        const SizedBox(height: 5),
 
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           child: AppPrimaryButton(
-            label: ordinances.isEmpty 
-              ? 'Select Ordinance'
-              : 'Edit Selection', 
-            iconData: ordinances.isEmpty 
-              ? Icons.add_circle
-              : Icons.edit_note, 
-            onPressed: () => onPressed(context)
+            label: ordinances.isEmpty ? 'Select Ordinance' : 'Edit Selection',
+            iconData: ordinances.isEmpty ? Icons.add_circle : Icons.edit_note,
+            onPressed: () => onPressed(context),
           ),
         ),
 
@@ -63,19 +58,19 @@ class TicketViolationCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              const SizedBox(width: 15,),
+              const SizedBox(width: 15),
               Text(
                 errorMessage!,
                 style: const TextStyle(
                   color: AppColors.primaryRed,
-                  fontSize: 12,
+                  fontSize: AppTheme.captionFontSize,
                 ),
               ),
             ],
           ),
         ],
 
-        const SizedBox(height: 10,),
+        const SizedBox(height: 10),
 
         if (ordinances.isNotEmpty) ...[
           FineSummarySection(
@@ -84,11 +79,11 @@ class TicketViolationCard extends StatelessWidget {
             isTicket: isTicket,
             onDelete: onDelete,
           ),
-          const SizedBox(height: 20,),
+          const SizedBox(height: 20),
         ],
 
-        const SizedBox(height: 10,)
-      ]
+        const SizedBox(height: 10),
+      ],
     );
   }
 }

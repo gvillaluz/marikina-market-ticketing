@@ -41,3 +41,15 @@ class ChangeProfilePhotoFailed extends ProfileState {
   final String message;
   ChangeProfilePhotoFailed(this.message);
 }
+
+class ProfileQrExportLoading extends ProfileState {}
+
+class ProfileQrExportFinished extends ProfileState {
+  final String? message;
+  ProfileQrExportFinished(this.message);
+}
+
+class ProfileQrExportError extends ProfileState {
+  final String message;
+  ProfileQrExportError(this.message);
+}

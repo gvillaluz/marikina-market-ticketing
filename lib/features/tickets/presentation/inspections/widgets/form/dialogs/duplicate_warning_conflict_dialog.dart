@@ -1,13 +1,11 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 
 class DuplicateWarningConflictDialog extends StatelessWidget {
   final String message;
-  const DuplicateWarningConflictDialog({
-    required this.message,
-    super.key
-  });
+  const DuplicateWarningConflictDialog({required this.message, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +15,7 @@ class DuplicateWarningConflictDialog extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: AppColors.primaryYellow.withValues(alpha: .35),
-            borderRadius: BorderRadius.circular(50)
+            borderRadius: BorderRadius.circular(50),
           ),
           child: Icon(
             Icons.description_outlined,
@@ -29,18 +27,13 @@ class DuplicateWarningConflictDialog extends StatelessWidget {
       title: const Text(
         'Duplicate Warning',
         style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold
-        ), 
+          fontSize: AppTheme.sectionHeadingFontSize,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            message,
-            textAlign: TextAlign.center,
-          ),
-        ],
+        children: [Text(message, textAlign: TextAlign.center)],
       ),
       actions: [
         SizedBox(
@@ -50,20 +43,18 @@ class DuplicateWarningConflictDialog extends StatelessWidget {
               padding: const EdgeInsets.all(15),
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
             onPressed: () {
               context.pop(true);
-            }, 
+            },
             child: const Text(
               'Close',
-              style: TextStyle(
-                color: AppColors.primaryLight
-              ),
-            )
+              style: TextStyle(color: AppColors.primaryLight),
+            ),
           ),
-        )
+        ),
       ],
     );
   }

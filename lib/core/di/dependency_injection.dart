@@ -1,9 +1,12 @@
+import 'package:marikina_market_mobile/features/profile/data/data_sources/qr_export_data_source.dart';
+import 'package:marikina_market_mobile/features/profile/data/repositories/qr_export_repository_impl.dart';
+import 'package:marikina_market_mobile/features/profile/domain/repositories/qr_export_repository.dart';
+import 'package:marikina_market_mobile/features/profile/domain/use_cases/export_qr_use_case.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
-import 'package:marikina_market_mobile/core/errors/result.dart';
 import 'package:marikina_market_mobile/core/network/client.dart';
 import 'package:marikina_market_mobile/core/network/network_info.dart';
 import 'package:marikina_market_mobile/core/notification/notification_listener_service.dart';
@@ -46,11 +49,18 @@ import 'package:marikina_market_mobile/features/dashboard/data/repositories/dash
 import 'package:marikina_market_mobile/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:marikina_market_mobile/features/dashboard/domain/use_cases/load_dashboard_summary_use_case.dart';
 import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:marikina_market_mobile/features/dashboard/data/data_sources/vendor_dashboard_remote_data_source.dart';
+import 'package:marikina_market_mobile/features/dashboard/data/repositories/vendor_dashboard_repository_impl.dart';
+import 'package:marikina_market_mobile/features/dashboard/domain/repositories/vendor_dashboard_repository.dart';
+import 'package:marikina_market_mobile/features/dashboard/domain/use_cases/load_vendor_dashboard_use_case.dart';
+import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/vendor_dashboard_bloc.dart';
 import 'package:marikina_market_mobile/features/notification/data/data_sources/notification_remote_data_source.dart';
 import 'package:marikina_market_mobile/features/notification/data/repositories/notification_repository_impl.dart';
 import 'package:marikina_market_mobile/features/notification/domain/repositories/notification_repository.dart';
 import 'package:marikina_market_mobile/features/notification/domain/use_cases/load_notifications_use_case.dart';
 import 'package:marikina_market_mobile/features/notification/domain/use_cases/mark_as_read_use_case.dart';
+import 'package:marikina_market_mobile/features/notification/domain/use_cases/load_unread_count_use_case.dart';
+import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/reset_password_use_case.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/send_otp_use_case.dart';
@@ -93,14 +103,10 @@ final sl = GetIt.instance;
 Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   sl.registerLazySingleton(
     () => ApiClient(
-      refreshAction: () async {
-        final refreshUseCase = sl<RefreshTokensUseCase>();
-        final result = await refreshUseCase.call();
-        return result is Success;
-      },
+      refreshAction: () => sl<RefreshTokensUseCase>()(),
       waitForRefresh: () => sl<RefreshTokensUseCase>().waitForOngoingRefresh(),
       onAuthFailure: () async {
-        sl<AuthBloc>().add(LogoutUser(true));
+        sl<AuthBloc>().add(CheckAuthStatus());
       },
     ),
   );
@@ -175,6 +181,12 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   sl.registerLazySingleton<DashboardRemoteDataSource>(
     () => DashboardRemoteDataSourceImpl(sl()),
   );
+  sl.registerLazySingleton(() => VendorDashboardRemoteDataSource(sl()));
+  sl.registerLazySingleton<VendorDashboardRepository>(
+    () => VendorDashboardRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => LoadVendorDashboardUseCase(sl()));
+  sl.registerFactory(() => VendorDashboardBloc(sl()));
   sl.registerLazySingleton(() => RecordsRemoteDataSource(sl()));
   sl.registerLazySingleton<RecordsRepository>(
     () => RecordsRepositoryImpl(sl()),
@@ -251,6 +263,11 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
     ),
   );
 
+  sl.registerLazySingleton(() => QrExportDataSource());
+  sl.registerLazySingleton<QrExportRepository>(
+    () => QrExportRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => ExportQrUseCase(sl()));
   sl.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSourceImpl(sl()),
   );
@@ -267,12 +284,46 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
       changePasswordUseCase: sl(),
       changeProfilePhotoUseCase: sl(),
       removeProfilePhotoUseCase: sl(),
+      exportQrUseCase: sl(),
     ),
+  );
+
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(sl(), isVendor: true),
+    instanceName: 'vendorProfile',
+  );
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(sl(instanceName: 'vendorProfile'), sl()),
+    instanceName: 'vendorProfile',
+  );
+  sl.registerLazySingleton<EditProfileUseCase>(
+    () => EditProfileUseCase(sl(instanceName: 'vendorProfile')),
+    instanceName: 'vendorProfile',
+  );
+  sl.registerFactory<ProfileBloc>(
+    () => ProfileBloc(
+      editProfileUseCase: sl(instanceName: 'vendorProfile'),
+      changePasswordUseCase: sl(),
+      changeProfilePhotoUseCase: sl(),
+      removeProfilePhotoUseCase: sl(),
+      exportQrUseCase: sl(),
+    ),
+    instanceName: 'vendorProfile',
   );
 
   sl.registerLazySingleton<NotificationRemoteDataSource>(
     () => NotificationRemoteDataSourceImpl(sl()),
   );
+  sl.registerFactory<NotificationBloc>(() {
+    final repository = NotificationRepositoryImpl(
+      NotificationRemoteDataSourceImpl(sl(), role: Role.marketVendor),
+    );
+    return NotificationBloc(
+      loadNotificationsUseCase: LoadNotificationsUseCase(repository),
+      markAsReadUseCase: MarkAsReadUseCase(repository),
+      loadUnreadCountUseCase: LoadUnreadCountUseCase(repository),
+    );
+  }, instanceName: 'vendorNotifications');
   sl.registerLazySingleton<NotificationRepository>(
     () => NotificationRepositoryImpl(sl()),
   );

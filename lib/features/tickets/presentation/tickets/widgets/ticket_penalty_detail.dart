@@ -68,12 +68,18 @@ class TicketPenaltyDetail extends StatelessWidget {
               ),
               child: const Text(
                 '₱',
-                style: TextStyle(color: AppColors.primaryLight, fontSize: 16),
+                style: TextStyle(
+                  color: AppColors.primaryLight,
+                  fontSize: AppTheme.sectionHeadingFontSize,
+                ),
               ),
             ),
             const Text(
               'PENALTY DETAILS',
-              style: TextStyle(fontSize: 18, color: AppColors.primary),
+              style: TextStyle(
+                fontSize: AppTheme.sectionHeadingFontSize,
+                color: AppColors.primary,
+              ),
             ),
           ],
         ),
@@ -106,7 +112,7 @@ class TicketPenaltyDetail extends StatelessWidget {
             DetailRow(
               label: 'DUE DATE:',
               value:
-                  '${DateTimeFormatter.getDate(dueDate)}, (15 days from issuance)',
+                  '${DateTimeFormatter.getDate(dueDate)}, (5 days from issuance)',
             ),
           ],
         ),
@@ -125,7 +131,7 @@ class TicketPenaltyDetail extends StatelessWidget {
                 'Total Fine Due:',
                 style: TextStyle(
                   color: AppColors.primary,
-                  fontSize: 16,
+                  fontSize: AppTheme.sectionHeadingFontSize,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -133,7 +139,7 @@ class TicketPenaltyDetail extends StatelessWidget {
                 _currencyFormat.format(totalFineAmount),
                 style: TextStyle(
                   color: AppColors.primary,
-                  fontSize: 16,
+                  fontSize: AppTheme.sectionHeadingFontSize,
                   fontWeight: FontWeight.bold,
                 ),
               ),

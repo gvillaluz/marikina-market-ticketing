@@ -21,7 +21,11 @@ abstract class AuthLocalDataSource {
 
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   final SecureStorageService storageService;
-  AuthLocalDataSourceImpl({required this.storageService});
+  final FirebaseMessaging? _messaging;
+  AuthLocalDataSourceImpl({
+    required this.storageService,
+    FirebaseMessaging? messaging,
+  }) : _messaging = messaging;
 
   @override
   Future<AuthTokens> getTokens() async {
@@ -95,9 +99,9 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       }
       if (deviceToken == null) {
         try {
-          deviceToken = await FirebaseMessaging.instance.getToken().timeout(
-            const Duration(seconds: 5),
-          );
+          deviceToken = await (_messaging ?? FirebaseMessaging.instance)
+              .getToken()
+              .timeout(const Duration(seconds: 5));
         } catch (_) {
           // Previously registered tokens are cached for offline logout.
         }
@@ -148,12 +152,9 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
   @override
   Future<String> getDeviceTokenForRegistration() async {
-    final settings = await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    final token = await FirebaseMessaging.instance.getToken();
+    final settings = await (_messaging ?? FirebaseMessaging.instance)
+        .requestPermission(alert: true, badge: true, sound: true);
+    final token = await (_messaging ?? FirebaseMessaging.instance).getToken();
     if (token != null) {
       try {
         await storageService.saveDeviceToken(token);

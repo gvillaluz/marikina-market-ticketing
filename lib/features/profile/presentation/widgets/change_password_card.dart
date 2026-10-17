@@ -28,61 +28,57 @@ class ChangePasswordCard extends StatelessWidget {
         ChangePasswordNetworkError(:final message) => message,
         _ => null,
       };
-      return Container(
-        padding: AppTheme.profileCardPadding,
-        decoration: AppTheme.profileCardDecoration(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ProfilePasswordField(
-              label: 'CURRENT PASSWORD',
-              hint: 'Enter current password',
-              controller: currentPasswordController,
-              enabled: !loading,
-              isNewPassword: false,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ProfilePasswordField(
+            label: 'Current Password',
+            hint: 'Enter password',
+            controller: currentPasswordController,
+            enabled: !loading,
+            isNewPassword: false,
+          ),
+          const SizedBox(height: AppTheme.profileGap),
+          ProfilePasswordField(
+            label: 'New Password',
+            hint: 'Enter new password',
+            controller: newPasswordController,
+            enabled: !loading,
+          ),
+          const SizedBox(height: AppTheme.profileGap),
+          ProfilePasswordField(
+            label: 'Confirm New Password',
+            hint: 'Confirm new password',
+            controller: confirmNewPasswordController,
+            enabled: !loading,
+            onSubmitted: submit,
+          ),
+          const SizedBox(height: AppTheme.profileGap),
+          Text(
+            'Choose a strong password that is different from your current password. Keep it private.',
+            style: AppTheme.profileBodyStyle.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: AppTheme.profileGap),
-            ProfilePasswordField(
-              label: 'NEW PASSWORD',
-              hint: 'Enter new password',
-              controller: newPasswordController,
-              enabled: !loading,
-            ),
-            const SizedBox(height: AppTheme.profileGap),
-            ProfilePasswordField(
-              label: 'CONFIRM NEW PASSWORD',
-              hint: 'Confirm new password',
-              controller: confirmNewPasswordController,
-              enabled: !loading,
-              onSubmitted: submit,
-            ),
-            const SizedBox(height: AppTheme.profileGap),
-            Text(
-              'Use a password that is hard to guess and unique to this account.',
-              style: AppTheme.profileBodyStyle.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (message != null) ...[
-              const SizedBox(height: AppTheme.profileSmallGap),
-              Semantics(
-                liveRegion: true,
-                child: Text(
-                  message.trim().isEmpty
-                      ? 'Unable to change your password. Please try again.'
-                      : message,
-                  style: AppTheme.profileBodyStyle.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+          ),
+          if (message != null) ...[
+            const SizedBox(height: AppTheme.profileSmallGap),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                message.trim().isEmpty
+                    ? 'Unable to change your password. Please try again.'
+                    : message,
+                style: AppTheme.profileBodyStyle.copyWith(
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
-            ],
-            const SizedBox(height: AppTheme.profileGap),
-            SaveBtn(onPressed: submit, isLoading: loading),
-            const SizedBox(height: AppTheme.profileActionGap),
-            BackBtn(enabled: !loading),
+            ),
           ],
-        ),
+          const SizedBox(height: AppTheme.profileGap),
+          SaveBtn(onPressed: submit, isLoading: loading, label: 'Save Changes'),
+          const SizedBox(height: AppTheme.profileActionGap),
+          BackBtn(enabled: !loading, label: 'Cancel'),
+        ],
       );
     },
   );

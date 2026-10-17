@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import '../../domain/entities/vendor_record.dart';
 import '../../domain/enums/records_filter.dart';
+import '../bloc/records/records_bloc.dart';
 
 class RecordCard extends StatelessWidget {
   final VendorRecord record;
   const RecordCard({required this.record, super.key});
-  void _open(BuildContext context) => context.pushNamed(
-    Routes.vendorRecordDetailName,
-    pathParameters: {'ticketId': record.ticketId.toString()},
-  );
+  Future<void> _open(BuildContext context) async {
+    await context.pushNamed<void>(
+      Routes.vendorRecordDetailName,
+      pathParameters: {'ticketId': record.ticketId.toString()},
+    );
+    if (!context.mounted) return;
+    final bloc = context.read<RecordsBloc>();
+    await bloc.refreshRecords(bloc.state.search, bloc.state.filter);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -65,7 +73,7 @@ class RecordCard extends StatelessWidget {
                         borderRadius: AppTheme.controlRadius,
                       ),
                       child: Text(
-                        record.status!.value,
+                        record.status!.label,
                         style: AppTheme.recordsCaptionStyle.copyWith(
                           color: AppTheme.ticketStatusColor(
                             record.status!.value,

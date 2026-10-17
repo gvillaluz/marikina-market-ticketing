@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 
@@ -23,7 +24,10 @@ class SettlementPhotoPickerPrompt extends StatelessWidget {
         const SizedBox(height: 4),
         const Text(
           'JPG, PNG · max 5 MB each',
-          style: TextStyle(color: AppColors.mediumGrey, fontSize: 12),
+          style: TextStyle(
+            color: AppColors.mediumGrey,
+            fontSize: AppTheme.captionFontSize,
+          ),
         ),
       ],
     );

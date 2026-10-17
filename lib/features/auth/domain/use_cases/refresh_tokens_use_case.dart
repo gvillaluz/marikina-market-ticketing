@@ -21,9 +21,9 @@ class RefreshTokensUseCase {
     });
   }
 
-  Future<bool> waitForOngoingRefresh() async {
+  Future<Result<Unit>> waitForOngoingRefresh() async {
     final inFlight = _refreshInFlight;
-    if (inFlight == null) return true;
-    return await inFlight is Success<Unit>;
+    if (inFlight == null) return Result.success(unit);
+    return await inFlight;
   }
 }

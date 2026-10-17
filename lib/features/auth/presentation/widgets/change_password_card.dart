@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:marikina_market_mobile/core/constants/app_colors.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
@@ -77,14 +77,12 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
             builder: (context, state) {
               return Column(
                 children: [
-                  if (state is AuthChangePasswordError) ...{
+                  if (state
+                      case AuthChangePasswordError(:final message) ||
+                          AuthChangePasswordNetworkError(:final message)) ...{
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        state.message,
-                        style: TextStyle(color: AppColors.primaryRed),
-                        textAlign: TextAlign.center,
-                      ),
+                      child: AuthErrorNotice(message: message),
                     ),
                   },
 

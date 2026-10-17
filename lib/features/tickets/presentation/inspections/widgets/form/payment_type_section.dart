@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
@@ -154,7 +155,7 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
                       Text(
                         title,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: AppTheme.bodyFontSize,
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.w500,
@@ -164,7 +165,7 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
                       Text(
                         'hours(minimum of 3 hours)',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppTheme.captionFontSize,
                           color: widget.communityHrsError != null
                               ? AppColors.primaryRed
                               : AppColors.mediumGrey,
@@ -175,7 +176,7 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
                         Text(
                           widget.communityHrsError!,
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: AppTheme.captionFontSize,
                             color: AppColors.primaryRed,
                             fontWeight: FontWeight.w500,
                           ),
@@ -211,7 +212,12 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
                         ),
                       ),
                     ),
-                    Text('hrs', style: const TextStyle(fontSize: 16)),
+                    Text(
+                      'hrs',
+                      style: const TextStyle(
+                        fontSize: AppTheme.sectionHeadingFontSize,
+                      ),
+                    ),
                   ],
                 ),
               ] else ...[
@@ -219,7 +225,7 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
                   child: Text(
                     title,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: AppTheme.bodyFontSize,
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.w500,

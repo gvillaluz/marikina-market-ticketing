@@ -10,3 +10,5 @@ class MarkAsRead extends NotificationEvent {
   final int id;
   MarkAsRead(this.id);
 }
+
+class MarkAllAsRead extends NotificationEvent {}

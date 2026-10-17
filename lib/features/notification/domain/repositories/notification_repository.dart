@@ -10,4 +10,5 @@ abstract class NotificationRepository {
   );
 
   Future<Result<Unit>> markAsRead(int id);
+  Future<Result<int>> loadUnreadCount();
 }

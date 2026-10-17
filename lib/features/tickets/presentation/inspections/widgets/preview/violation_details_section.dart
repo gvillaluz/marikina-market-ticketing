@@ -70,7 +70,10 @@ class ViolationDetailsSection extends StatelessWidget {
             Icon(Icons.warning, color: AppColors.primary),
             Text(
               'VIOLATION DETAILS',
-              style: TextStyle(color: AppColors.primary, fontSize: 18),
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: AppTheme.sectionHeadingFontSize,
+              ),
             ),
           ],
         ),
@@ -101,12 +104,12 @@ class ViolationDetailsSection extends StatelessWidget {
                 children: [
                   Text(
                     ordinance.ordinanceNo,
-                    style: const TextStyle(fontSize: 15),
+                    style: const TextStyle(fontSize: AppTheme.bodyFontSize),
                   ),
                   Text(
                     ordinance.ordinanceCode,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: AppTheme.captionFontSize,
                       height: 1,
                       color: AppColors.mediumGrey,
                     ),
@@ -139,7 +142,7 @@ class ViolationDetailsSection extends StatelessWidget {
                                 '${breakdown.offenseNumber.toOrdinal()} offense',
                                 style: TextStyle(
                                   color: _getFontColor(breakdown.offenseNumber),
-                                  fontSize: 12,
+                                  fontSize: AppTheme.captionFontSize,
                                 ),
                               ),
                             ],

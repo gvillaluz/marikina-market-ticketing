@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/features/layout/presentation/widgets/root_navigation_bar.dart';
-import 'package:marikina_market_mobile/features/layout/presentation/widgets/root_logout_button.dart';
 
 class RootScreen extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -67,9 +66,7 @@ class RootScreen extends StatelessWidget {
       ),
 
       actions: [
-        if (isVendor)
-          const RootLogoutButton()
-        else
+        if (!isVendor)
           IconButton(
             tooltip: 'Notifications',
             onPressed: () => context.pushNamed(Routes.notificationsName),

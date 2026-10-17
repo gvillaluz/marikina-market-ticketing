@@ -11,6 +11,10 @@ class Authenticated extends AuthState {
   Authenticated({required this.user});
 }
 
+class AuthLoggingOut extends Authenticated {
+  AuthLoggingOut({required super.user});
+}
+
 class AuthLoginLoading extends AuthState {}
 
 class Unauthenticated extends AuthState {

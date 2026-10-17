@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 
@@ -14,7 +15,10 @@ class SettlementReadOnlyMessage extends StatelessWidget {
         alignment: Alignment.centerLeft,
         child: Text(
           text,
-          style: const TextStyle(color: AppColors.mediumGrey, fontSize: 12),
+          style: const TextStyle(
+            color: AppColors.mediumGrey,
+            fontSize: AppTheme.captionFontSize,
+          ),
         ),
       ),
     );

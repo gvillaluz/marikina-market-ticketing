@@ -8,15 +8,27 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
+import 'package:marikina_market_mobile/features/profile/presentation/widgets/logout_confirmation_dialog.dart';
 
 class ProfileActions extends StatelessWidget {
   final User user;
   const ProfileActions({required this.user, super.key});
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => const LogoutConfirmationDialog(),
+    );
+    if (confirmed == true && context.mounted) {
+      context.read<AuthBloc>().add(LogoutUser(false));
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Column(
     children: [
       AppPrimaryButton(
-        label: 'Edit Account Information',
+        label: 'Edit Information',
         iconData: Icons.edit_square,
         onPressed: () => context.pushNamed(Routes.editProfileName, extra: user),
       ),
@@ -27,17 +39,15 @@ class ProfileActions extends StatelessWidget {
         onPressed: () =>
             context.pushNamed(Routes.changePasswordName, extra: user),
         foregroundColor: Theme.of(context).colorScheme.primary,
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        backgroundColor: Theme.of(context).colorScheme.surface,
       ),
-      const SizedBox(height: AppTheme.profileGap),
-      const Divider(),
       const SizedBox(height: AppTheme.profileActionGap),
       AppOutlinedBtn(
-        label: 'Logout',
+        label: 'Log Out',
         iconData: Icons.logout,
-        onPressed: () => context.read<AuthBloc>().add(LogoutUser(false)),
-        foregroundColor: Theme.of(context).colorScheme.error,
-        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+        onPressed: () => _confirmLogout(context),
+        foregroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Theme.of(context).colorScheme.surface,
       ),
     ],
   );

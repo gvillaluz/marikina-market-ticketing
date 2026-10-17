@@ -9,10 +9,11 @@ class NotificationSummaryModel {
   final String controlNumber;
   final String tradeName;
   final String marketSection;
-  final PenaltyType penaltyType;
+  final PenaltyType? penaltyType;
   final double? totalFineAmount;
-  final DateTime dueDate;
-  final TicketStatus status;
+  final DateTime? dueDate;
+  final TicketStatus? status;
+  final bool isWarning;
   final String message;
   final bool isRead;
   final DateTime createdAt;
@@ -31,9 +32,10 @@ class NotificationSummaryModel {
     required this.message,
     required this.isRead,
     required this.createdAt,
+    this.isWarning = false,
   });
 
-  factory NotificationSummaryModel.fromJson(Map<String, dynamic> json) {
+  factory NotificationSummaryModel.fromJson(Map<String, Object?> json) {
     return NotificationSummaryModel(
       notificationId: json['id'] as int,
       enforcerId: json['enforcer_id'] as int,
@@ -41,12 +43,17 @@ class NotificationSummaryModel {
       controlNumber: json['control_number'] as String,
       tradeName: json['trade_name'] as String,
       marketSection: json['market_section_name'] as String,
-      penaltyType: PenaltyType.fromValue(json['penalty_type'] as String),
-      totalFineAmount: json['total_fine_amount'] != null
-          ? json['total_fine_amount'] as double
-          : null,
-      dueDate: DateTime.parse(json['due_date'] as String),
-      status: TicketStatus.fromValue(json['status'] as String),
+      penaltyType: json['penalty_type'] == null
+          ? null
+          : PenaltyType.fromValue(json['penalty_type'] as String),
+      totalFineAmount: (json['total_fine_amount'] as num?)?.toDouble(),
+      dueDate: json['due_date'] == null
+          ? null
+          : DateTime.parse(json['due_date'] as String),
+      status: json['status'] == null
+          ? null
+          : TicketStatus.fromValue(json['status'] as String),
+      isWarning: json['type'] == 'Warning',
       message: json['message'] as String,
       isRead: json['is_read'] as bool,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -68,6 +75,7 @@ class NotificationSummaryModel {
       message: message,
       isRead: isRead,
       createdAt: createdAt,
+      isWarning: isWarning,
     );
   }
 }

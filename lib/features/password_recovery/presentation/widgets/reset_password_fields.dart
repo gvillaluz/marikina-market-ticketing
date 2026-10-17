@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 
@@ -52,7 +53,10 @@ class _ResetPasswordFieldsState extends State<ResetPasswordFields> {
               ),
             ),
             hintText: 'Enter your new password',
-            hintStyle: TextStyle(color: AppColors.lightGrey, fontSize: 14),
+            hintStyle: TextStyle(
+              color: AppColors.lightGrey,
+              fontSize: AppTheme.bodyFontSize,
+            ),
           ),
         ),
 
@@ -87,7 +91,10 @@ class _ResetPasswordFieldsState extends State<ResetPasswordFields> {
               ),
             ),
             hintText: 'Confirm your new password',
-            hintStyle: TextStyle(color: AppColors.lightGrey, fontSize: 14),
+            hintStyle: TextStyle(
+              color: AppColors.lightGrey,
+              fontSize: AppTheme.bodyFontSize,
+            ),
           ),
         ),
       ],

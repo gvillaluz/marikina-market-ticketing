@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -183,8 +184,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           ? 'Ticket Issuance Preview'
                           : 'Written Warning Preview',
                       style: const TextStyle(
-                        color: AppColors.primaryBlack,
-                        fontSize: 24,
+                        color: AppColors.primary,
+                        fontSize: AppTheme.inspectionFormTitleFontSize,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -195,7 +196,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           : 'Please review the details below before issuing the warning.',
                       style: const TextStyle(
                         color: AppColors.mediumGrey,
-                        fontSize: 14,
+                        fontSize: AppTheme.bodyFontSize,
                         height: 1.4,
                       ),
                     ),
@@ -226,7 +227,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                                   'City of Marikina',
                                   style: TextStyle(
                                     color: AppColors.primary,
-                                    fontSize: 18,
+                                    fontSize: AppTheme.sectionHeadingFontSize,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -248,7 +249,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                                           : 'WRITTEN WARNING',
                                       style: TextStyle(
                                         color: AppColors.primary,
-                                        fontSize: 16,
+                                        fontSize:
+                                            AppTheme.sectionHeadingFontSize,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -264,7 +266,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                                             'CONTROL NO.',
                                             style: TextStyle(
                                               color: AppColors.mediumGrey,
-                                              fontSize: 12,
+                                              fontSize:
+                                                  AppTheme.captionFontSize,
                                             ),
                                           ),
                                           Text(
@@ -272,7 +275,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                                             style: TextStyle(
                                               color: AppColors.primaryRed,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 16,
+                                              fontSize: AppTheme
+                                                  .sectionHeadingFontSize,
                                             ),
                                           ),
                                         ],
@@ -408,7 +412,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                         'Photo Evidence Record',
                         style: TextStyle(
                           color: AppColors.primary,
-                          fontSize: 20,
+                          fontSize: AppTheme.sectionHeadingFontSize,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -454,7 +458,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                               const Text(
                                 'No Photo Evidences Found',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: AppTheme.sectionHeadingFontSize,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -463,7 +467,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                                 'There are no captured or recorded photo evidences for this ticket.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: AppTheme.captionFontSize,
                                   color: AppColors.mediumGrey,
                                   height: 1.4,
                                 ),

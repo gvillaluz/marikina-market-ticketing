@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'profile_preview_capture.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,21 +19,26 @@ import 'features/auth/data/login_mobile_contract_test.dart' show contractClient;
 
 void main() {
   testWidgets('profile identity is centered within its card', (tester) async {
+    final previewKey = GlobalKey();
+    await tester.runAsync(loadProfilePreviewFonts);
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final user = UserModel.fromJson(profileResponse).toEntity();
     await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light,
-        home: Scaffold(
-          body: SingleChildScrollView(
-            padding: AppTheme.profilePagePadding,
-            child: ProfileHeaderCard(
-              user: user,
-              onChangePhoto: (_) {},
-              onRemovePhoto: () {},
+      RepaintBoundary(
+        key: previewKey,
+        child: MaterialApp(
+          theme: profilePreviewTheme,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              padding: AppTheme.profilePagePadding,
+              child: ProfileHeaderCard(
+                user: user,
+                onChangePhoto: (_) {},
+                onRemovePhoto: () {},
+              ),
             ),
           ),
         ),
@@ -52,6 +58,7 @@ void main() {
     await tester.tap(find.byTooltip('Profile photo actions'));
     await tester.pumpAndSettle();
     expect(find.text('Add Photo'), findsOneWidget);
+    await captureProfilePreview(tester, previewKey, 'profile-photo-options');
   });
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
   testWidgets(

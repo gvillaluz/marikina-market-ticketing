@@ -182,6 +182,54 @@ void main() {
     expect(find.text('Next'), findsOneWidget);
   });
 
+  testWidgets('service form rejects excess hours and excess decimal places', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: CommunityServiceLogSection(
+              settlement: const TicketSettlementData(
+                ticketId: 2,
+                penaltyType: PenaltyType.communityService,
+                ticketStatus: TicketStatus.inProgress,
+                requiredHours: 8,
+                communityServiceProgress: CommunityServiceProgress(
+                  ticketId: 2,
+                  hoursRequired: 8,
+                  hoursCompleted: 2,
+                  hoursRemaining: 6,
+                  completionPercentage: 25,
+                  entries: [],
+                ),
+                isReceiptSubmitted: false,
+                isLoading: false,
+                isLoaded: true,
+                isSubmitting: false,
+              ),
+              onRetryLoad: () {},
+              onSubmit: (_) => fail('Invalid hours must not be submitted.'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Add Service Entry'));
+    await tester.pumpAndSettle();
+    for (final (value, message) in [
+      ('7', 'Hours cannot exceed the remaining 6 hours.'),
+      ('0.123', 'Use at most 2 decimal places.'),
+    ]) {
+      await tester.enterText(find.byType(TextFormField), value);
+      await tester.ensureVisible(find.text('Log Hours'));
+      await tester.tap(find.text('Log Hours'));
+      await tester.pumpAndSettle();
+      expect(find.text(message), findsOneWidget);
+    }
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('completed community service log is read-only', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

@@ -1,8 +1,10 @@
 import 'package:marikina_market_mobile/core/shared/domain/enums/account_status.dart';
 import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
 import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
+import 'package:marikina_market_mobile/features/auth/data/models/vendor_profile_model.dart';
 
 class UserModel {
+  final VendorProfileModel? vendor;
   final int userId;
   final String username;
   final String lastName;
@@ -23,6 +25,7 @@ class UserModel {
   final bool mustChangePassword;
 
   UserModel({
+    this.vendor,
     required this.userId,
     required this.username,
     required this.lastName,
@@ -45,6 +48,9 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, Object?> json) {
     return UserModel(
+      vendor: json['vendor'] is Map<String, Object?>
+          ? VendorProfileModel.fromJson(json['vendor'] as Map<String, Object?>)
+          : null,
       userId: (json['userId'] ?? json['user_id']) as int,
       username: json['username'] as String,
       lastName: (json['lastName'] ?? json['last_name']) as String,
@@ -83,6 +89,7 @@ class UserModel {
 
   Map<String, Object?> toJson() {
     return {
+      if (vendor != null) 'vendor': vendor!.toJson(),
       'user_id': userId,
       'username': username,
       'last_name': lastName,
@@ -107,6 +114,7 @@ class UserModel {
 
   factory UserModel.fromEntity(User user) {
     return UserModel(
+      vendor: user.vendor == null ? null : VendorProfileModel(user.vendor!),
       userId: user.userId,
       username: user.username,
       lastName: user.lastName,
@@ -130,6 +138,7 @@ class UserModel {
 
   User toEntity() {
     return User(
+      vendor: vendor?.toEntity(),
       userId: userId,
       username: username,
       lastName: lastName,

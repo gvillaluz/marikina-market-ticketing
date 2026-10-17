@@ -4,11 +4,14 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn
 class SaveBtn extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isLoading;
-  const SaveBtn({required this.onPressed, required this.isLoading, super.key});
+  final String label;
+  const SaveBtn({
+    required this.onPressed,
+    required this.isLoading,
+    this.label = 'SAVE CHANGES',
+    super.key,
+  });
   @override
-  Widget build(BuildContext context) => AuthBtn(
-    onPressed: onPressed,
-    isLoading: isLoading,
-    label: 'SAVE CHANGES',
-  );
+  Widget build(BuildContext context) =>
+      AuthBtn(onPressed: onPressed, isLoading: isLoading, label: label);
 }

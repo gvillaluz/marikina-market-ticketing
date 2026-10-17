@@ -24,13 +24,13 @@ class TicketListHeader extends StatelessWidget {
       Text(
         'Tickets',
         style: AppTheme.ticketTitleStyle.copyWith(
-          color: Theme.of(context).colorScheme.onSurface,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
       const SizedBox(height: AppTheme.ticketTinyGap),
       Text(
         'Review issued tickets and settlement status.',
-        style: AppTheme.ticketBodyStyle.copyWith(
+        style: AppTheme.pageSubtitleStyle.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),

@@ -29,9 +29,7 @@ class _ProfilePasswordFieldState extends State<ProfilePasswordField> {
     children: [
       Text(
         widget.label,
-        style: AppTheme.profileCaptionStyle.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
+        style: AppTheme.bodyTextStyle.copyWith(fontWeight: FontWeight.w600),
       ),
       const SizedBox(height: AppTheme.profileSmallGap),
       TextField(
@@ -54,7 +52,6 @@ class _ProfilePasswordFieldState extends State<ProfilePasswordField> {
         onTapOutside: (_) => FocusScope.of(context).unfocus(),
         decoration: InputDecoration(
           hintText: widget.hint,
-          prefixIcon: const Icon(Icons.lock_outline),
           suffixIcon: IconButton(
             tooltip: _visible ? 'Hide password' : 'Show password',
             onPressed: !widget.enabled

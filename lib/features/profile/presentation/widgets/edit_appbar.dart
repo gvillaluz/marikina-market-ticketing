@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 
 class EditAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -14,15 +15,15 @@ class EditAppbar extends StatelessWidget implements PreferredSizeWidget {
         icon: const Icon(Icons.arrow_back),
         onPressed: onPressed,
       ),
-      elevation: 1,
-      scrolledUnderElevation: 4,
+      elevation: 0,
+      scrolledUnderElevation: 0,
       shadowColor: Colors.grey.shade100,
 
       iconTheme: const IconThemeData(color: AppColors.primary),
 
-      titleTextStyle: TextStyle(
+      titleTextStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
         fontWeight: FontWeight.bold,
-        fontSize: 20,
+        fontSize: AppTheme.sectionHeadingFontSize,
         color: AppColors.primary,
       ),
       title: Text(title),

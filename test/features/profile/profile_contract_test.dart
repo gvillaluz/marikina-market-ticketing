@@ -337,34 +337,30 @@ void main() {
       });
       var requests = 0;
       late ApiClient client;
-      client = contractClient(
-        (options) async {
-          if (options.path == '/auth/refresh') {
-            expect(options.data, {'refresh_token': 'old-refresh'});
-            return reply(options, {
-              'access_token': 'new-access',
-              'refresh_token': 'new-refresh',
-              'refresh_token_expiration': '2099-02-01T00:00:00Z',
-            });
-          }
-          requests++;
-          if (requests == 1) {
-            expect(options.headers['Authorization'], 'Bearer old-access');
-            throw DioException(
+      client = contractClient((options) async {
+        if (options.path == '/auth/refresh') {
+          expect(options.data, {'refresh_token': 'old-refresh'});
+          return reply(options, {
+            'access_token': 'new-access',
+            'refresh_token': 'new-refresh',
+            'refresh_token_expiration': '2099-02-01T00:00:00Z',
+          });
+        }
+        requests++;
+        if (requests == 1) {
+          expect(options.headers['Authorization'], 'Bearer old-access');
+          throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.badResponse,
+            response: Response<Object?>(
               requestOptions: options,
-              type: DioExceptionType.badResponse,
-              response: Response<Object?>(
-                requestOptions: options,
-                statusCode: 401,
-              ),
-            );
-          }
-          expect(options.headers['Authorization'], 'Bearer new-access');
-          return reply(options, profileResponse);
-        },
-        refreshAction: () async =>
-            await contractRepository(client).refreshTokens() is Success,
-      );
+              statusCode: 401,
+            ),
+          );
+        }
+        expect(options.headers['Authorization'], 'Bearer new-access');
+        return reply(options, profileResponse);
+      }, refreshAction: () => contractRepository(client).refreshTokens());
       addTearDown(client.dio.close);
       expect(
         await EditProfileUseCase(profileRepository(client))(profileParams()),

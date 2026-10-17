@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
@@ -10,6 +11,7 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_ca
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_bloc.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_event.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_state.dart';
+import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/back_to_login_button.dart';
 
 class FindAccountPage extends StatefulWidget {
   const FindAccountPage({super.key});
@@ -74,18 +76,14 @@ class _FindAccountPageState extends State<FindAccountPage> {
                                 children: [
                                   const Text(
                                     'Find your account',
-                                    style: TextStyle(
-                                      color: AppColors.primaryBlack,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    style: AppTheme.authPageTitleStyle,
                                   ),
                                   const SizedBox(height: 4),
                                   const Text(
                                     'Enter your username to continue.',
                                     style: TextStyle(
-                                      color: AppColors.mediumGrey,
-                                      fontSize: 14,
+                                      color: AppTheme.authVerificationBodyColor,
+                                      fontSize: AppTheme.bodyFontSize,
                                     ),
                                   ),
                                   const SizedBox(height: 24),
@@ -114,7 +112,7 @@ class _FindAccountPageState extends State<FindAccountPage> {
                                       hintText: 'Enter your username',
                                       hintStyle: const TextStyle(
                                         color: AppColors.lightGrey,
-                                        fontSize: 14,
+                                        fontSize: AppTheme.bodyFontSize,
                                       ),
                                       filled: true,
                                       fillColor: Colors.white,
@@ -139,14 +137,14 @@ class _FindAccountPageState extends State<FindAccountPage> {
                                           ),
                                           if (state is SearchAccountFailed) ...[
                                             const SizedBox(height: 12),
-                                            Text(
-                                              state.message,
-                                              style: const TextStyle(
-                                                color: AppColors.primaryRed,
-                                              ),
-                                              textAlign: TextAlign.center,
+                                            AuthErrorNotice(
+                                              message: state.message,
                                             ),
                                           ],
+                                          BackToLoginButton(
+                                            enabled:
+                                                state is! SearchAccountLoading,
+                                          ),
                                         ],
                                       );
                                     },

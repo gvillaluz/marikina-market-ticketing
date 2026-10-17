@@ -15,8 +15,15 @@ class NotificationHeader extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
+        'Notifications',
+        style: AppTheme.pageTitleStyle.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+      const SizedBox(height: AppTheme.inspectionTinyGap),
+      Text(
         'Keep track of updates to your tickets.',
-        style: AppTheme.notificationBodyStyle.copyWith(
+        style: AppTheme.pageSubtitleStyle.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),

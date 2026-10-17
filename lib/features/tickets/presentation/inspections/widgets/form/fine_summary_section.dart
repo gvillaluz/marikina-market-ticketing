@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
@@ -17,10 +18,13 @@ class FineSummarySection extends StatelessWidget {
     required this.fineSummary,
     required this.isTicket,
     required this.onDelete,
-    super.key
+    super.key,
   });
 
-  static final _currencyFormat = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
+  static final _currencyFormat = NumberFormat.currency(
+    locale: 'en_PH',
+    symbol: '₱',
+  );
 
   Color _getBgColor(int count) {
     if (count > 2) {
@@ -50,29 +54,24 @@ class FineSummarySection extends StatelessWidget {
     return null;
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     return Column(
       children: [
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: items.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 5,),
+          separatorBuilder: (_, _) => const SizedBox(height: 5),
           itemBuilder: (context, index) {
             final ordinance = items[index];
             final breakdown = _breakdownFor(ordinance);
-        
+
             return AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: AppColors.primary,
-                  width: 1
-                ),
+                border: Border.all(color: AppColors.primary, width: 1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
@@ -80,31 +79,32 @@ class FineSummarySection extends StatelessWidget {
                 children: [
                   Text(
                     ordinance.ordinanceNo,
-                    style: TextStyle(
-                      fontSize: 15,
-                    ),
+                    style: TextStyle(fontSize: AppTheme.bodyFontSize),
                     softWrap: true,
                   ),
-        
+
                   Text(
                     ordinance.ordinanceCode,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppTheme.captionFontSize,
                       height: 1,
-                      color: AppColors.mediumGrey
+                      color: AppColors.mediumGrey,
                     ),
                   ),
-        
+
                   if (isTicket && breakdown != null) ...{
-                    const SizedBox(height: 20,),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: _getBgColor(breakdown.offenseNumber),
-                            borderRadius: BorderRadius.circular(10)
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -119,29 +119,27 @@ class FineSummarySection extends StatelessWidget {
                                 '${breakdown.offenseNumber.toOrdinal()} offense',
                                 style: TextStyle(
                                   color: _getFontColor(breakdown.offenseNumber),
-                                  fontSize: 12
+                                  fontSize: AppTheme.captionFontSize,
                                 ),
                               ),
                             ],
-                          )
+                          ),
                         ),
                         Text(
                           _currencyFormat.format(breakdown.paymentAmount),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
-                  }
-                ]
-              )
+                  },
+                ],
+              ),
             );
-          }
+          },
         ),
 
         if (isTicket) ...{
-          const Divider(height: 30,),
+          const Divider(height: 30),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -153,18 +151,18 @@ class FineSummarySection extends StatelessWidget {
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      color: AppColors.secondaryGreen
+                      color: AppColors.secondaryGreen,
                     ),
                     child: Icon(
                       Icons.lock_outline,
-                      color: AppColors.primaryGreen
+                      color: AppColors.primaryGreen,
                     ),
                   ),
                   const Text(
                     'Total Fine Amount: ',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16
+                      fontSize: AppTheme.sectionHeadingFontSize,
                     ),
                   ),
                 ],
@@ -174,12 +172,12 @@ class FineSummarySection extends StatelessWidget {
                 _currencyFormat.format(fineSummary?.totalPaymentAmount),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16
-                )
+                  fontSize: AppTheme.sectionHeadingFontSize,
+                ),
               ),
             ],
-          )
-        }
+          ),
+        },
       ],
     );
   }

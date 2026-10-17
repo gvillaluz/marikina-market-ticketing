@@ -1,5 +1,5 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 
 class SettlementHeading extends StatelessWidget {
   final String title;
@@ -18,10 +18,8 @@ class SettlementHeading extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: AppColors.primary,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          style: AppTheme.detailTitleStyle.copyWith(
+            color: Theme.of(context).colorScheme.primary,
           ),
         ),
         Text(description),

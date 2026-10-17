@@ -54,30 +54,38 @@ class _AppDatePickerDialogState extends State<AppDatePickerDialog> {
               const SizedBox(height: AppTheme.datePickerSmallGap),
               SizedBox(
                 height: AppTheme.datePickerHeight,
-                child: CupertinoTheme(
-                  data: CupertinoThemeData(
-                    brightness: theme.brightness,
-                    primaryColor: theme.colorScheme.primary,
-                    textTheme: CupertinoTextThemeData(
-                      dateTimePickerTextStyle: AppTheme.datePickerTextStyle
-                          .copyWith(color: theme.colorScheme.onSurface),
-                    ),
-                  ),
-                  child: CupertinoDatePicker(
-                    mode: CupertinoDatePickerMode.date,
-                    dateOrder: DatePickerDateOrder.dmy,
-                    initialDateTime: widget.initialDate,
-                    minimumDate: widget.firstDate,
-                    maximumDate: widget.lastDate,
-                    minimumYear: widget.firstDate.year,
-                    maximumYear: widget.lastDate.year,
-                    itemExtent: AppTheme.datePickerItemExtent,
-                    backgroundColor: theme.colorScheme.surface,
-                    onDateTimeChanged: (date) => setState(
-                      () => _selectedDate = DateTime(
-                        date.year,
-                        date.month,
-                        date.day,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width:
+                        AppTheme.datePickerDialogMaxWidth -
+                        AppTheme.datePickerDialogPadding.horizontal,
+                    child: CupertinoTheme(
+                      data: CupertinoThemeData(
+                        brightness: theme.brightness,
+                        primaryColor: theme.colorScheme.primary,
+                        textTheme: CupertinoTextThemeData(
+                          dateTimePickerTextStyle: AppTheme.datePickerTextStyle
+                              .copyWith(color: theme.colorScheme.onSurface),
+                        ),
+                      ),
+                      child: CupertinoDatePicker(
+                        mode: CupertinoDatePickerMode.date,
+                        dateOrder: DatePickerDateOrder.dmy,
+                        initialDateTime: widget.initialDate,
+                        minimumDate: widget.firstDate,
+                        maximumDate: widget.lastDate,
+                        minimumYear: widget.firstDate.year,
+                        maximumYear: widget.lastDate.year,
+                        itemExtent: AppTheme.datePickerItemExtent,
+                        backgroundColor: theme.colorScheme.surface,
+                        onDateTimeChanged: (date) => setState(
+                          () => _selectedDate = DateTime(
+                            date.year,
+                            date.month,
+                            date.day,
+                          ),
+                        ),
                       ),
                     ),
                   ),

@@ -36,12 +36,17 @@ class AuthRepositoryImpl implements AuthRepository {
       final sessionRecoverable = authTokens.refreshTokenExpiration.isAfter(
         DateTime.now(),
       );
-      if (!sessionRecoverable) return Result.success(null);
+      if (!sessionRecoverable) {
+        await localDataSource.removeUser();
+        return Result.success(null);
+      }
 
       if (tokenService.isAccessTokenExpired(authTokens.accessToken)) {
         final refreshResult = await refreshTokens();
         if (refreshResult case ResultFailure(failure: final failure)) {
-          return Result.failure(failure);
+          if (failure is! NetworkFailure && failure is! ServerFailure) {
+            return Result.failure(failure);
+          }
         }
       }
 
@@ -261,6 +266,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await localDataSource.getUser();
 
       final newUser = UserModel(
+        vendor: user.vendor,
         userId: user.userId,
         username: user.username,
         firstName: user.firstName,
@@ -319,6 +325,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Result<Unit>> _performRefreshTokens() async {
     try {
       final tokens = await localDataSource.getTokens();
+      if (!tokens.refreshTokenExpiration.isAfter(DateTime.now())) {
+        throw UnauthorizedException('Session expired. Please sign in again.');
+      }
       final freshTokens = await remoteDataSource.refreshAuthTokens(
         tokens.refreshToken,
       );
@@ -326,8 +335,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return Result.success(unit);
     } on CacheException catch (e) {
-      return Result.failure(UnauthorizedFailure(e.message));
+      return Result.failure(CacheFailure(e.message));
     } on UnauthorizedException catch (e) {
+      await localDataSource.removeUser();
       return Result.failure(UnauthorizedFailure(e.message));
     } on NetworkException catch (e) {
       return Result.failure(NetworkFailure(e.message));

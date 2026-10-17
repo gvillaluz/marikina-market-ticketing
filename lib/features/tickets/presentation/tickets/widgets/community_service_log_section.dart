@@ -119,6 +119,7 @@ class _CommunityServiceLogSectionState
   }
 
   void _submitLog() {
+    if (widget.settlement.isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
     final proofPhoto = _proofPhoto;
     if (proofPhoto == null) {
@@ -202,7 +203,7 @@ class _CommunityServiceLogSectionState
                           'Community Service Log',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: AppTheme.bodyFontSize,
                           ),
                         ),
                         Text(
@@ -211,7 +212,7 @@ class _CommunityServiceLogSectionState
                               : 'Community service progress is unavailable',
                           style: const TextStyle(
                             color: AppColors.mediumGrey,
-                            fontSize: 11,
+                            fontSize: AppTheme.captionFontSize,
                           ),
                         ),
                       ],
@@ -240,14 +241,14 @@ class _CommunityServiceLogSectionState
                       '${formatSettlementHours(progress.hoursCompleted)} logged',
                       style: const TextStyle(
                         color: AppColors.mediumGrey,
-                        fontSize: 11,
+                        fontSize: AppTheme.captionFontSize,
                       ),
                     ),
                     Text(
                       '${progress.completionPercentage.round()}% of ${progress.hoursRequired} hrs',
                       style: const TextStyle(
                         color: AppColors.mediumGrey,
-                        fontSize: 11,
+                        fontSize: AppTheme.captionFontSize,
                       ),
                     ),
                   ],
@@ -269,7 +270,7 @@ class _CommunityServiceLogSectionState
                     '${formatSettlementHours(progress.hoursRemaining)} hrs remaining',
                     style: const TextStyle(
                       color: AppColors.mediumGrey,
-                      fontSize: 11,
+                      fontSize: AppTheme.captionFontSize,
                     ),
                   ),
                 ),
@@ -343,7 +344,7 @@ class _CommunityServiceLogSectionState
                       DateFormat('MMM d, yyyy').format(log.serviceDate),
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 12,
+                        fontSize: AppTheme.captionFontSize,
                       ),
                     ),
                   ),
@@ -361,7 +362,7 @@ class _CommunityServiceLogSectionState
                       style: const TextStyle(
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
-                        fontSize: 11,
+                        fontSize: AppTheme.captionFontSize,
                       ),
                     ),
                   ),
@@ -436,13 +437,19 @@ class _CommunityServiceLogSectionState
           width: 105,
           child: Text(
             label,
-            style: const TextStyle(color: AppColors.mediumGrey, fontSize: 12),
+            style: const TextStyle(
+              color: AppColors.mediumGrey,
+              fontSize: AppTheme.captionFontSize,
+            ),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: AppTheme.captionFontSize,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],
@@ -464,7 +471,10 @@ class _CommunityServiceLogSectionState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Date', style: TextStyle(fontSize: 11)),
+              const Text(
+                'Date',
+                style: TextStyle(fontSize: AppTheme.captionFontSize),
+              ),
               const SizedBox(height: 5),
               InkWell(
                 onTap: _selectDate,
@@ -478,7 +488,10 @@ class _CommunityServiceLogSectionState
                 ),
               ),
               const SizedBox(height: 9),
-              const Text('Hours Worked', style: TextStyle(fontSize: 11)),
+              const Text(
+                'Hours Worked',
+                style: TextStyle(fontSize: AppTheme.captionFontSize),
+              ),
               const SizedBox(height: 5),
               TextFormField(
                 controller: _hoursController,
@@ -495,14 +508,30 @@ class _CommunityServiceLogSectionState
                 ),
                 validator: (value) {
                   final hours = double.tryParse(value?.trim() ?? '');
-                  if (hours == null || hours <= 0) {
-                    return 'Enter more than 0 hours.';
+                  if (hours == null ||
+                      !hours.isFinite ||
+                      hours < 0.01 ||
+                      hours > 999.99) {
+                    return 'Enter 0.01 to 999.99 hours.';
+                  }
+                  if (!RegExp(r'^\d*(\.\d{0,2})?$').hasMatch(value!.trim())) {
+                    return 'Use at most 2 decimal places.';
+                  }
+                  final remaining = widget
+                      .settlement
+                      .communityServiceProgress
+                      ?.hoursRemaining;
+                  if (remaining != null && hours > remaining) {
+                    return 'Hours cannot exceed the remaining ${formatSettlementHours(remaining)} hours.';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 9),
-              const Text('Proof Documentation', style: TextStyle(fontSize: 11)),
+              const Text(
+                'Proof Documentation',
+                style: TextStyle(fontSize: AppTheme.captionFontSize),
+              ),
               const SizedBox(height: 5),
               InkWell(
                 onTap: _attachProof,
@@ -539,7 +568,9 @@ class _CommunityServiceLogSectionState
                   const SizedBox(width: 5),
                   Expanded(
                     child: FilledButton.icon(
-                      onPressed: _submitLog,
+                      onPressed: widget.settlement.isSubmitting
+                          ? null
+                          : _submitLog,
                       icon: widget.settlement.isSubmitting
                           ? const SizedBox(
                               width: 16,

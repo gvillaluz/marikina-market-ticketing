@@ -27,7 +27,6 @@ class AuthBtn extends StatelessWidget {
                 strokeWidth: AppTheme.buttonProgressStrokeWidth,
                 color: Theme.of(context).colorScheme.primary,
                 semanticsLabel: 'Loading',
-                semanticsValue: 'In progress',
               ),
             ),
             const SizedBox(width: AppTheme.authSmallGap),

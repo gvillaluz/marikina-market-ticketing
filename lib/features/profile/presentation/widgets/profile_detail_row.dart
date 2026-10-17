@@ -27,13 +27,15 @@ class ProfileDetailRow extends StatelessWidget {
         final Widget detail = status == null
             ? Text(
                 value == null || value!.trim().isEmpty
-                    ? 'Not provided'
+                    ? label == 'Stall Number'
+                          ? 'N/A'
+                          : 'Not provided'
                     : value!,
                 style: AppTheme.profileBodyStyle,
-                textAlign: TextAlign.end,
+                textAlign: TextAlign.start,
               )
             : Align(
-                alignment: Alignment.centerRight,
+                alignment: Alignment.centerLeft,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppTheme.profileStatusBackground(active),

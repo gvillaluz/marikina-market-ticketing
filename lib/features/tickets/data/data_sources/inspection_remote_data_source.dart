@@ -262,6 +262,15 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
 
       return SaveInspectionResultModel.fromJson(response.data);
     } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        final data = e.response?.data;
+        final message = data is Map<String, Object?> ? data['message'] : null;
+        throw ValidationException(
+          message is String && message.trim().isNotEmpty
+              ? message
+              : 'Please check the inspection details and try again.',
+        );
+      }
       if (e.response?.statusCode == 409) {
         final title = e.response?.data['title'] as String?;
 

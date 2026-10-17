@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
@@ -34,7 +35,10 @@ class DuplicateWarningDialog extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: AppTheme.sectionHeadingFontSize,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -62,7 +66,7 @@ class DuplicateWarningDialog extends StatelessWidget {
                     title: Text(
                       duplicateOrdinances[i].ordinanceNo,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: AppTheme.bodyFontSize,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -70,7 +74,7 @@ class DuplicateWarningDialog extends StatelessWidget {
                       duplicateOrdinances[i].ordinanceCode,
                       style: const TextStyle(
                         color: AppColors.mediumGrey,
-                        fontSize: 13,
+                        fontSize: AppTheme.captionFontSize,
                       ),
                     ),
                   ),

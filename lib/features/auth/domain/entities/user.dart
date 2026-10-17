@@ -1,7 +1,9 @@
 import 'package:marikina_market_mobile/core/shared/domain/enums/account_status.dart';
 import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
+import 'package:marikina_market_mobile/features/auth/domain/entities/vendor_profile.dart';
 
 class User {
+  final VendorProfile? vendor;
   final int userId;
   final String username;
   final String lastName;
@@ -22,6 +24,7 @@ class User {
   final bool mustChangePassword;
 
   User({
+    this.vendor,
     required this.userId,
     required this.username,
     required this.lastName,

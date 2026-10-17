@@ -50,7 +50,7 @@ AuthRepositoryImpl logoutRepository(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  setUp(() => FlutterSecureStorage.setMockInitialValues(session));
+  setUp(() => FlutterSecureStorage.setMockInitialValues({...session}));
 
   testWidgets('logout validation feedback remains visible after navigation', (
     tester,
@@ -289,24 +289,23 @@ void main() {
     'network failure retains the request and concurrent logout is coalesced',
     () async {
       var requests = 0;
-      final gate = Completer<Response<Object?>>();
+      final gate = Completer<void>();
       final started = Completer<void>();
       final client = contractClient((options) async {
         requests++;
         started.complete();
-        return gate.future;
+        await gate.future;
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+        );
       });
       addTearDown(client.dio.close);
       final repository = logoutRepository(client, LogoutTestNetworkInfo());
       final first = repository.logoutUser();
       final second = repository.logoutUser();
       await started.future;
-      gate.completeError(
-        DioException(
-          requestOptions: RequestOptions(path: '/Auth/logout'),
-          type: DioExceptionType.connectionError,
-        ),
-      );
+      gate.complete();
       expect(await first, isA<Success>());
       expect(await second, isA<Success>());
       expect(requests, 1);
