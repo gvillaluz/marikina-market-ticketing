@@ -10,6 +10,7 @@ import { useOrdinanceCount } from "../hooks/useOrdinanceCount";
 import StatCard from "@/components/ui/Card/StatCard/StatCard";
 import { ROUTES } from "@/routes/routePaths";
 import { useAuthStore } from "@/store/store";
+import { ADMIN_ROLES } from "@/api/types/common.types";
 
 // STATIC DATA — replace with useSystemStats() once the endpoint exists.
 const STATS = {
@@ -81,9 +82,8 @@ const SystemConfigurationPage: FC = () => {
   const marketSectionSummary = useMarketSectionCount();
   const ordinanceSummary = useOrdinanceCount();
   const navigate = useNavigate();
-  const canManageOrdinances = useAuthStore(
-    (state) => state.user?.role === "HeadAdmin",
-  );
+  const role = useAuthStore((state) => state.user?.role);
+  const canManageOrdinances = role != null && ADMIN_ROLES.includes(role);
 
   return (
     <div className={styles.page}>
@@ -128,7 +128,8 @@ const SystemConfigurationPage: FC = () => {
         <div className={styles.moduleGrid}>
           {CONFIG_MODULES.filter(
             (module) =>
-              module.id !== "ordinances-penalties" || canManageOrdinances,
+              (module.id !== "ordinances-penalties" || canManageOrdinances) &&
+              (module.id !== "data-backups" || role === "HeadAdmin"),
           ).map((module) => (
             <ConfigModuleCard key={module.id} {...module} />
           ))}

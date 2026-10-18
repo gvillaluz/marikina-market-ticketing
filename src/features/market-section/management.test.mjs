@@ -209,7 +209,7 @@ function harness(role = "HeadAdmin") {
   };
 }
 
-test("both administrators can manage and navigate to market sections without broader configuration access", () => {
+test("both administrators reach market sections through Configurations without backup access expansion", () => {
   for (const role of [
     "HeadAdmin",
     "AdminOfficer",
@@ -241,9 +241,39 @@ test("both administrators can manage and navigate to market sections without bro
         }),
       ),
     );
-    assert.equal(html.includes('href="/system/market-section"'), allowed);
-    if (role === "AdminOfficer")
-      assert.equal(html.includes('href="/system/configuration"'), false);
+    assert.equal(html.includes('href="/system/market-section"'), false);
+    assert.equal(html.includes('href="/system/configuration"'), allowed);
+    const Configuration = load(
+      "features/configuration/pages/SystemConfigurationPage.tsx",
+      {
+        "@/store/store": {
+          useAuthStore: (select) => select({ user: { role } }),
+        },
+        "@/features/configuration/hooks/useMarketSectionCount": {
+          useMarketSectionCount: () => ({ count: 2 }),
+        },
+        "@/features/configuration/hooks/useOrdinanceCount": {
+          useOrdinanceCount: () => ({ count: 3 }),
+        },
+      },
+    ).default;
+    if (allowed) {
+      const configurationHtml = renderToStaticMarkup(
+        React.createElement(
+          MemoryRouter,
+          null,
+          React.createElement(Configuration),
+        ),
+      );
+      assert.equal(
+        configurationHtml.includes('href="/system/market-section"'),
+        true,
+      );
+      assert.equal(
+        configurationHtml.includes('href="/configuration/backups"'),
+        role === "HeadAdmin",
+      );
+    }
   }
 });
 

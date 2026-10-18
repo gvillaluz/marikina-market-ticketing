@@ -94,7 +94,7 @@ const QUICK_LINKS: QuickLink[] = [
     description: "Manage system settings",
     to: ROUTES.systemConfiguration,
     icon: Settings,
-    roles: HEAD_ADMIN_ROLES,
+    roles: ADMIN_ROLES,
   },
 ];
 
@@ -188,7 +188,10 @@ export function DashboardPage() {
         ))}
       </section>
 
-      <section className={styles.dashboardColumns} aria-label="Activity summary">
+      <section
+        className={styles.dashboardColumns}
+        aria-label="Activity summary"
+      >
         <div className={styles.recentPanel}>
           <DashboardEmptyPanel
             title="Recent activity"

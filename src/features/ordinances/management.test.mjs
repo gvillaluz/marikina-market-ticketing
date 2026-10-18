@@ -264,7 +264,7 @@ test("only the known empty-list 404 becomes an empty registry", async () => {
   await assert.rejects(ordinanceApi.getAll(), /Route not found/);
 });
 
-test("both administrators can launch the editor and have a direct ordinance navigation link", () => {
+test("both administrators reach ordinances through Configurations without backup access expansion", () => {
   for (const role of [
     "HeadAdmin",
     "AdminOfficer",
@@ -296,9 +296,39 @@ test("both administrators can launch the editor and have a direct ordinance navi
         }),
       ),
     );
-    assert.equal(html.includes('href="/system/ordinance"'), allowed);
-    if (role === "AdminOfficer")
-      assert.equal(html.includes('href="/system/configuration"'), false);
+    assert.equal(html.includes('href="/system/ordinance"'), false);
+    assert.equal(html.includes('href="/system/configuration"'), allowed);
+    const Configuration = load(
+      "features/configuration/pages/SystemConfigurationPage.tsx",
+      {
+        "@/store/store": {
+          useAuthStore: (select) => select({ user: { role } }),
+        },
+        "@/features/configuration/hooks/useMarketSectionCount": {
+          useMarketSectionCount: () => ({ count: 2 }),
+        },
+        "@/features/configuration/hooks/useOrdinanceCount": {
+          useOrdinanceCount: () => ({ count: 3 }),
+        },
+      },
+    ).default;
+    if (allowed) {
+      const configurationHtml = renderToStaticMarkup(
+        React.createElement(
+          MemoryRouter,
+          null,
+          React.createElement(Configuration),
+        ),
+      );
+      assert.equal(
+        configurationHtml.includes('href="/system/ordinance"'),
+        true,
+      );
+      assert.equal(
+        configurationHtml.includes('href="/configuration/backups"'),
+        role === "HeadAdmin",
+      );
+    }
   }
 });
 

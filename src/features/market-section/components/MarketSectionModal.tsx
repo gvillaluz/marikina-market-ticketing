@@ -55,7 +55,6 @@ export default function MarketSectionModal({ editor }: Props) {
             </label>
             <input
               id="section-name"
-              autoFocus
               required
               maxLength={150}
               value={editor.name}

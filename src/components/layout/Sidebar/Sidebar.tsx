@@ -197,7 +197,7 @@ const NAV_ITEMS: NavItem[] = [
     to: "/system/configuration",
     label: "Configurations",
     icon: SettingsIcon,
-    allowedRoles: HEAD_ADMIN_ROLES,
+    allowedRoles: ADMIN_ROLES,
   },
 ];
 

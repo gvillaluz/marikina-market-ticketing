@@ -9,6 +9,7 @@
   border-radius: 7px;
   background: #fff;
   width: 27rem;
+  max-width: 100%;
 }
 
 .cardTitle {

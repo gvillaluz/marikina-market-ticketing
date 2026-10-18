@@ -189,7 +189,7 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.systemConfiguration}
           element={
-            <ProtectedRoute roles={HEAD_ADMIN_ROLES}>
+            <ProtectedRoute roles={ADMIN_ROLES}>
               <SystemConfigurationPage />
             </ProtectedRoute>
           }
