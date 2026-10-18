@@ -624,8 +624,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                         const SizedBox(height: 30),
 
                         AppPrimaryButton(
-                          label: 'Submit ${isTicket ? 'Ticket' : 'Warning'}',
-                          iconData: Icons.gavel,
+                          label: 'Next',
+                          iconData: Icons.arrow_forward,
                           isLoading: _isOpeningPreview,
                           onPressed: _submit,
                         ),

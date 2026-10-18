@@ -246,7 +246,7 @@ List<RouteBase> buildAppRoutes({String? sessionKey}) => [
     routes: [
       GoRoute(
         name: Routes.newInspectionPreviewName,
-        path: Routes.newInspectionPreview,
+        path: 'preview',
         pageBuilder: (context, state) {
           final formData = state.extra as InspectionFormData;
 
