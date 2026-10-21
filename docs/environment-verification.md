@@ -32,6 +32,8 @@ Machine-readable preservation and credential-check results are in [migration-ver
 
 The initial `fresh-clone` was cloned locally with `--no-local --no-hardlinks`, at `70888a3c6e469dabddf718553bffc0fc3fb9a535`. Existing dependency caches were used; no dependency declarations or lockfiles were upgraded. Later candidate changes add source-history ancestry, documentation and preserved public example configuration. Final clone file comparisons separately establish application-content parity with the tested clone; no application check is claimed to have run on an untested revision solely because its Git history exists.
 
+Windows Git checkout converts some text files between LF and CRLF. Clone comparisons permit only this line-ending conversion for valid UTF-8 text; binary files require exact bytes. Every other difference fails verification. The original-source preservation check uses exact SHA-256 file hashes without normalization.
+
 | Check | Actual result | Limits |
 | --- | --- | --- |
 | API restore/build | Passed; build has 0 errors and 3 existing warnings | Two migration-type naming warnings and obsolete Firebase `Message.Token`; no startup/database check |
