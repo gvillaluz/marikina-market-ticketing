@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MarikinaMarket.API/MarikinaMarket.API.csproj" />
+  <Project Path="MarikinaMarket.Tests/MarikinaMarket.Tests.csproj" />
+</Solution>

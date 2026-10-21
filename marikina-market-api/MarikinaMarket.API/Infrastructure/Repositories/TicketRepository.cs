@@ -1,0 +1,1051 @@
+using MarikinaMarket.API.Application.DTOs.Enforcers.Internal;
+using MarikinaMarket.API.Application.DTOs.Enforcers.Response;
+using MarikinaMarket.API.Application.DTOs.Analytics.Internal;
+using MarikinaMarket.API.Application.DTOs.Tickets.Internal;
+using MarikinaMarket.API.Application.DTOs.Tickets.Request;
+using MarikinaMarket.API.Application.DTOs.Tickets.Response;
+using MarikinaMarket.API.Application.DTOs.Vendor.Internal;
+using MarikinaMarket.API.Application.DTOs.Vendor.Request;
+using MarikinaMarket.API.Application.DTOs.Vendor.Response;
+using MarikinaMarket.API.Application.Interfaces.Repositories;
+using MarikinaMarket.API.Domain.Entities;
+using MarikinaMarket.API.Domain.Enums;
+using MarikinaMarket.API.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+namespace MarikinaMarket.API.Infrastructure.Repositories
+{
+    public class TicketRepository : ITicketRepository
+    {
+        private readonly AppDbContext _context;
+
+        public TicketRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<VendorDashboardTaskResponse>> GetVendorDashboardTasksAsync(int userId)
+        {
+            return await _context.Tickets.AsNoTracking()
+                .Where(ticket => ticket.Vendor!.UserId == userId && ticket.Type == ViolationType.Ticket &&
+                    (ticket.Status == TicketStatus.Pending || ticket.Status == TicketStatus.Overdue ||
+                     ticket.Status == TicketStatus.Contested || ticket.Status == TicketStatus.InProgress))
+                .OrderByDescending(ticket => ticket.IssuedAt).ThenByDescending(ticket => ticket.Id)
+                .Select(ticket => new VendorDashboardTaskResponse
+                {
+                    TicketId = ticket.Id,
+                    ControlNumber = ticket.ControlNumber,
+                    PenaltyType = ticket.PenaltyType,
+                    Status = ticket.Status,
+                    HoursRequired = ticket.CommunityServiceHours,
+                    HoursCompleted = ticket.CommunityServiceLogs.Sum(log => (decimal?)log.HoursWorked) ?? 0m
+                }).ToListAsync();
+        }
+
+        public async Task<List<TicketReportSummary>> GetReportSummaryAsync(
+            DateTime startUtc, DateTime endUtc, ViolationType? type)
+        {
+            var query = _context.Tickets.AsNoTracking()
+                .Where(t => t.IssuedAt >= startUtc && t.IssuedAt < endUtc);
+            if (type.HasValue)
+                query = query.Where(t => t.Type == type.Value);
+
+            return await query.GroupBy(t => new
+                {
+                    t.Type,
+                    IsResolved = t.Type == ViolationType.Warning ||
+                        t.Status == TicketStatus.Paid || t.Status == TicketStatus.Cleared ||
+                        t.Status == TicketStatus.Waived
+                })
+                .Select(group => new TicketReportSummary
+                {
+                    Type = group.Key.Type,
+                    IsResolved = group.Key.IsResolved,
+                    TotalRecords = group.Count(),
+                    AssessedPenalties = group.Sum(t => t.Type == ViolationType.Warning
+                        ? 0m : t.TotalPaymentAmount ?? 0m)
+                }).ToListAsync();
+        }
+
+        public async Task<int> GetTotalTicketCountAsync(ViolationType? type)
+        {
+            var query = _context.Tickets.AsQueryable();
+
+            if (type.HasValue)
+                query = query.Where(t => t.Type == type.Value);
+
+            return await query.CountAsync();
+        }
+
+        public async Task<int> GetTotalTicketCountForPeriodAsync(
+            DateTime start,
+            DateTime end,
+            ViolationType type)
+        {
+            return await _context.Tickets
+                .CountAsync(t => t.Type == type && t.IssuedAt >= start && t.IssuedAt <= end);
+        }
+
+        public async Task<DashboardTicketCounts> GetDashboardTicketCountsAsync(DateTime startUtc, DateTime endUtc)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .GroupBy(_ => 1)
+                .Select(group => new DashboardTicketCounts
+                {
+                    InspectionsToday = group.Count(ticket => ticket.IssuedAt >= startUtc && ticket.IssuedAt < endUtc),
+                    OpenTickets = group.Count(ticket => ticket.Type == ViolationType.Ticket &&
+                        (ticket.Status == TicketStatus.Pending || ticket.Status == TicketStatus.Contested ||
+                         ticket.Status == TicketStatus.Overdue || ticket.Status == TicketStatus.InProgress))
+                })
+                .FirstOrDefaultAsync() ?? new DashboardTicketCounts();
+        }
+
+        public async Task<Ticket?> GetTicketByIdAsync(int ticketId)
+        {
+            return await _context.Tickets
+                .Include(t => t.Vendor!.User)
+                .Include(t => t.CommunityServiceLogs)
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
+        }
+
+        public Task<Ticket?> GetVendorTicketByIdAsync(int ticketId, int userId)
+            => _context.Tickets.AsTracking()
+                .Include(ticket => ticket.CommunityServiceLogs)
+                .Where(ticket => ticket.Id == ticketId && ticket.Vendor!.UserId == userId)
+                .FirstOrDefaultAsync();
+
+        public async Task<List<VendorComplianceTicket>> GetVendorComplianceTicketsAsync(
+            IReadOnlyCollection<int> vendorIds, DateTime windowStart, DateTime calculatedAt)
+        {
+            var ids = vendorIds.ToArray();
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => ids.Contains(t.VendorId) &&
+                    t.Type == ViolationType.Ticket &&
+                    t.IssuedAt >= windowStart && t.IssuedAt <= calculatedAt)
+                .Select(t => new VendorComplianceTicket
+                {
+                    VendorId = t.VendorId,
+                    IssuedAt = t.IssuedAt,
+                    HighestSeverity = t.HighestSeverity,
+                    PenaltyType = t.PenaltyType,
+                    TotalPaymentAmount = t.TotalPaymentAmount,
+                    Status = t.Status,
+                    ResolvedAt = t.ResolvedAt ??
+                        (t.Status == TicketStatus.Paid ? t.UpdatedAt : null)
+                })
+                .ToListAsync();
+        }
+
+        public async Task<DashboardTicketCount> GetTicketCountAsync(int enforcerId)
+        {
+            var sevenDaysAgo = DateTime.UtcNow.Date.AddDays(-7);
+
+            var baseQuery = _context.Tickets
+                .Where(t => t.EnforcerId == enforcerId && t.IssuedAt >= sevenDaysAgo);
+
+            var ticketCount = await baseQuery.CountAsync(t => t.Type == ViolationType.Ticket);
+            var warningCount = await baseQuery.CountAsync(t => t.Type == ViolationType.Warning);
+
+            return new DashboardTicketCount
+            {
+                TicketRecorded = ticketCount,
+                WarningRecorded = warningCount,
+                TotalRecorded = ticketCount + warningCount
+            };
+        }
+
+        public Task<TicketDetailResponse?> GetTicketDetailAsync(int ticketId)
+            => ProjectTicketDetail(_context.Tickets.Where(ticket => ticket.Id == ticketId)).FirstOrDefaultAsync();
+
+        public Task<TicketDetailResponse?> GetVendorTicketDetailAsync(int ticketId, int userId)
+            => ProjectTicketDetail(_context.Tickets.AsNoTracking()
+                .Where(ticket => ticket.Id == ticketId && ticket.Vendor!.UserId == userId)).FirstOrDefaultAsync();
+
+        private static IQueryable<TicketDetailResponse> ProjectTicketDetail(IQueryable<Ticket> tickets)
+        {
+            return tickets.Select(t => new TicketDetailResponse
+                {
+                    TicketId = t.Id,
+                    VendorId = t.VendorId,
+                    EnforcerId = t.EnforcerId,
+                    ControlNumber = t.ControlNumber ?? null,
+                    Type = t.Type,
+                    VendorType = t.Vendor!.Type,
+                    BusinessId = t.Vendor!.BusinessId,
+                    StallNumber = t.Vendor!.StallNumber,
+                    BusinessName = t.Vendor.BusinessName,
+                    LastName = t.Vendor.User!.LastName,
+                    FirstName = t.Vendor.User.FirstName,
+                    Address = "",
+                    Violations = t.TicketViolations.Select(tv => new TicketViolationSummary
+                    {
+                        TicketViolationId = tv.Id,
+                        TicketId = t.Id,
+                        OrdinanceId = tv.OrdinanceId,
+                        OrdinanceNo = tv.Ordinance!.OrdinanceNo,
+                        OrdinanceCode = tv.Ordinance.MarketCode,
+                        OffenseCount = tv.OffenseCount,
+                        PenaltyAmount = tv.PenaltyAmount
+                    }).ToList(),
+                    IssuedAt = t.IssuedAt,
+                    MarketSectionName = t.MarketSection!.Name,
+                    Categories = t.Categories.ToList(),
+                    Description = t.Description,
+                    Severity = t.HighestSeverity ?? null,
+                    PenaltyType = t.PenaltyType ?? null,
+                    Status = t.Status,
+                    DueDate = t.Type == ViolationType.Ticket
+                        ? t.IssuedAt.AddDays(5) : null,
+                    TotalFineAmount = t.TotalPaymentAmount ?? null,
+                    TicketEvidences = t.TicketEvidences!.Select(e => e.FileKey).ToList() ?? new List<string>(),
+                });
+        }
+
+        public async Task<int> GetNewControlNumber()
+        {
+            var lastTicket = await _context.Tickets
+                .FromSqlRaw("SELECT *, xmin FROM tickets WHERE type = 'Ticket' ORDER BY id DESC LIMIT 1 FOR UPDATE")
+                .FirstOrDefaultAsync();
+
+            if (lastTicket is null) return 1;
+
+            return int.Parse(lastTicket!.ControlNumber!) + 1;
+        }
+
+        public async Task<List<WarningOrdinance>> GetWarningOrdinancesForVendor(int vendorId, List<int> ordinanceIds)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.VendorId == vendorId && t.Type == ViolationType.Warning)
+                .SelectMany(t => t.TicketViolations)
+                .Where(tv => ordinanceIds.Contains(tv.OrdinanceId))
+                .Select(tv => new WarningOrdinance
+                {
+                    OrdinanceId = tv.OrdinanceId,
+                    OrdinanceNo = tv.Ordinance!.OrdinanceNo,
+                    OrdinanceCode = tv.Ordinance.MarketCode
+                })
+                .Distinct()
+                .ToListAsync();
+        }
+
+        public async Task<List<DuplicateOrdinance>> GetDuplicatedTickets(int vendorId, List<int> ordinanceIds)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.VendorId == vendorId &&
+                            t.IssuedAt >= DateTime.UtcNow.AddHours(-24) &&
+                            t.Status == TicketStatus.Pending &&
+                            t.Type == ViolationType.Ticket)
+                .SelectMany(t => t.TicketViolations)
+                .Where(tv => ordinanceIds.Contains(tv.OrdinanceId))
+                .Select(tv => new DuplicateOrdinance
+                {
+                    OrdinanceId = tv.OrdinanceId,
+                    OrdinanceNo = tv.Ordinance!.OrdinanceNo,
+                    OrdinanceCode = tv.Ordinance.MarketCode
+                })
+                .Distinct()
+                .ToListAsync();
+        }
+
+        public async Task<Ticket> AddTicketAsync(Ticket ticket)
+        {
+            await _context.Tickets.AddAsync(ticket);
+
+            return ticket;
+        }
+
+        public async Task<List<VendorInspectionSummary>> GetVendorInspectionsAsync(
+            int userId, int offset, int limit, VendorInspectionFilters filters)
+        {
+            var query = ApplyVendorTicketFilters(_context.Tickets.AsNoTracking(), userId, filters);
+            return await query
+                .OrderByDescending(ticket => ticket.IssuedAt)
+                .ThenByDescending(ticket => ticket.Id)
+                .Skip(offset)
+                .Take(limit + 1)
+                .Select(ticket => new VendorInspectionSummary
+                {
+                    Id = ticket.Id,
+                    ControlNumber = ticket.ControlNumber,
+                    Type = ticket.Type,
+                    Ordinances = ticket.TicketViolations.OrderBy(violation => violation.Id)
+                        .Select(violation => violation.Ordinance!).ToList(),
+                    IssuedAt = ticket.IssuedAt,
+                    Status = ticket.Status
+                }).ToListAsync();
+        }
+
+        public Task<int> GetVendorInspectionCountAsync(int userId, VendorInspectionFilters filters)
+            => ApplyVendorTicketFilters(_context.Tickets.AsNoTracking(), userId, filters).CountAsync();
+
+        private static IQueryable<Ticket> ApplyVendorTicketFilters(
+            IQueryable<Ticket> tickets, int userId, VendorInspectionFilters filters)
+        {
+            var query = tickets.Where(ticket => ticket.Vendor!.UserId == userId);
+            if (filters.Type.HasValue)
+                query = query.Where(ticket => ticket.Type == filters.Type.Value);
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                var search = filters.Search.Trim().ToLowerInvariant();
+                query = query.Where(ticket =>
+                    (ticket.ControlNumber != null && ticket.ControlNumber.ToLower().Contains(search)) ||
+                    ticket.TicketViolations.Any(violation =>
+                        violation.Ordinance!.OrdinanceNo.ToLower().Contains(search) ||
+                        violation.Ordinance.Title.ToLower().Contains(search)));
+            }
+            return query;
+        }
+
+        public async Task<List<InspectionSummary>> GetInspectionsAsync(
+            int enforcerId, 
+            int offset, 
+            int limit,
+            ViolationType type,
+            string search
+            )
+        {
+            var query =  _context.Tickets
+                .Where(t => t.EnforcerId == enforcerId && t.Type == type).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim().ToLower();
+
+                query = query.Where(t =>
+                    t.ControlNumber!.ToLower().Contains(search) ||
+                    t.Vendor!.BusinessName.ToLower().Contains(search) ||
+                    t.Vendor.User!.FirstName.ToLower().Contains(search) ||
+                    t.Vendor.User.LastName.ToLower().Contains(search));
+            }
+
+            return await query
+                .OrderByDescending(t => t.IssuedAt)
+                .Skip(offset)
+                .Take(limit + 1)
+                .Select(t => new InspectionSummary
+                {
+                    Id = t.Id,
+                    ControlNumber = t.ControlNumber!,
+                    VendorId = t.VendorId,
+                    LastName = t.Vendor!.User!.LastName,
+                    FirstName = t.Vendor.User.FirstName,
+                    BusinessId = t.Vendor.BusinessId,
+                    BusinessName = t.Vendor.BusinessName,
+                    MarketSectionId = t.MarketSectionId,
+                    MarketSectionName = t.MarketSection!.Name,
+                    VendorType = t.Vendor.Type,
+                    StallNumber = t.Vendor.StallNumber,
+                    EnforcerId = t.EnforcerId,
+                    Type = t.Type,
+                    Status = t.Status,
+                    Severity = t.HighestSeverity,
+                    Ordinances = t.TicketViolations.Select(tv => tv.Ordinance!.OrdinanceNo).ToList(),
+                    IssuedAt = t.IssuedAt,
+                    UpdatedAt = t.UpdatedAt
+                }).ToListAsync();
+        }
+
+        public async Task<List<TicketSummary>> GetTicketsAsync(
+            int enforcerId,
+            int offset,
+            int limit,
+            TicketStatus status,
+            string search
+            )
+        {
+            var query = _context.Tickets
+                .Where(t => t.EnforcerId == enforcerId 
+                            && t.Status == status
+                            && t.Type == ViolationType.Ticket)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim().ToLower();
+
+                query = query.Where(t =>
+                    t.ControlNumber!.ToLower().Contains(search) ||
+                    t.Vendor!.BusinessName.ToLower().Contains(search) ||
+                    t.Vendor.User!.FirstName.ToLower().Contains(search) ||
+                    t.Vendor.User.LastName.ToLower().Contains(search));
+            }
+
+            return await query
+                .OrderByDescending(t => t.IssuedAt)
+                .Skip(offset)
+                .Take(limit + 1)
+                .Select(t => new TicketSummary
+                {
+                    Id = t.Id,
+                    ControlNumber = t.ControlNumber!,
+                    VendorId = t.VendorId,
+                    BusinessName = t.Vendor!.BusinessName,
+                    MarketSectionName = t.MarketSection!.Name,
+                    VendorType = t.Vendor.Type,
+                    BusinessId = t.Vendor.BusinessId,
+                    StallNumber = t.Vendor.StallNumber,
+                    EnforcerId = t.EnforcerId,
+                    Status = t.Status,
+                    IssuedAt = t.IssuedAt,
+                    UpdatedAt = t.UpdatedAt
+                }).ToListAsync();
+        }
+
+        public async Task<List<AdminInspectionSummary>> GetAdminInspectionAsync(int offset, int limit, InspectionSummaryFilters filters)
+        {
+            var query = ApplyAdminInspectionFilters(_context.Tickets, filters);
+
+            return await query
+                .OrderByDescending(t => t.IssuedAt)
+                .Skip(offset)
+                .Take(limit + 1)
+                .Select(t => new AdminInspectionSummary
+                {
+                    Id = t.Id,
+                    EnforcerId = t.EnforcerId,
+                    EnforcerLastName = t.Enforcer!.LastName,
+                    EnforcerFirstName = t.Enforcer.FirstName,
+                    VendorId = t.VendorId,
+                    VendorLastName = t.Vendor!.User!.LastName!,
+                    VendorFirstName = t.Vendor.User.FirstName!,
+                    StallNumber = t.Vendor.StallNumber!,
+                    BusinessName = t.Vendor.BusinessName,
+                    MarketSectionId = t.MarketSectionId,
+                    MarketSectionName = t.MarketSection!.Name,
+                    Type = t.Type,
+                    IssuedAt = t.IssuedAt
+                })
+                .ToListAsync();
+        }
+
+        public Task<int> GetAdminInspectionCountAsync(InspectionSummaryFilters filters)
+            => ApplyAdminInspectionFilters(_context.Tickets, filters).CountAsync();
+
+        private static IQueryable<Ticket> ApplyAdminInspectionFilters(
+            IQueryable<Ticket> query,
+            InspectionSummaryFilters filters)
+        {
+            if (filters.Type.HasValue)
+                query = query.Where(t => t.Type == filters.Type.Value);
+
+            if (filters.MarketSectionId.HasValue)
+                query = query.Where(t => t.MarketSectionId == filters.MarketSectionId.Value);
+
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                var search = filters.Search.Trim();
+                query = query.Where(t =>
+                    t.ControlNumber!.Contains(search) ||
+                    t.Vendor!.User!.LastName.Contains(search) ||
+                    t.Vendor.User.FirstName.Contains(search) ||
+                    t.Vendor.BusinessName.Contains(search) ||
+                    t.Vendor.BusinessId.Contains(search));
+            }
+
+            return query;
+        }
+
+        public async Task<List<AdminTicketSummary>> GetAdminTicketAsync(int offset, int limit, TicketSummaryFilters filters)
+        {
+            var query = _context.Tickets
+                .Where(t => t.Type == ViolationType.Ticket);
+
+            if (filters.Status.HasValue)
+                query = query.Where(t => t.Status == filters.Status.Value);
+
+            if (filters.MarketSectionId.HasValue)
+                query = query.Where(t => t.MarketSectionId == filters.MarketSectionId.Value);
+
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                var search = filters.Search.Trim().ToLower();
+                query = query.Where(t =>
+                    t.ControlNumber!.Contains(search) ||
+                    t.Vendor!.User!.LastName.ToLower().Contains(search) ||
+                    t.Vendor.User.FirstName.ToLower().Contains(search) ||
+                    t.Vendor.BusinessName.ToLower().Contains(search) ||
+                    t.Vendor.BusinessId.ToLower().Contains(search));
+            }
+
+            return await query
+                .OrderByDescending(t => t.IssuedAt)
+                .Skip(offset)
+                .Take(limit + 1)
+                .Select(t => new AdminTicketSummary
+                {
+                    Id = t.Id,
+                    ControlNumber = t.ControlNumber!,
+                    EnforcerId = t.EnforcerId,
+                    EnforcerFirstName = t.Enforcer!.FirstName,
+                    EnforcerLastName = t.Enforcer.LastName,
+                    VendorId = t.VendorId,
+                    VendorFirstName = t.Vendor!.User!.FirstName,
+                    VendorLastName = t.Vendor.User.LastName,
+                    BusinessId = t.Vendor.BusinessId,
+                    StallNumber = t.Vendor.StallNumber,
+                    MarketSectionId = t.MarketSectionId,
+                    MarketSectionName = t.MarketSection!.Name,
+                    Status = t.Status ?? TicketStatus.Pending,
+                    Severity = t.HighestSeverity ?? Severity.Minor,
+                    PenaltyType = t.PenaltyType ?? PenaltyType.CashFine,
+                    IssuedAt = t.IssuedAt,
+                    Version = t.Version,
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<Ticket>> GetNewlyOverdueTicketsAsync()
+        {
+            var cutoff = DateTime.UtcNow.AddDays(-5);
+
+            return await _context.Tickets
+                .Where(t => t.Type == ViolationType.Ticket &&
+                            t.IssuedAt <= cutoff &&
+                            t.Status == TicketStatus.Pending)
+                .Include(t => t.Vendor)
+                    .ThenInclude(v => v!.User)
+                .ToListAsync();
+        }
+
+        public async Task<TicketAnalyticsRaw> GetTicketAnalyticsAsync(DateTime startOfThisMonth, DateTime startOfLastMonth)
+        {
+            return await _context.Tickets
+                .Where(t => t.Type == ViolationType.Ticket)
+                .GroupBy(t => 1)
+                .Select(g => new TicketAnalyticsRaw
+                {
+                    TotalTicketsThisMonth = g.Count(t => t.IssuedAt >= startOfThisMonth),
+                    TotalTicketsLastMonth = g.Count(t => t.IssuedAt >= startOfLastMonth && t.IssuedAt < startOfThisMonth),
+
+                    PaymentsThisMonth = g.Where(t => t.Status == TicketStatus.Pending && t.IssuedAt >= startOfThisMonth)
+                                         .Sum(t => (decimal?)t.TotalPaymentAmount) ?? 0,
+                    PaymentsLastMonth = g.Where(t => t.Status == TicketStatus.Pending
+                                         && t.IssuedAt >= startOfLastMonth && t.IssuedAt < startOfThisMonth)
+                                         .Sum(t => (decimal?)t.TotalPaymentAmount) ?? 0,
+
+                    ResolvedViolationsThisMonth = g.Count(t => t.Status == TicketStatus.Paid || t.Status == TicketStatus.Waived && t.IssuedAt >= startOfThisMonth),
+                    
+                    HighSeveritiesThisMonth = g.Count(t => t.HighestSeverity == Severity.High && t.IssuedAt >= startOfThisMonth),
+                    HighSeveritiesLastMonth = g.Count(t => t.HighestSeverity == Severity.High
+                                         && t.IssuedAt >= startOfLastMonth && t.IssuedAt < startOfThisMonth),
+                })
+                .FirstOrDefaultAsync() ?? new TicketAnalyticsRaw();
+        }
+
+        public async Task<AdminTicketDetailResponse?> GetAdminTicketDetailAsync(int ticketId)
+        {
+            return await _context.Tickets
+                .Where(t => t.Id == ticketId)
+                .Select(t => new AdminTicketDetailResponse
+                {
+                    TicketId = t.Id,
+                    VendorId = t.VendorId,
+                    EnforcerId = t.EnforcerId,
+                    ControlNumber = t.ControlNumber ?? null,
+                    Type = t.Type,
+                    BusinessId = t.Vendor!.BusinessId,
+                    StallNumber = t.Vendor!.StallNumber,
+                    BusinessName = t.Vendor.BusinessName,
+                    LastName = t.Vendor.User!.LastName,
+                    FirstName = t.Vendor.User.FirstName,
+                    Address = "",
+                    Violations = t.TicketViolations.Select(tv => new TicketViolationSummary
+                    {
+                        TicketViolationId = tv.Id,
+                        TicketId = t.Id,
+                        OrdinanceId = tv.OrdinanceId,
+                        OrdinanceNo = tv.Ordinance!.OrdinanceNo,
+                        OrdinanceCode = tv.Ordinance.MarketCode,
+                        OffenseCount = tv.OffenseCount,
+                        PenaltyAmount = tv.PenaltyAmount
+                    }).ToList(),
+                    IssuedAt = t.IssuedAt,
+                    MarketSectionName = t.MarketSection!.Name,
+                    Categories = t.Categories.ToList(),
+                    Description = t.Description,
+                    Severity = t.HighestSeverity ?? null,
+                    PenaltyType = t.PenaltyType ?? null,
+                    DueDate = t.Type == ViolationType.Ticket
+                        ? t.IssuedAt.AddDays(5) : null,
+                    TotalFineAmount = t.TotalPaymentAmount ?? null,
+                    TicketEvidences = t.TicketEvidences!.Select(e => e.FileKey).ToList() ?? new List<string>(),
+                    Status = t.Status,
+                    EnforcerFirstName = t.Enforcer!.FirstName,
+                    EnforcerLastName = t.Enforcer.LastName,
+                    TicketReceipts = t.ProofUrls ?? new List<string>(),
+                    ProofUrls = t.ProofUrls ?? new List<string>(),
+                    CommunityServiceHours = t.CommunityServiceHours,
+                    CommunityServiceLogs = t.CommunityServiceLogs
+                        .OrderBy(log => log.ServiceDate)
+                        .ThenBy(log => log.CreatedAt)
+                        .ThenBy(log => log.Id)
+                        .Select(log => new CommunityServiceLogResponse
+                        {
+                            ServiceDate = log.ServiceDate,
+                            HoursWorked = log.HoursWorked,
+                            ProofUrl = log.ProofUrl
+                        }).ToList(),
+                    HoursCompleted = t.CommunityServiceLogs.Sum(log => (decimal?)log.HoursWorked) ?? 0m,
+                    Version = t.Version,
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<AdminEnforcerTicketCount>> GetEnforcerTicketCountAsync(List<int> enforcerIds)
+        {
+            return await _context.Tickets
+                .Where(t => enforcerIds.Contains(t.EnforcerId))
+                .GroupBy(t => t.EnforcerId)
+                .Select(g => new AdminEnforcerTicketCount
+                {
+                    EnforcerId = g.Key,
+                    TicketCount = g.Count(t => t.Type == ViolationType.Ticket),
+                    WarningCount = g.Count(t => t.Type == ViolationType.Warning)
+                }).ToListAsync();
+        }
+
+        public void SetOriginalVersion(Ticket ticket, uint version)
+        {
+            _context.Entry(ticket)
+                .Property(t => t.Version)
+                .OriginalValue = version;
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw new Exception("A database error occured while saving the changes.");
+            }
+        }
+
+        private static IQueryable<Ticket> ApplyDateRange(IQueryable<Ticket> query, DateTime? from, DateTime? to)
+        {
+            if (from.HasValue) query = query.Where(t => t.IssuedAt >= from.Value);
+            if (to.HasValue) query = query.Where(t => t.IssuedAt < to.Value);
+            return query;
+        }
+
+        public async Task<List<DailyTicketCount>> GetTicketsWithDateAsync(DateTime startOfThisMonth)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.IssuedAt >= startOfThisMonth)
+                .GroupBy(t => t.IssuedAt.Date)
+                .Select(g => new DailyTicketCount
+                {
+                   Date = g.Key,
+                   TicketCount = g.Count(t => t.Type == ViolationType.Ticket),
+                   WarningCount = g.Count(t => t.Type == ViolationType.Warning)
+                }).ToListAsync();
+        }
+
+        public async Task<List<TopEnforcerResponse>> GetTopEnforcersAsync(DateTime startOfThisMonth)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.IssuedAt >= startOfThisMonth)
+                .GroupBy(t => t.EnforcerId)
+                .Select(g => new TopEnforcerResponse
+                {
+                    EnforcerId = g.Key,
+                    EnforcerName = $"{g.First().Enforcer!.LastName}, {g.First().Enforcer!.FirstName}",
+                    TotalTickets = g.Count()
+                })
+                .OrderByDescending(g => g.TotalTickets)
+                .Take(5)
+                .ToListAsync();
+        }
+
+        public async Task<PerformanceSummaryResponse?> GetEnforcerPerformanceSummaryAsync(int enforcerId, DateTime yearStart)
+        {
+            var totals = await _context.Tickets
+                .Where(t => t.EnforcerId == enforcerId)
+                .GroupBy(t => 1)
+                .Select(g => new
+                {
+                    Total = g.Count(),
+                    Resolved = g.Count(t => t.Status == TicketStatus.Paid || t.Status == TicketStatus.Waived),
+                    Warnings = g.Count(t => t.Type == ViolationType.Warning),
+                    Tickets = g.Count(t => t.Type == ViolationType.Ticket),
+                })
+                .FirstOrDefaultAsync();
+
+            if (totals is null || totals.Total == 0)
+                return null;
+
+            var monthly = await _context.Tickets
+                .Where(t => t.EnforcerId == enforcerId && t.IssuedAt >= yearStart)
+                .GroupBy(t => t.IssuedAt.Month)
+                .Select(g => new MonthInspectionResponse
+                {
+                    Month = g.Key,
+                    TotalIssuedTickets = g.Count(),
+                })
+                .ToListAsync();
+
+            var monthlyFilled = Enumerable.Range(1, 12)
+                .Select(m => monthly.FirstOrDefault(x => x.Month == m) ?? new MonthInspectionResponse { Month = m, TotalIssuedTickets = 0 })
+                .ToList();
+
+            return new PerformanceSummaryResponse
+            {
+                EnforcerId = enforcerId,
+                TotalInspections = totals.Total,
+                ResolutionRate = Math.Round((double)totals.Resolved / totals.Total * 100, 1),
+                WarningRatio = Math.Round((double)totals.Warnings / totals.Total * 100, 1),
+                TicketRatio = Math.Round((double)totals.Tickets / totals.Total * 100, 1),
+                MonthlyInspections = monthlyFilled,
+            };
+        }
+
+        public async Task<DateTime> GetLastEnforcerInspectionAsync(int enforcerId)
+        {
+            return await _context.Tickets
+                .Where(t => t.EnforcerId == enforcerId)
+                .OrderByDescending(t => t.IssuedAt)
+                .Select(t => t.IssuedAt)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<InspectionSummary>> GetEnforcerInspectionHistory(int enforcerId, int offset, int limit)
+        {
+            return await _context.Tickets
+                .Where(t => t.EnforcerId == enforcerId)
+                .OrderByDescending(t => t.IssuedAt)
+                .Skip(offset)
+                .Take(limit + 1)
+                .Select(t => new InspectionSummary
+                {
+                    Id = t.Id,
+                    ControlNumber = t.ControlNumber!,
+                    VendorId = t.VendorId,
+                    LastName = t.Vendor!.User!.LastName,
+                    FirstName = t.Vendor.User.FirstName,
+                    BusinessName = t.Vendor.BusinessName,
+                    MarketSectionId = t.MarketSectionId,
+                    MarketSectionName = t.MarketSection!.Name,
+                    BusinessId = t.Vendor.BusinessId,
+                    StallNumber = t.Vendor.StallNumber,
+                    EnforcerId = t.EnforcerId,
+                    Type = t.Type,
+                    Status = t.Status,
+                    Severity = t.HighestSeverity,
+                    Ordinances = t.TicketViolations.Select(tv => tv.Ordinance!.OrdinanceNo).ToList(),
+                    IssuedAt = t.IssuedAt,
+                    UpdatedAt = t.UpdatedAt
+                }).ToListAsync();
+        }
+
+        public async Task<int> GetTotalIssuedTicketsByEnforcerIdAsync(int enforcerId)
+        {
+            return await _context.Tickets
+                .Where(t => t.EnforcerId == enforcerId)
+                .CountAsync();
+        }
+
+        public async Task<List<VendorInspectionHistoryItem>> GetVendorInspectionHistoryAsync(
+            int vendorId,
+            int offset,
+            int limit,
+            VendorInspectionHistoryFilters filters)
+        {
+            var query = ApplyVendorInspectionFilters(
+                _context.Tickets.AsNoTracking().Where(t => t.VendorId == vendorId),
+                filters);
+
+            query = string.Equals(filters.SortDirection, "asc", StringComparison.OrdinalIgnoreCase)
+                ? query.OrderBy(t => t.IssuedAt).ThenBy(t => t.Id)
+                : query.OrderByDescending(t => t.IssuedAt).ThenByDescending(t => t.Id);
+
+            return await query
+                .Skip(offset)
+                .Take(limit + 1)
+                .Select(t => new VendorInspectionHistoryItem
+                {
+                    TicketId = t.Id,
+                    ControlNumber = t.ControlNumber,
+                    Type = t.Type,
+                    IssuedAt = t.IssuedAt,
+                    OrdinanceNumbers = t.TicketViolations
+                        .Select(tv => tv.Ordinance!.OrdinanceNo)
+                        .ToList(),
+                    EnforcerFirstName = t.Enforcer!.FirstName,
+                    EnforcerLastName = t.Enforcer.LastName
+                })
+                .ToListAsync();
+        }
+
+        public async Task<int> GetVendorInspectionHistoryCountAsync(
+            int vendorId,
+            VendorInspectionHistoryFilters filters)
+        {
+            return await ApplyVendorInspectionFilters(
+                _context.Tickets.AsNoTracking().Where(t => t.VendorId == vendorId),
+                filters)
+                .CountAsync();
+        }
+
+        public async Task<List<ViolationTrendBucket>> GetViolationTrendAsync(DateTime start, DateTime end)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.Type == ViolationType.Ticket &&
+                    t.IssuedAt >= start && t.IssuedAt <= end)
+                .Select(t => new
+                {
+                    IssuedAt = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(t.IssuedAt, "Asia/Manila"),
+                    t.HighestSeverity
+                })
+                .GroupBy(t => new
+                {
+                    t.IssuedAt.Year,
+                    t.IssuedAt.Month,
+                    t.HighestSeverity
+                })
+                .Select(group => new ViolationTrendBucket
+                {
+                    Year = group.Key.Year,
+                    Month = group.Key.Month,
+                    Severity = group.Key.HighestSeverity,
+                    Count = group.Count()
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<PeakViolationTimeBucket>> GetPeakViolationTimesAsync(DateTime start, DateTime end)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.Type == ViolationType.Ticket &&
+                    t.IssuedAt >= start && t.IssuedAt <= end)
+                .Select(t => new { IssuedAt = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(t.IssuedAt, "Asia/Manila") })
+                .GroupBy(t => new
+                {
+                    DayOfWeek = (int)t.IssuedAt.DayOfWeek,
+                    TimeBlock = t.IssuedAt.Hour / 4
+                })
+                .Select(group => new PeakViolationTimeBucket
+                {
+                    DayOfWeek = group.Key.DayOfWeek,
+                    TimeBlock = group.Key.TimeBlock,
+                    Count = group.Count()
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<ViolationCategoryBucket>> GetViolationCategoryDistributionAsync(
+            DateTime start,
+            DateTime end)
+        {
+            var ticketCategories =
+                from ticketViolation in _context.TicketViolations.AsNoTracking()
+                join ticket in _context.Tickets.AsNoTracking()
+                    on ticketViolation.TicketId equals ticket.Id
+                where ticket.Type == ViolationType.Ticket &&
+                    ticket.IssuedAt >= start && ticket.IssuedAt <= end
+                group ticketViolation by new
+                {
+                    ticketViolation.TicketId,
+                    ticketViolation.Ordinance!.Category
+                }
+                into ticketCategory
+                select new
+                {
+                    ticketCategory.Key.Category,
+                    ticketCategory.Key.TicketId
+                };
+
+            return await ticketCategories
+                .GroupBy(ticketCategory => ticketCategory.Category)
+                .Select(group => new ViolationCategoryBucket
+                {
+                    Category = group.Key,
+                    Count = group.Count()
+                })
+                .ToListAsync();
+        }
+
+        public async Task<InspectionTypeCounts> GetInspectionTypeCountsAsync(DateTime start, DateTime end)
+        {
+            var counts = await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.IssuedAt >= start && t.IssuedAt <= end)
+                .GroupBy(t => 1)
+                .Select(group => new InspectionTypeCounts
+                {
+                    WarningCount = group.Count(t => t.Type == ViolationType.Warning),
+                    TicketCount = group.Count(t => t.Type == ViolationType.Ticket)
+                })
+                .FirstOrDefaultAsync();
+
+            return counts ?? new InspectionTypeCounts();
+        }
+
+        public async Task<ResolutionCounts> GetViolationResolutionCountsAsync(DateTime start, DateTime end)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.Type == ViolationType.Ticket &&
+                    t.IssuedAt >= start && t.IssuedAt <= end)
+                .GroupBy(t => 1)
+                .Select(group => new ResolutionCounts
+                {
+                    TicketCount = group.Count(),
+                    ResolvedWithinSevenDays = group.Count(t =>
+                        (t.Status == TicketStatus.Paid ||
+                         t.Status == TicketStatus.Cleared ||
+                         t.Status == TicketStatus.Waived) &&
+                        (t.ResolvedAt ?? t.UpdatedAt) <= t.IssuedAt.AddDays(7))
+                })
+                .FirstOrDefaultAsync() ?? new ResolutionCounts();
+        }
+
+        public async Task<List<MarketSectionCount>> GetMarketSectionCountsAsync(DateTime start, DateTime end)
+        {
+            return await _context.MarketSections
+                .AsNoTracking()
+                .OrderBy(section => section.Name)
+                .Select(section => new MarketSectionCount
+                {
+                    MarketSectionId = section.Id,
+                    MarketSectionName = section.Name,
+                    WarningCount = section.Tickets.Count(t =>
+                        t.Type == ViolationType.Warning && t.IssuedAt >= start && t.IssuedAt <= end),
+                    TicketCount = section.Tickets.Count(t =>
+                        t.Type == ViolationType.Ticket && t.IssuedAt >= start && t.IssuedAt <= end)
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<MarketSectionTrendCount>> GetMarketSectionTrendCountsAsync(
+            DateTime currentStart,
+            DateTime currentEnd,
+            DateTime previousStart,
+            DateTime previousEnd)
+        {
+            return await _context.MarketSections
+                .AsNoTracking()
+                .OrderBy(section => section.Name)
+                .Select(section => new MarketSectionTrendCount
+                {
+                    MarketSectionId = section.Id,
+                    MarketSectionName = section.Name,
+                    CurrentWarningCount = section.Tickets.Count(t =>
+                        t.Type == ViolationType.Warning &&
+                        t.IssuedAt >= currentStart && t.IssuedAt <= currentEnd),
+                    CurrentTicketCount = section.Tickets.Count(t =>
+                        t.Type == ViolationType.Ticket &&
+                        t.IssuedAt >= currentStart && t.IssuedAt <= currentEnd),
+                    PreviousInspectionCount = section.Tickets.Count(t =>
+                        t.IssuedAt >= previousStart && t.IssuedAt <= previousEnd)
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<VendorRiskRankingItem>> GetVendorRiskRankingAsync(
+            DateTime start,
+            DateTime end)
+        {
+            var vendors = _context.VendorProfiles
+                .AsNoTracking()
+                .Select(v => new VendorRiskRankingItem
+                {
+                    BusinessId = v.BusinessId,
+                    BusinessName = v.BusinessName,
+                    OffenseCount = v.Tickets.Count(t =>
+                        t.Type == ViolationType.Ticket &&
+                        t.IssuedAt >= start && t.IssuedAt <= end),
+                    HighestSeverity = v.Tickets
+                        .Where(t => t.Type == ViolationType.Ticket &&
+                            t.IssuedAt >= start && t.IssuedAt <= end)
+                        .Max(t => t.HighestSeverity),
+                    ComplianceScore = v.ComplianceScore
+                });
+
+            return await vendors
+                .OrderBy(v => v.ComplianceScore)
+                .ThenByDescending(v => v.OffenseCount)
+                .ThenBy(v => v.BusinessId)
+                .Take(10)
+                .ToListAsync();
+        }
+
+        public async Task<List<AdminCommunityServiceLogSummary>> GetCommunityServiceLogsAsync(
+            int offset,
+            int limit,
+            TicketStatus? status)
+        {
+            var tickets = ApplyCommunityServiceStatusFilter(_context.Tickets.AsNoTracking(), status);
+
+            return await tickets
+                .OrderByDescending(t => t.UpdatedAt)
+                .ThenByDescending(t => t.Id)
+                .Skip(offset)
+                .Take(limit + 1)
+                .Select(t => new AdminCommunityServiceLogSummary
+                {
+                    TicketId = t.Id,
+                    ControlNumber = t.ControlNumber,
+                    BusinessId = t.Vendor!.BusinessId,
+                    VendorName = t.Vendor.User!.LastName + ", " + t.Vendor.User.FirstName,
+                    CompletedHours = t.CommunityServiceLogs.Sum(log => (decimal?)log.HoursWorked) ?? 0,
+                    TotalHours = t.CommunityServiceHours ?? 0,
+                    LastUpdated = t.CommunityServiceLogs
+                        .Select(log => (DateTime?)log.CreatedAt)
+                        .Max() ?? t.UpdatedAt,
+                    ProofDocumentCount = t.CommunityServiceLogs
+                        .Count(log => !string.IsNullOrEmpty(log.ProofUrl)),
+                    Status = t.Status ?? TicketStatus.Pending
+                })
+                .ToListAsync();
+        }
+
+        public async Task<int> GetCommunityServiceLogCountAsync(TicketStatus? status)
+        {
+            return await ApplyCommunityServiceStatusFilter(_context.Tickets.AsNoTracking(), status)
+                .CountAsync();
+        }
+
+        private static IQueryable<Ticket> ApplyCommunityServiceStatusFilter(
+            IQueryable<Ticket> tickets,
+            TicketStatus? status)
+        {
+            tickets = tickets.Where(t =>
+                t.Type == ViolationType.Ticket &&
+                t.PenaltyType == PenaltyType.CommunityService);
+
+            if (status.HasValue)
+                tickets = tickets.Where(t => t.Status == status.Value);
+
+            return tickets;
+        }
+
+        private static IQueryable<Ticket> ApplyVendorInspectionFilters(
+            IQueryable<Ticket> tickets,
+            VendorInspectionHistoryFilters filters)
+        {
+            if (filters.Type.HasValue)
+                tickets = tickets.Where(t => t.Type == filters.Type.Value);
+
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                var search = filters.Search.Trim().ToLower();
+                tickets = tickets.Where(t =>
+                    (t.ControlNumber != null && t.ControlNumber.ToLower().Contains(search)) ||
+                    t.TicketViolations.Any(tv => tv.Ordinance!.OrdinanceNo.ToLower().Contains(search)));
+            }
+
+            return tickets;
+        }
+    }
+}
