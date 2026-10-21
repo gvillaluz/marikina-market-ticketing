@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
@@ -7,12 +8,14 @@ import 'package:marikina_market_mobile/core/utils/extentions/integer_extensions.
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_breakdown_item.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/widgets/detail_row.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class ViolationDetailsSection extends StatelessWidget {
   final FineSummary? fine;
   final List<Ordinance> ordinances;
   final bool isTicket;
+  final PenaltyType? penaltyType;
   final String marketSection;
   final String description;
 
@@ -20,6 +23,7 @@ class ViolationDetailsSection extends StatelessWidget {
     this.fine,
     required this.ordinances,
     required this.isTicket,
+    this.penaltyType,
     required this.marketSection,
     required this.description,
     super.key,
@@ -63,24 +67,13 @@ class ViolationDetailsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Wrap(
-          spacing: AppTheme.inspectionTinyGap,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Icon(Icons.warning, color: AppColors.primary),
-            Text(
-              'VIOLATION DETAILS',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: AppTheme.sectionHeadingFontSize,
-              ),
-            ),
-          ],
+        const TicketPaperSectionTitle(
+          icon: Icons.receipt_long_outlined,
+          title: 'VIOLATION DETAILS',
         ),
+        const SizedBox(height: AppTheme.ticketSmallGap),
 
-        const SizedBox(height: 20),
-
-        const Text('ORDINANCE:', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('ORDINANCE:', style: AppTheme.ticketPaperLabelStyle),
 
         const SizedBox(height: 10),
 
@@ -106,6 +99,7 @@ class ViolationDetailsSection extends StatelessWidget {
                     'Ord No. ${ordinance.ordinanceNo}, Series of ${ordinance.series}',
                     style: const TextStyle(fontSize: AppTheme.bodyFontSize),
                   ),
+                  const SizedBox(height: AppTheme.inspectionTinyGap),
                   Text(
                     ordinance.ordinanceCode,
                     style: const TextStyle(
@@ -116,41 +110,55 @@ class ViolationDetailsSection extends StatelessWidget {
                   ),
 
                   if (isTicket && breakdown != null) ...[
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const SizedBox(height: AppTheme.ticketSmallGap),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getBgColor(breakdown.offenseNumber),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Wrap(
-                            spacing: AppTheme.inspectionTinyGap,
-                            children: [
-                              Icon(
-                                Icons.restore_outlined,
-                                color: _getFontColor(breakdown.offenseNumber),
-                                size: 15,
-                              ),
-                              Text(
-                                '${breakdown.offenseNumber.toOrdinal()} offense',
-                                style: TextStyle(
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getBgColor(breakdown.offenseNumber),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Wrap(
+                              spacing: AppTheme.inspectionTinyGap,
+                              children: [
+                                Icon(
+                                  Icons.restore_outlined,
                                   color: _getFontColor(breakdown.offenseNumber),
-                                  fontSize: AppTheme.captionFontSize,
+                                  size: 15,
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  '${breakdown.offenseNumber.toOrdinal()} offense',
+                                  style: TextStyle(
+                                    color: _getFontColor(
+                                      breakdown.offenseNumber,
+                                    ),
+                                    fontSize: AppTheme.captionFontSize,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        Text(
-                          _currencyFormat.format(breakdown.paymentAmount),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        if (penaltyType == PenaltyType.cashFine) ...[
+                          const SizedBox(height: AppTheme.ticketTinyGap),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              _currencyFormat.format(breakdown.paymentAmount),
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
@@ -160,17 +168,17 @@ class ViolationDetailsSection extends StatelessWidget {
           },
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: AppTheme.ticketSmallGap),
 
         Column(
           spacing: AppTheme.inspectionSmallGap,
           children: [
-            DetailRow(
+            TicketPaperField(
               label: 'DATE & TIME:',
               value: DateTimeFormatter.getDateTime(DateTime.now()),
             ),
-            DetailRow(label: 'LOCATION:', value: marketSection),
-            DetailRow(
+            TicketPaperField(label: 'LOCATION:', value: marketSection),
+            TicketPaperField(
               label: 'VIOLATION COMMITTED:',
               value: ordinances
                   .map((o) => o.category.value)
@@ -178,7 +186,7 @@ class ViolationDetailsSection extends StatelessWidget {
                   .join(', '),
             ),
 
-            DetailRow(label: 'DESCRIPTION:', value: description),
+            TicketPaperField(label: 'DESCRIPTION:', value: description),
           ],
         ),
       ],

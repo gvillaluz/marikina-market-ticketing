@@ -31,6 +31,7 @@ class TicketDetailPage extends StatelessWidget {
         context.goNamed(Routes.inspectionsName);
       },
       child: Scaffold(
+        backgroundColor: AppTheme.ticketDetailBackground,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: AppColors.primary),
@@ -51,103 +52,113 @@ class TicketDetailPage extends StatelessWidget {
           ),
         ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: AppTheme.ticketCardPadding,
-            child: BlocConsumer<TicketBloc, TicketState>(
-              listenWhen: (previous, current) {
-                return current is TicketDetailLoaded &&
-                    current.settlementMessage != null &&
-                    (previous is! TicketDetailLoaded ||
-                        previous.settlementMessage !=
-                            current.settlementMessage);
-              },
-              listener: (context, state) {
-                if (state is TicketDetailLoaded &&
-                    state.settlementMessage != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.settlementMessage!)),
-                  );
-                }
-              },
-              builder: (context, state) {
-                if (state is TicketInitial || state is TicketDetailLoading) {
-                  return const SkeletonBox(
-                    height: AppTheme.ticketDetailSkeletonHeight,
-                  );
-                }
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: AppTheme.ticketDetailMaxWidth,
+              ),
+              child: SingleChildScrollView(
+                padding: AppTheme.ticketDetailPadding,
+                child: BlocConsumer<TicketBloc, TicketState>(
+                  listenWhen: (previous, current) {
+                    return current is TicketDetailLoaded &&
+                        current.settlementMessage != null &&
+                        (previous is! TicketDetailLoaded ||
+                            previous.settlementMessage !=
+                                current.settlementMessage);
+                  },
+                  listener: (context, state) {
+                    if (state is TicketDetailLoaded &&
+                        state.settlementMessage != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(state.settlementMessage!)),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is TicketInitial ||
+                        state is TicketDetailLoading) {
+                      return const SkeletonBox(
+                        height: AppTheme.ticketDetailSkeletonHeight,
+                      );
+                    }
 
-                if (state is TicketDetailLoaded) {
-                  return TicketDetailContent(
-                    data: TicketDetailContentData(
-                      ticket: state.ticket,
-                      droppedOrdinances: droppedOrdinances,
-                      settlement: state.ticket.ticketStatus == null
-                          ? null
-                          : TicketSettlementData(
+                    if (state is TicketDetailLoaded) {
+                      return TicketDetailContent(
+                        data: TicketDetailContentData(
+                          ticket: state.ticket,
+                          droppedOrdinances: droppedOrdinances,
+                          settlement: state.ticket.ticketStatus == null
+                              ? null
+                              : TicketSettlementData(
+                                  ticketId: state.ticket.ticketId,
+                                  penaltyType:
+                                      state.ticket.penaltyType ??
+                                      PenaltyType.cashFine,
+                                  ticketStatus: state.ticket.ticketStatus!,
+                                  requiredHours:
+                                      state.ticket.communityServiceHours,
+                                  receiptProof: state.receiptProof,
+                                  isReceiptSubmitted: state.isReceiptSubmitted,
+                                  communityServiceProgress:
+                                      state.communityServiceProgress,
+                                  isLoading: state.isSettlementLoading,
+                                  isLoaded: state.isSettlementLoaded,
+                                  isSubmitting: state.isSubmittingSettlement,
+                                ),
+                        ),
+                        onRetrySettlementLoad: () {
+                          if (state.ticket.penaltyType ==
+                              PenaltyType.communityService) {
+                            context.read<TicketBloc>().add(
+                              LoadTicketDetail(state.ticket.ticketId),
+                            );
+                            return;
+                          }
+                          context.read<TicketBloc>().add(
+                            LoadTicketSettlement(
                               ticketId: state.ticket.ticketId,
                               penaltyType:
                                   state.ticket.penaltyType ??
                                   PenaltyType.cashFine,
-                              ticketStatus: state.ticket.ticketStatus!,
-                              requiredHours: state.ticket.communityServiceHours,
-                              receiptProof: state.receiptProof,
-                              isReceiptSubmitted: state.isReceiptSubmitted,
-                              communityServiceProgress:
-                                  state.communityServiceProgress,
-                              isLoading: state.isSettlementLoading,
-                              isLoaded: state.isSettlementLoaded,
-                              isSubmitting: state.isSubmittingSettlement,
                             ),
-                    ),
-                    onRetrySettlementLoad: () {
-                      if (state.ticket.penaltyType ==
-                          PenaltyType.communityService) {
-                        context.read<TicketBloc>().add(
-                          LoadTicketDetail(state.ticket.ticketId),
-                        );
-                        return;
-                      }
-                      context.read<TicketBloc>().add(
-                        LoadTicketSettlement(
-                          ticketId: state.ticket.ticketId,
-                          penaltyType:
-                              state.ticket.penaltyType ?? PenaltyType.cashFine,
-                        ),
+                          );
+                        },
+                        onSubmitReceipt: (proofFile) {
+                          context.read<TicketBloc>().add(
+                            SubmitTicketReceiptProof(
+                              ticketId: state.ticket.ticketId,
+                              proofFile: proofFile,
+                            ),
+                          );
+                        },
+                        onSubmitCommunityServiceLog: (params) {
+                          context.read<TicketBloc>().add(
+                            SubmitCommunityServiceLog(params),
+                          );
+                        },
                       );
-                    },
-                    onSubmitReceipt: (proofFile) {
-                      context.read<TicketBloc>().add(
-                        SubmitTicketReceiptProof(
-                          ticketId: state.ticket.ticketId,
-                          proofFile: proofFile,
-                        ),
-                      );
-                    },
-                    onSubmitCommunityServiceLog: (params) {
-                      context.read<TicketBloc>().add(
-                        SubmitCommunityServiceLog(params),
-                      );
-                    },
-                  );
-                }
+                    }
 
-                if (state is TicketError) {
-                  return TicketNotice(
-                    title: 'Unable to load ticket details',
-                    message: state.message.trim().isEmpty
-                        ? 'Please try again to load this ticket.'
-                        : state.message,
-                    icon: Icons.cloud_off_outlined,
-                    onRetry: ticketId == null
-                        ? null
-                        : () => context.read<TicketBloc>().add(
-                            LoadTicketDetail(ticketId!),
-                          ),
-                  );
-                }
+                    if (state is TicketError) {
+                      return TicketNotice(
+                        title: 'Unable to load ticket details',
+                        message: state.message.trim().isEmpty
+                            ? 'Please try again to load this ticket.'
+                            : state.message,
+                        icon: Icons.cloud_off_outlined,
+                        onRetry: ticketId == null
+                            ? null
+                            : () => context.read<TicketBloc>().add(
+                                LoadTicketDetail(ticketId!),
+                              ),
+                      );
+                    }
 
-                return SizedBox.shrink();
-              },
+                    return SizedBox.shrink();
+                  },
+                ),
+              ),
             ),
           ),
         ),

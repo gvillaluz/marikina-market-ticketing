@@ -3,6 +3,11 @@ using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 
 namespace MarikinaMarket.API.Application
 {
+    public class LoginCodeDeliveryException : Exception
+    {
+        public LoginCodeDeliveryException() : base("Unable to send your sign-in code. Please try again shortly.") { }
+    }
+
     public class InvalidCredentialsException : Exception
     {
         public InvalidCredentialsException(string message) : base(message) { }

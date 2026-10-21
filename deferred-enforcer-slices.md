@@ -15,6 +15,20 @@ Paths below reflect the current separate-repository layout; reconcile them if mi
 
 ## Slice 3 — Ticket paper and new-inspection form
 
+Resumed on 2026-10-22 with approval to redesign the paper, ticket-detail page,
+and corresponding inspection-preview paper. This expands the original
+spacing-only styling restriction below. The final design keeps the control number
+at 16px, shows ordinance prices only for cash-fine tickets, and aligns those prices
+at the bottom right of each ordinance card. The user also requested the settlement
+receipt FileImage crash fix; it is included in this resumed mobile slice.
+
+Status: implementation present; automated and visual evidence is recorded in
+`evidence/enforcer-ticket-paper-slice-3a/README.md` (2026-10-22 redesign section).
+Native/live completion remains unverified. An Android device is available, but
+the user confirmed that no disposable local database is available. No database
+was accessed or provisioned. Keep this slice open for the remaining live checks;
+this resume does not complete or advance a product phase.
+
 Requested behavior:
 
 1. Match the ticket-detail paper header layout to the new-inspection preview paper header, retaining the actual ticket control number.

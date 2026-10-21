@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { LayoutGrid, FileText, Database, ChevronRight } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 import ConfigModuleCard from "../components/ConfigModuleCard";
@@ -11,6 +11,8 @@ import StatCard from "@/components/ui/Card/StatCard/StatCard";
 import { ROUTES } from "@/routes/routePaths";
 import { useAuthStore } from "@/store/store";
 import { ADMIN_ROLES } from "@/api/types/common.types";
+import Button from "@/components/ui/Button/Button";
+import { useRecentChanges } from "../hooks/useRecentChanges";
 
 // STATIC DATA — replace with useSystemStats() once the endpoint exists.
 const STATS = {
@@ -53,35 +55,10 @@ const CONFIG_MODULES = [
   },
 ];
 
-// STATIC DATA — recent configuration activity feed
-const RECENT_CHANGES = [
-  {
-    id: "1",
-    icon: FileText,
-    title: "Penalty tier updated",
-    detail: "ORD-2024-018 was updated by Juan Dela Cruz.",
-    timestamp: "Today, 9:42 AM",
-  },
-  {
-    id: "2",
-    icon: Database,
-    title: "Automatic backup completed",
-    detail: "All system records were backed up successfully.",
-    timestamp: "Today, 2:00 AM",
-  },
-  {
-    id: "3",
-    icon: LayoutGrid,
-    title: "Market section status changed",
-    detail: "Food Court was marked inactive by Maria Santos.",
-    timestamp: "Oct 27, 3:16 PM",
-  },
-];
-
 const SystemConfigurationPage: FC = () => {
   const marketSectionSummary = useMarketSectionCount();
   const ordinanceSummary = useOrdinanceCount();
-  const navigate = useNavigate();
+  const recentChanges = useRecentChanges();
   const role = useAuthStore((state) => state.user?.role);
   const canManageOrdinances = role != null && ADMIN_ROLES.includes(role);
 
@@ -144,16 +121,39 @@ const SystemConfigurationPage: FC = () => {
               Latest administrative configuration activity.
             </p>
           </div>
-          <Link to="/configuration/audit-log" className={styles.auditLogLink}>
+          <Link to={recentChanges.auditLogHref} className={styles.auditLogLink}>
             View audit log
             <ChevronRight size={14} strokeWidth={2.5} />
           </Link>
         </div>
 
-        <div className={styles.recentList}>
-          {RECENT_CHANGES.map((change) => (
-            <RecentChangeItem key={change.id} {...change} />
-          ))}
+        <div className={styles.recentList} aria-busy={recentChanges.isLoading}>
+          {recentChanges.isLoading ? (
+            <p className={styles.recentMessage} role="status">
+              Loading recent changes…
+            </p>
+          ) : recentChanges.error ? (
+            <div className={styles.recentMessage} role="alert">
+              <p>{recentChanges.error}</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={recentChanges.retry}
+                disabled={recentChanges.isFetching}
+              >
+                Retry
+              </Button>
+            </div>
+          ) : recentChanges.items.length === 0 ? (
+            <p className={styles.recentMessage} role="status">
+              No recent configuration changes.
+            </p>
+          ) : (
+            recentChanges.items.map((record) => (
+              <RecentChangeItem key={record.id} record={record} />
+            ))
+          )}
         </div>
       </section>
     </div>

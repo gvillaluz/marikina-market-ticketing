@@ -1,5 +1,5 @@
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_header.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
-import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -68,6 +68,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
     final penaltyType = widget.formData.penaltyType;
 
     return Scaffold(
+      backgroundColor: AppTheme.ticketDetailBackground,
       appBar: AppBar(
         title: const Text(
           'New Inspection',
@@ -173,9 +174,11 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760),
+              constraints: const BoxConstraints(
+                maxWidth: AppTheme.ticketDetailMaxWidth,
+              ),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+                padding: AppTheme.ticketDetailPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -201,99 +204,23 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppTheme.ticketSmallGap),
 
                     Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: AppColors.primaryLight,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: .25),
-                            offset: const Offset(-1, 1),
-                            blurRadius: 3.5,
-                            spreadRadius: 0,
-                          ),
-                        ],
-                      ),
+                      decoration: AppTheme.ticketPaperDecoration,
                       padding: const EdgeInsets.only(top: 20, bottom: 20),
                       child: Column(
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: Column(
-                              children: [
-                                const Text(
-                                  'City of Marikina',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontSize: AppTheme.sectionHeadingFontSize,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const Text('Marikina Public Market Office'),
-
-                                const SizedBox(height: 20),
-
-                                Row(
-                                  spacing: 5,
-                                  children: [
-                                    Image.asset(
-                                      'assets/logo/org_logo.png',
-                                      height: 50,
-                                      width: 50,
-                                    ),
-                                    Text(
-                                      isTicket
-                                          ? 'VIOLATION TICKET'
-                                          : 'WRITTEN WARNING',
-                                      style: TextStyle(
-                                        color: AppColors.primary,
-                                        fontSize:
-                                            AppTheme.sectionHeadingFontSize,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-
-                                    const Spacer(),
-
-                                    if (isTicket) ...[
-                                      const Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            'CONTROL NO.',
-                                            style: TextStyle(
-                                              color: AppColors.mediumGrey,
-                                              fontSize:
-                                                  AppTheme.captionFontSize,
-                                            ),
-                                          ),
-                                          Text(
-                                            'PENDING',
-                                            style: TextStyle(
-                                              color: AppColors.primaryRed,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: AppTheme
-                                                  .sectionHeadingFontSize,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ],
+                              children: [TicketPaperHeader(isTicket: isTicket)],
                             ),
                           ),
 
-                          const SizedBox(height: 20),
-                          const DottedLine(
-                            dashLength: 5,
-                            dashColor: AppColors.lightGrey,
-                          ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppTheme.ticketSmallGap),
+                          const Divider(height: AppTheme.ticketSmallGap),
+                          const SizedBox(height: AppTheme.ticketSmallGap),
 
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
@@ -303,16 +230,17 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                             ),
                           ),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppTheme.ticketSmallGap),
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: const Divider(),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppTheme.ticketSmallGap),
 
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: ViolationDetailsSection(
+                              penaltyType: penaltyType,
                               fine: widget.formData.fineSummary,
                               ordinances: widget.formData.ordinances,
                               isTicket: isTicket,
@@ -327,12 +255,12 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           if (fineSummary != null &&
                               penaltyType != null &&
                               isTicket) ...[
-                            const SizedBox(height: 20),
+                            const SizedBox(height: AppTheme.ticketSmallGap),
                             const Padding(
                               padding: EdgeInsets.only(left: 20, right: 20),
                               child: Divider(),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: AppTheme.ticketSmallGap),
 
                             Padding(
                               padding: const EdgeInsets.only(
@@ -349,12 +277,9 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                             ),
                           ],
 
-                          const SizedBox(height: 20),
-                          const DottedLine(
-                            dashLength: 5,
-                            dashColor: AppColors.lightGrey,
-                          ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppTheme.ticketSmallGap),
+                          const Divider(height: AppTheme.ticketSmallGap),
+                          const SizedBox(height: AppTheme.ticketSmallGap),
 
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
@@ -406,7 +331,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                     ),
 
                     if (isTicket) ...[
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppTheme.ticketSmallGap),
 
                       const Text(
                         'Photo Evidence Record',
@@ -416,13 +341,11 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Text(
-                        'The image below serves as the photo evidence attached to this violation ticket.',
-                      ),
+                      const Text('Photos attached to this inspection record.'),
 
                       const SizedBox(height: 10),
 
-                      if (widget.formData.evidences == null) ...[
+                      if (widget.formData.evidences?.isEmpty ?? true) ...[
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -456,7 +379,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                               ),
                               const SizedBox(height: 12),
                               const Text(
-                                'No Photo Evidences Found',
+                                'No photo evidence',
                                 style: TextStyle(
                                   fontSize: AppTheme.sectionHeadingFontSize,
                                   fontWeight: FontWeight.bold,
@@ -464,7 +387,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                               ),
                               const SizedBox(height: 6),
                               const Text(
-                                'There are no captured or recorded photo evidences for this ticket.',
+                                'No photos are attached to this record.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: AppTheme.captionFontSize,
@@ -482,7 +405,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                       ],
                     ],
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppTheme.ticketSmallGap),
 
                     AppPrimaryButton(
                       label: 'Submit ${isTicket ? 'Ticket' : 'Warning'}',

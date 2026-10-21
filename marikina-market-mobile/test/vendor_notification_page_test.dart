@@ -63,6 +63,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('No notifications'), findsOneWidget);
       expect(find.text('0 unread'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, 'All'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, 'Unread'), findsOneWidget);
       expect(
         tester
             .widget<TextButton>(

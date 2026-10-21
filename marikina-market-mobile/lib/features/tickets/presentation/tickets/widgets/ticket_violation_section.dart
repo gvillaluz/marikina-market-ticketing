@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 
@@ -7,7 +8,8 @@ import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/core/utils/extentions/integer_extensions.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/violation_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/ordinance_category.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/widgets/detail_row.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class TicketViolationSection extends StatelessWidget {
   final List<ViolationSummary> violations;
@@ -15,6 +17,7 @@ class TicketViolationSection extends StatelessWidget {
   final String marketSection;
   final List<OrdinanceCategory> categories;
   final bool isTicket;
+  final PenaltyType? penaltyType;
 
   const TicketViolationSection({
     required this.violations,
@@ -22,6 +25,7 @@ class TicketViolationSection extends StatelessWidget {
     required this.marketSection,
     required this.categories,
     required this.isTicket,
+    this.penaltyType,
     super.key,
   });
 
@@ -55,24 +59,13 @@ class TicketViolationSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Wrap(
-          spacing: AppTheme.ticketTinyGap,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Icon(Icons.warning, color: AppColors.primary),
-            Text(
-              'VIOLATION DETAILS',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: AppTheme.sectionHeadingFontSize,
-              ),
-            ),
-          ],
+        const TicketPaperSectionTitle(
+          icon: Icons.receipt_long_outlined,
+          title: 'VIOLATION DETAILS',
         ),
+        const SizedBox(height: AppTheme.ticketSmallGap),
 
-        const SizedBox(height: 20),
-
-        const Text('ORDINANCE:', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('ORDINANCE:', style: AppTheme.ticketPaperLabelStyle),
 
         const SizedBox(height: 10),
 
@@ -97,6 +90,7 @@ class TicketViolationSection extends StatelessWidget {
                     'Ord No. ${ordinance.ordinanceNo}, Series of ${ordinance.series}',
                     style: const TextStyle(fontSize: AppTheme.bodyFontSize),
                   ),
+                  const SizedBox(height: AppTheme.ticketTinyGap),
                   Text(
                     ordinance.ordinanceCode,
                     style: const TextStyle(
@@ -107,41 +101,55 @@ class TicketViolationSection extends StatelessWidget {
                   ),
 
                   if (isTicket) ...[
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const SizedBox(height: AppTheme.ticketSmallGap),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getBgColor(ordinance.offenseNumber),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Wrap(
-                            spacing: AppTheme.ticketTinyGap,
-                            children: [
-                              Icon(
-                                Icons.restore_outlined,
-                                color: _getFontColor(ordinance.offenseNumber),
-                                size: 15,
-                              ),
-                              Text(
-                                '${ordinance.offenseNumber.toOrdinal()} offense',
-                                style: TextStyle(
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getBgColor(ordinance.offenseNumber),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Wrap(
+                              spacing: AppTheme.ticketTinyGap,
+                              children: [
+                                Icon(
+                                  Icons.restore_outlined,
                                   color: _getFontColor(ordinance.offenseNumber),
-                                  fontSize: AppTheme.captionFontSize,
+                                  size: 15,
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  '${ordinance.offenseNumber.toOrdinal()} offense',
+                                  style: TextStyle(
+                                    color: _getFontColor(
+                                      ordinance.offenseNumber,
+                                    ),
+                                    fontSize: AppTheme.captionFontSize,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        Text(
-                          _currencyFormat.format(ordinance.paymentAmount),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        if (penaltyType == PenaltyType.cashFine) ...[
+                          const SizedBox(height: AppTheme.ticketTinyGap),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              _currencyFormat.format(ordinance.paymentAmount),
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
@@ -151,22 +159,22 @@ class TicketViolationSection extends StatelessWidget {
           },
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: AppTheme.ticketSmallGap),
 
         Column(
           spacing: AppTheme.ticketSmallGap,
           children: [
-            DetailRow(
+            TicketPaperField(
               label: 'DATE & TIME:',
               value: DateTimeFormatter.getDateTime(DateTime.now()),
             ),
-            DetailRow(label: 'LOCATION:', value: marketSection),
-            DetailRow(
+            TicketPaperField(label: 'LOCATION:', value: marketSection),
+            TicketPaperField(
               label: 'VIOLATION COMMITTED:',
               value: categories.map((c) => c.value).join(', '),
             ),
 
-            DetailRow(label: 'DESCRIPTION:', value: description),
+            TicketPaperField(label: 'DESCRIPTION:', value: description),
           ],
         ),
       ],

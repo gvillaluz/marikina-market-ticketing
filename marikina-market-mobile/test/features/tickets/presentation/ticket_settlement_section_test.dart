@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/community_service_log.dart';
@@ -10,6 +12,95 @@ import 'package:marikina_market_mobile/features/tickets/presentation/tickets/wid
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/settlement_receipt_section.dart';
 
 void main() {
+  for (final scenario in ['valid', 'invalid', 'missing']) {
+    final missing = scenario == 'missing';
+    final valid = scenario == 'valid';
+    testWidgets('receipt picker handles $scenario local image', (tester) async {
+      final file = valid
+          ? File('assets/logo/org_logo.png').absolute
+          : File(
+              '${Directory.systemTemp.path}/settlement-receipt-${DateTime.now().microsecondsSinceEpoch}.png',
+            );
+      File? submitted;
+      if (!missing && !valid) {
+        await tester.runAsync(() => file.writeAsBytes([0, 1, 2]));
+      }
+      const picker = MethodChannel('plugins.flutter.io/image_picker');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(picker, (_) async => file.path);
+      addTearDown(() async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(picker, null);
+        if (!valid && await file.exists()) {
+          await file.delete();
+        }
+      });
+      Future<void> showReceipt(bool saved) => tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: SettlementReceiptSection(
+                settlement: TicketSettlementData(
+                  ticketId: 42,
+                  penaltyType: PenaltyType.cashFine,
+                  ticketStatus: TicketStatus.pending,
+                  isReceiptSubmitted: saved,
+                  isLoading: false,
+                  isLoaded: true,
+                  isSubmitting: false,
+                ),
+                onSubmit: (file) => submitted = file,
+                onRetryLoad: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await showReceipt(false);
+      await tester.tap(find.text('Tap to attach receipt photo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Choose from photos'));
+      for (var i = 0; i < 10; i++) {
+        await tester.pump();
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+      }
+      if (valid) {
+        expect(find.text('Save Receipt'), findsOneWidget);
+        await tester.tap(find.text('Save Receipt'));
+        expect(submitted?.path, file.path);
+        await showReceipt(true);
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Settlement receipt saved. This record cannot be changed.'),
+          findsOneWidget,
+        );
+      } else if (missing) {
+        expect(
+          find.text('Unable to read receipt photo. Please choose it again.'),
+          findsOneWidget,
+        );
+        expect(find.text('Save Receipt'), findsNothing);
+      } else {
+        expect(find.text('Unable to load photo.'), findsOneWidget);
+        await showReceipt(true);
+        for (
+          var i = 0;
+          i < 50 && find.text('Unable to load photo.').evaluate().isEmpty;
+          i++
+        ) {
+          await tester.pump();
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 20)),
+          );
+        }
+        expect(find.text('Unable to load photo.'), findsOneWidget);
+      }
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
   testWidgets('saved receipt cannot be edited again', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

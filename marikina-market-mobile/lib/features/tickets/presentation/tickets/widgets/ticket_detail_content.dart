@@ -1,6 +1,7 @@
+import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_status_badge.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_header.dart';
 import 'dart:io';
 
-import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_notice.dart';
@@ -146,7 +147,7 @@ class TicketDetailContent extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: AppTheme.ticketSmallGap),
         ],
 
         Text(
@@ -159,25 +160,21 @@ class TicketDetailContent extends StatelessWidget {
         ),
         Text(
           isTicket
-              ? 'Here is the record of the collected violation ticket, You can review the details below.'
-              : 'Please review the details below before issuing the warning.',
+              ? 'Review the issued record, evidence and settlement details.'
+              : 'Review the issued written warning and inspection details.',
+          style: AppTheme.pageSubtitleStyle.copyWith(
+            color: AppColors.mediumGrey,
+          ),
         ),
+        if (isTicket && ticket.ticketStatus != null) ...[
+          const SizedBox(height: AppTheme.ticketSmallGap),
+          TicketStatusBadge(status: ticket.ticketStatus!),
+        ],
 
-        const SizedBox(height: 20),
+        const SizedBox(height: AppTheme.ticketSmallGap),
 
         Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: AppColors.primaryLight,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: .25),
-                offset: const Offset(-1, 1),
-                blurRadius: 3.5,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
+          decoration: AppTheme.ticketPaperDecoration,
           padding: const EdgeInsets.only(top: 20, bottom: 20),
           child: Column(
             children: [
@@ -185,66 +182,17 @@ class TicketDetailContent extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 20, right: 20),
                 child: Column(
                   children: [
-                    const Text(
-                      'City of Marikina',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: AppTheme.sectionHeadingFontSize,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text('Marikina Public Market Office'),
-
-                    const SizedBox(height: 20),
-
-                    Wrap(
-                      spacing: AppTheme.ticketTinyGap,
-                      children: [
-                        Image.asset(
-                          'assets/logo/org_logo.png',
-                          height: 50,
-                          width: 50,
-                        ),
-                        Text(
-                          isTicket ? 'VIOLATION TICKET' : 'WRITTEN WARNING',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: AppTheme.sectionHeadingFontSize,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        if (isTicket) ...[
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                'CONTROL NO.',
-                                style: TextStyle(
-                                  color: AppColors.mediumGrey,
-                                  fontSize: AppTheme.captionFontSize,
-                                ),
-                              ),
-                              Text(
-                                '#${ticket.controlNumber!}',
-                                style: TextStyle(
-                                  color: AppColors.primaryRed,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: AppTheme.sectionHeadingFontSize,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
+                    TicketPaperHeader(
+                      isTicket: isTicket,
+                      controlNumber: ticket.controlNumber,
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 20),
-              const DottedLine(dashLength: 5, dashColor: AppColors.lightGrey),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppTheme.ticketSmallGap),
+              const Divider(height: AppTheme.ticketSmallGap),
+              const SizedBox(height: AppTheme.ticketSmallGap),
 
               Padding(
                 padding: const EdgeInsets.only(left: 20, right: 20),
@@ -254,16 +202,17 @@ class TicketDetailContent extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: AppTheme.ticketSmallGap),
               const Padding(
                 padding: EdgeInsets.only(left: 20, right: 20),
                 child: Divider(),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppTheme.ticketSmallGap),
 
               Padding(
                 padding: const EdgeInsets.only(left: 20, right: 20),
                 child: TicketViolationSection(
+                  penaltyType: ticket.penaltyType,
                   violations: ticket.violations,
                   description: ticket.description,
                   marketSection: ticket.marketSectionName,
@@ -273,12 +222,12 @@ class TicketDetailContent extends StatelessWidget {
               ),
 
               if (isTicket) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: AppTheme.ticketSmallGap),
                 const Padding(
                   padding: EdgeInsets.only(left: 20, right: 20),
                   child: Divider(),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppTheme.ticketSmallGap),
 
                 Padding(
                   padding: const EdgeInsets.only(left: 20, right: 20),
@@ -292,9 +241,9 @@ class TicketDetailContent extends StatelessWidget {
                 ),
               ],
 
-              const SizedBox(height: 20),
-              const DottedLine(dashLength: 5, dashColor: AppColors.lightGrey),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppTheme.ticketSmallGap),
+              const Divider(height: AppTheme.ticketSmallGap),
+              const SizedBox(height: AppTheme.ticketSmallGap),
 
               Padding(
                 padding: const EdgeInsets.only(left: 20, right: 20),
@@ -340,7 +289,7 @@ class TicketDetailContent extends StatelessWidget {
         ),
 
         if (isTicket) ...[
-          const SizedBox(height: 20),
+          const SizedBox(height: AppTheme.ticketSmallGap),
 
           const Text(
             'Photo Evidence Record',
@@ -350,13 +299,11 @@ class TicketDetailContent extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const Text(
-            'The image below serves as the photo evidence attached to this violation ticket.',
-          ),
+          const Text('Photos attached to this inspection record.'),
 
           const SizedBox(height: 10),
 
-          if (ticket.evidenceUrls == null) ...[
+          if (ticket.evidenceUrls?.isEmpty ?? true) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
@@ -385,7 +332,7 @@ class TicketDetailContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'No Photo Evidences Found',
+                    'No photo evidence',
                     style: TextStyle(
                       fontSize: AppTheme.sectionHeadingFontSize,
                       fontWeight: FontWeight.bold,
@@ -393,7 +340,7 @@ class TicketDetailContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'There are no captured or recorded photo evidences for this ticket.',
+                    'No photos are attached to this record.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: AppTheme.captionFontSize,
@@ -412,7 +359,7 @@ class TicketDetailContent extends StatelessWidget {
           ],
 
           if (isTicket && data.settlement != null) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: AppTheme.ticketSmallGap),
             TicketSettlementSection(
               settlement: data.settlement!,
               onRetryLoad: onRetrySettlementLoad,

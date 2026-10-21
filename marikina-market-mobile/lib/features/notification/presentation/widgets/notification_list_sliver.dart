@@ -13,12 +13,14 @@ class NotificationListSliver extends StatelessWidget {
   final VoidCallback? onRetry;
   final bool isVendor;
   final bool isBusy;
+  final bool useVendorStyle;
   const NotificationListSliver({
     required this.data,
     required this.onRead,
     this.onRetry,
     this.isVendor = false,
     this.isBusy = false,
+    this.useVendorStyle = false,
     super.key,
   });
   Widget _group(
@@ -82,7 +84,7 @@ class NotificationListSliver extends StatelessWidget {
         ],
       );
     }
-    if (isVendor) {
+    if (isVendor || useVendorStyle) {
       return SliverMainAxisGroup(
         slivers: [
           SliverList(
@@ -93,6 +95,7 @@ class NotificationListSliver extends StatelessWidget {
                 padding: AppTheme.vendorNotificationItemPadding,
                 child: VendorNotificationTile(
                   notification: item,
+                  isVendor: isVendor,
                   onRead: onRead,
                   isBusy:
                       isBusy ||

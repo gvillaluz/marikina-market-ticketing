@@ -21,6 +21,70 @@ namespace MarikinaMarket.Tests;
 
 public class VendorNotificationTests
 {
+    [Theory]
+    [InlineData("All", 0, 12, 10, true)]
+    [InlineData("All", 10, 12, 2, false)]
+    [InlineData("All", 20, 12, 0, false)]
+    [InlineData("Unread", 0, 11, 10, true)]
+    [InlineData("Unread", 10, 11, 1, false)]
+    [InlineData("Unread", 20, 11, 0, false)]
+    public async Task Enforcer_total_matches_owned_filtered_rows_across_pages(
+        string filter, int offset, int total, int count, bool hasMore)
+    {
+        using var fixture = new Fixture();
+        for (var id = 1; id <= 12; id++)
+        {
+            var notification = fixture.Add(id, 17);
+            notification.IsRead = id == 1;
+            notification.EnforcerId = 7;
+        }
+        fixture.Add(99, 18).EnforcerId = 9;
+        await using var host = await fixture.HostAsync();
+        using var response = await host.SendAsync(HttpMethod.Get,
+            $"/api/Notification?filter={filter}&offset={offset}", "MarketEnforcer");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(total, json.RootElement.GetProperty("total").GetInt32());
+        Assert.Equal(hasMore, json.RootElement.GetProperty("has_more").GetBoolean());
+        var rows = json.RootElement.GetProperty("items").EnumerateArray().ToList();
+        Assert.Equal(count, rows.Count);
+        Assert.All(rows, row => Assert.Equal(7, row.GetProperty("enforcer_id").GetInt32()));
+        if (filter == "Unread") Assert.All(rows, row => Assert.False(row.GetProperty("is_read").GetBoolean()));
+        if (offset == 0) Assert.Equal(12, rows[0].GetProperty("id").GetInt32());
+    }
+
+    [Fact]
+    public async Task Enforcer_empty_inbox_returns_zero_and_read_rejects_other_owner()
+    {
+        using var fixture = new Fixture();
+        var other = fixture.Add(71, 17);
+        other.EnforcerId = 9;
+        other.IsRead = false;
+        await using var host = await fixture.HostAsync();
+        using var response = await host.SendAsync(HttpMethod.Get, "/api/Notification?filter=Unread", "MarketEnforcer");
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(0, json.RootElement.GetProperty("total").GetInt32());
+        Assert.Empty(json.RootElement.GetProperty("items").EnumerateArray());
+        using var read = await host.SendAsync(HttpMethod.Patch, "/api/Notification/71/read", "MarketEnforcer");
+        Assert.Equal(HttpStatusCode.NotFound, read.StatusCode);
+        Assert.False(other.IsRead);
+    }
+
+    [Theory]
+    [InlineData(null, 401)]
+    [InlineData("MarketVendor", 403)]
+    [InlineData("AdminOfficer", 403)]
+    [InlineData("HeadAdmin", 403)]
+    public async Task Enforcer_routes_require_enforcer_identity(string? role, int status)
+    {
+        using var fixture = new Fixture();
+        await using var host = await fixture.HostAsync();
+        using var list = await host.SendAsync(HttpMethod.Get, "/api/Notification", role);
+        using var read = await host.SendAsync(HttpMethod.Patch, "/api/Notification/71/read", role);
+        Assert.Equal(status, (int)list.StatusCode);
+        Assert.Equal(status, (int)read.StatusCode);
+    }
+
     [Fact]
     public void Migration_matches_model_and_only_changes_notifications_with_an_owned_backfill()
     {

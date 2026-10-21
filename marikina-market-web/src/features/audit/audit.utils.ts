@@ -1,4 +1,12 @@
 import type { AuditLogRecord } from "./audit.types";
+import type { AuditModule } from "@/api/types/audit.types";
+import { AUDIT_MODULE_OPTIONS } from "./audit.constants";
+
+export function auditModulesFromQuery(query: URLSearchParams): AuditModule[] {
+  return AUDIT_MODULE_OPTIONS.map((option) => option.value)
+    .filter((module) => query.getAll("modules").includes(module))
+    .sort();
+}
 
 export function auditActorName(
   record: Pick<AuditLogRecord, "userId" | "firstName" | "lastName">,

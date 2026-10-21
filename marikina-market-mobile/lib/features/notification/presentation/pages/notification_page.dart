@@ -5,7 +5,6 @@ import 'package:marikina_market_mobile/features/notification/domain/entities/not
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_event.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_state.dart';
-import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_header.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_list_sliver.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_list_skeleton.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_notice.dart';
@@ -88,10 +87,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: widget.isVendor
-        ? AppTheme.vendorNotificationBackground
-        : null,
-    appBar: widget.isVendor ? null : AppBar(title: const Text('Notifications')),
+    backgroundColor: AppTheme.vendorNotificationBackground,
     body: SafeArea(
       child: BlocListener<NotificationBloc, NotificationState>(
         listenWhen: (previous, current) =>
@@ -128,39 +124,31 @@ class _NotificationPageState extends State<NotificationPage> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverPadding(
-                    padding: widget.isVendor
-                        ? AppTheme.inspectionHeaderPadding
-                        : AppTheme.notificationHeaderPadding,
+                    padding: AppTheme.notificationCompactHeaderPadding,
                     sliver: SliverToBoxAdapter(
-                      child: widget.isVendor
-                          ? BlocBuilder<NotificationBloc, NotificationState>(
-                              builder: (context, state) =>
-                                  VendorNotificationHeader(
-                                    isLoading:
-                                        state is NotificationInitial ||
-                                        state is NotificationLoading,
-                                    unreadCount: state is NotificationLoaded
-                                        ? state.unreadCount
-                                        : null,
-                                    unreadOnly: _filter == 'Unread',
-                                    isBusy:
-                                        state is! NotificationLoaded ||
-                                        state.isRefreshing ||
-                                        state.isLoadingMore ||
-                                        state.isMarkingAll ||
-                                        state.markingReadIds.isNotEmpty,
-                                    onToggleUnread: () => _changeFilter(
-                                      _filter == 'All' ? 'Unread' : 'All',
-                                    ),
-                                    onMarkAll: () => context
-                                        .read<NotificationBloc>()
-                                        .add(MarkAllAsRead()),
-                                  ),
-                            )
-                          : NotificationHeader(
-                              filter: _filter,
-                              onChange: _changeFilter,
-                            ),
+                      child: BlocBuilder<NotificationBloc, NotificationState>(
+                        builder: (context, state) => VendorNotificationHeader(
+                          isLoading:
+                              state is NotificationInitial ||
+                              state is NotificationLoading,
+                          unreadCount: state is NotificationLoaded
+                              ? state.unreadCount
+                              : null,
+                          unreadOnly: _filter == 'Unread',
+                          isBusy:
+                              state is! NotificationLoaded ||
+                              state.isRefreshing ||
+                              state.isLoadingMore ||
+                              state.isMarkingAll ||
+                              state.markingReadIds.isNotEmpty,
+                          onToggleUnread: () => _changeFilter(
+                            _filter == 'All' ? 'Unread' : 'All',
+                          ),
+                          onMarkAll: () => context.read<NotificationBloc>().add(
+                            MarkAllAsRead(),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   BlocBuilder<NotificationBloc, NotificationState>(
@@ -168,19 +156,17 @@ class _NotificationPageState extends State<NotificationPage> {
                       if (state is NotificationInitial ||
                           state is NotificationLoading) {
                         return SliverToBoxAdapter(
-                          child: NotificationListSkeleton(
-                            isVendor: widget.isVendor,
-                          ),
+                          child: NotificationListSkeleton(isVendor: true),
                         );
                       }
                       if (state is NotificationLoaded) {
                         return SliverPadding(
-                          padding:
-                              widget.isVendor && state.notifications.isNotEmpty
+                          padding: state.notifications.isNotEmpty
                               ? AppTheme.vendorNotificationListPadding
                               : AppTheme.notificationListPadding,
                           sliver: NotificationListSliver(
                             isVendor: widget.isVendor,
+                            useVendorStyle: true,
                             isBusy: state.isMarkingAll,
                             data: NotificationListData(
                               notifications: state.notifications,

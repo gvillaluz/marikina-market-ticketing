@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/features/notification/presentation/widgets/filters.dart';
 
 class VendorNotificationHeader extends StatelessWidget {
   final int? unreadCount;
@@ -36,6 +37,13 @@ class VendorNotificationHeader extends StatelessWidget {
         ),
       ),
       const SizedBox(height: AppTheme.inspectionGap),
+      Filters(
+        filterOption: unreadOnly ? 'Unread' : 'All',
+        isBusy: isBusy,
+        onChange: (filter) {
+          if ((filter == 'Unread') != unreadOnly) onToggleUnread();
+        },
+      ),
       Row(
         children: [
           Expanded(
@@ -97,7 +105,6 @@ class VendorNotificationHeader extends StatelessWidget {
           ),
         ],
       ),
-      const SizedBox(height: AppTheme.vendorNotificationListGap),
     ],
   );
 }

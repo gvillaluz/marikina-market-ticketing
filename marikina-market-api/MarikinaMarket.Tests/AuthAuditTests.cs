@@ -78,6 +78,10 @@ public class AuthAuditTests
         Assert.Equal(8, log.UserId);
         Assert.Equal(role, log.Role);
         Assert.Equal(LogResult.Failed, log.Result);
+        Assert.Equal("AuthorizationFailed", log.Action);
+        Assert.Contains("Reason: Access denied.", log.Details);
+        Assert.Contains("Authenticated: no", log.Details);
+        Assert.Contains("Endpoint: Auth.", log.Details);
     }
 
     [Theory]
@@ -305,6 +309,8 @@ internal sealed class AuthAuditFixture
                 CreatedAt = DateTime.UtcNow, ExpiresAt = DateTime.UtcNow.AddMinutes(10)
             } : null),
             "GenerateOtpAsync" => GenerateOtp(),
+            "GenerateOtpWithRecordAsync" => GenerateOtpWithRecord((OtpPurpose)args![1]!),
+            "InvalidateOtpAsync" => InvalidateOtp(),
             "ValidateOtpAsync" => Task.FromResult(OtpResult),
             _ => throw new InvalidOperationException("Unexpected OTP operation.")
         }));
@@ -327,6 +333,13 @@ internal sealed class AuthAuditFixture
     });
 
     private Task<string> GenerateOtp() { _generated = true; return Task.FromResult("123456"); }
+    private Task<(string, OtpVerification)> GenerateOtpWithRecord(OtpPurpose purpose)
+    {
+        _generated = true;
+        return Task.FromResult(("123456", new OtpVerification { Id = 100, UserId = 8, CodeHash = "test-hash", Purpose = purpose,
+            CreatedAt = DateTime.UtcNow, ExpiresAt = DateTime.UtcNow.AddMinutes(10) }));
+    }
+    private Task InvalidateOtp() { _generated = false; return Task.CompletedTask; }
     private Task<string> GenerateToken() { TokensIssued++; return Task.FromResult("opaque-access-token"); }
     private static T Proxy<T>(Func<MethodInfo, object?[]?, object?> handler) where T : class
     {
@@ -347,7 +360,7 @@ internal sealed class AuditEmailCapture : IEmailService
     private readonly AuditLogContext _audit;
     private readonly List<(int? UserId, Role? Role)> _actors;
     public AuditEmailCapture(AuditLogContext audit, List<(int?, Role?)> actors) { _audit = audit; _actors = actors; }
-    public Task SendEmailAsync(string toEmail, string subject, string body, string accentColor = "#0B2D5B")
+    public Task SendEmailAsync(string toEmail, string subject, string body, string accentColor = "#0B2D5B", CancellationToken cancellationToken = default)
     {
         _actors.Add((_audit.Entry?.UserId, _audit.Entry?.Role));
         return Task.CompletedTask;

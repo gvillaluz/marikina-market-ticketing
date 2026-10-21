@@ -1,0 +1,14 @@
+{
+  "name": "full",
+  "command": [
+    "dotnet",
+    "test",
+    "MarikinaMarket.slnx",
+    "--no-restore",
+    "-p:OutputPath=bin/MobileLoginEmailVerification/"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "timedOut": false,
+  "durationMs": 177104
+}

@@ -1,11 +1,12 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/widgets/detail_row.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class TicketPenaltyDetail extends StatelessWidget {
   final Severity severity;
@@ -58,43 +59,20 @@ class TicketPenaltyDetail extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Wrap(
-          spacing: AppTheme.ticketSmallGap,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: const Text(
-                '₱',
-                style: TextStyle(
-                  color: AppColors.primaryLight,
-                  fontSize: AppTheme.sectionHeadingFontSize,
-                ),
-              ),
-            ),
-            const Text(
-              'PENALTY DETAILS',
-              style: TextStyle(
-                fontSize: AppTheme.sectionHeadingFontSize,
-                color: AppColors.primary,
-              ),
-            ),
-          ],
+        const TicketPaperSectionTitle(
+          icon: Icons.payments_outlined,
+          title: 'PENALTY DETAILS',
         ),
-
-        const SizedBox(height: 20),
+        const SizedBox(height: AppTheme.ticketSmallGap),
 
         Column(
           spacing: AppTheme.ticketSmallGap,
           children: [
-            DetailRow(
+            TicketPaperField(
               label: 'SEVERITY:',
               value: severity.value,
               valueWidget: Align(
-                alignment: Alignment.centerRight,
+                alignment: Alignment.centerLeft,
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
@@ -111,8 +89,8 @@ class TicketPenaltyDetail extends StatelessWidget {
                 ),
               ),
             ),
-            DetailRow(label: 'PENALTY TYPE:', value: penalty),
-            DetailRow(
+            TicketPaperField(label: 'PENALTY TYPE:', value: penalty),
+            TicketPaperField(
               label: 'DUE DATE:',
               value:
                   '${DateTimeFormatter.getDate(dueDate)}, (5 days from issuance)',

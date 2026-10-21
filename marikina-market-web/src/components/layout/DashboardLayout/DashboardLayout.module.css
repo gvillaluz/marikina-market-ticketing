@@ -12,6 +12,7 @@
 
 .content {
   flex: 1;
+  margin-inline: auto;
   padding: 1.5rem;
   max-width: 1440px;
   width: 100%;

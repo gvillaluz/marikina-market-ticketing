@@ -301,6 +301,28 @@ public class AuditServiceTests
     }
 
     [Fact]
+    public void Configuration_modules_are_filtered_in_the_real_repository_query()
+    {
+        using var db = DatabaseModel();
+        var repository = new AuditLogRepository(db);
+        var filters = new AuditLogFilter
+        {
+            Modules = [Module.MarketSections, Module.Ordinances, Module.Backups]
+        };
+        var query = (IQueryable<AuditLog>)typeof(AuditLogRepository)
+            .GetMethod("Filter", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(repository, [filters, null, null])!;
+        var sql = query.ToQueryString();
+        Assert.Contains("WHERE", sql);
+        Assert.Contains("ANY", sql);
+        Assert.Contains("MarketSections", sql);
+        Assert.Contains("Ordinances", sql);
+        Assert.Contains("Backups", sql);
+        Assert.DoesNotContain("Users", sql);
+        Assert.DoesNotContain("Security", sql);
+    }
+
+    [Fact]
     public void PostgreSQL_translates_multi_select_enums_to_their_stored_string_values_without_database_access()
     {
         using var db = DatabaseModel();

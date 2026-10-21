@@ -23,6 +23,12 @@ namespace MarikinaMarket.API.Application.Services
 
         public async Task<string> GenerateOtpAsync(int userId, OtpPurpose purpose, int expiryMinutes = 10)
         {
+            var generated = await GenerateOtpWithRecordAsync(userId, purpose, expiryMinutes);
+            return generated.Code;
+        }
+
+        public async Task<(string Code, OtpVerification Otp)> GenerateOtpWithRecordAsync(int userId, OtpPurpose purpose, int expiryMinutes = 10)
+        {
             if (userId <= 0 || !Enum.IsDefined(purpose) || expiryMinutes <= 0)
                 throw new ValidationException("Invalid OTP generation request.");
 
@@ -53,8 +59,10 @@ namespace MarikinaMarket.API.Application.Services
                 throw;
             }
 
-            return code;
+            return (code, otp);
         }
+
+        public Task InvalidateOtpAsync(int otpId) => _otpRepository.InvalidateOtpAsync(otpId);
 
         public async Task<OtpVerificationResult> ValidateOtpAsync(int userId, OtpPurpose purpose, string code)
         {

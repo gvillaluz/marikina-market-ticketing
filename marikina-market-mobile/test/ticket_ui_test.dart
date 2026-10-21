@@ -46,6 +46,7 @@ void main() {
               body: SingleChildScrollView(
                 padding: AppTheme.ticketCardPadding,
                 child: TicketViolationSection(
+                  penaltyType: PenaltyType.cashFine,
                   violations: [violation],
                   description: 'Obstruction',
                   marketSection: 'Dry Goods',
@@ -58,6 +59,11 @@ void main() {
         );
         expect(find.text('Ord No. 11, Series of 2014'), findsOneWidget);
         expect(
+          tester.getTopLeft(find.text('SEC-8')).dy -
+              tester.getBottomLeft(find.text('Ord No. 11, Series of 2014')).dy,
+          6,
+        );
+        expect(
           find.text('2nd offense'),
           isTicket ? findsOneWidget : findsNothing,
         );
@@ -67,13 +73,13 @@ void main() {
         );
         if (isTicket) {
           final row = find.ancestor(
-            of: find.text('₱1,500.00'),
-            matching: find.byType(Row),
+            of: find.text('2nd offense'),
+            matching: find.byType(Align),
           );
           expect(
             tester.getTopLeft(row).dy -
                 tester.getBottomLeft(find.text('SEC-8')).dy,
-            20,
+            12,
           );
         }
         expect(tester.takeException(), isNull);

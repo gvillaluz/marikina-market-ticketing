@@ -1,0 +1,16 @@
+{
+  "name": "focused",
+  "command": [
+    "dotnet",
+    "test",
+    "MarikinaMarket.slnx",
+    "--no-restore",
+    "--filter",
+    "FullyQualifiedName~MobileLoginEmailFailureTests",
+    "-p:OutputPath=bin/MobileLoginEmailVerification/"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "timedOut": false,
+  "durationMs": 81141
+}

@@ -60,29 +60,11 @@ class _AddPhotoEvidenceBtnState extends State<AddPhotoEvidenceBtn> {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      AnimatedContainer(
-        duration: MediaQuery.disableAnimationsOf(context)
-            ? Duration.zero
-            : AppTheme.buttonAnimationDuration,
-        constraints: const BoxConstraints(
-          minHeight: AppTheme.evidenceCaptureMinHeight,
-        ),
-        padding: AppTheme.inspectionCardPadding,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: AppTheme.inspectionCardRadius,
-          border: Border.all(
-            color: widget.isInvalid
-                ? Theme.of(context).colorScheme.error
-                : Theme.of(context).colorScheme.outlineVariant,
-          ),
-        ),
-        child: AppPrimaryButton(
-          label: _isCapturing ? 'Opening camera' : 'Take a photo',
-          iconData: Icons.add_a_photo_outlined,
-          onPressed: _captureEvidence,
-          isLoading: _isCapturing,
-        ),
+      AppPrimaryButton(
+        label: _isCapturing ? 'Opening camera' : 'Take a photo',
+        iconData: Icons.add_a_photo_outlined,
+        onPressed: _captureEvidence,
+        isLoading: _isCapturing,
       ),
       if (_captureError != null) ...[
         const SizedBox(height: AppTheme.inspectionTinyGap),

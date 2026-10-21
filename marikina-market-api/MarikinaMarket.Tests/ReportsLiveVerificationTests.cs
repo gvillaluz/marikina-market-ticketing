@@ -231,7 +231,7 @@ await app.StartAsync(); return app;
 }
 private sealed class Mailbox : IEmailService {
     public ConcurrentDictionary<string, string> Codes { get; } = new();
-    public Task SendEmailAsync(string toEmail, string subject, string body, string accentColor = "#0B2D5B") {
+    public Task SendEmailAsync(string toEmail, string subject, string body, string accentColor = "#0B2D5B", CancellationToken cancellationToken = default) {
         if (!toEmail.EndsWith("@example.invalid")) throw new InvalidOperationException("External mail prohibited.");
         var match = Regex.Match(body, @">([0-9]{6})</strong>");
         if (!match.Success) throw new InvalidOperationException("OTP mailbox format changed.");

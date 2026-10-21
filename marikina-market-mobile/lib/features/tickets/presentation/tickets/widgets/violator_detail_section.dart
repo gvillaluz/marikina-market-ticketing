@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
-import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/widgets/detail_row.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class ViolatorDetailSection extends StatelessWidget {
   final TicketDetail ticket;
@@ -19,33 +19,27 @@ class ViolatorDetailSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Wrap(
-          spacing: AppTheme.ticketTinyGap,
-          children: [
-            Icon(Icons.person, color: AppColors.primary),
-            Text(
-              'VIOLATOR DETAILS',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: AppTheme.sectionHeadingFontSize,
-              ),
-            ),
-          ],
+        const TicketPaperSectionTitle(
+          icon: Icons.person_outline,
+          title: 'VIOLATOR DETAILS',
         ),
-        const SizedBox(height: 20),
-        DetailRow(label: "BUSINESS ID:", value: ticket.businessId),
         const SizedBox(height: AppTheme.ticketSmallGap),
-        DetailRow(label: "STALL/UNIT NO:", value: ticket.stallNumber ?? 'N/A'),
+        TicketPaperField(label: "BUSINESS ID:", value: ticket.businessId),
         const SizedBox(height: AppTheme.ticketSmallGap),
-        DetailRow(label: "TRADE NAME:", value: ticket.tradeName),
+        TicketPaperField(
+          label: "STALL/UNIT NO:",
+          value: ticket.stallNumber ?? 'N/A',
+        ),
         const SizedBox(height: AppTheme.ticketSmallGap),
-        DetailRow(
+        TicketPaperField(label: "TRADE NAME:", value: ticket.tradeName),
+        const SizedBox(height: AppTheme.ticketSmallGap),
+        TicketPaperField(
           label: "NAME:",
           value: '${ticket.lastName}, ${ticket.firstName}',
         ),
         if (isTicket) ...[
           const SizedBox(height: AppTheme.ticketSmallGap),
-          DetailRow(
+          TicketPaperField(
             label: "ADDRESS:",
             value: ticket.address?.trim().isNotEmpty == true
                 ? ticket.address!.trim()

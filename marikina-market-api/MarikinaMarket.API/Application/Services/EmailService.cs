@@ -20,7 +20,7 @@ namespace MarikinaMarket.API.Application.Services
             _audit = audit;
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string body, string accentColor = "#0B2D5B")
+        public async Task SendEmailAsync(string toEmail, string subject, string body, string accentColor = "#0B2D5B", CancellationToken cancellationToken = default)
         {
             var result = LogResult.Failed;
             try
@@ -42,10 +42,10 @@ namespace MarikinaMarket.API.Application.Services
                 message.Body = CreateBody(body, accentColor);
 
                 using var client = new SmtpClient();
-                await client.ConnectAsync(smtpHost!, int.Parse(smtpPort!), SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync(fromAddress, appPassword);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
+                await client.ConnectAsync(smtpHost!, int.Parse(smtpPort!), SecureSocketOptions.StartTls, cancellationToken);
+                await client.AuthenticateAsync(fromAddress, appPassword, cancellationToken);
+                await client.SendAsync(message, cancellationToken);
+                await client.DisconnectAsync(true, cancellationToken);
                 result = LogResult.Success;
             }
             finally

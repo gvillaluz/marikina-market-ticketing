@@ -29,16 +29,25 @@ class DevHttpOverrides extends HttpOverrides {
   }
 }
 
+Future<void> _initializeFirebase() async {
+  await Firebase.initializeApp(
+    // Android reads the configuration bundled from google-services.json.
+    options: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+        ? null
+        : DefaultFirebaseOptions.currentPlatform,
+  );
+}
+
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await _initializeFirebase();
 }
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await _initializeFirebase();
 
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 

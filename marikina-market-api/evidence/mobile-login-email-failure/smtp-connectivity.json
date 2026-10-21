@@ -1,0 +1,15 @@
+{
+    "checkedAtUtc":  "2026-10-21T17:32:03.5849329Z",
+    "configuration":  "Local Development files, User Secrets and this process environment; running API overrides unconfirmed",
+    "smtpHost":  "smtp.gmail.com",
+    "smtpPort":  587,
+    "configuredTls":  "StartTls",
+    "fromAddressPresent":  true,
+    "appPasswordPresent":  true,
+    "portValid":  true,
+    "dnsResolved":  true,
+    "tcpConnected":  true,
+    "emailSent":  false,
+    "databaseAccessed":  false,
+    "tcpResult":  "Connected; no SMTP authentication or message attempted"
+}

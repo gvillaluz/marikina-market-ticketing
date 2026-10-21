@@ -4,7 +4,10 @@ using MarikinaMarket.API.Application.DTOs.Audits.Internal;
 using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MarikinaMarket.API.Presentation.Middleware
 {
@@ -56,7 +59,7 @@ namespace MarikinaMarket.API.Presentation.Middleware
                 audit.Entry.Action = "AuthorizationFailed";
                 audit.Entry.Module = Module.Security;
                 audit.Entry.Result = LogResult.Failed;
-                audit.Entry.Details = $"{(audit.Entry.UserId.HasValue ? "" : "Anonymous: ")}{description} was denied (HTTP {status}).";
+                audit.Entry.Details = await AuthorizationDetailsAsync(context, action, module, audit.Entry.UserId is null);
                 await service.RecordAsync(audit.Entry);
                 return;
             }
@@ -77,6 +80,49 @@ namespace MarikinaMarket.API.Presentation.Middleware
             audit.Entry.Details = (audit.Entry.UserId.HasValue ? "" : "Anonymous: ") + $"{description} " +
                 (audit.Entry.Result == LogResult.Success ? "completed successfully." : $"failed (HTTP {status}).");
             await service.RecordAsync(audit.Entry);
+        }
+
+        private static async Task<string> AuthorizationDetailsAsync(HttpContext context,
+            ControllerActionDescriptor action, Module requestedModule, bool anonymous)
+        {
+            var reason = "Access denied.";
+            if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
+            {
+                var authentication = await context.AuthenticateAsync();
+                reason = authentication.Failure switch
+                {
+                    SecurityTokenExpiredException => "Authentication token expired.",
+                    SecurityTokenException => "Authentication credentials invalid.",
+                    not null => "Authentication failed.",
+                    _ when authentication.None && string.IsNullOrEmpty(context.Request.Headers.Authorization)
+                        => "Authentication credentials missing.",
+                    _ => "Authentication required."
+                };
+            }
+
+            var endpoint = context.GetEndpoint();
+            var roleGroups = endpoint?.Metadata.GetOrderedMetadata<IAuthorizeData>()
+                .Where(data => !string.IsNullOrWhiteSpace(data.Roles))
+                .Select(data => string.Join(" or ", data.Roles!.Split(',',
+                    StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)))
+                .ToArray() ?? [];
+            var roles = roleGroups.Length == 0 ? "not declared" :
+                string.Join(" and ", roleGroups.Select(group => roleGroups.Length > 1 ? $"({group})" : group));
+            // Use server route metadata, never the URL, query string, credentials, or exception message.
+            var route = (endpoint as RouteEndpoint)?.RoutePattern.RawText ?? "not available";
+            var details = $"{(anonymous ? "Anonymous: " : "")}Request was denied (HTTP {context.Response.StatusCode}). " +
+                $"Reason: {reason} Authenticated: {(context.User.Identity?.IsAuthenticated == true ? "yes" : "no")}. " +
+                $"Method: {LimitAuditMetadata(context.Request.Method, 10)}. Route: {LimitAuditMetadata(route, 100)}. " +
+                $"Endpoint: {LimitAuditMetadata($"{action.ControllerName}.{action.ActionName}", 60)}. " +
+                $"Requested module: {requestedModule}. Declared roles: {LimitAuditMetadata(roles, 80)}. " +
+                $"Request ID: {LimitAuditMetadata(context.TraceIdentifier, 48)}.";
+            return LimitAuditMetadata(details, 500);
+        }
+
+        private static string LimitAuditMetadata(string value, int limit)
+        {
+            var text = new string(value.Select(character => char.IsControl(character) ? ' ' : character).ToArray());
+            return text.Length <= limit ? text : text[..(limit - 1)] + "…";
         }
 
         internal static void CaptureActor(HttpContext context, AuditLogContext audit)

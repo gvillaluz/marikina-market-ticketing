@@ -43,8 +43,7 @@ namespace MarikinaMarket.API.Application.Services
             offset = Math.Max(offset, 0);
 
             var notifications = await _notificationRepository.GetNotificationsAsync(enforcerId, PAGE_SIZE, offset, filter);
-
-            if (!notifications.Any()) return new PageResponse<GetNotificationsResponse> { Items = [], HasMore = false};
+            var total = await _notificationRepository.GetEnforcerNotificationCountAsync(enforcerId, filter);
             
             bool hasMore = notifications.Count() > PAGE_SIZE;
             if (hasMore)
@@ -70,7 +69,8 @@ namespace MarikinaMarket.API.Application.Services
             return new PageResponse<GetNotificationsResponse>
             {
                 Items = notificationResponse,
-                HasMore = hasMore
+                HasMore = hasMore,
+                Total = total
             };
         }
 

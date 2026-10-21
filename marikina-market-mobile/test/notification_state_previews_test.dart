@@ -110,9 +110,7 @@ void main() {
               bloc = NotificationBloc(
                 loadNotificationsUseCase: LoadNotificationsUseCase(repository),
                 markAsReadUseCase: MarkAsReadUseCase(repository),
-                loadUnreadCountUseCase: isVendor
-                    ? LoadUnreadCountUseCase(repository)
-                    : null,
+                loadUnreadCountUseCase: LoadUnreadCountUseCase(repository),
               );
               addTearDown(() async {
                 if (!gate.isCompleted) gate.complete();
@@ -179,7 +177,8 @@ void main() {
               final card = find.byKey(
                 const ValueKey('notification-skeleton-card-0'),
               );
-              expect(tester.getSize(card).width, width - (isVendor ? 26 : 40));
+              await tester.scrollUntilVisible(card, 120);
+              expect(tester.getSize(card).width, width - 26);
               expect(tester.getSize(card).height, greaterThan(100 * scale));
               await tester.runAsync(() async {
                 gate.complete();

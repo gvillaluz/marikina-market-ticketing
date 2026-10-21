@@ -11,6 +11,7 @@ import { MemoryRouter } from "react-router-dom";
 import ts from "typescript";
 
 const require = createRequire(import.meta.url);
+const { QueryClient, QueryClientProvider } = require("@tanstack/react-query");
 const root = path.resolve(
   path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1")),
   "../..",
@@ -35,6 +36,7 @@ function load(relative, overrides = {}, cache = new Map()) {
       exports: module.exports,
       Error,
       Date,
+      URLSearchParams,
       crypto: { randomUUID },
       require(id) {
         if (id in overrides) return { __esModule: true, ...overrides[id] };
@@ -310,6 +312,18 @@ test("both administrators reach ordinances through Configurations without backup
         "@/features/configuration/hooks/useOrdinanceCount": {
           useOrdinanceCount: () => ({ count: 3 }),
         },
+        "@/context/AuthContext": {
+          useAuth: () => ({ user: { userId: 1, role } }),
+        },
+        "@/api/client": {
+          default: {
+            get() {
+              throw new Error(
+                "Unexpected request during static configuration rendering.",
+              );
+            },
+          },
+        },
       },
     ).default;
     if (allowed) {
@@ -317,7 +331,11 @@ test("both administrators reach ordinances through Configurations without backup
         React.createElement(
           MemoryRouter,
           null,
-          React.createElement(Configuration),
+          React.createElement(
+            QueryClientProvider,
+            { client: new QueryClient() },
+            React.createElement(Configuration),
+          ),
         ),
       );
       assert.equal(

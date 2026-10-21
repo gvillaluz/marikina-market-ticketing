@@ -29,6 +29,7 @@ class NotificationListSkeleton extends StatelessWidget {
                     : AppTheme.notificationItemPadding,
                 child: NotificationSkeletonCard(
                   key: ValueKey('notification-skeleton-card-$index'),
+                  isVendor: isVendor,
                 ),
               ),
           ],

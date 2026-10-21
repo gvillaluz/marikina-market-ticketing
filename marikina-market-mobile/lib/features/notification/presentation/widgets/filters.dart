@@ -4,9 +4,11 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 class Filters extends StatelessWidget {
   final String filterOption;
   final ValueChanged<String> onChange;
+  final bool isBusy;
   const Filters({
     required this.filterOption,
     required this.onChange,
+    this.isBusy = false,
     super.key,
   });
   @override
@@ -18,6 +20,8 @@ class Filters extends StatelessWidget {
           (filter) => ChoiceChip(
             label: Text(filter),
             selected: filterOption == filter,
+            showCheckmark: false,
+            visualDensity: VisualDensity.compact,
             materialTapTargetSize: MaterialTapTargetSize.padded,
             chipAnimationStyle: ChipAnimationStyle(
               selectAnimation: AnimationStyle(
@@ -26,9 +30,11 @@ class Filters extends StatelessWidget {
                     : AppTheme.buttonAnimationDuration,
               ),
             ),
-            onSelected: (selected) {
-              if (selected) onChange(filter);
-            },
+            onSelected: isBusy
+                ? null
+                : (selected) {
+                    if (selected) onChange(filter);
+                  },
           ),
         )
         .toList(),

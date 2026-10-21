@@ -44,6 +44,14 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return updated == 1;
         }
 
+        public async Task InvalidateOtpAsync(int otpId)
+        {
+            var otp = await _context.OtpVerifications.FirstOrDefaultAsync(otp => otp.Id == otpId);
+            if (otp is null) return;
+            otp.IsUsed = true;
+            await _context.SaveChangesAsync();
+        }
+
         public async Task IncrementAttemptsAsync(int otpId, int maxAttempts)
         {
             await _context.OtpVerifications

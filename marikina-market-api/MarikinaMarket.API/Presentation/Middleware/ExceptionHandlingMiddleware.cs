@@ -36,6 +36,7 @@ namespace MarikinaMarket.API.Presentation.Middleware
 
             var statusCode = exception switch
             {
+                LoginCodeDeliveryException => StatusCodes.Status503ServiceUnavailable,
                 InvalidCredentialsException => StatusCodes.Status400BadRequest,
                 ValidationException => StatusCodes.Status400BadRequest,
                 RecordNotFoundException => StatusCodes.Status404NotFound,

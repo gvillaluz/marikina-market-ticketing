@@ -204,6 +204,59 @@ class AppTheme {
   static const ticketHeadingStyle = inspectionHeadingStyle;
   static const ticketBodyStyle = inspectionBodyStyle;
   static const ticketCaptionStyle = inspectionCaptionStyle;
+  static const ticketFilterPadding = EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 6,
+  );
+  static const ticketPaperLogoSize = 32.0;
+  static const ticketPaperHeadingStyle = TextStyle(
+    color: AppColors.primary,
+    fontSize: 12,
+    fontWeight: FontWeight.bold,
+  );
+  static const ticketPaperControlStyle = TextStyle(
+    color: AppColors.primaryRed,
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  );
+  static const ticketDetailBackground = Color(0xFFF5F7FA);
+  static const ticketDetailMaxWidth = 760.0;
+  static const ticketDetailPadding = EdgeInsets.fromLTRB(16, 16, 16, 28);
+  static const ticketPaperFieldBreakpoint = 280.0;
+  static const ticketPaperOfficeStyle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primary,
+  );
+  static const ticketPaperLabelStyle = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.mediumGrey,
+  );
+  static const ticketPaperValueStyle = TextStyle(
+    fontSize: 14,
+    height: 1.4,
+    color: Color(0xFF17212D),
+  );
+  static const ticketPaperSectionStyle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primary,
+  );
+  static const ticketPaperDecoration = BoxDecoration(
+    color: Colors.white,
+    borderRadius: ticketCardRadius,
+    border: Border.fromBorderSide(BorderSide(color: Color(0xFFDCE4ED))),
+    boxShadow: [
+      BoxShadow(color: Color(0x0A17212D), blurRadius: 12, offset: Offset(0, 3)),
+    ],
+  );
+  static const notificationCompactHeaderPadding = EdgeInsets.fromLTRB(
+    13,
+    20,
+    13,
+    6,
+  );
   static const ticketIconSize = inspectionIconSize;
   static const ticketSkeletonHeight = inspectionSkeletonHeight;
   static const ticketDetailSkeletonHeight = 500.0;
@@ -427,7 +480,7 @@ class AppTheme {
   static const authFieldPadding = EdgeInsets.symmetric(horizontal: 20);
   static const authHeadingStyle = pageTitleStyle;
   static const authPageTitleStyle = TextStyle(
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: FontWeight.w700,
     color: authVerificationTitleColor,
   );

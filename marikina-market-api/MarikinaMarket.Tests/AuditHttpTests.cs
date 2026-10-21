@@ -1,12 +1,137 @@
 using System.Net;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text.Json;
 using MarikinaMarket.API.Domain.Enums;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Xunit;
 
 namespace MarikinaMarket.Tests;
 
 public class AuditHttpTests
 {
+    [Theory]
+    [InlineData("missing", 401, "Authentication credentials missing.")]
+    [InlineData("invalid", 401, "Authentication credentials invalid.")]
+    [InlineData("expired", 401, "Authentication token expired.")]
+    [InlineData("unsupported", 401, "Authentication required.")]
+    [InlineData("forbidden", 403, "Access denied.")]
+    public async Task Authorization_details_describe_confirmed_authentication_failure_without_credentials(
+        string scenario, int status, string reason)
+    {
+        var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
+        await using var host = await AuditHost.CreateAsync(configureAuthentication: authentication =>
+            authentication.AddJwtBearer("Test", options =>
+            {
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true, ValidIssuer = "audit-tests",
+                    ValidateAudience = true, ValidAudience = "audit-tests",
+                    ValidateLifetime = true, ClockSkew = TimeSpan.Zero,
+                    ValidateIssuerSigningKey = true, IssuerSigningKey = key,
+                    RoleClaimType = "role"
+                };
+            }));
+        var now = DateTime.UtcNow;
+        var signingKey = scenario == "invalid"
+            ? new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64)) : key;
+        var token = new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(
+            "audit-tests", "audit-tests",
+            [new Claim(ClaimTypes.NameIdentifier, "7"), new Claim("role", "MarketVendor")],
+            now.AddMinutes(-10), scenario == "expired" ? now.AddMinutes(-5) : now.AddMinutes(5),
+            new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)));
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/admin/audit-logs?search=private-query");
+        if (scenario != "missing")
+            request.Headers.Authorization = new(scenario == "unsupported" ? "Basic" : "Bearer", token);
+        using var response = await host.Client.SendAsync(request);
+        Assert.Equal(status, (int)response.StatusCode);
+        var log = Assert.Single(host.Repository.Logs);
+        Assert.Equal("AuthorizationFailed", log.Action);
+        Assert.Equal(Module.Security, log.Module);
+        Assert.Equal(LogResult.Failed, log.Result);
+        Assert.Equal(scenario == "forbidden" ? 7 : (int?)null, log.UserId);
+        Assert.Equal(scenario == "forbidden" ? Role.MarketVendor : (Role?)null, log.Role);
+        Assert.Contains($"HTTP {status}", log.Details);
+        Assert.Contains($"Reason: {reason}", log.Details);
+        Assert.Contains($"Authenticated: {(scenario == "forbidden" ? "yes" : "no")}", log.Details);
+        Assert.Contains("GET", log.Details);
+        Assert.Contains("Route: api/admin/audit-logs", log.Details);
+        Assert.Contains("Endpoint: AdminAuditLog.GetSummaries", log.Details);
+        Assert.Contains("Requested module: AuditLogs", log.Details);
+        Assert.Contains("Declared roles: HeadAdmin or AdminOfficer", log.Details);
+        Assert.Matches(@"Request ID: \S+", log.Details);
+        Assert.InRange(log.Details.Length, 1, 500);
+        Assert.DoesNotContain(token, log.Details);
+        Assert.DoesNotContain("private-query", log.Details);
+        Assert.DoesNotContain("IDX", log.Details);
+        Assert.DoesNotContain("SecurityToken", log.Details);
+    }
+
+    [Fact]
+    public async Task Authorization_details_do_not_guess_a_credential_reason_for_other_authentication_failures()
+    {
+        await using var host = await AuditHost.CreateAsync();
+        host.Client.DefaultRequestHeaders.Add("X-Test-Authentication-Failure", "unavailable");
+        using var response = await host.Client.GetAsync("/api/admin/audit-logs");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        var log = Assert.Single(host.Repository.Logs);
+        Assert.Null(log.UserId);
+        Assert.Null(log.Role);
+        Assert.Contains("Reason: Authentication failed.", log.Details);
+        Assert.DoesNotContain("credentials invalid", log.Details);
+        Assert.DoesNotContain("private-authentication-message", log.Details);
+        Assert.DoesNotContain("InvalidOperationException", log.Details);
+    }
+
+    [Fact]
+    public async Task Authorization_details_preserve_separate_declared_role_requirements()
+    {
+        await using var host = await AuditHost.CreateAsync();
+        using var response = await host.SendAsync(HttpMethod.Get, "/api/audit-probe/role-groups", "AdminOfficer");
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var log = Assert.Single(host.Repository.Logs);
+        Assert.Equal(7, log.UserId);
+        Assert.Equal(Role.AdminOfficer, log.Role);
+        Assert.Contains("Declared roles: (HeadAdmin or AdminOfficer) and (HeadAdmin or MarketEnforcer)", log.Details);
+    }
+
+    [Fact]
+    public async Task Authorization_details_use_route_templates_bound_metadata_and_preserve_verified_actor()
+    {
+        await using var host = await AuditHost.CreateAsync();
+        using var request = new HttpRequestMessage(HttpMethod.Post,
+            "/api/audit-probe/denied/private-path-value?password=private-query-value");
+        request.Headers.Add("X-Test-Role", "HeadAdmin");
+        request.Headers.Authorization = new("Bearer", "private-header-value");
+        request.Content = new StringContent("{\"password\":\"private-body-value\"}",
+            System.Text.Encoding.UTF8, "application/json");
+        using var response = await host.Client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var log = Assert.Single(host.Repository.Logs);
+        Assert.Equal(7, log.UserId);
+        Assert.Equal(Role.HeadAdmin, log.Role);
+        Assert.Null(log.TargetId);
+        Assert.Contains("Reason: Access denied.", log.Details);
+        Assert.Contains("Authenticated: yes", log.Details);
+        Assert.Contains("POST", log.Details);
+        Assert.Contains("Route: api/audit-probe/denied/{target}", log.Details);
+        Assert.Contains("Endpoint: AuditProbe.Denied", log.Details);
+        Assert.Contains("Requested module: Reports", log.Details);
+        Assert.Contains("Declared roles: HeadAdmin or AdminOfficer", log.Details);
+        Assert.Contains("Request ID: " + new string('x', 47) + "…", log.Details);
+        Assert.InRange(log.Details.Length, 1, 500);
+        Assert.DoesNotContain("private-", JsonSerializer.Serialize(log));
+        Assert.DoesNotContain(new string('x', 49), log.Details);
+        using var detailResponse = await host.SendAsync(HttpMethod.Get, $"/api/admin/audit-logs/{log.Id}");
+        Assert.Equal(HttpStatusCode.OK, detailResponse.StatusCode);
+        using var detail = JsonDocument.Parse(await detailResponse.Content.ReadAsStringAsync());
+        Assert.Equal(log.Details, detail.RootElement.GetProperty("details").GetString());
+        Assert.Single(host.Repository.Logs);
+    }
+
     [Theory]
     [InlineData("HeadAdmin")]
     [InlineData("AdminOfficer")]
@@ -146,6 +271,55 @@ public class AuditHttpTests
         Assert.Equal("Dela Cruz", data.RootElement.GetProperty("last_name").GetString());
         Assert.Contains("completed successfully", data.RootElement.GetProperty("details").GetString());
         Assert.Single(host.Repository.Logs);
+    }
+
+    [Fact]
+    public async Task Configuration_history_filters_before_paging_and_keeps_failed_and_system_events_in_order()
+    {
+        await using var host = await AuditHost.CreateAsync();
+        var timestamp = new DateTime(2026, 10, 21, 1, 0, 0, DateTimeKind.Utc);
+        var modules = new[] { Module.MarketSections, Module.Ordinances, Module.Backups, Module.Users,
+            Module.Security, Module.Vendors, Module.Tickets, Module.Reports, Module.Notifications, Module.AuditLogs };
+        for (var id = 1; id <= 30; id++)
+        {
+            host.Repository.Logs.Add(new()
+            {
+                Id = id, Timestamp = timestamp, Module = modules[(id - 1) % modules.Length],
+                UserId = id % 10 == 3 ? null : 7, Role = id % 10 == 3 ? null : Role.HeadAdmin,
+                Action = "Update", Result = id % 10 == 2 ? LogResult.Failed : LogResult.Success,
+                Details = "Synthetic configuration history."
+            });
+        }
+        // More than one page of newer, unrelated events must not displace matching entries.
+        for (var id = 31; id <= 45; id++)
+            host.Repository.Logs.Add(new()
+            {
+                Id = id, Timestamp = timestamp.AddMinutes(1), Module = Module.Users,
+                UserId = 7, Role = Role.HeadAdmin, Action = "Update", Result = LogResult.Success,
+                Details = "Synthetic account history."
+            });
+        const string filters = "modules=MarketSections&modules=Ordinances&modules=Backups";
+        foreach (var role in new[] { "HeadAdmin", "AdminOfficer" })
+        {
+            var response = await host.SendAsync(HttpMethod.Get, "/api/admin/audit-logs?offset=0&" + filters, role);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            using var page = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(9, page.RootElement.GetProperty("total").GetInt32());
+            Assert.False(page.RootElement.GetProperty("has_more").GetBoolean());
+            var items = page.RootElement.GetProperty("items").EnumerateArray().ToArray();
+            Assert.Equal(new[] { 23, 22, 21, 13, 12, 11, 3, 2, 1 }, items.Select(x => x.GetProperty("id").GetInt32()));
+            Assert.Equal("Backups", items[0].GetProperty("module").GetString());
+            Assert.Equal(JsonValueKind.Null, items[0].GetProperty("user_id").ValueKind);
+            Assert.Equal("Failed", items[1].GetProperty("result").GetString());
+            Assert.Equal("Juan", items[1].GetProperty("first_name").GetString());
+            Assert.Equal("Dela Cruz", items[1].GetProperty("last_name").GetString());
+            var counts = await host.SendAsync(HttpMethod.Get, "/api/admin/audit-logs/counts?" + filters, role);
+            using var totals = JsonDocument.Parse(await counts.Content.ReadAsStringAsync());
+            Assert.Equal(9, totals.RootElement.GetProperty("recorded_activities").GetInt32());
+            Assert.Equal(6, totals.RootElement.GetProperty("successful_actions").GetInt32());
+            Assert.Equal(0, totals.RootElement.GetProperty("security_events").GetInt32());
+        }
+        Assert.Equal(45, host.Repository.Logs.Count);
     }
 
     [Fact]

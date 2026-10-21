@@ -19,10 +19,17 @@ async function compile(relativePath, replacements = {}) {
 const { auditQuery } = await import(
   await compile("../../api/endpoints/audit.query.ts")
 );
-const { auditActionLabel, auditActorName, auditCsv, formatAuditTimestamp } =
-  await import(await compile("./audit.utils.ts"));
-const roles = await compile("../../api/types/common.types.ts");
 const constants = await compile("./audit.constants.ts");
+const {
+  auditActionLabel,
+  auditActorName,
+  auditCsv,
+  formatAuditTimestamp,
+  auditModulesFromQuery,
+} = await import(
+  await compile("./audit.utils.ts", { "./audit.constants": constants })
+);
+const roles = await compile("../../api/types/common.types.ts");
 const errors = await compile("../../utils/apiErrors.ts", {
   axios: new URL("../../../node_modules/axios/index.js", import.meta.url).href,
 });
@@ -52,6 +59,32 @@ test("All omits list filters and AllTime omits a date restriction", () => {
     "?offset=0",
   );
   assert.equal(auditQuery({}), "");
+});
+
+test("configuration audit link selects only the three system modules", () => {
+  const filters = {
+    modules: ["MarketSections", "Ordinances", "Backups"],
+  };
+  assert.equal(
+    auditQuery(filters, 0),
+    "?offset=0&modules=Backups&modules=MarketSections&modules=Ordinances",
+  );
+  assert.deepEqual(
+    auditModulesFromQuery(new URLSearchParams(auditQuery(filters))),
+    ["Backups", "MarketSections", "Ordinances"],
+  );
+});
+
+test("audit URL modules are validated and deduplicated; direct access starts with all modules", () => {
+  assert.deepEqual(auditModulesFromQuery(new URLSearchParams()), []);
+  assert.deepEqual(
+    auditModulesFromQuery(
+      new URLSearchParams(
+        "modules=Ordinances&modules=Unknown&modules=Backups&modules=Backups&modules=999&role=HeadAdmin",
+      ),
+    ),
+    ["Backups", "Ordinances"],
+  );
 });
 test("actor names use both names, support partial names, and fall back to System or user ID", () => {
   assert.equal(auditActorName(record), "Juan Dela Cruz");

@@ -237,7 +237,9 @@ void main() {
           await tester.tap(find.text('Select Ordinance'));
           await flush(tester);
           await tester.tap(
-            find.text(ordinanceResponse['ordinance_no']! as String),
+            find.text(
+              'Ord No. ${ordinanceResponse['ordinance_no']}, Series of ${ordinanceResponse['series']}',
+            ),
           );
           await tester.pump();
           await tester.tap(find.text('Confirm selection'));

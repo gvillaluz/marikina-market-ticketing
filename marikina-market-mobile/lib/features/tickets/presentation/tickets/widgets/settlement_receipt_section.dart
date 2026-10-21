@@ -41,7 +41,22 @@ class _SettlementReceiptSectionState extends State<SettlementReceiptSection> {
     final photo = await _selectPhoto();
     if (!mounted || photo == null) return;
 
-    if (await File(photo.path).length() > 5 * 1024 * 1024) {
+    final int fileLength;
+    try {
+      fileLength = await File(photo.path).length();
+    } on FileSystemException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to read receipt photo. Please choose it again.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
+    if (fileLength > 5 * 1024 * 1024) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Receipt photo must be 5 MB or smaller.')),
@@ -100,7 +115,7 @@ class _SettlementReceiptSectionState extends State<SettlementReceiptSection> {
     final settlement = widget.settlement;
     final savedUrls = settlement.receiptProof?.proofUrls ?? const <String>[];
     final List<ImageProvider> evidenceProviders = savedUrls
-        .map((url) => CachedNetworkImageProvider(url))
+        .map<ImageProvider>((url) => CachedNetworkImageProvider(url))
         .toList();
     if (savedUrls.isEmpty && _receipt != null) {
       evidenceProviders.add(FileImage(File(_receipt!.path)));
@@ -141,6 +156,8 @@ class _SettlementReceiptSectionState extends State<SettlementReceiptSection> {
                         index: 0,
                         child: Image.file(
                           File(_receipt!.path),
+                          errorBuilder: (_, _, _) =>
+                              const SettlementImageLoadError(),
                           cacheWidth: AppTheme.evidenceDecodeMaxWidth,
                           width: double.infinity,
                           height: 190,
@@ -194,6 +211,8 @@ class _SettlementReceiptSectionState extends State<SettlementReceiptSection> {
                             borderRadius: BorderRadius.circular(9),
                             child: Image.file(
                               File(_receipt!.path),
+                              errorBuilder: (_, _, _) =>
+                                  const SettlementImageLoadError(),
                               cacheWidth: AppTheme.evidenceDecodeMaxWidth,
                               fit: BoxFit.cover,
                               height: 190,

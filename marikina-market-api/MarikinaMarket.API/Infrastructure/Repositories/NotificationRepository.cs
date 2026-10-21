@@ -41,6 +41,13 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Skip(offset).Take(limit + 1).AsNoTracking().ToListAsync();
         }
 
+        public async Task<int> GetEnforcerNotificationCountAsync(int enforcerId, string filter)
+        {
+            var query = _context.Notifications.Where(notification => notification.EnforcerId == enforcerId);
+            if (filter == "Unread") query = query.Where(notification => !notification.IsRead);
+            return await query.CountAsync();
+        }
+
         public async Task<int> GetVendorNotificationCountAsync(int vendorId, string filter)
             => await VendorNotifications(vendorId, filter).CountAsync();
 

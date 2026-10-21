@@ -1,0 +1,18 @@
+{
+    "status":  "implemented; live verification pending",
+    "focusedTestsPassed":  16,
+    "fullTestsPassed":  568,
+    "fullTestsSkipped":  2,
+    "fullTestsFailed":  0,
+    "build":  "passed, 0 errors, 4 pre-existing advisory warnings",
+    "smtpProbe":  "DNS and TCP 587 reachable; authentication/delivery not attempted",
+    "smtpBudgetSeconds":  15,
+    "failureStatus":  503,
+    "tokenIssuanceRequiresOtp":  true,
+    "unchangedExistingFiles":  63,
+    "sharedAuditOriginalContentPreserved":  true,
+    "migrationsRun":  false,
+    "realDatabaseAccessed":  false,
+    "emailSent":  false,
+    "committed":  false
+}

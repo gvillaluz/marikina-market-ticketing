@@ -196,6 +196,10 @@ test(
                 user,
                 `test.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.test`,
               );
+            // Let the role update and its redirects settle before navigating.
+            await new Promise((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(resolve)),
+            );
             history.pushState({}, "", "/admin/audit-logs");
             dispatchEvent(new PopStateEvent("popstate"));
           },

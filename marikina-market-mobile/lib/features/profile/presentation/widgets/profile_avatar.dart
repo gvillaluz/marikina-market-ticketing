@@ -78,10 +78,17 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
   Widget build(BuildContext context) {
     final busy = _selecting || widget.isUpdating;
     final colors = Theme.of(context).colorScheme;
+    // Reserve both the visible outset and the padded button's hit area.
+    final photoInset =
+        AppTheme.profileSmallGap +
+        (AppTheme.buttonMinSize.width - AppTheme.profilePhotoButtonSize) / 2;
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        ProfilePortrait(profileUrl: widget.profileUrl),
+        Padding(
+          padding: EdgeInsets.all(photoInset),
+          child: ProfilePortrait(profileUrl: widget.profileUrl),
+        ),
         Positioned(
           bottom: 0,
           right: 0,

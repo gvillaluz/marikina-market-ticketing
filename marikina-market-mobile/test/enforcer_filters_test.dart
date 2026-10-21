@@ -280,6 +280,7 @@ void main() {
         ),
       ),
     );
+    expect(tester.getSize(find.byType(TicketFilterRow)).width, lessThan(280));
     await tester.tap(find.text('Pending'));
     await tester.pumpAndSettle();
     expect(find.text('All statuses'), findsOneWidget);

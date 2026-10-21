@@ -14,18 +14,100 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/search_by_stall_bottom_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/select_ordinance_bottom_sheet.dart';
 import 'inspection_list_ui_test.dart' show listBloc;
+import 'features/tickets/presentation/inspection_photo_controls_test.dart'
+    show
+        captureFormControls,
+        formControlsPreviewTheme,
+        loadFormControlPreviewFonts;
 import 'features/auth/data/login_mobile_contract_test.dart' show reply;
 import 'features/tickets/data/models/ordinance_model_test.dart'
     show ordinanceResponse;
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
+    await loadFormControlPreviewFonts();
     final adapter = OrdinanceHiveModelAdapter();
     if (!Hive.isAdapterRegistered(adapter.typeId)) {
       Hive.registerAdapter(adapter);
     }
   });
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
+
+  for (final width in [280.0, 400.0]) {
+    for (final warning in [true, false]) {
+      testWidgets(
+        'full ordinance row and chip wrap at $width warning=$warning',
+        (tester) async {
+          tester.view.physicalSize = Size(width, 900);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          final payload = {
+            ...ordinanceResponse,
+            'ordinance_no': '2026-123456789',
+            'series': '2026',
+          };
+          final selected = [OrdinanceModel.fromJson(payload).toEntity()];
+          final bloc = await tester.runAsync(
+            () => listBloc((options) async => reply(options, [payload])),
+          );
+          await tester.runAsync(() async {
+            final loaded = bloc!.stream.firstWhere(
+              (s) => s is OrdinanceSelectionLoaded,
+            );
+            bloc.add(LoadOrdinanceSelection());
+            await loaded;
+          });
+          await tester.pumpWidget(
+            BlocProvider<InspectionBloc>.value(
+              value: bloc!,
+              child: MaterialApp(
+                theme: formControlsPreviewTheme,
+                builder: (_, child) => RepaintBoundary(
+                  key: const ValueKey('form-controls-preview'),
+                  child: child!,
+                ),
+                home: Scaffold(
+                  body: SelectOrdinanceBottomSheet(
+                    isWarningTicket: warning,
+                    ordinances: selected,
+                    onChanged: (_) => fail('Draft selection must not commit'),
+                    vendorId: 42,
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          const label = 'Ord No. 2026-123456789, Series of 2026';
+          expect(find.text(label), findsNWidgets(2));
+          final chipLabel = find.descendant(
+            of: find.byType(InputChip),
+            matching: find.text(label),
+          );
+          if (width == 280) {
+            expect(tester.getSize(chipLabel).height, greaterThan(20));
+          }
+          await captureFormControls(
+            tester,
+            'ordinance-${width.toInt()}-warning-$warning',
+          );
+          expect(find.text('MKT-001'), findsOneWidget);
+          await tester.enterText(find.byType(TextField), '2026');
+          await tester.pumpAndSettle();
+          expect(find.text(label), findsNWidgets(2));
+          await tester.tap(find.byTooltip('Clear search'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byTooltip('Delete'));
+          await tester.pumpAndSettle();
+          expect(selected, hasLength(1));
+          expect(find.text(label), findsOneWidget);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox());
+        },
+      );
+    }
+  }
 
   test('a cleared vendor search ignores a late network response', () async {
     final request = Completer<RequestOptions>();

@@ -60,7 +60,11 @@ class InspectionEvidenceTile extends StatelessWidget {
               child: IconButton.filledTonal(
                 tooltip: 'Remove photo ${index + 1}',
                 onPressed: onDelete,
-                icon: const Icon(Icons.close),
+                constraints: BoxConstraints(
+                  minWidth: AppTheme.buttonMinSize.width,
+                  minHeight: AppTheme.buttonMinSize.width,
+                ),
+                icon: const Icon(Icons.close, size: AppTheme.buttonIconSize),
               ),
             ),
         ],

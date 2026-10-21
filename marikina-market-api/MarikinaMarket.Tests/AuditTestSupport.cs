@@ -127,7 +127,8 @@ internal sealed class AuditHost : IAsyncDisposable
     public WebApplication App { get; private set; } = null!;
     public HttpClient Client { get; private set; } = null!;
 
-    public static async Task<AuditHost> CreateAsync(Action<IServiceCollection>? configureServices = null)
+    public static async Task<AuditHost> CreateAsync(Action<IServiceCollection>? configureServices = null,
+        Action<AuthenticationBuilder>? configureAuthentication = null)
     {
         var host = new AuditHost();
         var builder = WebApplication.CreateBuilder();
@@ -148,7 +149,11 @@ internal sealed class AuditHost : IAsyncDisposable
                 options.JsonSerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
                 options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
             });
-        builder.Services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>("Test", _ => { });
+        var authentication = builder.Services.AddAuthentication("Test");
+        if (configureAuthentication is null)
+            authentication.AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>("Test", _ => { });
+        else
+            configureAuthentication(authentication);
         builder.Services.AddAuthorization();
         host.App = builder.Build();
         host.App.UseRouting();
@@ -184,6 +189,8 @@ internal sealed class TestAuthenticationHandler : AuthenticationHandler<Authenti
         ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder) { }
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        if (Request.Headers.ContainsKey("X-Test-Authentication-Failure"))
+            return Task.FromResult(AuthenticateResult.Fail(new InvalidOperationException("private-authentication-message")));
         var role = Request.Headers["X-Test-Role"].FirstOrDefault();
         if (role is null) return Task.FromResult(AuthenticateResult.NoResult());
         var identity = new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7"),
@@ -205,6 +212,9 @@ public class AuditProbeController : ControllerBase
     public IActionResult Mutate([FromBody] AuditProbeRequest request) => Ok(new { Id = 42 });
     [HttpGet("read")]
     public IActionResult Read() => Ok(new { Id = 42 });
+    [HttpGet("role-groups")]
+    [Authorize(Roles = "HeadAdmin,MarketEnforcer")]
+    public IActionResult RoleGroups() => Ok();
     [HttpPost("read-only")]
     public IActionResult GetTicketFineSummary() => Ok(new { Id = 42 });
     [HttpPost("validation-exception")]
@@ -219,6 +229,12 @@ public class AuditProbeController : ControllerBase
     public IActionResult Error() => throw new InvalidOperationException("sensitive-provider-secret");
     [HttpPost("no-content")]
     public IActionResult Update() => NoContent();
+    [HttpPost("denied/{target}")]
+    public IActionResult Denied()
+    {
+        HttpContext.TraceIdentifier = new string('x', 2000);
+        return Forbid();
+    }
     [HttpPost("committed")]
     public async Task<IActionResult> Committed()
     {

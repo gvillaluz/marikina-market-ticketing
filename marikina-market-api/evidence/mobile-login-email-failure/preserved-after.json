@@ -1,0 +1,386 @@
+[
+    {
+        "file":  "deferred-enforcer-slices.md",
+        "sha256":  "1FC438DC7712DD119E29890AD561C3517B7748628C5A5C54E81A62226EFBE85B",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-api/MarikinaMarket.API/Application/Interfaces/Repositories/INotificationRepository.cs",
+        "sha256":  "EAA591DF16E231F2ACFD8060A7CA0C5C2FA1572D99023110E6FD6CDEC5AA6200",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-api/MarikinaMarket.API/Application/Services/NotificationService.cs",
+        "sha256":  "FDB26F23E7213572DBD2834C53CD9647874EEBEEB253D83F164B3718B6ECF4A1",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-api/MarikinaMarket.API/Infrastructure/Repositories/NotificationRepository.cs",
+        "sha256":  "7424D6FBDA3054972EB07BEC0ECF46E25D2BEA20B59D9374868C38130A4BD947",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-api/MarikinaMarket.API/Presentation/Middleware/AuditLogMiddleware.cs",
+        "sha256":  "B364C2DADC6072988A2D98D811111AC0213E2DA52C8DE9455C6CC2797714F4B5",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-api/MarikinaMarket.Tests/AuditHttpTests.cs",
+        "sha256":  "02720747606A574C57A7BDC772DA4FECF73746A697CC9E0D32950879B7647AF5",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-api/MarikinaMarket.Tests/AuditServiceTests.cs",
+        "sha256":  "0B482DBACB8B89B204F09180BEA9A01D3386FF2ADEFA69B7677046C58930AA3C",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-api/MarikinaMarket.Tests/AuditTestSupport.cs",
+        "sha256":  "B6AB71212FB4D176AA4FCC01DAB3DE0915BD0173A1D4327C0F55A86B4DBE87FD",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-api/MarikinaMarket.Tests/AuthAuditTests.cs",
+        "sha256":  "611507B2ECCC87C5CA5939D001F03A32AE3FD25CC12E96CA3BE2629B41673B09",
+        "unchanged":  false,
+        "approvedSharedEdit":  true
+    },
+    {
+        "file":  "marikina-market-api/MarikinaMarket.Tests/VendorNotificationTests.cs",
+        "sha256":  "86229CA7D5FF5263ED5FD6CD397BCD84F248C969F2DC9B769B28771C38C177B3",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/core/di/dependency_injection.dart",
+        "sha256":  "BBDD0B0A0CE153E699C749FAABC6B9B6CCFA506EAC81BC215CCBCDEC0AAEC786",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/core/theme/app_theme.dart",
+        "sha256":  "2F30525DDF8DABE8E93058F38464C315C6AE35519A0129DAD229971CABCB86E3",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/notification/presentation/pages/notification_page.dart",
+        "sha256":  "5813C9BB170B590A1E63AD9936013A1653E341FB78F217DB2986C0BE06AF7405",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/notification/presentation/widgets/filters.dart",
+        "sha256":  "CA8B3EA4757EC2F4C9BE14CE656393CFE8A90610F065A6B078A7E5AFE7CE20D1",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/notification/presentation/widgets/notification_list_skeleton.dart",
+        "sha256":  "0B94F09C2FABA032CE21CA150B75AFA96A9472DBB191437506761865728E6800",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/notification/presentation/widgets/notification_list_sliver.dart",
+        "sha256":  "828A180397D0A5E2244EB803130350157E4FA2544369536F086D8E4722EE214F",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/notification/presentation/widgets/vendor_notification_header.dart",
+        "sha256":  "AB1FFB7AD0C21E7C49FD73F8C7DFAC29D2C6426768F3C4D9D62E36020853926F",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/notification/presentation/widgets/vendor_notification_tile.dart",
+        "sha256":  "4CAF8FBB6EDB8C9AAED6464C664309FD8D86C509D7770197D696BE18DA2BA48E",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/profile/presentation/widgets/profile_avatar.dart",
+        "sha256":  "6D5E35EE16DFC106D93372F603EAC1C410D7665B1F9723206ED21523D87ABC05",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/inspections/pages/new_inspection_preview_page.dart",
+        "sha256":  "A68055C46883D88332AC7AC69B3710B14CE68CB2F68042E6895C8D3B9B06222D",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/inspections/widgets/form/add_photo_evidence_btn.dart",
+        "sha256":  "9283943650FD82723BB6E99D4E6408E93C98DCF290E13802D7E1BD133D27DF70",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/inspections/widgets/form/bottom_sheets/select_ordinance_bottom_sheet.dart",
+        "sha256":  "5941A1541C292F7C9C042C34ED267C3B90F8FCC8F6D2877BD52E52E2D783C055",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/inspections/widgets/inspection_evidence_tile.dart",
+        "sha256":  "E045114743378A37B7628A01C7FE66BA56300C368B6A2ABD789E4A307F94FBAC",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/inspections/widgets/preview/penalty_details_section.dart",
+        "sha256":  "5E555C70F53CF961D8A573C7F41A994448DEEF43CA7192C27761588FE7E0CC13",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/inspections/widgets/preview/violation_details_section.dart",
+        "sha256":  "25615F925EA71740DA7CAB76325A842BB0D8D4DDD854D6BFCB4CDAC4D84C9D70",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/inspections/widgets/preview/violator_info_section.dart",
+        "sha256":  "9F43931085EDEA025ADB174D00D52BF26518D185A99A1C187427E2E5F4CB88CC",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/pages/ticket_detail_page.dart",
+        "sha256":  "420A93E3C33F48C4744C6FD15736A8036BE6113D5EFEC4DB7925E2F37C3F136C",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/tickets/widgets/settlement_receipt_section.dart",
+        "sha256":  "A31C28925EF763FD878712BA70B0BFF166E43E5C655C331DDEE0F6B15E3120DB",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/tickets/widgets/ticket_detail_content.dart",
+        "sha256":  "705F634BDA83FC703FBDAB0CDCE1F0F7611A0FBE008DEBD39EE8515630D97253",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/tickets/widgets/ticket_filter_row.dart",
+        "sha256":  "06DFCB39D512F341DCD7D7CEEFF868AF0A684542D665D2B06EF5C1464ACCDE64",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/tickets/widgets/ticket_penalty_detail.dart",
+        "sha256":  "1FCDCA1FFA5CDEB14CD1CADB8D00633D56460F246E72D431F7D0D95E5FC55A39",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/tickets/widgets/ticket_violation_section.dart",
+        "sha256":  "2015788F86F08A82AE352D188913DD6668BC0CD0F5037F9CC0CB6EBB8DF5E705",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/tickets/widgets/violator_detail_section.dart",
+        "sha256":  "DD11C4F0925DC4C90E7BA8158D89C38FAEDB0419E53E3CD793A8BF4B17C55EFD",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/main.dart",
+        "sha256":  "A06D6FC1E79C4CBA7896233EFC10417A81B45258BC2E23846E6D960E93E9B78A",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/enforcer_filters_test.dart",
+        "sha256":  "0A9614EAE18C75E454488FE77BF257424997D28617B97DF8F607CEB092E686C2",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/features/tickets/presentation/ticket_settlement_section_test.dart",
+        "sha256":  "D926BC4FFD90D57B2ED7AC54858B4B6B86D7F6C34FC4D3DD1BBD350D96290F7C",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/inspection_preview_navigation_test.dart",
+        "sha256":  "F6436164779F984E0BC91E48B09A405BF6986F2636CDD0BB059915F33307849D",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/inspection_selection_sheets_test.dart",
+        "sha256":  "F542862EFE2DDD2A3DBB2142C9E24AAB2B853534363858D5032AA403397A1918",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/notification_state_previews_test.dart",
+        "sha256":  "49A76C4909099CECF500FC1D170B9E5E7EDD3808DC524FC4E3248E10BD50B24C",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/ticket_ui_test.dart",
+        "sha256":  "DB5DF04F6132BF4F3F74B92478F829E4C75B4F3DB2B8842F95A93205E8E711F6",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/vendor_notification_page_test.dart",
+        "sha256":  "D880E4B70A70AD366F8BEEEB3A1893FFB95DAA93DF17D9C05EE41ACFD725EE65",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/components/layout/DashboardLayout/DashboardLayout.module.css",
+        "sha256":  "3FD7BA697445948B4D2B311ED97F1E7FA76BA9D21CC541CF447FEFFD12349FD8",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/audit/audit.browser-check.mjs",
+        "sha256":  "8A4EAD0EDCCE8C64AB319E8CDC1B36B15CC2C259CD04CD59C7C8CACB13701070",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/audit/audit.utils.test.mjs",
+        "sha256":  "CA5F2C76A8827E1E9B4487C990B38FF5CB87E19F2F81645036B34406AD211C0D",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/audit/audit.utils.ts",
+        "sha256":  "21B31F0B186755FD5FB2A5F73BB738A0A3AEA7FA357544146048E03A36532C70",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/audit/hooks/useAuditLogs.ts",
+        "sha256":  "87624A58F196C2718EE684E29267B62ADE945E2425D22D91821B4934884945DA",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/configuration/components/RecentChangeItem.module.css",
+        "sha256":  "BC93FE79FC489E1F1E2BB6C769AE4996A227BE38AE91AA921A9B3390C509132E",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/configuration/components/RecentChangeItem.tsx",
+        "sha256":  "D22C981F0805A79BF060F356392B9457CBC1442D94EFB11ECC607E7FDF54D453",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/configuration/pages/SystemConfigurationPage.module.css",
+        "sha256":  "DC8B1934B1212C539BCA91A6C4714D72D6F47DAF942439660BE5F0C490BC2695",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/configuration/pages/SystemConfigurationPage.tsx",
+        "sha256":  "0AF584A07BEAD1164BE5C5303D3244CCFB28611C6F121D1AA1D092EC8AFBEB90",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/market-section/management.test.mjs",
+        "sha256":  "9921C4E01C987F0DBD5FEFFC062799AAB4D34D295CB615442D6A16B455FF46F1",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/ordinances/management.test.mjs",
+        "sha256":  "B0C5A7055F412260EE1F5F0277C104418B1C9709C8F15E3929EC18FF031F581A",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/widgets/ticket_paper_field.dart",
+        "sha256":  "8423B78920CC78EB6D5B4B4A723C7BE4A8518F6E0AE4851CAF98E28720E82D7A",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/widgets/ticket_paper_header.dart",
+        "sha256":  "AD81F3B95F1F6243916297950AC3450948ED625D912DE132C1AE7F3CAE4A090C",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/lib/features/tickets/presentation/widgets/ticket_paper_section_title.dart",
+        "sha256":  "700D4820B5046F9DC0482002AF8AC04E8BA8B5B4CE30D856A933171ED675B4A5",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/enforcer_notification_page_test.dart",
+        "sha256":  "F4E4328A13E4D11F3B2E5E1AB3BEC964045990EFFB28191B435E37C6F7CE0E32",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/enforcer_notifications_test.dart",
+        "sha256":  "9009FF12893CB8F5A725C4D114182EF5D60F8B07AC9849F6C9D3125E735D53DE",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/features/tickets/presentation/inspection_photo_controls_test.dart",
+        "sha256":  "E6A51EF543BFB8DEE0A6CE77C81BD527A838E670327F79A8FFB967780CCABDAF",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/features/tickets/presentation/ticket_paper_layout_test.dart",
+        "sha256":  "A304EF3F334D0D63FE5B558F2A2D6A926414305766B3076ACEDCEE01E8C4271A",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/features/tickets/presentation/ticket_preview_paper_test.dart",
+        "sha256":  "59AC9A7067C8C959ED60A7DFF066B79F8C8B5D7027AD6DA87D392934AF68C6CC",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-mobile/test/profile_avatar_overlap_test.dart",
+        "sha256":  "27527CA14940DE19F26BC14C8D264BE4FC7D92F04BC344B39F09D8C4479B59F7",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/audit/index.ts",
+        "sha256":  "8DA987A08155D95CDE4DD3F12E5EF6DC9834404A12477BF0D4BAB8E2A4E54B94",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/configuration/configuration.browser-check.mjs",
+        "sha256":  "60EB8BB7E660185F8F9F7B08EC88F5DB115C6F26904F811C4560AEB5A0A6B01A",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    },
+    {
+        "file":  "marikina-market-web/src/features/configuration/hooks/useRecentChanges.ts",
+        "sha256":  "AE08A1C604EAD29A236A558E373EC681A0017A0B6293EA841902CFFB49BA4CEA",
+        "unchanged":  true,
+        "approvedSharedEdit":  false
+    }
+]

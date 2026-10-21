@@ -5,7 +5,11 @@
 
 @supports (color: color-mix(in lab, red, red)) {
   .page {
-    background: linear-gradient(180deg, var(--bg-page) 0%, color-mix(in srgb, var(--bg-page) 82%, white) 100%);
+    background: linear-gradient(
+      180deg,
+      var(--bg-page) 0%,
+      color-mix(in srgb, var(--bg-page) 82%, white) 100%
+    );
   }
 }
 
@@ -47,7 +51,9 @@
 }
 
 .moduleGrid > * {
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .moduleGrid > *:hover {
@@ -87,6 +93,17 @@
 .recentList {
   display: flex;
   flex-direction: column;
+}
+
+.recentMessage {
+  margin: 0;
+  padding-block: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--neutral-500);
+}
+
+.recentMessage p {
+  margin: 0 0 var(--space-sm);
 }
 
 @media (max-width: 1100px) {

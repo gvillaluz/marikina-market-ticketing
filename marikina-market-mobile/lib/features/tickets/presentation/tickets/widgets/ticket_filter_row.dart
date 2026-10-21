@@ -11,24 +11,67 @@ class TicketFilterRow extends StatelessWidget {
     super.key,
   });
   @override
-  Widget build(BuildContext context) => DropdownButtonFormField<String>(
-    // Recreate the field when the parent changes its controlled selection.
-    key: ValueKey(statusSelected),
+  Widget build(BuildContext context) => PopupMenuButton<String>(
+    tooltip: 'Filter by ticket status',
     initialValue: statusSelected?.value ?? '',
-    isExpanded: true,
-    style: AppTheme.ticketBodyStyle.copyWith(
-      color: Theme.of(context).colorScheme.onSurface,
+    position: PopupMenuPosition.under,
+    borderRadius: AppTheme.ticketCardRadius,
+    color: Theme.of(context).colorScheme.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: AppTheme.ticketCardRadius,
     ),
-    decoration: const InputDecoration(labelText: 'Status', isDense: true),
-    items: [
-      const DropdownMenuItem(value: '', child: Text('All statuses')),
-      for (final status in TicketStatus.values)
-        DropdownMenuItem(value: status.value, child: Text(status.label)),
+    onSelected: (value) =>
+        onChange(value.isEmpty ? null : TicketStatus.fromValue(value)),
+    itemBuilder: (context) => [
+      for (final status in <TicketStatus?>[null, ...TicketStatus.values])
+        PopupMenuItem<String>(
+          value: status?.value ?? '',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                statusSelected == status ? Icons.check : null,
+                size: AppTheme.ticketIconSize,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: AppTheme.ticketTinyGap),
+              Flexible(
+                child: Text(
+                  status?.label ?? 'All statuses',
+                  style: AppTheme.ticketBodyStyle,
+                ),
+              ),
+            ],
+          ),
+        ),
     ],
-    onChanged: (value) {
-      if (value != null) {
-        onChange(value.isEmpty ? null : TicketStatus.fromValue(value));
-      }
-    },
+    child: Ink(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: AppTheme.ticketCardRadius,
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
+        child: Padding(
+          padding: AppTheme.ticketFilterPadding,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.filter_list, size: AppTheme.ticketIconSize),
+              const SizedBox(width: AppTheme.ticketTinyGap),
+              Flexible(
+                child: Text(
+                  statusSelected?.label ?? 'All statuses',
+                  style: AppTheme.ticketCaptionStyle,
+                ),
+              ),
+              const SizedBox(width: AppTheme.ticketTinyGap),
+              Icon(Icons.expand_more, size: AppTheme.ticketIconSize),
+            ],
+          ),
+        ),
+      ),
+    ),
   );
 }

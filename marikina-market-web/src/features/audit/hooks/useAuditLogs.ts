@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { auditApi } from "@/api/endpoints/audit.api";
@@ -21,10 +22,12 @@ import {
 import { validateAuditCounts, validateAuditPage } from "../audit.validation";
 import { useAuditDetails } from "./useAuditDetails";
 import { useAuditExport } from "./useAuditExport";
+import { auditModulesFromQuery } from "../audit.utils";
 
 export function useAuditLogs() {
   const [search, setSearch] = useState("");
-  const [modules, setModules] = useState<AuditModule[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const modules = auditModulesFromQuery(searchParams);
   const [results, setResults] = useState<AuditResult[]>([]);
   const [dateRange, setDateRange] = useState<AuditDateRange>("AllTime");
   const [page, setPage] = useState(1);
@@ -58,6 +61,12 @@ export function useAuditLogs() {
   });
   const detail = useAuditDetails(selected?.id ?? null);
   const exporter = useAuditExport();
+  function setModules(values: AuditModule[]) {
+    const next = new URLSearchParams(searchParams);
+    next.delete("modules");
+    for (const module of [...values].sort()) next.append("modules", module);
+    setSearchParams(next, { replace: true });
+  }
   const isLoading = directory.isPending || isDebouncing;
   const isFetching = directory.isFetching || isDebouncing;
   const items =
@@ -133,10 +142,10 @@ export function useAuditLogs() {
       )
         return;
       const module = value as AuditModule;
-      setModules((current) =>
-        current.includes(module)
-          ? current.filter((item) => item !== module)
-          : [...current, module].sort(),
+      setModules(
+        modules.includes(module)
+          ? modules.filter((item) => item !== module)
+          : [...modules, module],
       );
       setPage(1);
     },

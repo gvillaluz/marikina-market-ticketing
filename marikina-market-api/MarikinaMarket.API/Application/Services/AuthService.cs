@@ -8,6 +8,8 @@ using MarikinaMarket.API.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using MarikinaMarket.API.Application.DTOs.Audits.Internal;
+using System.Net.Sockets;
+using MailKit.Net.Smtp;
 
 namespace MarikinaMarket.API.Application.Services
 {
@@ -91,7 +93,7 @@ namespace MarikinaMarket.API.Application.Services
         {
             Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
             var user = await GetLoginUserAsync(request.Username, request.Password, mobile: true);
-            return await SendLoginOtpAsync(user);
+            return await SendLoginOtpAsync(user, mobile: true);
         }
 
         public async Task<LoginResponse> VerifyLoginAsync(LoginVerificationRequest request)
@@ -169,7 +171,7 @@ namespace MarikinaMarket.API.Application.Services
             return user;
         }
 
-        private async Task<SendCodeResponse> SendLoginOtpAsync(User user)
+        private async Task<SendCodeResponse> SendLoginOtpAsync(User user, bool mobile = false)
         {
             var latest = await _otpService.GetLatestOtpAsync(user.Id, OtpPurpose.TwoFactorAuthentication);
             var now = DateTime.UtcNow;
@@ -177,19 +179,43 @@ namespace MarikinaMarket.API.Application.Services
                 (now - latest.CreatedAt).TotalSeconds < LOGIN_OTP_RESEND_SECONDS)
                 return CreateLoginOtpResponse(latest, user.Email!, "Code already sent.");
 
-            var code = await _otpService.GenerateOtpAsync(user.Id, OtpPurpose.TwoFactorAuthentication, LOGIN_OTP_EXPIRY_MINUTES);
-            var otp = await _otpService.GetLatestOtpAsync(user.Id, OtpPurpose.TwoFactorAuthentication);
+            string code;
+            OtpVerification? otp;
+            if (mobile)
+            {
+                (code, otp) = await _otpService.GenerateOtpWithRecordAsync(user.Id, OtpPurpose.TwoFactorAuthentication, LOGIN_OTP_EXPIRY_MINUTES);
+            }
+            else
+            {
+                code = await _otpService.GenerateOtpAsync(user.Id, OtpPurpose.TwoFactorAuthentication, LOGIN_OTP_EXPIRY_MINUTES);
+                otp = await _otpService.GetLatestOtpAsync(user.Id, OtpPurpose.TwoFactorAuthentication);
+            }
             if (otp is null)
             {
                 if (_audit is not null) _audit.IsSecurityFailure = true;
                 throw new InvalidRequestException("Couldn't create a code. Try again.");
             }
 
-            await _emailService.SendEmailAsync(user.Email!, "Sign-in verification code",
+            using var deliveryTimeout = mobile ? new CancellationTokenSource(TimeSpan.FromSeconds(15)) : null;
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email!, "Sign-in verification code",
                 $@"<h1 style=""margin:0 0 22px;color:#0B2D5B;font-size:26px;line-height:1.3;"">Verify your sign-in</h1>
                 <p style=""margin:0 0 14px;"">Use this verification code to finish signing in:</p>
                 <div style=""background-color:#E9F0F8;border:1px solid #D9E1EC;border-radius:8px;padding:20px;text-align:center;margin:20px 0;""><strong style=""font-size:28px;letter-spacing:6px;color:#0B2D5B;"">{code}</strong></div>
-                <p style=""margin:0 0 14px;"">It expires in {LOGIN_OTP_EXPIRY_MINUTES} minutes. If you didn't request it, ignore this email.</p>");
+                <p style=""margin:0 0 14px;"">It expires in {LOGIN_OTP_EXPIRY_MINUTES} minutes. If you didn't request it, ignore this email.</p>",
+                    cancellationToken: deliveryTimeout?.Token ?? CancellationToken.None);
+            }
+            catch (Exception exception) when (mobile)
+            {
+                // Never invalidate a newer request's code, even if sending failed after a concurrent login.
+                await _otpService.InvalidateOtpAsync(otp.Id);
+                if (exception is SocketException or IOException or TimeoutException or OperationCanceledException
+                    or SmtpCommandException or SmtpProtocolException or MailKit.Security.AuthenticationException
+                    or MailKit.Security.SslHandshakeException or System.Security.Authentication.AuthenticationException)
+                    throw new LoginCodeDeliveryException();
+                throw;
+            }
 
             return CreateLoginOtpResponse(otp, user.Email!, "Code sent.");
         }

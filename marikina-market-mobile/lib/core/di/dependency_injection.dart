@@ -329,10 +329,12 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   );
   sl.registerLazySingleton(() => LoadNotificationsUseCase(sl()));
   sl.registerLazySingleton(() => MarkAsReadUseCase(sl()));
+  sl.registerLazySingleton(() => LoadUnreadCountUseCase(sl()));
   sl.registerFactory(
     () => NotificationBloc(
       loadNotificationsUseCase: sl(),
       markAsReadUseCase: sl(),
+      loadUnreadCountUseCase: sl(),
     ),
   );
 }
