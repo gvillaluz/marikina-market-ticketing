@@ -1,0 +1,29 @@
+# Local migration/recovery files and database backups must never be published.
+/.monorepo-migration/
+/.workspace-backups/
+/.recovery-*/
+/backups/
+/backup_db_marikina
+*.dump
+*.backup
+*.sql.gz
+
+# Existing application-specific ignore rules remain inside each application.
+**/node_modules/
+**/bin/
+**/obj/
+**/.dart_tool/
+**/build/
+**/dist/
+**/coverage/
+**/TestResults/
+**/.env
+**/.env.local
+**/.env.*.local
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+**/Keys/*.json
+*.pfx
+*.p12
+*.jks
+*.keystore
