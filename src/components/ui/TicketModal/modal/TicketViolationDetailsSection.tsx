@@ -20,7 +20,7 @@ function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail }) {
           {detail?.violations.map((violation, i) => (
             <OrdinanceCard
               key={i}
-              title={violation.ordinanceNo}
+              title={`Ord No. ${violation.ordinanceNo}, Series of ${violation.series}`}
               subtitle={violation.ordinanceCode}
               offense={formatOrdinal(violation.offenseCount)}
               price={

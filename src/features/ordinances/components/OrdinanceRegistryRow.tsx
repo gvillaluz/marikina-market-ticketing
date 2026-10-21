@@ -18,7 +18,7 @@ export default function OrdinanceRegistryRow({
   return (
     <tr className={styles.row}>
       <th scope="row" className={styles.identity}>
-        <strong>{ordinance.ordinanceNo}</strong>
+        <strong>Ord No. {ordinance.ordinanceNo}, Series of {ordinance.series}</strong>
         <span>{ordinance.title}</span>
       </th>
       <td>
