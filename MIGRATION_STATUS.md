@@ -9,3 +9,5 @@
 - See docs/sanitization-inventory.json for file/key provenance and docs/environment-setup.md for required User Secrets and configuration. No original credential values are included.
 - No API contracts, schemas, product features, application styling or dependency declarations have changed. Local web proxy and mobile Dart defines make new-machine configuration possible without embedding actual keys. Required non-sensitive configuration remains tracked.
 - No live system or database was started. Builds/tests and fresh-local-clone verification are reported separately in docs/environment-verification.md.
+
+Current local candidate: `.monorepo-migration/candidate-v2` in the original workspace. Earlier partial candidates and recovery material are retained separately. Migration integrity checks pass; mobile/native and live verification limitations are recorded in [docs/environment-verification.md](docs/environment-verification.md). Workspace replacement and publication still require separate approval.

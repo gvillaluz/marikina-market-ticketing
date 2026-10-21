@@ -1,0 +1,73 @@
+{
+  "repositories": [
+    {
+      "name": "marikina-market-api",
+      "headUnchanged": true,
+      "refsUnchanged": true,
+      "statusUnchanged": true,
+      "sourceCommitAddedSinceInitialSnapshot": true,
+      "sourceFilesChecked": 464,
+      "sourceDifferences": [],
+      "candidateDifferences": [
+        "marikina-market-api/.github/workflows/dotnet.yml"
+      ],
+      "fileListUnchanged": true,
+      "bundleVerified": true,
+      "resumedBundleVerified": true,
+      "initialHeadMatches": true,
+      "historyCommitsChecked": 23,
+      "historyErrors": [],
+      "refsChecked": 6,
+      "sanitizedHeadReachableFromMain": true
+    },
+    {
+      "name": "marikina-market-web",
+      "headUnchanged": true,
+      "refsUnchanged": true,
+      "statusUnchanged": true,
+      "sourceCommitAddedSinceInitialSnapshot": true,
+      "sourceFilesChecked": 784,
+      "sourceDifferences": [],
+      "candidateDifferences": [
+        "marikina-market-web/.env.example",
+        "marikina-market-web/.env.example",
+        "marikina-market-web/.gitignore",
+        "marikina-market-web/vite.config.ts"
+      ],
+      "fileListUnchanged": true,
+      "bundleVerified": true,
+      "resumedBundleVerified": true,
+      "initialHeadMatches": true,
+      "historyCommitsChecked": 48,
+      "historyErrors": [],
+      "refsChecked": 12,
+      "sanitizedHeadReachableFromMain": true
+    },
+    {
+      "name": "marikina-market-mobile",
+      "headUnchanged": true,
+      "refsUnchanged": true,
+      "statusUnchanged": true,
+      "sourceCommitAddedSinceInitialSnapshot": true,
+      "sourceFilesChecked": 654,
+      "sourceDifferences": [],
+      "candidateDifferences": [
+        "marikina-market-mobile/lib/core/network/client.dart",
+        "marikina-market-mobile/lib/firebase_options.dart"
+      ],
+      "fileListUnchanged": true,
+      "bundleVerified": true,
+      "resumedBundleVerified": true,
+      "initialHeadMatches": true,
+      "historyCommitsChecked": 4,
+      "historyErrors": [],
+      "refsChecked": 3,
+      "sanitizedHeadReachableFromMain": true
+    }
+  ],
+  "unexpectedDifferences": [],
+  "nestedGitPaths": [],
+  "gitlinks": [],
+  "trackedFiles": 1914,
+  "passed": true
+}

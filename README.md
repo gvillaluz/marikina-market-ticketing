@@ -25,3 +25,5 @@ Keep credentials in the existing user-secrets/environment mechanisms. Do not com
 ## Migration status
 
 This is a local migration candidate, not the replacement workspace. Sanitized application histories and current working changes are imported. Original repositories remain intact. No push or workspace replacement has been performed. See MIGRATION_STATUS.md and docs/environment-verification.md for verification status.
+
+Current local candidate: `.monorepo-migration/candidate-v2` in the original workspace. Earlier partial candidates and recovery material are retained separately. Migration integrity checks pass; mobile/native and live verification limitations are recorded in [docs/environment-verification.md](docs/environment-verification.md). Workspace replacement and publication still require separate approval.

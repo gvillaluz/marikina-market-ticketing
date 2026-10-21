@@ -1,7 +1,7 @@
 # Roadmap
 
 Current phase: **Phase 3 — Verify administration and reporting**.
-Current task: **Approved local monorepo migration candidate — preparation in progress**.
+Current task: **Local monorepo candidate prepared — review pending; mobile/live verification incomplete**.
 Workspace replacement and publishing are not yet approved.
 
 This roadmap organizes existing work; it does not authorize implementation. Each slice and phase advancement requires user approval. No Phase 0 implementation was performed when creating these workflow files.

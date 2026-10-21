@@ -1,0 +1,14 @@
+[
+    {
+        "check":  "api-restore",
+        "exitCode":  0
+    },
+    {
+        "check":  "api-build",
+        "exitCode":  0
+    },
+    {
+        "check":  "api-tests",
+        "exitCode":  0
+    }
+]

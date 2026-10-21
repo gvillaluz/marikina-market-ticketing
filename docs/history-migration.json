@@ -3,11 +3,11 @@
   "repositories": [
     {
       "name": "marikina-market-api",
-      "importDirectory": "imports-v2\\marikina-market-api",
-      "sourceHead": "7d563e4a1d6a331cf57c10232b509bde8541dcba",
-      "sanitizedHead": "167e59a7720187961504fe669a16cdf1f79d0a86",
-      "commitMappings": 22,
-      "changedCommits": 21,
+      "importDirectory": "imports-resumed\\marikina-market-api",
+      "sourceHead": "7994ed7b9bc708fe2ed3cd67625913f5b9aadae8",
+      "sanitizedHead": "939df40009895d7541605811545e2810b45b6468",
+      "commitMappings": 23,
+      "changedCommits": 22,
       "commits": [
         {
           "old": "4b556ce9ba22974f138c8d7ff54ecfba48b19463",
@@ -70,6 +70,10 @@
           "new": "c589ef4a09f9b02635b444dc53b6b682d7027d1d"
         },
         {
+          "old": "7994ed7b9bc708fe2ed3cd67625913f5b9aadae8",
+          "new": "939df40009895d7541605811545e2810b45b6468"
+        },
+        {
           "old": "9caca74fa5ddaa33258e96681af52c1cbfef9647",
           "new": "da72d724980f6f1ce796d8137167f39ce42ffa47"
         },
@@ -101,11 +105,11 @@
     },
     {
       "name": "marikina-market-web",
-      "importDirectory": "imports-v2\\marikina-market-web",
-      "sourceHead": "6045f326eff2f27a0a2308d488002bbcdd0b6d36",
-      "sanitizedHead": "22b8041eb29aee04aa264c9c1f9bccc19149c624",
-      "commitMappings": 47,
-      "changedCommits": 47,
+      "importDirectory": "imports-resumed\\marikina-market-web",
+      "sourceHead": "06c7c1c1582c4ada8904f1611b2c3d9220ac30ee",
+      "sanitizedHead": "7dfe1aa1dd38156a19c54154ca7e8298028a7035",
+      "commitMappings": 48,
+      "changedCommits": 48,
       "commits": [
         {
           "old": "4eb4d2bddd8731f918b635b7e5c982c10f582b94",
@@ -272,6 +276,10 @@
           "new": "b8d0238c800dfc080635e32876ea8aaf2d71f033"
         },
         {
+          "old": "06c7c1c1582c4ada8904f1611b2c3d9220ac30ee",
+          "new": "7dfe1aa1dd38156a19c54154ca7e8298028a7035"
+        },
+        {
           "old": "508dec93448e30df1fcf6d78e0697249f5564286",
           "new": "ec92e5b3d9d80ce4d86009087439ea9bba7eacdf"
         },
@@ -299,11 +307,11 @@
     },
     {
       "name": "marikina-market-mobile",
-      "importDirectory": "imports-v2\\marikina-market-mobile",
-      "sourceHead": "0b6fabba3ee7f17e733030d9270186a7626602f1",
-      "sanitizedHead": "5ace5a81e127907bf50e23d641311e9a4d0ba44f",
-      "commitMappings": 3,
-      "changedCommits": 3,
+      "importDirectory": "imports-resumed\\marikina-market-mobile",
+      "sourceHead": "5e58e7d279d2e64443786bde223ed91ea306b89f",
+      "sanitizedHead": "5904af07736e522b33e2558e92800b1411cba20e",
+      "commitMappings": 4,
+      "changedCommits": 4,
       "commits": [
         {
           "old": "405aa117c6c15c3aa0b7504aee2f7ea9028e0b57",
@@ -316,6 +324,10 @@
         {
           "old": "cc024a63cc48c3cbefd5da442533286fa09af3ad",
           "new": "7a1cc649b44ff01ba7fa8b1baa9cc166eeaa4d26"
+        },
+        {
+          "old": "5e58e7d279d2e64443786bde223ed91ea306b89f",
+          "new": "5904af07736e522b33e2558e92800b1411cba20e"
         }
       ]
     }

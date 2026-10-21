@@ -5,7 +5,7 @@
     "key": "profiles:http:environmentVariables:Jwt__Secret",
     "placeholder": "<CONFIGURE_IN_USER_SECRETS>",
     "classification": "secret",
-    "occurrences": 3
+    "occurrences": 2
   },
   {
     "application": "marikina-market-api",
@@ -13,7 +13,7 @@
     "key": "profiles:https:environmentVariables:Jwt__Secret",
     "placeholder": "<CONFIGURE_IN_USER_SECRETS>",
     "classification": "secret",
-    "occurrences": 3
+    "occurrences": 2
   },
   {
     "application": "marikina-market-api",
@@ -21,7 +21,7 @@
     "key": "ConnectionStrings:DefaultConnection",
     "placeholder": "<YOUR_DATABASE_CONNECTION_STRING>",
     "classification": "secret",
-    "occurrences": 6
+    "occurrences": 5
   },
   {
     "application": "marikina-market-web",
@@ -29,7 +29,7 @@
     "key": "thumbnailUrl",
     "placeholder": "<REGENERATE_FIGMA_THUMBNAIL_URL>",
     "classification": "signed-design-asset-url",
-    "occurrences": 2
+    "occurrences": 1
   },
   {
     "application": "marikina-market-web",
@@ -37,7 +37,7 @@
     "key": "VITE_FIREBASE_KEY",
     "placeholder": "<YOUR_VITE_FIREBASE_KEY>",
     "classification": "public-client-configuration",
-    "occurrences": 2
+    "occurrences": 1
   },
   {
     "application": "marikina-market-web",
@@ -45,7 +45,7 @@
     "key": "VITE_FIREBASE_API_KEY",
     "placeholder": "<YOUR_VITE_FIREBASE_API_KEY>",
     "classification": "public-client-configuration",
-    "occurrences": 2
+    "occurrences": 1
   },
   {
     "application": "marikina-market-mobile",
@@ -53,7 +53,7 @@
     "key": "client.0.api_key.0.current_key",
     "placeholder": "<YOUR_FIREBASE_ANDROID_API_KEY>",
     "classification": "public-client-configuration",
-    "occurrences": 2
+    "occurrences": 1
   },
   {
     "application": "marikina-market-mobile",
@@ -61,7 +61,7 @@
     "key": "API_KEY",
     "placeholder": "<YOUR_FIREBASE_IOS_API_KEY>",
     "classification": "public-client-configuration",
-    "occurrences": 2
+    "occurrences": 1
   },
   {
     "application": "marikina-market-mobile",
@@ -69,7 +69,7 @@
     "key": "android.apiKey",
     "placeholder": "<YOUR_FIREBASE_ANDROID_API_KEY>",
     "classification": "public-client-configuration",
-    "occurrences": 2
+    "occurrences": 1
   },
   {
     "application": "marikina-market-mobile",
@@ -77,6 +77,6 @@
     "key": "ios.apiKey",
     "placeholder": "<YOUR_FIREBASE_IOS_API_KEY>",
     "classification": "public-client-configuration",
-    "occurrences": 2
+    "occurrences": 1
   }
 ]

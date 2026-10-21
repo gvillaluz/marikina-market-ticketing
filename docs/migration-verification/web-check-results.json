@@ -1,0 +1,14 @@
+[
+    {
+        "check":  "web-restore",
+        "exitCode":  0
+    },
+    {
+        "check":  "web-build",
+        "exitCode":  0
+    },
+    {
+        "check":  "web-tests",
+        "exitCode":  0
+    }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "check": "default local Vite proxy",
+    "passed": true
+  },
+  {
+    "check": "environment override for Vite proxy",
+    "passed": true
+  }
+]

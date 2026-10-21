@@ -6,6 +6,8 @@ This guide applies to the sanitized monorepo. All credential values below are pl
 
 Install Git, .NET SDK 10, Node.js with npm (the verification machine uses Node 26), Flutter with Dart compatible with the checked-in `sdk: ^3.11.5`, and PostgreSQL client/server tools. Android development needs Android Studio/SDK and JDK 17; iOS needs macOS/Xcode and its native dependency tools. Run `flutter doctor` to identify platform prerequisites. Respect the application's checked-in lockfiles; do not upgrade dependencies as part of setup.
 
+On Windows, Flutter plugin setup also needs symlink permission. Enable Windows **Developer Mode** in Settings → System → For developers, subject to your organization's device policy, or use an authorized environment with the required symlink privileges. Fresh-clone dependency resolution on the verification computer succeeded, but Flutter's subsequent native plugin-link creation reported this prerequisite missing. Migration tooling did not change the OS setting. Pure Dart analysis/tests are checked separately from native readiness.
+
 After the repository is published, clone it using:
 
 ```powershell
