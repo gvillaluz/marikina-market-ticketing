@@ -1,4 +1,6 @@
-# Migration and environment verification — 2026-10-21
+# Historical candidate verification — 2026-10-21
+
+This report records verification before the approved in-place adoption. The permanent workspace now uses the monorepo; see [cutover-verification.md](cutover-verification.md) for current status. Original repositories are retained in the local recovery backup rather than as active nested repositories. Commands below that refer to candidate/original repository locations describe the historical preparation stage.
 
 Status: the local monorepo candidate is prepared for review. Automated migration integrity and credential-removal checks pass. Full application and live environment verification remains incomplete because of the mobile failures and prerequisites below. Nothing has been published or substituted for the original workspace.
 

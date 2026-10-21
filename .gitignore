@@ -38,3 +38,7 @@
 **/android/key.properties
 **/android/local.properties
 /.verification/
+
+# Machine-local workspace evidence and Codex settings retained during cutover.
+/evidence/
+/.codex/

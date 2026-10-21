@@ -24,6 +24,6 @@ Keep credentials in the existing user-secrets/environment mechanisms. Do not com
 
 ## Migration status
 
-This is a local migration candidate, not the replacement workspace. Sanitized application histories and current working changes are imported. Original repositories remain intact. No push or workspace replacement has been performed. See MIGRATION_STATUS.md and docs/environment-verification.md for verification status.
+The verified monorepo has been adopted in the original workspace at `C:\Users\berna\Documents\MarikinaMarketTicketing`. One root Git repository now contains all three applications and their sanitized histories. The temporary candidate copies are removed after in-place integrity and credential checks pass.
 
-Current local candidate: `.monorepo-migration/candidate-v2` in the original workspace. Earlier partial candidates and recovery material are retained separately. Migration integrity checks pass; mobile/native and live verification limitations are recorded in [docs/environment-verification.md](docs/environment-verification.md). Workspace replacement and publication still require separate approval.
+Original source trees and Git metadata are retained in the ignored local recovery backup `.workspace-backups/monorepo-cutover-20261021`. Local credentials, caches and historical evidence remain private. Nothing has been pushed. See [MIGRATION_STATUS.md](MIGRATION_STATUS.md), the [candidate verification history](docs/environment-verification.md), and the [cutover report](docs/cutover-verification.md).

@@ -1,8 +1,8 @@
 # Roadmap
 
 Current phase: **Phase 3 — Verify administration and reporting**.
-Current task: **Local monorepo candidate prepared — review pending; mobile/live verification incomplete**.
-Workspace replacement and publishing are not yet approved.
+Current task: **Monorepo adopted at original workspace — in-place verification; mobile/live limits retained**.
+In-place adoption and candidate removal are approved. Publishing is not yet approved.
 
 This roadmap organizes existing work; it does not authorize implementation. Each slice and phase advancement requires user approval. No Phase 0 implementation was performed when creating these workflow files.
 
@@ -44,10 +44,10 @@ repositories, Git history, and uncommitted work.
 Intended remote:
 https://github.com/gvillaluz/marikina-market-ticketing.git
 
-The local candidate now contains sanitized application histories and current working changes.
+The original workspace now contains one root Git repository with sanitized application histories and current working changes.
 The supplied remote was checked; no HEAD was advertised. Nothing has been pushed.
 Setup documentation and migration verification are tracked in docs/environment-setup.md
-and docs/environment-verification.md. Live/device checks remain outstanding.
+and docs/environment-verification.md; in-place results are in docs/cutover-verification.md. Original repositories are backed up locally. Live/device checks remain outstanding.
 This migration does not establish completion or advancement of a product phase.
 
 ## Evidence and initial state

@@ -15,7 +15,7 @@ git clone https://github.com/gvillaluz/marikina-market-ticketing.git
 cd marikina-market-ticketing
 ```
 
-During migration review, use the supplied local candidate instead; no push has been performed. Read root and application `AGENTS.md` files. API, web and mobile remain separate build/deployment units inside one Git repository.
+The monorepo is adopted locally at the original workspace path. Until publication is separately approved, use that local repository; no push has been performed. Read root and application `AGENTS.md` files. API, web and mobile remain separate build/deployment units inside one Git repository.
 
 ## 2. What was sanitized from Git history
 
@@ -72,11 +72,10 @@ $rng.Dispose()
 $settings | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $localFile -Encoding UTF8
 ```
 
-3. Import the local JSON over stdin, avoiding credential values in shell command arguments/history:
+3. Import the local JSON over UTF-8 stdin, avoiding credential values in shell command arguments/history. The Node wrapper removes any UTF-8 BOM written by Windows PowerShell; a direct PowerShell pipe can cause the .NET CLI to reject the JSON:
 
 ```powershell
-Get-Content -Raw marikina-market-api/MarikinaMarket.API/user-secrets.local.json |
-  dotnet user-secrets set --project marikina-market-api/MarikinaMarket.API/MarikinaMarket.API.csproj
+node -e "const fs=require('fs'),{spawnSync}=require('child_process');const input=fs.readFileSync('marikina-market-api/MarikinaMarket.API/user-secrets.local.json','utf8').replace(/^\uFEFF/,'');const result=spawnSync('dotnet',['user-secrets','set','--project','marikina-market-api/MarikinaMarket.API/MarikinaMarket.API.csproj'],{input,stdio:['pipe','inherit','inherit']});process.exit(result.status ?? 1);"
 ```
 
 Do not print the file or run `dotnet user-secrets list` in recorded/shared terminals: those display values. An empty machine can be configured by this import; on an existing machine it updates matching keys. Securely retain only necessary credential material; the imported User Secrets remain after removing the temporary local JSON.
