@@ -11,7 +11,7 @@ class LoadInspectionListUseCase {
   Future<Result<PageResult<InspectionTicketSummary>>> call(
     String search,
     int offset,
-    ViolationType type,
+    ViolationType? type,
   ) async {
     return await _repository.loadInspections(search, offset, type);
   }

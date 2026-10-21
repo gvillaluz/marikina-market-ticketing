@@ -13,7 +13,7 @@ abstract class TicketRepository {
   Future<Result<PageResult<TicketSummary>>> loadTickets(
     String search,
     int offset,
-    TicketStatus status,
+    TicketStatus? status,
   );
   Future<Result<TicketDetail>> getTicketDetail(int ticketId);
   Future<Result<TicketReceiptProof>> getTicketReceiptProof(int ticketId);

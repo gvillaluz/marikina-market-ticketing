@@ -10,6 +10,8 @@ One product repository containing independently built applications:
 
 Read AGENTS.md, feature-workflow.md, roadmap.md and the affected application's AGENTS.md before changing code. Deferred mobile work is in deferred-enforcer-slices.md.
 
+Start with the [environment setup guide](docs/environment-setup.md) for prerequisites, PostgreSQL, ASP.NET Core User Secrets, Firebase, SMTP, B2 storage, backups, and web/mobile local configuration. The [verification report](docs/environment-verification.md) distinguishes automated checks from services that still need manual setup.
+
 ## Build and test
 
 Use each application's existing installed toolchain and lockfiles. No root package manager or monorepo framework is required. Run these commands from the indicated application directory:
@@ -22,4 +24,4 @@ Keep credentials in the existing user-secrets/environment mechanisms. Do not com
 
 ## Migration status
 
-This is a local migration candidate, not the replacement workspace. Application history import is paused for approval of credential sanitization; application source is not present yet. Original repositories remain intact. See MIGRATION_STATUS.md.
+This is a local migration candidate, not the replacement workspace. Sanitized application histories and current working changes are imported. Original repositories remain intact. No push or workspace replacement has been performed. See MIGRATION_STATUS.md and docs/environment-verification.md for verification status.

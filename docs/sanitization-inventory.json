@@ -1,0 +1,82 @@
+[
+  {
+    "application": "marikina-market-api",
+    "originalFile": "MarikinaMarket.API/Properties/launchSettings.json",
+    "key": "profiles:http:environmentVariables:Jwt__Secret",
+    "placeholder": "<CONFIGURE_IN_USER_SECRETS>",
+    "classification": "secret",
+    "occurrences": 3
+  },
+  {
+    "application": "marikina-market-api",
+    "originalFile": "MarikinaMarket.API/Properties/launchSettings.json",
+    "key": "profiles:https:environmentVariables:Jwt__Secret",
+    "placeholder": "<CONFIGURE_IN_USER_SECRETS>",
+    "classification": "secret",
+    "occurrences": 3
+  },
+  {
+    "application": "marikina-market-api",
+    "originalFile": "MarikinaMarket.API/appsettings.json",
+    "key": "ConnectionStrings:DefaultConnection",
+    "placeholder": "<YOUR_DATABASE_CONNECTION_STRING>",
+    "classification": "secret",
+    "occurrences": 6
+  },
+  {
+    "application": "marikina-market-web",
+    "originalFile": "figma_node.json",
+    "key": "thumbnailUrl",
+    "placeholder": "<REGENERATE_FIGMA_THUMBNAIL_URL>",
+    "classification": "signed-design-asset-url",
+    "occurrences": 2
+  },
+  {
+    "application": "marikina-market-web",
+    "originalFile": ".env",
+    "key": "VITE_FIREBASE_KEY",
+    "placeholder": "<YOUR_VITE_FIREBASE_KEY>",
+    "classification": "public-client-configuration",
+    "occurrences": 2
+  },
+  {
+    "application": "marikina-market-web",
+    "originalFile": ".env",
+    "key": "VITE_FIREBASE_API_KEY",
+    "placeholder": "<YOUR_VITE_FIREBASE_API_KEY>",
+    "classification": "public-client-configuration",
+    "occurrences": 2
+  },
+  {
+    "application": "marikina-market-mobile",
+    "originalFile": "android/app/google-services.json",
+    "key": "client.0.api_key.0.current_key",
+    "placeholder": "<YOUR_FIREBASE_ANDROID_API_KEY>",
+    "classification": "public-client-configuration",
+    "occurrences": 2
+  },
+  {
+    "application": "marikina-market-mobile",
+    "originalFile": "ios/Runner/GoogleService-Info.plist",
+    "key": "API_KEY",
+    "placeholder": "<YOUR_FIREBASE_IOS_API_KEY>",
+    "classification": "public-client-configuration",
+    "occurrences": 2
+  },
+  {
+    "application": "marikina-market-mobile",
+    "originalFile": "lib/firebase_options.dart",
+    "key": "android.apiKey",
+    "placeholder": "<YOUR_FIREBASE_ANDROID_API_KEY>",
+    "classification": "public-client-configuration",
+    "occurrences": 2
+  },
+  {
+    "application": "marikina-market-mobile",
+    "originalFile": "lib/firebase_options.dart",
+    "key": "ios.apiKey",
+    "placeholder": "<YOUR_FIREBASE_IOS_API_KEY>",
+    "classification": "public-client-configuration",
+    "occurrences": 2
+  }
+]

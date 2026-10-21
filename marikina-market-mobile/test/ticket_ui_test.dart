@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'package:marikina_market_mobile/features/tickets/data/models/violation_summary_model.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_violation_section.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
+import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_penalty_detail.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ticket_summary_model.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_card.dart';
@@ -18,6 +23,133 @@ import 'features/auth/data/login_mobile_contract_test.dart'
     show contractClient, reply;
 
 void main() {
+  for (final isTicket in [true, false]) {
+    testWidgets(
+      'ordinance format and preview row spacing for ticket=$isTicket',
+      (tester) async {
+        tester.view.physicalSize = Size(isTicket ? 400 : 280, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final violation = ViolationSummaryModel.fromJson({
+          'ordinance_id': 11,
+          'ordinance_no': '11',
+          'series': '2014',
+          'ordinance_code': 'SEC-8',
+          'offense_count': 2,
+          'penalty_amount': 1500,
+        }).toEntity();
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                padding: AppTheme.ticketCardPadding,
+                child: TicketViolationSection(
+                  violations: [violation],
+                  description: 'Obstruction',
+                  marketSection: 'Dry Goods',
+                  categories: [],
+                  isTicket: isTicket,
+                ),
+              ),
+            ),
+          ),
+        );
+        expect(find.text('Ord No. 11, Series of 2014'), findsOneWidget);
+        expect(
+          find.text('2nd offense'),
+          isTicket ? findsOneWidget : findsNothing,
+        );
+        expect(
+          find.text('₱1,500.00'),
+          isTicket ? findsOneWidget : findsNothing,
+        );
+        if (isTicket) {
+          final row = find.ancestor(
+            of: find.text('₱1,500.00'),
+            matching: find.byType(Row),
+          );
+          expect(
+            tester.getTopLeft(row).dy -
+                tester.getBottomLeft(find.text('SEC-8')).dy,
+            20,
+          );
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('cash detail rows and total wrap at 280px with enlarged text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(280, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: Scaffold(
+            body: SingleChildScrollView(
+              padding: AppTheme.ticketCardPadding,
+              child: TicketPenaltyDetail(
+                severity: Severity.high,
+                penaltyType: PenaltyType.cashFine,
+                totalFineAmount: 1234567.89,
+                dueDate: DateTime(2026, 10, 26),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('₱1,234,567.89'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final penalty in PenaltyType.values) {
+    testWidgets('ticket detail total is cash-only for ${penalty.name}', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: TicketPenaltyDetail(
+                severity: Severity.moderate,
+                penaltyType: penalty,
+                dueDate: DateTime(2026, 10, 26),
+                totalFineAmount: 12500.50,
+                communityHrs: 3,
+              ),
+            ),
+          ),
+        ),
+      );
+      if (penalty == PenaltyType.cashFine) {
+        expect(find.text('₱12,500.50'), findsOneWidget);
+        final panel = find
+            .ancestor(
+              of: find.text('Total Fine Due:'),
+              matching: find.byType(Container),
+            )
+            .first;
+        expect(
+          tester.getSize(panel).width,
+          tester.getSize(find.byType(Scaffold)).width,
+        );
+      } else {
+        expect(find.text('Total Fine Due:'), findsNothing);
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets(
     'warning details support null settlement status and large text at 280px',
     (tester) async {

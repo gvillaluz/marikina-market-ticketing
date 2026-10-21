@@ -18,7 +18,7 @@ class InspectionsPage extends StatefulWidget {
 class _InspectionsPageState extends State<InspectionsPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  ViolationType _selectedViolationType = ViolationType.warning;
+  ViolationType? _selectedViolationType;
   Timer? _debouncer;
 
   @override
@@ -70,7 +70,7 @@ class _InspectionsPageState extends State<InspectionsPage> {
     _load();
   }
 
-  void _handleChangeType(ViolationType type) {
+  void _handleChangeType(ViolationType? type) {
     if (type == _selectedViolationType) return;
     _debouncer?.cancel();
     setState(() => _selectedViolationType = type);

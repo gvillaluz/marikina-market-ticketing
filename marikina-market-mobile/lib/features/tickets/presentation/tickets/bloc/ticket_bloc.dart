@@ -28,7 +28,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
   List<TicketSummary> _ticketList = [];
   List<TicketSummary> get getTicketList => _ticketList;
   String _listSearch = '';
-  TicketStatus _listStatus = TicketStatus.pending;
+  TicketStatus? _listStatus = TicketStatus.pending;
   bool _hasMoreTickets = false;
   bool _isLoadingMoreTickets = false;
   bool _isRefreshingTickets = false;
@@ -52,7 +52,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
 
   Future<void> refreshTickets({
     required String search,
-    required TicketStatus status,
+    required TicketStatus? status,
   }) async {
     if (isClosed) return;
     final finished = stream.firstWhere(

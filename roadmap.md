@@ -44,8 +44,10 @@ repositories, Git history, and uncommitted work.
 Intended remote:
 https://github.com/gvillaluz/marikina-market-ticketing.git
 
-Inventory has started; the candidate has not yet been created.
-Remote verification remains pending.
+The local candidate now contains sanitized application histories and current working changes.
+The supplied remote was checked; no HEAD was advertised. Nothing has been pushed.
+Setup documentation and migration verification are tracked in docs/environment-setup.md
+and docs/environment-verification.md. Live/device checks remain outstanding.
 This migration does not establish completion or advancement of a product phase.
 
 ## Evidence and initial state

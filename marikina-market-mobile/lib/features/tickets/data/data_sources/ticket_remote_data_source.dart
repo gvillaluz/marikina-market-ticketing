@@ -15,7 +15,7 @@ abstract class TicketRemoteDataSource {
   Future<PageResultModel<TicketSummaryModel>> loadTickets(
     String search,
     int offset,
-    TicketStatus status,
+    TicketStatus? status,
   );
   Future<TicketDetailModel> getTicketDetailById(int ticketId);
   Future<TicketReceiptProofModel> getTicketReceiptProof(int ticketId);
@@ -40,17 +40,18 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
   Future<PageResultModel<TicketSummaryModel>> loadTickets(
     String search,
     int offset,
-    TicketStatus status,
+    TicketStatus? status,
   ) async {
     try {
-      var query = '/enforcer/tickets?offset=$offset&status=${status.value}';
-      if (search.isNotEmpty) {
-        query = '$query&search=$search';
-      }
-
-      final response = await apiClient.get(query);
+      final response = await apiClient.get(
+        '/enforcer/tickets',
+        queryParameters: <String, Object?>{
+          'offset': offset,
+          if (status != null) 'status': status.value,
+          if (search.isNotEmpty) 'search': search,
+        },
+      );
       final data = response.data;
-      if (data == null) return PageResultModel(items: [], hasMore: false);
 
       return PageResultModel.fromJson(
         data,

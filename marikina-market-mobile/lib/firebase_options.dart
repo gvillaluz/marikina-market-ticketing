@@ -50,7 +50,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: '<YOUR_FIREBASE_ANDROID_API_KEY>',
+    apiKey: String.fromEnvironment('FIREBASE_ANDROID_API_KEY'),
     appId: '1:578588543367:android:7c2ebb4951b465839ceb22',
     messagingSenderId: '578588543367',
     projectId: 'marikina-market',
@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: '<YOUR_FIREBASE_IOS_API_KEY>',
+    apiKey: String.fromEnvironment('FIREBASE_IOS_API_KEY'),
     appId: '1:578588543367:ios:bfaed042945512179ceb22',
     messagingSenderId: '578588543367',
     projectId: 'marikina-market',

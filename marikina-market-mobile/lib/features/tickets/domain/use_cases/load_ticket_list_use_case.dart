@@ -11,7 +11,7 @@ class LoadTicketListUseCase {
   Future<Result<PageResult<TicketSummary>>> call(
     String search,
     int offset,
-    TicketStatus status,
+    TicketStatus? status,
   ) async {
     return await _repository.loadTickets(search, offset, status);
   }

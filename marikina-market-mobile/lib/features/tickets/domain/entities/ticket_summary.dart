@@ -7,11 +7,12 @@ class TicketSummary {
   final String controlNumber;
   final TicketStatus ticketStatus;
   final String businessName;
-  final String stallNumber;
+  final String? stallNumber;
+  final List<String> ordinance;
   final String marketSection;
   final DateTime issuedAt;
   final DateTime updatedAt;
-  final DateTime overDueDate;
+  final DateTime? overDueDate;
 
   const TicketSummary({
     required this.ticketId,
@@ -21,6 +22,7 @@ class TicketSummary {
     required this.ticketStatus,
     required this.businessName,
     required this.stallNumber,
+    this.ordinance = const [],
     required this.marketSection,
     required this.issuedAt,
     required this.updatedAt,

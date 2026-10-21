@@ -103,7 +103,7 @@ class ViolationDetailsSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    ordinance.ordinanceNo,
+                    'Ord No. ${ordinance.ordinanceNo}, Series of ${ordinance.series}',
                     style: const TextStyle(fontSize: AppTheme.bodyFontSize),
                   ),
                   Text(
@@ -117,9 +117,8 @@ class ViolationDetailsSection extends StatelessWidget {
 
                   if (isTicket && breakdown != null) ...[
                     const SizedBox(height: 20),
-                    Wrap(
-                      spacing: AppTheme.inspectionSmallGap,
-                      runSpacing: AppTheme.inspectionTinyGap,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -179,21 +178,7 @@ class ViolationDetailsSection extends StatelessWidget {
                   .join(', '),
             ),
 
-            SizedBox(
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('DESCRIPTION:'),
-                  const SizedBox(height: 5),
-                  Text(
-                    description,
-                    softWrap: true,
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ],
-              ),
-            ),
+            DetailRow(label: 'DESCRIPTION:', value: description),
           ],
         ),
       ],

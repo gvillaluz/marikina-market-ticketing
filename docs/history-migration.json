@@ -1,0 +1,323 @@
+{
+  "scope": "Locally available source refs; original repositories and recovery bundles remain unchanged. Unsanitized refs are not imported.",
+  "repositories": [
+    {
+      "name": "marikina-market-api",
+      "importDirectory": "imports-v2\\marikina-market-api",
+      "sourceHead": "7d563e4a1d6a331cf57c10232b509bde8541dcba",
+      "sanitizedHead": "167e59a7720187961504fe669a16cdf1f79d0a86",
+      "commitMappings": 22,
+      "changedCommits": 21,
+      "commits": [
+        {
+          "old": "4b556ce9ba22974f138c8d7ff54ecfba48b19463",
+          "new": "635ab795c7de4ccbc1010493bf863b8f5732d284"
+        },
+        {
+          "old": "c22390082fb97fe2a97084c546228ace87ab8fe1",
+          "new": "c8202527900274914f3ef3234bc0fefaec0b9396"
+        },
+        {
+          "old": "76c86b54856fe76eb86ec996dd0e8d19ad76e386",
+          "new": "7e2c69ebea781076d4b97159592e50091bd924d9"
+        },
+        {
+          "old": "73ef8a3f52fc03fe88e8d95d0d83a49b33c37e3e",
+          "new": "e4304cd7b4f416622e099d2a1925a1055b0cbad2"
+        },
+        {
+          "old": "00a854ef8d770ef798b790ab84c41a5f92e842e2",
+          "new": "2e77044184327745faefd8e03bc77b43fc98354a"
+        },
+        {
+          "old": "997654295c4a54536eecbae4c5b31af53a71a4d2",
+          "new": "0889efd7c3b366c4345afb61ac2e3f372ebb16a3"
+        },
+        {
+          "old": "e580f8d2be855041ae741d027d1bdc4bd8076d26",
+          "new": "a5ada113aa976749fef3238d62bb38f67ddc6a3a"
+        },
+        {
+          "old": "981a1f1220e080bdc35761f4c5611b5e584be918",
+          "new": "3c3a1abf12cc03f80f4084ab22737acf0ac5643c"
+        },
+        {
+          "old": "e90e38c71de945e3ee146eab8eae296519a25ce4",
+          "new": "133855434d151b25c3f1d52a80d4f5b2871ddbea"
+        },
+        {
+          "old": "7d563e4a1d6a331cf57c10232b509bde8541dcba",
+          "new": "167e59a7720187961504fe669a16cdf1f79d0a86"
+        },
+        {
+          "old": "3737f91988111dae14c7bcf27ceac7de515959b3",
+          "new": "03198638bc7baf21a7b3994cfa9ca7f9124b8db2"
+        },
+        {
+          "old": "9cc285d0412b54a0ed9e6f876613737b206d3017",
+          "new": "81ced1a8620afb5f6fa2fc02f7908f6de78bd52f"
+        },
+        {
+          "old": "b32c0940611a7c7ad1d4e1bf5365b5ede11ac12b",
+          "new": "b32c0940611a7c7ad1d4e1bf5365b5ede11ac12b"
+        },
+        {
+          "old": "4ccbdd5d77a70de9d0b925c4878227720fa66dc1",
+          "new": "fe822e203e78cbdabecf6f25f3f606b24e55f4b4"
+        },
+        {
+          "old": "b4e1a2a2369532e25b7b04c8fef9cbc25f52867a",
+          "new": "c589ef4a09f9b02635b444dc53b6b682d7027d1d"
+        },
+        {
+          "old": "9caca74fa5ddaa33258e96681af52c1cbfef9647",
+          "new": "da72d724980f6f1ce796d8137167f39ce42ffa47"
+        },
+        {
+          "old": "0ceaa10c11ed8d06dacef03383f3f2eda9472eae",
+          "new": "7d07d0c59a90bc5d79edd7401cae7745c40f9307"
+        },
+        {
+          "old": "4e1e3e65d6b8ef4bd4226de943e7725ea0c29b5b",
+          "new": "f716515a390bed0bbfba719311540f76443ed221"
+        },
+        {
+          "old": "92255595534132273c2a041402ce234decb057a2",
+          "new": "ef08eeb3b3b1c6d09e4984dc7fa661339c8a9693"
+        },
+        {
+          "old": "1b1d870cbe9fe05187da7965592eaee1a64ca019",
+          "new": "160a33613eda8628ae2be24ff1b1594081fa6bac"
+        },
+        {
+          "old": "417b0ef7279d006d5179ede01addf06742e79b12",
+          "new": "8b4369bc28d0364f672f4d3d6598e795b1773cda"
+        },
+        {
+          "old": "4bd6a636552166b289374e4f68bac7545ad256d6",
+          "new": "5fe8a680c19043dcee3568a6534aebdf191c349f"
+        }
+      ]
+    },
+    {
+      "name": "marikina-market-web",
+      "importDirectory": "imports-v2\\marikina-market-web",
+      "sourceHead": "6045f326eff2f27a0a2308d488002bbcdd0b6d36",
+      "sanitizedHead": "22b8041eb29aee04aa264c9c1f9bccc19149c624",
+      "commitMappings": 47,
+      "changedCommits": 47,
+      "commits": [
+        {
+          "old": "4eb4d2bddd8731f918b635b7e5c982c10f582b94",
+          "new": "4e9a24e09416ffe57c5efd9ad29d357111368601"
+        },
+        {
+          "old": "e92267054854d297886183db9d00c0f630d77ea7",
+          "new": "787c73744391ac1fcdca25bf6e28ec57567d8267"
+        },
+        {
+          "old": "acda00332252822e2784a89ea41a8029c29fd7e1",
+          "new": "dbbaf2854df4a94295ecfd4dcba4aa2c80a010a0"
+        },
+        {
+          "old": "15b23e155cc6f3d8bd1b33af40d8d0a39acb6d05",
+          "new": "f5d8e3a1bd401cb13b575984d495b04b3c19af51"
+        },
+        {
+          "old": "65299ed3b2d3e013154f3d89cffebdb17573b5b7",
+          "new": "8c20be1bab173abebe25ea0ef8638241d58c8b34"
+        },
+        {
+          "old": "b61990941aaa3a1d1041a075d1e6dd5552e1fc18",
+          "new": "70d0ea5c9058df91b0f58cb9e2cd769967ad1691"
+        },
+        {
+          "old": "cec27efd7b5ebaf583c354fc3c41cc6127421fbf",
+          "new": "0ce0786c586d8b21535b21d57a03597130ca3fe9"
+        },
+        {
+          "old": "05a933dc55090bb922cf1444272c1773cb024643",
+          "new": "a3000d2f466093b98a41188d44515f4ab9a6a156"
+        },
+        {
+          "old": "b62583eb5a914e26b6097df9234c50357f0a4849",
+          "new": "b71abe9971b25c20fac3715e9be4239b268b48ba"
+        },
+        {
+          "old": "a84f7d742fd215653c92f37f705d224651f8988f",
+          "new": "2b64e4211054f979bb7424052dfd88451fdd54e1"
+        },
+        {
+          "old": "819708fa09c10747a31a693a97e06b68bb4c89e0",
+          "new": "976b7f55ca9cfe35e3d11bf410bf6c91ef31e449"
+        },
+        {
+          "old": "8cad406b8ce7d933b7a502adcabb29b5ed52c554",
+          "new": "44419df00d4dc0ec97b3dad4c68883660425a9c3"
+        },
+        {
+          "old": "e74d6a6458703ea434eeddd717a517165d3526a4",
+          "new": "44a4b29a1d6b65e68788c0f768db7724e0224721"
+        },
+        {
+          "old": "ce805ae6b8bd245b52c7123a871ff494862342f3",
+          "new": "724ad8a749811f6eee7eebd1ebc7d4d64ca66969"
+        },
+        {
+          "old": "9aa7d4785fb3a8607d4dfcb32b7e1c0359c07e5a",
+          "new": "cc887e83ce6b57e738046d2977b23c24a7e0653b"
+        },
+        {
+          "old": "ebc10d36c96029544fccae0f229f2341b504a10f",
+          "new": "6e9c9bdbbb9dffb8c78fc5f09a7d794cbca61c76"
+        },
+        {
+          "old": "cb1f33ba1f807d0915c98edbc03c3e2148a433b2",
+          "new": "d431d553d495863bf6e28df4222345d95383af6d"
+        },
+        {
+          "old": "0cf1871257615c4c64e0ab1e6bde9be1e23d49fe",
+          "new": "e0ef40ff9e043741497efadbc9692cdcb64fc86e"
+        },
+        {
+          "old": "4112805ad10f913e23a53e4c3a098fb5bcc1048b",
+          "new": "d889fd36f91295572f3afdb1e60db5dee17be6ef"
+        },
+        {
+          "old": "067f47d4f82d8bf19f4e69a1df44d3e11038a3c5",
+          "new": "698808a501960de91e0b42c8ca4db337ad3aedc6"
+        },
+        {
+          "old": "c25f094713c4e631bed68599a225dccd31c561f6",
+          "new": "8ca6d53be440118b15e1f726697d97b7a432433f"
+        },
+        {
+          "old": "23e3d706f9b3f67abfedb9de620c1dab6910b078",
+          "new": "b2b96c54dc10aa93a600f06777d4cc259411edb9"
+        },
+        {
+          "old": "84ed9167e4811d5fe65e6d1e03e5e72f0615c5d9",
+          "new": "89cdbedf60b321bba403bf6500aefea7584d837b"
+        },
+        {
+          "old": "64767bfdb738baa627d0f54d944d313207bff1f3",
+          "new": "d438f61ce50263127282326b3bd68c616de92e93"
+        },
+        {
+          "old": "b0f6dabbdc65d5b213c3170cf0c784dc107bdfaa",
+          "new": "a13c1e1a9025233f372eb02a44813f7070538061"
+        },
+        {
+          "old": "72864f9528c4cb320940ae3d146ecd65e697b946",
+          "new": "8f0d90bcd32f3ef15108a76976f1e286aea5a43d"
+        },
+        {
+          "old": "58bc7fa9078e475f05cc677cc06af688680fe929",
+          "new": "7700bc6d4dd075cd47214fee4dffbd729f3bd90b"
+        },
+        {
+          "old": "329a1c7b1fa66a0033958d0e8de3b90a441ea487",
+          "new": "bdaa81bb9fe508139cdb9e5e5516e5dfeb5d51ca"
+        },
+        {
+          "old": "c7f5826bab1c7b1abb678d214922db103b64268d",
+          "new": "2d26d587264a05b47eeb9407d06356f00570d225"
+        },
+        {
+          "old": "6045f326eff2f27a0a2308d488002bbcdd0b6d36",
+          "new": "22b8041eb29aee04aa264c9c1f9bccc19149c624"
+        },
+        {
+          "old": "ff74d7d0b67ee844f7240eecdba08a13993dda34",
+          "new": "985408be89253b067246367d6f1810d8e8760a00"
+        },
+        {
+          "old": "3737bb6cadddd27c57f024f384f889fbf0937779",
+          "new": "5afb4ed05eb7adbabd0956b1e04d21b19431b15a"
+        },
+        {
+          "old": "1c5bae629e4b4b247cb08741de001aa6e4e0ad16",
+          "new": "e625efd3be6a6a8761b8d9388f1f3457cfe10600"
+        },
+        {
+          "old": "89902ba7dc58afc856c6915f8c4fe0a4d963844f",
+          "new": "c25a2dabd17082990c89ade5a6e73400d3c12ab3"
+        },
+        {
+          "old": "36192c27bc675b309a3b9fb14cf6e62f94b27fec",
+          "new": "c5372fb8bf4f025756a6220a9a0b6ef42be8640c"
+        },
+        {
+          "old": "f153298b653a666e478f4bc5491191595b1116de",
+          "new": "94ad078923612a932bbeab50b6f9279cb8367386"
+        },
+        {
+          "old": "254e1643ad9ed6692e82b804e72e2ad15461e375",
+          "new": "babf80b23b8fb6ceee2c716dadb56ae849fbf00d"
+        },
+        {
+          "old": "22bf728c9686ee8d2f35fa508e09c708f3ed3e21",
+          "new": "feb468690dd05ffbf498c4247daa50745f699adc"
+        },
+        {
+          "old": "81064763244eda5f5509aa5032973d0c54647c03",
+          "new": "14565fb67c27dfada153beabe97791f9afa34360"
+        },
+        {
+          "old": "7fc85fd5bebcc729fd5dfd95e1c3d06f4326dbd7",
+          "new": "80a81cb4de12ad6198c95ee5071d068e86fba865"
+        },
+        {
+          "old": "132e6ba25e0b7f5531a8d7e871fb8aad053d59c6",
+          "new": "b8d0238c800dfc080635e32876ea8aaf2d71f033"
+        },
+        {
+          "old": "508dec93448e30df1fcf6d78e0697249f5564286",
+          "new": "ec92e5b3d9d80ce4d86009087439ea9bba7eacdf"
+        },
+        {
+          "old": "ac8541c8504d77af3ab19a7dae12c8b7be6f3065",
+          "new": "82307de5abf7a2cce3e6964812dd3c997ff3e8e3"
+        },
+        {
+          "old": "b64e81ecf11692fa0f5edf6fe07592c323933878",
+          "new": "99b8609360a04d1b82eb85a6766bd1966520e3aa"
+        },
+        {
+          "old": "5341209b9f6541fd92f43d266dc65326aef68ae7",
+          "new": "3c894b9b1e21f0600c39bcaad1e38619160213eb"
+        },
+        {
+          "old": "56471142a83b362144349b41485eab160c0e0013",
+          "new": "ddcd13ff6820995fcb621260bfea84bda9f63a1e"
+        },
+        {
+          "old": "28ae920674577ab873775756961be11279b260e1",
+          "new": "a94c7a36720086f9aa5fd5e9ca5bf16fa5758faa"
+        }
+      ]
+    },
+    {
+      "name": "marikina-market-mobile",
+      "importDirectory": "imports-v2\\marikina-market-mobile",
+      "sourceHead": "0b6fabba3ee7f17e733030d9270186a7626602f1",
+      "sanitizedHead": "5ace5a81e127907bf50e23d641311e9a4d0ba44f",
+      "commitMappings": 3,
+      "changedCommits": 3,
+      "commits": [
+        {
+          "old": "405aa117c6c15c3aa0b7504aee2f7ea9028e0b57",
+          "new": "0b0422353df6aab4ee938fddcdd41fa9e21a502a"
+        },
+        {
+          "old": "0b6fabba3ee7f17e733030d9270186a7626602f1",
+          "new": "5ace5a81e127907bf50e23d641311e9a4d0ba44f"
+        },
+        {
+          "old": "cc024a63cc48c3cbefd5da442533286fa09af3ad",
+          "new": "7a1cc649b44ff01ba7fa8b1baa9cc166eeaa4d26"
+        }
+      ]
+    }
+  ]
+}

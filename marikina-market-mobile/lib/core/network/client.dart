@@ -56,7 +56,10 @@ class ApiClient {
 
   void _configure() {
     dio.options = BaseOptions(
-      baseUrl: 'https://motocross-lifter-modified.ngrok-free.dev/api',
+      baseUrl: const String.fromEnvironment(
+        'API_BASE_URL',
+        defaultValue: 'https://motocross-lifter-modified.ngrok-free.dev/api',
+      ),
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       sendTimeout: kDebugMode

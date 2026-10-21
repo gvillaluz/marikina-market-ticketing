@@ -13,7 +13,7 @@ abstract class InspectionRepository {
   Future<Result<PageResult<InspectionTicketSummary>>> loadInspections(
     String search,
     int offset,
-    ViolationType type,
+    ViolationType? type,
   );
   Future<Result<List<Ordinance>>> loadCacheOrdinances();
   Future<Result<List<Ordinance>>> loadOrdinances();

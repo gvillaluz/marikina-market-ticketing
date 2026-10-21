@@ -78,7 +78,7 @@ class FineSummarySection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    ordinance.ordinanceNo,
+                    'Ord No. ${ordinance.ordinanceNo}, Series of ${ordinance.series}',
                     style: TextStyle(fontSize: AppTheme.bodyFontSize),
                     softWrap: true,
                   ),

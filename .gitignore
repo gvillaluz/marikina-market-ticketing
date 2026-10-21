@@ -27,3 +27,14 @@
 *.p12
 *.jks
 *.keystore
+
+# Local setup files; safe examples remain tracked.
+**/.env.*
+!**/.env.example
+**/user-secrets.local.json
+**/firebase.local.json
+**/android/app/google-services.json
+**/ios/Runner/GoogleService-Info.plist
+**/android/key.properties
+**/android/local.properties
+/.verification/

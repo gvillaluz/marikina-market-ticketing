@@ -3,8 +3,8 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class FilterRow extends StatelessWidget {
-  final ViolationType typeSelected;
-  final ValueChanged<ViolationType> onChange;
+  final ViolationType? typeSelected;
+  final ValueChanged<ViolationType?> onChange;
   const FilterRow({
     super.key,
     required this.typeSelected,
@@ -12,39 +12,47 @@ class FilterRow extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        'Filter by type',
-        style: AppTheme.inspectionCaptionStyle.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppTheme.recordsFilterBackground,
+        borderRadius: AppTheme.controlRadius,
       ),
-      const SizedBox(height: AppTheme.inspectionTinyGap),
-      Wrap(
-        spacing: AppTheme.inspectionTinyGap,
-        runSpacing: AppTheme.inspectionTinyGap,
-        children: ViolationType.values
-            .map(
-              (type) => ChoiceChip(
-                label: Text(type.value),
-                selected: typeSelected == type,
-                chipAnimationStyle: ChipAnimationStyle(
-                  selectAnimation: AnimationStyle(
-                    duration: MediaQuery.disableAnimationsOf(context)
-                        ? Duration.zero
-                        : AppTheme.buttonAnimationDuration,
+      child: Padding(
+        padding: AppTheme.recordsFilterPadding,
+        child: Row(
+          children: [
+            for (final type in <ViolationType?>[null, ...ViolationType.values])
+              Expanded(
+                child: TextButton(
+                  onPressed: () => onChange(type),
+                  style: TextButton.styleFrom(
+                    backgroundColor: typeSelected == type
+                        ? colors.primary
+                        : null,
+                    foregroundColor: typeSelected == type
+                        ? colors.onPrimary
+                        : colors.primary,
+                    padding: AppTheme.recordsFilterButtonPadding,
+                    textStyle: AppTheme.recordsBodyStyle,
+                  ),
+                  child: Semantics(
+                    selected: typeSelected == type,
+                    child: Text(
+                      type == null
+                          ? 'All'
+                          : type == ViolationType.warning
+                          ? 'Warnings'
+                          : 'Tickets',
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
-                materialTapTargetSize: MaterialTapTargetSize.padded,
-                onSelected: (selected) {
-                  if (selected) onChange(type);
-                },
               ),
-            )
-            .toList(),
+          ],
+        ),
       ),
-    ],
-  );
+    );
+  }
 }

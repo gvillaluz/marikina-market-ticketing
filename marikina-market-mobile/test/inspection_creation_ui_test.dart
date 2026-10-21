@@ -43,6 +43,75 @@ Future<void> showCreationWidget(
 );
 
 void main() {
+  for (final penalty in PenaltyType.values) {
+    testWidgets('preview total is cash-only for ${penalty.name}', (
+      tester,
+    ) async {
+      await showCreationWidget(
+        tester,
+        SingleChildScrollView(
+          child: PenaltyDetailsSection(
+            severity: Severity.moderate,
+            penaltyType: penalty,
+            totalFineAmount: 12500.50,
+            communityHrs: 3,
+          ),
+        ),
+        scale: 1,
+      );
+      if (penalty == PenaltyType.cashFine) {
+        expect(find.text('₱12,500.50'), findsOneWidget);
+        final panel = find
+            .ancestor(
+              of: find.text('Total Fine Due:'),
+              matching: find.byType(Container),
+            )
+            .first;
+        expect(
+          tester.getSize(panel).width,
+          tester.getSize(find.byType(Scaffold)).width,
+        );
+      } else {
+        expect(find.text('Total Fine Due:'), findsNothing);
+        expect(find.textContaining('Please settle the fine'), findsNothing);
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('wide detail rows align values to the right', (tester) async {
+    await showCreationWidget(
+      tester,
+      const DetailRow(label: 'TRADE NAME:', value: 'Marikina Fresh Produce'),
+      scale: 1,
+    );
+    final value = tester.widget<Text>(find.text('Marikina Fresh Produce'));
+    expect(value.textAlign, TextAlign.right);
+  });
+
+  testWidgets('detail rows keep space between with enlarged text', (
+    tester,
+  ) async {
+    await showCreationWidget(
+      tester,
+      const SizedBox(
+        width: 280,
+        child: DetailRow(
+          label: 'ADDRESS:',
+          value: 'Marikina Public Market, Section A',
+        ),
+      ),
+    );
+    final label = tester.getRect(find.text('ADDRESS:'));
+    final value = tester.getRect(
+      find.text('Marikina Public Market, Section A'),
+    );
+    expect(value.top, label.top);
+    expect(value.left, greaterThan(label.right));
+    expect(value.right, tester.getRect(find.byType(DetailRow)).right);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('preview detail sections wrap at 280px with large text', (
     tester,
   ) async {

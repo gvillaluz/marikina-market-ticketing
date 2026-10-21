@@ -173,6 +173,7 @@ export interface Violation {
   ticketId: number;
   ordinanceId: number;
   ordinanceNo: string;
+  series: string;
   ordinanceCode: string;
   offenseCount: number;
   penaltyAmount?: number;

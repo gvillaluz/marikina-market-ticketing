@@ -56,6 +56,7 @@ class TicketPenaltyDetail extends StatelessWidget {
         : penaltyType.value;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Wrap(
           spacing: AppTheme.ticketSmallGap,
@@ -89,10 +90,12 @@ class TicketPenaltyDetail extends StatelessWidget {
         Column(
           spacing: AppTheme.ticketSmallGap,
           children: [
-            Wrap(
-              children: [
-                const Text('SEVERITY:'),
-                Container(
+            DetailRow(
+              label: 'SEVERITY:',
+              value: severity.value,
+              valueWidget: Align(
+                alignment: Alignment.centerRight,
+                child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     color: _getBgColor(),
@@ -106,7 +109,7 @@ class TicketPenaltyDetail extends StatelessWidget {
                     style: TextStyle(color: _getColor()),
                   ),
                 ),
-              ],
+              ),
             ),
             DetailRow(label: 'PENALTY TYPE:', value: penalty),
             DetailRow(
@@ -117,35 +120,34 @@ class TicketPenaltyDetail extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 10),
+        if (penaltyType == PenaltyType.cashFine) ...[
+          const SizedBox(height: AppTheme.ticketSmallGap),
 
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.tertiary,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            children: [
-              const Text(
-                'Total Fine Due:',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: AppTheme.sectionHeadingFontSize,
-                  fontWeight: FontWeight.bold,
+          Container(
+            width: double.infinity,
+            padding: AppTheme.ticketCardPadding,
+            decoration: BoxDecoration(
+              color: AppColors.tertiary,
+              borderRadius: AppTheme.ticketCardRadius,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Total Fine Due:',
+                  style: AppTheme.ticketHeadingStyle,
                 ),
-              ),
-              Text(
-                _currencyFormat.format(totalFineAmount),
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: AppTheme.sectionHeadingFontSize,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(height: AppTheme.ticketTinyGap),
+                Text(
+                  _currencyFormat.format(totalFineAmount),
+                  style: AppTheme.detailTitleStyle.copyWith(
+                    color: AppColors.primary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
