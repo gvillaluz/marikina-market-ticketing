@@ -8,11 +8,12 @@ class TicketSummaryModel {
   final String controlNumber;
   final TicketStatus ticketStatus;
   final String businessName;
-  final String stallNumber;
+  final String? stallNumber;
+  final List<String> ordinance;
   final String marketSection;
   final DateTime issuedAt;
   final DateTime updatedAt;
-  final DateTime overDueDate;
+  final DateTime? overDueDate;
 
   const TicketSummaryModel({
     required this.ticketId,
@@ -22,6 +23,7 @@ class TicketSummaryModel {
     required this.ticketStatus,
     required this.businessName,
     required this.stallNumber,
+    this.ordinance = const [],
     required this.marketSection,
     required this.issuedAt,
     required this.updatedAt,
@@ -36,11 +38,16 @@ class TicketSummaryModel {
       controlNumber: json['control_number'] as String,
       ticketStatus: TicketStatus.fromValue(json['status'] as String),
       businessName: json['business_name'] as String,
-      stallNumber: json['stall_number'],
-      marketSection: json['market_section_name'],
+      stallNumber: json['stall_number'] as String?,
+      ordinance: List<String>.from(
+        json['ordinance_names'] as List? ?? const <String>[],
+      ),
+      marketSection: json['market_section_name'] as String,
       issuedAt: DateTime.parse(json['issued_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at']),
-      overDueDate: DateTime.parse(json['overdue_date'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      overDueDate: json['overdue_date'] == null
+          ? null
+          : DateTime.parse(json['overdue_date'] as String),
     );
   }
 
@@ -53,6 +60,7 @@ class TicketSummaryModel {
       ticketStatus: ticketStatus,
       businessName: businessName,
       stallNumber: stallNumber,
+      ordinance: ordinance,
       marketSection: marketSection,
       issuedAt: issuedAt,
       updatedAt: updatedAt,

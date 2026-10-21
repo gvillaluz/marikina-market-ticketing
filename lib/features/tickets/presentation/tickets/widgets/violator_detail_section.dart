@@ -17,6 +17,7 @@ class ViolatorDetailSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Wrap(
           spacing: AppTheme.ticketTinyGap,
@@ -33,17 +34,17 @@ class ViolatorDetailSection extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         DetailRow(label: "BUSINESS ID:", value: ticket.businessId),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppTheme.ticketSmallGap),
         DetailRow(label: "STALL/UNIT NO:", value: ticket.stallNumber ?? 'N/A'),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppTheme.ticketSmallGap),
         DetailRow(label: "TRADE NAME:", value: ticket.tradeName),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppTheme.ticketSmallGap),
         DetailRow(
           label: "NAME:",
           value: '${ticket.lastName}, ${ticket.firstName}',
         ),
         if (isTicket) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: AppTheme.ticketSmallGap),
           DetailRow(
             label: "ADDRESS:",
             value: ticket.address?.trim().isNotEmpty == true

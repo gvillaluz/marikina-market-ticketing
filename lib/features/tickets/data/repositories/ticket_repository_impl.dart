@@ -50,7 +50,7 @@ class TicketRepositoryImpl implements TicketRepository {
   Future<Result<PageResult<TicketSummary>>> loadTickets(
     String search,
     int offset,
-    TicketStatus status,
+    TicketStatus? status,
   ) async {
     try {
       final ticketModels = await remoteDataSource.loadTickets(
@@ -60,8 +60,18 @@ class TicketRepositoryImpl implements TicketRepository {
       );
 
       return Result.success(ticketModels.toEntity((m) => m.toEntity()));
-    } on Exception catch (error) {
-      return _failure(error);
+    } on Object catch (error) {
+      if (error is FormatException ||
+          error is TypeError ||
+          error is ArgumentError) {
+        return Result.failure(
+          const ServerFailure(
+            'Unable to read the ticket list. Please try again.',
+          ),
+        );
+      }
+      if (error is Exception) return _failure(error);
+      rethrow;
     }
   }
 

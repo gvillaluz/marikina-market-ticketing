@@ -8,10 +8,10 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 
 class InspectionListHeader extends StatelessWidget {
   final TextEditingController searchController;
-  final ViolationType selectedType;
+  final ViolationType? selectedType;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onSearchSubmitted;
-  final ValueChanged<ViolationType> onTypeChanged;
+  final ValueChanged<ViolationType?> onTypeChanged;
 
   const InspectionListHeader({
     required this.searchController,

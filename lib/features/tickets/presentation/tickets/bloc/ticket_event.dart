@@ -9,7 +9,7 @@ abstract class TicketEvent {}
 class LoadTicketSummary extends TicketEvent {
   final String search;
   final int offset;
-  final TicketStatus status;
+  final TicketStatus? status;
 
   LoadTicketSummary({
     this.search = '',

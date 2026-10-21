@@ -31,7 +31,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   List<InspectionTicketSummary> _inspectionSummary = [];
   List<InspectionTicketSummary> get inspectionSummaries => _inspectionSummary;
   String _listSearch = '';
-  ViolationType _listType = ViolationType.warning;
+  ViolationType? _listType;
   bool _hasMoreInspections = false;
   bool _isLoadingMoreInspections = false;
   bool _isRefreshingInspections = false;
@@ -71,7 +71,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
 
   Future<void> refreshInspections({
     required String search,
-    required ViolationType type,
+    required ViolationType? type,
   }) async {
     if (isClosed) return;
     final finished = stream.firstWhere(

@@ -88,14 +88,17 @@ class _SubmitConfirmationBottomSheetState
                 value: '${widget.communityServiceHrs} hrs',
               ),
             if (widget.severity != null)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: InspectionSeverityBadge(severity: widget.severity!),
+              InspectionConfirmationDetail(
+                label: 'Severity',
+                valueWidget: Align(
+                  alignment: Alignment.centerRight,
+                  child: InspectionSeverityBadge(severity: widget.severity!),
+                ),
               ),
             InspectionConfirmationDetail(
               label: 'Due date',
               value:
-                  '${DateTimeFormatter.getDate(DateTime.now().add(const Duration(days: 5)))} (5 days from issuance)',
+                  '${DateTimeFormatter.getDate(DateTime.now().add(const Duration(days: 5)))}\n (5 days from issuance)',
             ),
             const Divider(),
             Text(

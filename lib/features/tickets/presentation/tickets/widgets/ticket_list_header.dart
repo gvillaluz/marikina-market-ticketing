@@ -5,10 +5,10 @@ import 'package:marikina_market_mobile/features/tickets/presentation/tickets/wid
 
 class TicketListHeader extends StatelessWidget {
   final TextEditingController searchController;
-  final TicketStatus selectedStatus;
+  final TicketStatus? selectedStatus;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onSearchSubmitted;
-  final ValueChanged<TicketStatus> onStatusChanged;
+  final ValueChanged<TicketStatus?> onStatusChanged;
   const TicketListHeader({
     required this.searchController,
     required this.selectedStatus,

@@ -33,40 +33,55 @@ class TicketCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'CONTROL NO.',
-              style: AppTheme.ticketCaptionStyle.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            Row(
+              children: [
+                Text(
+                  'CONTROL NO.',
+                  style: AppTheme.ticketCaptionStyle.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: AppTheme.ticketTinyGap),
+                Text(
+                  '#${ticketSummary.controlNumber}',
+                  style: AppTheme.ticketHeadingStyle.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const Spacer(),
+                TicketStatusBadge(status: ticketSummary.ticketStatus),
+              ],
             ),
-            const SizedBox(height: AppTheme.ticketTinyGap),
-            Text(
-              '#${ticketSummary.controlNumber}',
-              style: AppTheme.ticketHeadingStyle.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: AppTheme.ticketSmallGap),
-            TicketStatusBadge(status: ticketSummary.ticketStatus),
             const SizedBox(height: AppTheme.ticketSmallGap),
             Text(
               ticketSummary.businessName,
               style: AppTheme.ticketHeadingStyle,
             ),
             Text(
-              '${ticketSummary.marketSection} • ${ticketSummary.stallNumber}',
+              [
+                ticketSummary.marketSection,
+                if (ticketSummary.stallNumber != null &&
+                    ticketSummary.stallNumber!.trim().isNotEmpty)
+                  ticketSummary.stallNumber!,
+              ].join(' • '),
               style: AppTheme.ticketBodyStyle.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
+            if (ticketSummary.ordinance.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.ticketSmallGap),
+              for (final ordinance in ticketSummary.ordinance)
+                Text(ordinance, style: AppTheme.ticketBodyStyle),
+            ],
             const Divider(),
             Text(
               DateTimeFormatter.getShortDateTime(ticketSummary.issuedAt),
               style: AppTheme.ticketBodyStyle,
             ),
-            if (ticketSummary.ticketStatus == TicketStatus.overdue)
+            if (ticketSummary.ticketStatus == TicketStatus.overdue &&
+                ticketSummary.overDueDate != null)
               Text(
-                'Overdue: ${DateTimeFormatter.getDate(ticketSummary.overDueDate)}',
+                'Overdue: ${DateTimeFormatter.getDate(ticketSummary.overDueDate!)}',
                 style: AppTheme.ticketBodyStyle.copyWith(
                   color: Theme.of(context).colorScheme.error,
                 ),

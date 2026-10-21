@@ -24,7 +24,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   Future<Result<PageResult<InspectionTicketSummary>>> loadInspections(
     String search,
     int offset,
-    ViolationType type,
+    ViolationType? type,
   ) async {
     try {
       final inspectionModels = await remoteDataSource.loadInspections(

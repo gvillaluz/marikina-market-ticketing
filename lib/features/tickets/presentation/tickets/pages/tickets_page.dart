@@ -18,7 +18,7 @@ class TicketsPage extends StatefulWidget {
 class _TicketsPageState extends State<TicketsPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  TicketStatus _selectedTicketStatus = TicketStatus.pending;
+  TicketStatus? _selectedTicketStatus = TicketStatus.pending;
   Timer? _debouncer;
 
   @override
@@ -70,7 +70,7 @@ class _TicketsPageState extends State<TicketsPage> {
     _load();
   }
 
-  void _handleChangeStatus(TicketStatus type) {
+  void _handleChangeStatus(TicketStatus? type) {
     if (type == _selectedTicketStatus) return;
     _debouncer?.cancel();
     setState(() => _selectedTicketStatus = type);

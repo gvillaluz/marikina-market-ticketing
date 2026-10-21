@@ -3,6 +3,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/violatio
 class ViolationSummaryModel {
   final int ordinanceId;
   final String ordinanceNo;
+  final String series;
   final String ordinanceCode;
   final double? paymentAmount;
   final int offenseNumber;
@@ -10,6 +11,7 @@ class ViolationSummaryModel {
   ViolationSummaryModel({
     required this.ordinanceId,
     required this.ordinanceNo,
+    this.series = '',
     required this.ordinanceCode,
     this.paymentAmount,
     required this.offenseNumber,
@@ -19,6 +21,7 @@ class ViolationSummaryModel {
     return ViolationSummaryModel(
       ordinanceId: json['ordinance_id'] as int,
       ordinanceNo: json['ordinance_no'] as String,
+      series: json['series'] as String? ?? '',
       ordinanceCode: json['ordinance_code'] as String,
       offenseNumber: json['offense_count'] as int,
       paymentAmount: (json['penalty_amount'] as num?)?.toDouble(),
@@ -29,6 +32,7 @@ class ViolationSummaryModel {
     return ViolationSummary(
       ordinanceId: ordinanceId,
       ordinanceNo: ordinanceNo,
+      series: series,
       ordinanceCode: ordinanceCode,
       offenseNumber: offenseNumber,
       paymentAmount: paymentAmount,

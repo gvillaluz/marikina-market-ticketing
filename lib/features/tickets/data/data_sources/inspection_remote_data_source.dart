@@ -19,7 +19,7 @@ abstract class InspectionRemoteDataSource {
   Future<PageResultModel<InspectionSummaryModel>> loadInspections(
     String search,
     int offset,
-    ViolationType type,
+    ViolationType? type,
   );
   Future<List<OrdinanceModel>> getOrdinances();
   Future<VendorSummaryModel> getVendorByCode(String codeValue);
@@ -41,17 +41,17 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
   Future<PageResultModel<InspectionSummaryModel>> loadInspections(
     String search,
     int offset,
-    ViolationType type,
+    ViolationType? type,
   ) async {
     try {
-      String query =
-          '/enforcer/tickets/inspections?offset=$offset&type=${type.value}';
-
-      if (search.isNotEmpty) {
-        query = '$query&search=$search';
-      }
-
-      final response = await apiClient.get(query);
+      final response = await apiClient.get(
+        '/enforcer/tickets/inspections',
+        queryParameters: <String, Object?>{
+          'offset': offset,
+          if (type != null) 'type': type.value,
+          if (search.isNotEmpty) 'search': search,
+        },
+      );
 
       final data = response.data;
 

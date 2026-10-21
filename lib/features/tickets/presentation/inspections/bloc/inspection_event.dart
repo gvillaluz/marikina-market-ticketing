@@ -12,12 +12,8 @@ class LoadOrdinanceSelection extends InspectionEvent {}
 class LoadInspectionTickets extends InspectionEvent {
   final String search;
   final int offset;
-  final ViolationType type;
-  LoadInspectionTickets({
-    this.search = '',
-    this.offset = 0,
-    this.type = ViolationType.warning,
-  });
+  final ViolationType? type;
+  LoadInspectionTickets({this.search = '', this.offset = 0, this.type});
 }
 
 class SearchByCodeRequested extends InspectionEvent {
