@@ -1,0 +1,125 @@
+.page {
+  min-width: 0;
+  width: 100%;
+  color: var(--text-body);
+}
+.header h1 {
+  font-size: var(--font-size-h1);
+  letter-spacing: -0.025em;
+}
+.header p {
+  margin-top: var(--space-sm);
+  max-width: 75ch;
+  font-size: var(--font-size-sm);
+}
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-xl);
+  align-items: start;
+  margin-top: var(--space-section);
+}
+.main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+.surface {
+  padding: var(--space-xl);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-xl) 0;
+  border-top: 1px solid var(--border-default);
+}
+.actions > span {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  max-width: 55ch;
+  font-size: var(--font-size-xs);
+}
+.actions > span svg {
+  flex-shrink: 0;
+}
+.actions > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+.actions button {
+  min-height: var(--registration-control-height);
+}
+.errorPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  min-height: var(--registration-empty-height);
+}
+.errorCard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+  max-width: var(--registration-error-width);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--danger);
+  background: var(--registration-danger-surface);
+}
+.errorCard > div {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.errorCard strong {
+  font-size: var(--font-size-sm);
+}
+.errorCard span {
+  font-size: var(--font-size-xs);
+}
+.errorCard button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--button-primary);
+  background: var(--bg-surface);
+}
+.errorCard button:hover {
+  background: var(--button-primary-surface);
+}
+.errorCard button:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+.error {
+  padding: var(--space-lg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--danger);
+  background: var(--registration-danger-surface);
+}
+@media (min-width: 1000px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr) var(--registration-sidebar-width);
+  }
+  .actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

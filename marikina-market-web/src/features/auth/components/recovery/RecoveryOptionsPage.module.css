@@ -1,0 +1,34 @@
+.description {
+  composes: description from "./RecoveryForm.module.css";
+}
+.error {
+  composes: error from "./RecoveryForm.module.css";
+}
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+.errorState {
+  margin-top: var(--space-xl);
+}
+.tryAgain {
+  margin-top: var(--space-md);
+  min-height: var(--recovery-control-height);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: var(--recovery-font-body);
+  font-weight: 600;
+  color: var(--button-primary);
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: var(--space-xs);
+}
+.tryAgain:hover {
+  color: var(--button-primary-hover);
+}
+.tryAgain:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}

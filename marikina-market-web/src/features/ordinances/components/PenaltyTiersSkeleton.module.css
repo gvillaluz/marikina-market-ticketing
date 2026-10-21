@@ -1,0 +1,32 @@
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ordinance-space-sm);
+}
+
+.caption {
+  color: var(--text-body);
+  font-size: var(--market-font-size-caption);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--ordinance-badge-size) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ordinance-space-sm);
+  padding: var(--ordinance-space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--market-radius-button);
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ordinance-space-sm);
+}
+
+@media (min-width: 640px) {
+  .row {
+    grid-template-columns: var(--ordinance-badge-size) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

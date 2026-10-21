@@ -1,0 +1,177 @@
+.paper {
+  display: flex;
+  flex-direction: column;
+  margin-inline: auto;
+  padding: var(--space-section);
+  width: var(--reports-paper-width);
+  min-height: var(--reports-paper-height);
+  font-size: var(--reports-paper-font);
+  line-height: 1.5;
+  color: var(--text-body);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-md);
+  animation: reveal var(--form-motion-duration) var(--form-motion-ease);
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-lg);
+  border-bottom: var(--reports-paper-rule-width) solid var(--button-primary);
+}
+.mark {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--reports-paper-mark-size);
+  height: var(--reports-paper-mark-size);
+  border: var(--reports-paper-rule-width) solid var(--button-primary);
+  border-radius: 50%;
+  font-size: var(--reports-paper-font);
+  font-weight: 600;
+  color: var(--button-primary);
+}
+.heading {
+  flex: 1;
+  min-width: 0;
+}
+.heading p {
+  font-size: var(--reports-paper-caption);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.heading h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: var(--reports-paper-title);
+  font-weight: 700;
+  color: var(--button-primary);
+}
+.heading h4 {
+  margin-top: var(--space-xs);
+  font-size: var(--reports-paper-font);
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.reference {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-size: var(--reports-paper-caption);
+  text-align: right;
+}
+.reference span {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.reference strong {
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.meta {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: var(--space-lg);
+  margin-block: var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--backup-table-surface);
+}
+.meta dt {
+  margin-bottom: var(--space-xs);
+  font-size: var(--reports-paper-caption);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.meta dd {
+  font-size: var(--reports-paper-font);
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.summary h4 {
+  margin-bottom: var(--space-sm);
+  font-size: var(--reports-paper-font);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-heading);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--reports-paper-font);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-heading);
+}
+.table thead th {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-default);
+  font-size: var(--reports-paper-caption);
+  font-weight: 600;
+  text-align: right;
+  background: var(--backup-table-surface);
+}
+.table thead th:first-child {
+  width: 38%;
+  text-align: left;
+}
+.table thead th:nth-child(2) {
+  width: 27%;
+}
+.table thead th:last-child {
+  width: 35%;
+}
+.empty {
+  margin-top: var(--space-md);
+  font-size: var(--reports-paper-font);
+}
+.signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-section);
+  margin-block: auto var(--space-lg);
+  padding-top: var(--space-xl);
+  font-size: var(--reports-paper-caption);
+}
+.signatures > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.signatures strong,
+.signatureLine {
+  display: block;
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-xs);
+  min-height: var(--backup-control-height);
+  border-bottom: 1px solid var(--text-muted);
+  font-size: var(--reports-paper-font);
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+  color: var(--text-heading);
+}
+.signatures span:last-child {
+  text-align: center;
+}
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border-default);
+  font-size: var(--reports-paper-caption);
+}
+@keyframes reveal {
+  from {
+    transform: translateY(var(--space-xs));
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paper {
+    animation: none;
+  }
+}

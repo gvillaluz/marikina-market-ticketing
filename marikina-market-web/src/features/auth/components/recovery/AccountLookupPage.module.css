@@ -1,0 +1,30 @@
+.description {
+  composes: description from "./RecoveryForm.module.css";
+}
+.form {
+  composes: form from "./RecoveryForm.module.css";
+}
+.label {
+  composes: label from "./RecoveryForm.module.css";
+}
+.inputWrap {
+  composes: inputWrap from "./RecoveryForm.module.css";
+}
+.input {
+  composes: input from "./RecoveryForm.module.css";
+}
+.primaryButton {
+  composes: primaryButton from "./RecoveryForm.module.css";
+}
+.error {
+  composes: error from "./RecoveryForm.module.css";
+}
+.inputWrap .input {
+  padding-left: var(--recovery-control-height);
+}
+.inputIcon {
+  position: absolute;
+  left: var(--space-lg);
+  pointer-events: none;
+  color: var(--text-body);
+}

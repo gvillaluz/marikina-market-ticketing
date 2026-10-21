@@ -1,0 +1,39 @@
+.card {
+  border: 1px solid #C3C6D2;
+  border-radius: 8px;
+  padding: 1.25rem;
+  background: #fff;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.icon {
+  color: #002753;
+}
+
+.title {
+  color: #002753;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.header.divider {
+  border-bottom: 1px solid #E2E2E5;
+  padding-bottom: 15px;
+}
+
+.card.dashed {
+  border: none;
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='8' ry='8' stroke='%23C3C6D2' stroke-width='2' stroke-dasharray='12%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+}

@@ -1,0 +1,48 @@
+.summary {
+  min-width: 0;
+  padding: var(--space-xl);
+  border: 1px solid var(--border-default);
+  border-top: 3px solid var(--button-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  align-self: start;
+}
+
+.name {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--font-size-h3);
+  overflow-wrap: anywhere;
+}
+
+.role {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--form-font-caption);
+}
+
+.username {
+  display: grid;
+  gap: var(--space-sm);
+  margin: var(--space-xl) 0;
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--border-default);
+  font-size: var(--form-font-caption);
+}
+
+.username dd {
+  margin: 0;
+  color: var(--text-heading);
+  overflow-wrap: anywhere;
+}
+
+.created {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin: 0;
+  font-size: var(--form-font-caption);
+}
+
+.created svg {
+  flex-shrink: 0;
+  color: var(--button-primary);
+}

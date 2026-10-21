@@ -1,0 +1,9 @@
+.list {
+  min-width: 0;
+}
+
+@media (min-width: 701px) {
+  .list :global(td[data-label="Actions"] > div) {
+    justify-content: center;
+  }
+}

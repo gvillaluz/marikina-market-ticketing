@@ -1,0 +1,14 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  min-width: 0;
+}
+.page .header {
+  margin-bottom: 0;
+}
+.header h1 {
+  font-size: var(--backup-font-title);
+  letter-spacing: -0.025em;
+  color: var(--button-primary);
+}

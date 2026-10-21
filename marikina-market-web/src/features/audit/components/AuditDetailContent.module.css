@@ -1,0 +1,42 @@
+.content {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+}
+.fields {
+  display: grid;
+  gap: var(--space-xl);
+  width: 100%;
+}
+.fields dt {
+  margin-bottom: var(--space-sm);
+  font-size: var(--form-font-caption);
+  color: var(--text-body);
+}
+.fields dd {
+  font-size: var(--form-font-body);
+  color: var(--text-heading);
+  overflow-wrap: anywhere;
+}
+.details {
+  width: 100%;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-default);
+}
+.details h4 {
+  font-size: var(--form-font-body);
+  font-weight: 600;
+}
+.details p {
+  margin-top: var(--space-sm);
+  font-size: var(--form-font-body);
+  line-height: 1.6;
+  color: var(--text-body);
+  overflow-wrap: anywhere;
+}
+@media (min-width: 600px) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

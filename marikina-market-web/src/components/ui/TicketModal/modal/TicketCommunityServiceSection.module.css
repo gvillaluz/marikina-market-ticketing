@@ -1,0 +1,57 @@
+.section {
+  display: grid;
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+.progressPanel {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--records-header-surface);
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-xs) var(--space-md);
+  font-size: var(--form-font-caption);
+  color: var(--text-body);
+}
+
+.summary h4 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.progress {
+  display: block;
+  width: 100%;
+  height: var(--space-sm);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-md);
+  appearance: none;
+  color: var(--button-primary);
+  background: var(--border-default);
+}
+
+.progress::-webkit-progress-bar {
+  border-radius: var(--radius-md);
+  background: var(--border-default);
+}
+
+.progress::-webkit-progress-value {
+  border-radius: var(--radius-md);
+  background: var(--button-primary);
+}
+
+.progress::-moz-progress-bar {
+  border-radius: var(--radius-md);
+  background: var(--button-primary);
+}

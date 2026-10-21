@@ -1,0 +1,15 @@
+.infoSection {
+  display: grid;
+  gap: var(--space-md) var(--space-section);
+  min-width: 0;
+}
+
+.private > :last-child {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 600px) {
+  .infoSection {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

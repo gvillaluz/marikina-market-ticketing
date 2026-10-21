@@ -1,0 +1,72 @@
+.card {
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  background: #fff;
+  padding: 1.25rem;
+}
+
+.title {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #002753;
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
+}
+
+.percentage {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #002753;
+  margin-bottom: 10px;
+}
+
+.percentLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--neutral-500);
+}
+
+.barTrack {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.warningBar {
+  background: #0b57d0;
+}
+
+.ticketBar {
+  background: #ba1a1a;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--neutral-600);
+}
+
+.legendDotWarning {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0b57d0;
+}
+
+.legendDotTicket {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ba1a1a;
+}

@@ -1,0 +1,29 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--ordinance-space-sm);
+  padding-bottom: var(--ordinance-space-md);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.icon {
+  display: grid;
+  width: var(--ordinance-badge-size);
+  height: var(--ordinance-badge-size);
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: var(--market-radius-pill);
+  background: var(--ordinance-info-surface);
+  color: var(--info);
+}
+
+.identity {
+  display: grid;
+  gap: var(--ordinance-space-md);
+}
+
+@media (min-width: 640px) {
+  .identity {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+  }
+}

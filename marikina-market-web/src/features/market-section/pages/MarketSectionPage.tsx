@@ -1,0 +1,170 @@
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import styles from "./MarketSectionPage.module.css";
+import { Plus, Search, ShieldCheck } from "lucide-react";
+
+import { ROUTES } from "@/routes/routePaths";
+import PageHeader from "@/components/ui/PageHeader";
+import RegistryTable from "@/components/ui/RegistryTable";
+import MarketSectionRow from "../components/MarketSectionRow";
+import { useMarketSections } from "../hooks/useMarketSections";
+import { useMarketSectionEditor } from "../hooks/useMarketSectionEditor";
+import MarketSectionModal from "../components/MarketSectionModal";
+
+export default function MarketSectionPage() {
+  const directory = useMarketSections();
+  const editor = useMarketSectionEditor();
+
+  return (
+    <div className={styles.page}>
+      <Breadcrumb
+        items={[
+          {
+            label: "System Configuration",
+            to: editor.canOpenConfiguration
+              ? ROUTES.systemConfiguration
+              : undefined,
+          },
+          { label: "Market Sections" },
+        ]}
+      />
+
+      <PageHeader
+        className={styles.header}
+        title="Market Sections"
+        subtitle="Manage market areas used for vendor profiles, registration, and tickets."
+        actions={
+          <button
+            type="button"
+            className={styles.addButton}
+            disabled={
+              !editor.canManage ||
+              !directory.hasData ||
+              editor.pendingId !== null ||
+              editor.isSaving ||
+              editor.open
+            }
+            onClick={() => editor.launch()}
+          >
+            <Plus size={16} aria-hidden="true" />
+            Add Section
+          </button>
+        }
+      />
+
+      <section
+        className={styles.directory}
+        aria-labelledby="section-directory-title"
+      >
+        <div className={styles.directoryHeader}>
+          <div>
+            <h2 id="section-directory-title" className={styles.directoryTitle}>
+              Section Directory
+            </h2>
+            <p className={styles.directoryDescription}>
+              {directory.hasData
+                ? `${directory.total} ${directory.total === 1 ? "section" : "sections"} configured`
+                : directory.isLoading
+                  ? "Loading sections…"
+                  : "Sections unavailable"}
+            </p>
+          </div>
+          <div className={styles.search}>
+            <Search
+              className={styles.searchIcon}
+              size={14}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              className={styles.searchInput}
+              aria-label="Search market sections"
+              placeholder="Search sections..."
+              value={directory.search}
+              onChange={(event) => directory.setSearch(event.target.value)}
+            />
+          </div>
+        </div>
+
+        {directory.isError && (
+          <div className={styles.error} role="alert">
+            <p>{directory.errorMessage}</p>
+            <button
+              type="button"
+              className={styles.retryButton}
+              onClick={directory.retry}
+              disabled={directory.isFetching}
+            >
+              {directory.isFetching ? "Retrying…" : "Try again"}
+            </button>
+          </div>
+        )}
+
+        <RegistryTable
+          className={styles.table}
+          ariaLabel="Market sections table"
+          labelledBy="section-directory-title"
+          busy={directory.isFetching}
+          columns={[
+            { label: "Section Name", className: styles.nameColumn },
+            { label: "Description", className: styles.descriptionColumn },
+            { label: "Vendors", className: styles.vendorColumn },
+            { label: "Status", className: styles.statusColumn },
+            { label: "Actions", className: styles.actionsColumn },
+          ]}
+        >
+          {directory.isLoading ? (
+            <tr>
+              <td colSpan={5} className={styles.message}>
+                <span role="status">Loading market sections…</span>
+              </td>
+            </tr>
+          ) : directory.hasData && directory.sections.length === 0 ? (
+            <tr>
+              <td colSpan={5} className={styles.message}>
+                {directory.total === 0
+                  ? "No market sections configured yet."
+                  : "No sections match your search."}
+              </td>
+            </tr>
+          ) : (
+            directory.sections.map((section) => (
+              <MarketSectionRow
+                key={section.id}
+                section={section}
+                disabled={
+                  !editor.canManage ||
+                  editor.pendingId !== null ||
+                  editor.isSaving ||
+                  editor.open
+                }
+                pending={editor.pendingId === section.id}
+                onEdit={() => editor.launch(section)}
+                onToggle={() => editor.toggle(section)}
+              />
+            ))
+          )}
+        </RegistryTable>
+        {directory.hasData && (
+          <p className={styles.footer} role="status">
+            Showing {directory.sections.length} of {directory.total}{" "}
+            {directory.total === 1 ? "section" : "sections"}
+          </p>
+        )}
+      </section>
+
+      <aside className={styles.notice}>
+        <ShieldCheck
+          className={styles.noticeIcon}
+          size={18}
+          aria-hidden="true"
+        />
+        <p>
+          Sections assigned to vendor profiles cannot be deleted. Mark unused
+          sections inactive to preserve historical records.
+        </p>
+      </aside>
+      <MarketSectionModal editor={editor} />
+    </div>
+  );
+}

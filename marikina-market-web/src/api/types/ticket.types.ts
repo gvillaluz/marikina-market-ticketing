@@ -1,0 +1,230 @@
+import type {
+  MarketSection,
+  OffenseLevel,
+  RecordStatus,
+  Severity,
+} from "./common.types";
+
+export type TicketType = "violation" | "complaint" | "inspection" | "renewal";
+export type TicketCategories =
+  | "Traffic"
+  | "Obstruction"
+  | "Sanitation"
+  | "Licensing"
+  | "Noise"
+  | "WeightMeasures";
+
+export interface InspectionRecord {
+  id: string;
+  controlNumber: string;
+  type: "warning" | "ticket";
+  enforcer: string;
+  stallNo: string;
+  tradeName: string;
+  section: MarketSection;
+  issuedAt: string;
+  issued_at?: string;
+  dateTime?: string;
+  status: RecordStatus;
+  enforcer_first_name?: string;
+  enforcer_last_name?: string;
+  stall_number?: string;
+  business_name?: string;
+  market_section_name?: string;
+  market_section_id?: number;
+}
+
+export interface ViolationLine {
+  id: string;
+  ordinanceName: string;
+  description: string;
+  offenseLevel: OffenseLevel;
+  amount: number;
+}
+
+export interface PenaltyDetails {
+  severity: Severity;
+  penaltyType: string;
+  dueDate: string;
+  totalFineDue: number;
+}
+
+interface BaseRecordDetail {
+  id: string;
+  controlNumber: string;
+  stallNo: string;
+  tradeName: string;
+  violatorName: string;
+  dateTime: string;
+  location: string;
+  violationCommitted: string;
+  description: string;
+  issuedByName: string;
+  issuedByTitle: string;
+  issuedByOffice: string;
+  issuedToDate: string;
+}
+
+export interface InspectionSummary {
+  ticketId: number;
+  enforcerId: number;
+  enforcerFirstName: string;
+  enforcerLastName: string;
+  vendorId: number;
+  vendorFirstName: string;
+  vendorLastName: string;
+  stallNumber: string;
+  businessName: string;
+  marketSectionId: number;
+  marketSectionName: string;
+  status: RecordStatus;
+  type: "Warning" | "Ticket";
+  issuedAt: Date;
+  updatedAt: Date;
+}
+
+export interface WarningRecord extends BaseRecordDetail {
+  type: "warning";
+  ordinanceNumber: string;
+  ordinanceSeries: string;
+  ordinanceCategory: string;
+}
+
+export interface TicketRecord extends BaseRecordDetail {
+  type: "ticket";
+  status: RecordStatus;
+  address: string;
+  violations: ViolationLine[];
+  penalty: PenaltyDetails;
+  photoEvidenceUrl?: string;
+  photoEvidenceUrls?: string[];
+  settlementEvidenceUrls?: string[];
+  enforcer?: string;
+  enforcerName?: string;
+  marketSection?: MarketSection | string;
+  controlType?: string;
+  appealsPeriod?: string;
+  title?: string;
+}
+
+type PrintColumn =
+  | "controlNumber"
+  | "type"
+  | "issuedAt"
+  | "vendor"
+  | "status"
+  | "section"
+  | "severity";
+
+export interface PrintConfigPayload {
+  types: Array<"warning" | "ticket">;
+  columns: PrintColumn[];
+  startDate: string;
+  endDate: string;
+}
+
+export interface ExportResult {
+  fileUrl: string;
+  fileName: string;
+}
+
+export interface TicketHistoryEntry {
+  id: string;
+  ticketId: string;
+  action: string;
+  note?: string;
+  performedBy: string;
+  timestamp: string;
+}
+
+export type PenaltyType = "CashFine" | "BloodDonation" | "CommunityService";
+
+export interface TicketSummary {
+  id: number;
+  controlNumber: string;
+  enforcerId: number;
+  enforcerFirstName: string;
+  enforcerLastName: string;
+  vendorId: number;
+  vendorFirstName: string;
+  vendorLastName: string;
+  stallNumber: string;
+  marketSectionId: number;
+  marketSectionName: string;
+  status: RecordStatus;
+  severity: Severity;
+  penaltyType: PenaltyType;
+  issuedAt: Date;
+}
+
+export interface TicketStats {
+  totalTicketsThisMonth: number;
+  ticketChangePercentage: number;
+  pendingPaymentsThisMonth: number;
+  paymentsChangePercentage: number;
+  resolvedViolationsThisMonth: number;
+  resolutionRate: number;
+  highSeveritiesThisMonth: number;
+  highSeveritiesChangePercentage: number;
+}
+
+export interface Violation {
+  ticketViolationId: number;
+  ticketId: number;
+  ordinanceId: number;
+  ordinanceNo: string;
+  ordinanceCode: string;
+  offenseCount: number;
+  penaltyAmount?: number;
+}
+
+export interface TicketCommunityServiceLog {
+  serviceDate: string;
+  hoursWorked: number;
+  proofUrl: string | null;
+}
+
+export interface TicketStatusUpdateResponse {
+  ticketId: number;
+  controlNumber: string | null;
+  status: RecordStatus;
+  updatedAt: string;
+  version: number;
+}
+
+export interface TicketDetail {
+  ticketId: number;
+  enforderId: number;
+  enforcerLastName: string;
+  enforcerFirstName: string;
+  vendorId: number;
+  controlNumber?: string;
+  type: "Warning" | "Ticket";
+  businessId: string;
+  vendorType: "Public" | "Private" | 0 | 1;
+  stallNumber: string | null;
+  businessName: string;
+  lastName: string;
+  firstName: string;
+  address: string;
+  violations: Violation[];
+  issuedAt: Date;
+  updatedAt: Date;
+  marketSectionName: string;
+  categories: TicketCategories[];
+  description: string;
+  severity?: Severity;
+  status?: RecordStatus;
+  penaltyType?: PenaltyType;
+  dueDate?: Date;
+  totalFineAmount?: number;
+  totalFineDue?: number;
+  totalPaymentAmount?: number;
+  ticketEvidences: string[];
+  ticketReceipts: string[];
+  proofUrls: string[];
+  communityServiceHours: number | null;
+  communityServiceLogs: TicketCommunityServiceLog[];
+  hoursCompleted: number;
+  version: number;
+}

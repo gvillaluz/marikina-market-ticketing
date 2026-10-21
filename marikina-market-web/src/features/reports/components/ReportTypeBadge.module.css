@@ -1,0 +1,10 @@
+.badge {
+  display: inline-block;
+  padding: var(--space-xs);
+  border-radius: var(--backup-control-radius);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--button-primary);
+  background: var(--button-primary-surface);
+}

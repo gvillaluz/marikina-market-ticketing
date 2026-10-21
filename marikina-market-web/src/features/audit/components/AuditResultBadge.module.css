@@ -1,0 +1,14 @@
+.badge {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid currentColor;
+  font-size: var(--market-font-size-micro);
+  font-weight: 500;
+  letter-spacing: normal;
+}
+.dot {
+  flex-shrink: 0;
+  width: var(--account-status-dot);
+  height: var(--account-status-dot);
+  border-radius: var(--market-radius-pill);
+  background: currentColor;
+}

@@ -1,0 +1,122 @@
+.card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+.header {
+  padding: var(--backup-space-lg) var(--backup-space-xl);
+}
+.header h2 {
+  font-size: var(--backup-font-heading);
+  font-weight: 600;
+}
+.header p {
+  margin-top: var(--backup-space-xs);
+  font-size: var(--backup-font-caption);
+  color: var(--text-body);
+}
+.table {
+  --registry-cell-padding-block: var(--space-md);
+  --registry-table-min-width: var(--reports-table-width);
+  --registry-actions-align: right;
+}
+.dateColumn {
+  padding-inline-start: var(--space-xl);
+  width: 30%;
+}
+.typeColumn {
+  width: 14%;
+}
+.sizeColumn {
+  width: 12%;
+}
+.actionColumn {
+  padding-inline-end: var(--space-xl);
+  width: var(--backup-actions-width);
+  white-space: nowrap;
+}
+.table > table > :is(thead, tbody) > tr > :nth-child(2),
+.table > table > :is(thead, tbody) > tr > :nth-child(3) {
+  text-align: center;
+}
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--backup-space-md);
+  padding: var(--backup-space-md) var(--backup-space-xl);
+  border-top: 1px solid var(--border-default);
+  font-size: var(--backup-font-small);
+  color: var(--text-body);
+}
+.paginationControls {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.pagination {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: var(--backup-space-xs);
+  margin-top: 0;
+}
+.pagination button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: var(--backup-table-control-size);
+  min-width: var(--backup-table-control-size);
+  height: var(--backup-table-control-size);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--backup-font-caption);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-body);
+  background: var(--bg-surface);
+}
+.pagination button:hover:not(:disabled) {
+  border-color: var(--button-primary);
+  background: var(--backup-info-surface);
+}
+.pagination button[aria-current="page"] {
+  border-color: var(--button-primary);
+  font-weight: 700;
+  color: var(--text-on-primary);
+  background: var(--button-primary);
+}
+.pagination button[aria-current="page"]:hover:not(:disabled) {
+  border-color: var(--button-primary-hover);
+  background: var(--button-primary-hover);
+}
+.pagination button:disabled {
+  border-color: var(--border-default);
+  color: var(--text-body);
+  background: var(--bg-surface);
+  cursor: not-allowed;
+  opacity: var(--backup-disabled-opacity);
+}
+.pagination button[aria-current="page"]:disabled {
+  border-color: var(--button-primary);
+  color: var(--text-on-primary);
+  background: var(--button-primary);
+  opacity: 1;
+}
+.pagination span {
+  color: var(--text-body);
+}
+.pagination button:focus-visible {
+  outline: 2px solid var(--backup-action);
+  outline-offset: -2px;
+}
+
+@media (min-width: 600px) {
+  .pagination {
+    justify-content: flex-end;
+  }
+}

@@ -1,0 +1,45 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.actions .button {
+  gap: var(--space-sm);
+  min-height: 2.375rem;
+  padding: calc(var(--space-sm) + 1px) var(--space-lg);
+  border-radius: var(--market-radius-button);
+  font-size: var(--market-font-size-small);
+  font-weight: 500;
+  line-height: 1.5;
+  box-shadow: none;
+}
+
+.actions .primary {
+  background-color: var(--button-primary);
+  color: var(--text-on-primary);
+}
+
+.actions .primary:hover:not(:disabled) {
+  background-color: var(--button-primary-hover);
+  box-shadow: none;
+}
+
+.actions .outline {
+  padding: var(--space-sm) calc(var(--space-lg) - 1px);
+  border: 1px solid var(--button-primary);
+  background-color: transparent;
+  color: var(--button-primary);
+}
+
+.actions .outline:hover:not(:disabled) {
+  border-color: var(--button-primary-hover);
+  background-color: var(--button-primary-surface);
+  color: var(--button-primary-hover);
+}
+
+.actions .button:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}

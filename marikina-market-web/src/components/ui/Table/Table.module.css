@@ -1,0 +1,124 @@
+.wrapper {
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--market-font-size-small);
+}
+
+.wrapper .table > thead > tr > th {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--market-font-size-small);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--text-heading);
+  background-color: var(--records-header-surface);
+}
+
+.wrapper .table > tbody > tr > td {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--market-font-size-small);
+  overflow-wrap: anywhere;
+  color: var(--text-heading);
+  vertical-align: middle;
+}
+
+.wrapper .table > tbody > tr:last-child > td {
+  border-bottom: none;
+}
+
+.wrapper .table > tbody > tr:hover {
+  background-color: var(--records-hover-surface);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.wrapper .table > tbody > tr > td.placeholder {
+  padding: calc(var(--space-section) + var(--space-sm)) var(--space-lg);
+  text-align: center;
+  color: var(--text-body);
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-default);
+  border-top-color: var(--button-primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.responsive .table {
+  min-width: var(--records-table-width);
+}
+@media (max-width: 700px) {
+  .responsive {
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .responsive .table {
+    display: block;
+    min-width: 0;
+  }
+  .responsive .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .responsive .table tbody {
+    display: grid;
+    gap: var(--space-md);
+  }
+  .responsive .table tbody tr {
+    display: block;
+    padding: var(--space-md);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+  .responsive .table tbody td[data-label] {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: start;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0;
+    border: 0;
+    text-align: left !important;
+  }
+  .responsive .table tbody td[data-label]::before {
+    font-size: var(--market-font-size-small);
+    font-weight: 500;
+    color: var(--text-body);
+    content: attr(data-label);
+  }
+  .responsive .table tbody td[data-label] > * {
+    min-width: 0;
+  }
+  .responsive .table tbody td:first-child {
+    font-weight: 700;
+  }
+}

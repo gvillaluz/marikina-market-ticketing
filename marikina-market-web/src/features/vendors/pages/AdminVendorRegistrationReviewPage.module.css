@@ -1,0 +1,48 @@
+.page {
+  composes: page from "./review/RegistrationLayout.module.css";
+}
+.columns {
+  composes: columns from "./review/RegistrationLayout.module.css";
+}
+.main {
+  composes: main from "./review/RegistrationLayout.module.css";
+}
+.actions {
+  composes: actions from "./review/RegistrationLayout.module.css";
+}
+.errorPage {
+  composes: errorPage from "./review/RegistrationLayout.module.css";
+}
+.errorCard {
+  composes: errorCard from "./review/RegistrationLayout.module.css";
+}
+.pageHeader {
+  composes: header from "./review/RegistrationLayout.module.css";
+}
+.fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-xl);
+  margin-top: var(--space-xl);
+}
+.documents {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+.sixColumns,
+.threeColumns {
+  min-width: 0;
+}
+@media (min-width: 600px) {
+  .fields,
+  .documents {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1200px) {
+  .fields {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,23 @@
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xl) var(--space-lg);
+  font-size: var(--market-font-size-small);
+  text-align: center;
+}
+.message button {
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--market-radius-button);
+  color: var(--market-action);
+  background: var(--bg-surface);
+}
+.message button:hover {
+  background: var(--ordinance-info-surface);
+}
+.message button:focus-visible {
+  outline: 2px solid var(--market-action);
+  outline-offset: 2px;
+}

@@ -1,0 +1,109 @@
+.panel {
+  min-width: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+}
+.heading p {
+  margin-bottom: var(--space-xs);
+  font-size: var(--backup-font-micro);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--button-primary);
+}
+.heading h2 {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.controls {
+  width: 100%;
+  min-width: 0;
+}
+.controls > div {
+  gap: var(--space-sm);
+  padding: 0;
+  margin-bottom: 0;
+  border: 0;
+}
+.controls input[type="search"] {
+  height: var(--backup-control-height);
+  font-size: var(--font-size-xs);
+}
+.controls > div > div:first-child {
+  border-radius: var(--backup-control-radius);
+}
+.panel > footer {
+  margin-top: 0;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--backup-table-surface);
+}
+.filter > button {
+  padding: var(--space-sm) var(--space-md);
+  height: var(--backup-control-height);
+  max-width: 100%;
+  border: 1px solid var(--border-default);
+  border-radius: var(--backup-control-radius);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  color: var(--text-heading);
+  background: var(--bg-surface);
+  box-shadow: none;
+}
+.filter > button:hover:not(:disabled) {
+  border-color: var(--button-primary);
+  background: var(--bg-surface);
+}
+.filter > button:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+.filter > button:disabled {
+  opacity: var(--backup-disabled-opacity);
+  cursor: not-allowed;
+}
+.table {
+  --registry-table-min-width: var(--reports-table-width);
+  --registry-font-body: var(--font-size-xs);
+  --registry-actions-align: center;
+}
+.typeColumn {
+  width: 18%;
+}
+.rangeColumn {
+  width: 26%;
+}
+.dateColumn {
+  width: 20%;
+}
+.actorColumn {
+  width: 22%;
+}
+.actionColumn {
+  width: 14%;
+}
+.state {
+  display: grid;
+  place-items: center;
+  min-height: var(--records-state-height);
+  padding: var(--space-lg);
+  font-size: var(--font-size-sm);
+}
+@media (min-width: 1000px) {
+  .controls {
+    width: auto;
+  }
+  .controls > div > div:first-child {
+    flex-basis: var(--reports-search-width);
+    width: var(--reports-search-width);
+  }
+}

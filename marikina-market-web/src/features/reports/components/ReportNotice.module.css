@@ -1,0 +1,8 @@
+.notice {
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--danger);
+  background: var(--form-error-surface);
+  overflow-wrap: anywhere;
+}

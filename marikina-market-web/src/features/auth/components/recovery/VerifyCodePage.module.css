@@ -1,0 +1,72 @@
+.description {
+  composes: description from "./RecoveryForm.module.css";
+}
+.form {
+  composes: form from "./RecoveryForm.module.css";
+}
+.primaryButton {
+  composes: primaryButton from "./RecoveryForm.module.css";
+}
+.error {
+  composes: error from "./RecoveryForm.module.css";
+}
+.spinner {
+  composes: spinner from "./RecoveryForm.module.css";
+}
+.resendRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: var(--recovery-font-caption);
+  color: var(--text-body);
+}
+.resendControls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+.resendButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: var(--recovery-control-height);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--button-primary);
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: var(--space-xs);
+}
+.resendButton:hover:not(:disabled) {
+  color: var(--button-primary-hover);
+}
+.resendButton:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+.resendButton:disabled {
+  cursor: not-allowed;
+  color: var(--text-body);
+  text-decoration: none;
+}
+.cooldown {
+  font-variant-numeric: tabular-nums;
+}
+.notice {
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--recovery-font-caption);
+  color: var(--primary);
+  background: var(--button-primary-surface);
+}
+@media (prefers-reduced-motion: reduce) {
+  .resendButton {
+    transition: none;
+  }
+}

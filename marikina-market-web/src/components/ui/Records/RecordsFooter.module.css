@@ -1,0 +1,100 @@
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-default);
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.entries {
+  font-size: var(--market-font-size-small);
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-body);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 0 var(--space-md);
+  height: var(--records-export-control-height);
+  border: 1px solid var(--border-default);
+  border-radius: var(--records-pagination-radius);
+  font-size: var(--market-font-size-small);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--records-footer-action-text);
+  background: var(--bg-surface);
+}
+.actions button:hover:not(:disabled) {
+  border-color: var(--records-footer-action-hover-border);
+  color: var(--button-primary);
+  background: var(--records-footer-action-hover-surface);
+}
+.actions .print {
+  padding-inline: var(--space-sm);
+}
+.actions button:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+.actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.pagination {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: 0;
+}
+.pagination :global(button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: var(--records-compact-control-size);
+  height: var(--records-compact-control-size);
+  border-color: var(--border-default);
+  border-radius: var(--records-pagination-radius);
+  font-size: var(--market-font-size-compact);
+  color: var(--text-body);
+  background: var(--bg-surface);
+}
+.pagination :global(button:hover:not(:disabled)) {
+  border-color: var(--button-primary);
+  color: var(--button-primary);
+  background: var(--records-hover-surface);
+}
+.pagination :global(button[aria-current="page"]) {
+  border-color: var(--button-primary);
+  color: var(--text-on-primary);
+  background: var(--button-primary);
+}
+.pagination :global(button[aria-current="page"]:hover:not(:disabled)) {
+  border-color: var(--button-primary-hover);
+  color: var(--text-on-primary);
+  background: var(--button-primary-hover);
+}
+.pagination :global(button:disabled) {
+  opacity: 0.5;
+}
+@media (min-width: 900px) {
+  .footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

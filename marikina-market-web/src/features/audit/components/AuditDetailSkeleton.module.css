@@ -1,0 +1,33 @@
+.content {
+  display: grid;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+}
+
+.label {
+  font-size: var(--form-font-caption);
+  color: var(--text-body);
+}
+
+.fields {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.details {
+  display: grid;
+  gap: var(--space-sm);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-default);
+}
+
+@media (min-width: 600px) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

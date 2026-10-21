@@ -1,0 +1,127 @@
+.card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  border: 1px solid var(--metric-card-border, var(--border-default));
+  border-radius: var(--radius-md);
+  background: var(--metric-card-surface, var(--bg-surface));
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.topLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-sm);
+}
+
+.primary {
+  --metric-card-border: color-mix(
+    in srgb,
+    var(--button-primary) 24%,
+    var(--border-default)
+  );
+  --metric-card-surface: color-mix(
+    in srgb,
+    var(--button-primary-surface) 62%,
+    var(--bg-surface)
+  );
+  color: var(--button-primary);
+}
+
+.warning {
+  --metric-card-border: color-mix(
+    in srgb,
+    var(--warning) 25%,
+    var(--border-default)
+  );
+  --metric-card-surface: color-mix(
+    in srgb,
+    var(--registration-warning-surface) 62%,
+    var(--bg-surface)
+  );
+  color: var(--warning);
+}
+
+.success {
+  --metric-card-border: color-mix(
+    in srgb,
+    var(--success) 22%,
+    var(--border-default)
+  );
+  --metric-card-surface: color-mix(
+    in srgb,
+    var(--registration-success-surface) 62%,
+    var(--bg-surface)
+  );
+  color: var(--success);
+}
+
+.info {
+  --metric-card-border: color-mix(
+    in srgb,
+    var(--info) 22%,
+    var(--border-default)
+  );
+  --metric-card-surface: color-mix(
+    in srgb,
+    var(--registration-info-surface) 62%,
+    var(--bg-surface)
+  );
+  color: var(--info);
+}
+
+.pending {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-body);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}
+
+.label,
+.value,
+.description {
+  margin: 0;
+}
+
+.label {
+  color: var(--text-body);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.value {
+  color: var(--text-heading);
+  font-size: var(--font-size-h2);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.description {
+  color: var(--text-body);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}

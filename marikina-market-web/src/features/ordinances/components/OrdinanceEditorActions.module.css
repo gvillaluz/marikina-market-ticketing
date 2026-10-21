@@ -1,0 +1,6 @@
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ordinance-space-sm);
+  width: 100%;
+}

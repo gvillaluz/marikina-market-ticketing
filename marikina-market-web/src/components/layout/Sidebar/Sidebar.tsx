@@ -1,0 +1,309 @@
+import {
+  ADMIN_ROLES,
+  HEAD_ADMIN_ROLES,
+  STAFF_ROLES,
+  USER_ROLE_LABELS,
+  type UserRole,
+} from "@/api/types/common.types";
+import { FC, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
+import styles from "./Sidebar.module.css";
+import { History, Settings, UsersRound } from "lucide-react";
+import { RegistrationCountBadge } from "@/features/vendors";
+import UrlImage from "@/components/ui/UrlImage";
+
+interface NavItem {
+  to: string;
+  label: string;
+  icon: JSX.Element;
+  allowedRoles: readonly UserRole[];
+}
+
+const HouseIcon = (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+
+const DocumentIcon = (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+  </svg>
+);
+
+const EnforcerIcon = (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+    <polyline points="15 2 15 9 21 9" />
+    <circle cx="10" cy="14" r="2" />
+    <path d="M7 19c0-1.657 1.343-3 3-3s3 1.343 3 3" />
+  </svg>
+);
+
+const VendorIcon = (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 10h18l-2-7H5l-2 7Z" />
+    <path d="M5 10v10h14V10" />
+    <path d="M9 20v-6h6v6" />
+    <path d="M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" />
+  </svg>
+);
+
+const TicketIcon = (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z" />
+    <path d="M9 12h6" />
+  </svg>
+);
+
+const BarChartIcon = (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="12" y1="20" x2="12" y2="10" />
+    <line x1="18" y1="20" x2="18" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="16" />
+  </svg>
+);
+
+const SettingsIcon = <Settings size={18} strokeWidth={2} />;
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    to: "/dashboard",
+    label: "Dashboard",
+    icon: HouseIcon,
+    allowedRoles: STAFF_ROLES,
+  },
+  {
+    to: "/inspections",
+    label: "Inspections",
+    icon: DocumentIcon,
+    allowedRoles: STAFF_ROLES,
+  },
+  {
+    to: "/tickets",
+    label: "Tickets",
+    icon: TicketIcon,
+    allowedRoles: STAFF_ROLES,
+  },
+  {
+    to: "/enforcers",
+    label: "Enforcers",
+    icon: EnforcerIcon,
+    allowedRoles: STAFF_ROLES,
+  },
+  {
+    to: "/admin/vendors",
+    label: "Vendors",
+    icon: VendorIcon,
+    allowedRoles: ADMIN_ROLES,
+  },
+  {
+    to: "/admin/vendor-registrations",
+    label: "Registrants",
+    icon: DocumentIcon,
+    allowedRoles: ADMIN_ROLES,
+  },
+  {
+    to: "/analytics",
+    label: "Analytics",
+    icon: BarChartIcon,
+    allowedRoles: ADMIN_ROLES,
+  },
+  {
+    to: "/admin/reports",
+    label: "Reports",
+    icon: DocumentIcon,
+    allowedRoles: ADMIN_ROLES,
+  },
+  {
+    to: "/vendors",
+    label: "Vendors",
+    icon: VendorIcon,
+    allowedRoles: ["MarketEnforcer", "MarketVendor"],
+  },
+  {
+    to: "/admin/accounts",
+    label: "Accounts",
+    icon: <UsersRound size={18} strokeWidth={2} />,
+    allowedRoles: HEAD_ADMIN_ROLES,
+  },
+  {
+    to: "/admin/audit-logs",
+    label: "Audit Logs",
+    icon: <History size={18} strokeWidth={2} />,
+    allowedRoles: ADMIN_ROLES,
+  },
+  {
+    to: "/system/configuration",
+    label: "Configurations",
+    icon: SettingsIcon,
+    allowedRoles: ADMIN_ROLES,
+  },
+];
+
+interface SidebarProps {
+  open: boolean;
+  collapsed: boolean;
+  onClose: () => void;
+}
+
+const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
+  const { user, logout } = useAuth();
+  const location = useLocation();
+  const fullName = user
+    ? [user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")
+    : "User";
+
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => user?.role && item.allowedRoles.includes(user.role),
+  );
+
+  return (
+    <>
+      {open && <div className={styles.backdrop} onClick={onClose} />}
+      <aside
+        className={`${styles.sidebar} ${open ? styles.open : ""} ${collapsed ? styles.collapsed : ""}`}
+      >
+        {/* Brand / seal */}
+        <div className={styles.brand}>
+          <img
+            className={styles.seal}
+            src={citySeal}
+            alt="Marikina City seal"
+          />
+          <div>
+            <div className={styles.brandText}>
+              Marikina Public Market Inspection System
+            </div>
+            <div className={styles.brandSub}>Admin Access</div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div
+          className={styles.sidebarContent}
+          role="region"
+          aria-label="Sidebar navigation and account"
+          tabIndex={0}
+        >
+          <div className={styles.section}>
+            <nav className={styles.nav}>
+              {visibleItems.map((item) => {
+                const isActive = location.pathname === item.to;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={`${styles.link} ${isActive ? styles.active : ""}`}
+                    onClick={onClose}
+                    title={item.label}
+                    aria-label={item.label}
+                  >
+                    <span className={styles.linkIcon}>{item.icon}</span>
+                    <span className={styles.linkLabel}>{item.label}</span>
+                    {item.to === "/admin/vendor-registrations" && (
+                      <RegistrationCountBadge compact={collapsed} />
+                    )}
+                  </NavLink>
+                );
+              })}
+            </nav>
+          </div>
+          {/* Footer — user pill + log out */}
+          <div className={styles.footer}>
+            <div className={styles.userPill}>
+              <UrlImage
+                className={styles.userAvatar}
+                src={user?.profileUrl}
+                alt={`${fullName} profile`}
+                fallback={
+                  [user?.firstName, user?.lastName]
+                    .filter(Boolean)
+                    .map((part) => part?.[0])
+                    .join("")
+                    .toUpperCase() || "U"
+                }
+              />
+              <div className={styles.userDetails}>
+                <span className={styles.userName}>{fullName}</span>
+                <span className={styles.userMeta}>
+                  {user?.username ?? "user"}
+                </span>
+                <span className={styles.userEmail}>{user?.email}</span>
+                <span className={styles.userRole}>
+                  {user?.role ? USER_ROLE_LABELS[user.role] : "—"} ·{" "}
+                  {user?.status}
+                </span>
+              </div>
+            </div>
+            <button className={styles.logoutBtn} onClick={logout}>
+              Log Out
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+};
+
+export default Sidebar;

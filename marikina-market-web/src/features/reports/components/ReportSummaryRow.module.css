@@ -1,0 +1,20 @@
+.row th,
+.row td,
+.total th,
+.total td {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-default);
+  text-align: right;
+}
+.row th,
+.total th {
+  font-weight: 400;
+  text-align: left;
+}
+.total {
+  font-weight: 600;
+  background: var(--backup-table-surface);
+}
+.total th {
+  font-weight: 600;
+}

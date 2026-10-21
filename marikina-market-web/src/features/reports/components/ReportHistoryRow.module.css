@@ -1,0 +1,24 @@
+.actor {
+  max-width: var(--account-search-width);
+  overflow-wrap: anywhere;
+}
+.view {
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  min-height: var(--backup-control-height);
+  border-color: var(--backup-action-border);
+  border-radius: var(--backup-control-radius);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--button-primary);
+  background: var(--bg-surface);
+}
+.view:hover:not(:disabled) {
+  border-color: var(--button-primary);
+  background: var(--button-primary-surface);
+}
+@media (prefers-reduced-motion: reduce) {
+  .view {
+    transition: none;
+  }
+}

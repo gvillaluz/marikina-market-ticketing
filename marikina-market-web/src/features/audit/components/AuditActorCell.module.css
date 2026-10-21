@@ -1,0 +1,12 @@
+.actor p {
+  font-size: var(--market-font-size-small);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-heading);
+}
+.actor span {
+  display: block;
+  margin-top: var(--space-xs);
+  font-size: var(--market-font-size-micro);
+  color: var(--text-body);
+}
