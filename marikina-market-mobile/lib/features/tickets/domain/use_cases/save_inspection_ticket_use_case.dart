@@ -1,0 +1,67 @@
+import 'package:marikina_market_mobile/core/errors/failure.dart';
+import 'package:marikina_market_mobile/core/errors/result.dart';
+import 'package:marikina_market_mobile/core/usecases/usecase.dart';
+import 'package:marikina_market_mobile/features/tickets/data/models/params/save_inspection_params.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/save_inspection_result.dart';
+import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/repositories/inspection_repository.dart';
+
+class SaveInspectionTicketUseCase
+    implements UseCase<SaveInspectionResult, SaveInspectionParams> {
+  final InspectionRepository _repository;
+  SaveInspectionTicketUseCase(this._repository);
+
+  @override
+  Future<Result<SaveInspectionResult>> call(SaveInspectionParams params) async {
+    if (params.ordinanceIds.isEmpty) {
+      return Result.failure(
+        ValidationFailure('At least one ordinance must be selected.'),
+      );
+    }
+
+    if (params.ticketType == ViolationType.warning &&
+        params.ordinanceIds.length > 1) {
+      return Result.failure(
+        ValidationFailure('Warnings can only have one ordinance.'),
+      );
+    }
+
+    if (params.description.trim().isEmpty) {
+      return Result.failure(ValidationFailure('Description is required.'));
+    }
+
+    if (params.ticketType == ViolationType.ticket) {
+      if (params.evidences == null || params.evidences!.isEmpty) {
+        return Result.failure(
+          ValidationFailure('Photo evidence is required for tickets.'),
+        );
+      }
+
+      if (params.penaltyType == PenaltyType.communityService) {
+        if (params.communityServiceHours == null ||
+            params.communityServiceHours! < 3) {
+          return Result.failure(
+            ValidationFailure(
+              'Community service requires a minimum of 3 hours.',
+            ),
+          );
+        }
+      }
+    }
+
+    return await _repository.saveNewInspection(
+      SaveInspectionParams(
+        vendorId: params.vendorId,
+        marketSectionId: params.marketSectionId,
+        enforcerId: params.enforcerId,
+        ticketType: params.ticketType,
+        description: params.description,
+        penaltyType: params.penaltyType,
+        communityServiceHours: params.communityServiceHours,
+        ordinanceIds: params.ordinanceIds,
+        evidences: params.evidences,
+      ),
+    );
+  }
+}
