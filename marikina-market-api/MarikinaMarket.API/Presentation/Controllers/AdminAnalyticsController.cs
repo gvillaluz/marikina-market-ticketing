@@ -19,35 +19,35 @@ namespace MarikinaMarket.API.Presentation.Controllers
         }
 
         [HttpGet("violation-trend")]
-        public async Task<ActionResult<List<ViolationTrendPointResponse>>> GetViolationTrend()
-            => Ok(await _service.GetViolationTrendAsync());
+        public async Task<ActionResult<List<ViolationTrendPointResponse>>> GetViolationTrend([FromQuery] int? year = null)
+            => Ok(await _service.GetViolationTrendAsync(year));
 
         [HttpGet("peak-violation-times")]
-        public async Task<ActionResult<List<PeakViolationTimeResponse>>> GetPeakViolationTimes()
-            => Ok(await _service.GetPeakViolationTimesAsync());
+        public async Task<ActionResult<List<PeakViolationTimeResponse>>> GetPeakViolationTimes([FromQuery] int? year = null)
+            => Ok(await _service.GetPeakViolationTimesAsync(year));
 
         [HttpGet("violation-type-distribution")]
-        public async Task<ActionResult<List<ViolationCategoryDistributionResponse>>> GetViolationTypeDistribution()
-            => Ok(await _service.GetViolationCategoryDistributionAsync());
+        public async Task<ActionResult<List<ViolationCategoryDistributionResponse>>> GetViolationTypeDistribution([FromQuery] int? year = null)
+            => Ok(await _service.GetViolationCategoryDistributionAsync(year));
 
         [HttpGet("inspection-ratio")]
-        public async Task<ActionResult<InspectionRatioResponse>> GetInspectionRatio()
-            => Ok(await _service.GetInspectionRatioAsync());
+        public async Task<ActionResult<InspectionRatioResponse>> GetInspectionRatio([FromQuery] int? year = null)
+            => Ok(await _service.GetInspectionRatioAsync(year));
 
         [HttpGet("resolution-rate")]
-        public async Task<ActionResult<ViolationResolutionRateResponse>> GetResolutionRate()
-            => Ok(await _service.GetViolationResolutionRateAsync());
+        public async Task<ActionResult<ViolationResolutionRateResponse>> GetResolutionRate([FromQuery] int? year = null)
+            => Ok(await _service.GetViolationResolutionRateAsync(year));
 
         [HttpGet("market-section-aggregation")]
-        public async Task<ActionResult<List<MarketSectionAggregationResponse>>> GetMarketSectionAggregation()
-            => Ok(await _service.GetMarketSectionAggregationAsync());
+        public async Task<ActionResult<List<MarketSectionAggregationResponse>>> GetMarketSectionAggregation([FromQuery] int? year = null)
+            => Ok(await _service.GetMarketSectionAggregationAsync(year));
 
         [HttpGet("hotspot-ranking")]
-        public async Task<ActionResult<List<HotspotRankingResponse>>> GetHotspotRanking()
-            => Ok(await _service.GetHotspotRankingAsync());
+        public async Task<ActionResult<List<HotspotRankingResponse>>> GetHotspotRanking([FromQuery] int? year = null)
+            => Ok(await _service.GetHotspotRankingAsync(year));
 
         [HttpGet("vendor-risk-ranking")]
-        public async Task<ActionResult<List<VendorRiskRankingResponse>>> GetVendorRiskRanking()
-            => Ok(await _service.GetVendorRiskRankingAsync());
+        public async Task<ActionResult<List<VendorRiskRankingResponse>>> GetVendorRiskRanking([FromQuery] int? year = null)
+            => Ok(await _service.GetVendorRiskRankingAsync(year));
     }
 }

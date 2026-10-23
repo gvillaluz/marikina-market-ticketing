@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.ComponentModel.DataAnnotations;
 using MarikinaMarket.API.Application.DTOs.Analytics.Response;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Application.Interfaces.Services;
@@ -17,19 +18,19 @@ namespace MarikinaMarket.API.Application.Services
             _clock = clock ?? TimeProvider.System;
         }
 
-        public async Task<List<ViolationTrendPointResponse>> GetViolationTrendAsync()
+        public async Task<List<ViolationTrendPointResponse>> GetViolationTrendAsync(int? year = null)
         {
-            var (yearStart, now) = GetCurrentYearRange();
+            var (yearStart, now) = GetYearRange(year);
             var buckets = await _ticketRepository.GetViolationTrendAsync(yearStart, now);
             var trend = new List<ViolationTrendPointResponse>();
-            var year = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(yearStart, "Asia/Manila").Year;
+            var selectedYear = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(yearStart, "Asia/Manila").Year;
 
             for (var month = 1; month <= 12; month++)
             {
                 var monthBuckets = buckets.Where(bucket => bucket.Month == month).ToList();
                 trend.Add(new ViolationTrendPointResponse
                 {
-                    Year = year,
+                    Year = selectedYear,
                     Month = month,
                     MonthName = CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(month),
                     LowSeverityCount = monthBuckets
@@ -47,9 +48,9 @@ namespace MarikinaMarket.API.Application.Services
             return trend;
         }
 
-        public async Task<List<PeakViolationTimeResponse>> GetPeakViolationTimesAsync()
+        public async Task<List<PeakViolationTimeResponse>> GetPeakViolationTimesAsync(int? year = null)
         {
-            var (yearStart, now) = GetCurrentYearRange();
+            var (yearStart, now) = GetYearRange(year);
             var buckets = await _ticketRepository.GetPeakViolationTimesAsync(yearStart, now);
             var results = new List<PeakViolationTimeResponse>();
             var days = new[]
@@ -94,9 +95,9 @@ namespace MarikinaMarket.API.Application.Services
             return results;
         }
 
-        public async Task<List<ViolationCategoryDistributionResponse>> GetViolationCategoryDistributionAsync()
+        public async Task<List<ViolationCategoryDistributionResponse>> GetViolationCategoryDistributionAsync(int? year = null)
         {
-            var (yearStart, now) = GetCurrentYearRange();
+            var (yearStart, now) = GetYearRange(year);
             var counts = await _ticketRepository.GetViolationCategoryDistributionAsync(yearStart, now);
             var totalTickets = await _ticketRepository.GetTotalTicketCountForPeriodAsync(
                 yearStart,
@@ -122,9 +123,9 @@ namespace MarikinaMarket.API.Application.Services
                 .ToList();
         }
 
-        public async Task<InspectionRatioResponse> GetInspectionRatioAsync()
+        public async Task<InspectionRatioResponse> GetInspectionRatioAsync(int? year = null)
         {
-            var (yearStart, now) = GetCurrentYearRange();
+            var (yearStart, now) = GetYearRange(year);
             var counts = await _ticketRepository.GetInspectionTypeCountsAsync(yearStart, now);
             var total = counts.WarningCount + counts.TicketCount;
 
@@ -138,9 +139,9 @@ namespace MarikinaMarket.API.Application.Services
             };
         }
 
-        public async Task<ViolationResolutionRateResponse> GetViolationResolutionRateAsync()
+        public async Task<ViolationResolutionRateResponse> GetViolationResolutionRateAsync(int? year = null)
         {
-            var (yearStart, now) = GetCurrentYearRange();
+            var (yearStart, now) = GetYearRange(year);
             var counts = await _ticketRepository.GetViolationResolutionCountsAsync(yearStart, now);
 
             return new ViolationResolutionRateResponse
@@ -153,9 +154,9 @@ namespace MarikinaMarket.API.Application.Services
             };
         }
 
-        public async Task<List<MarketSectionAggregationResponse>> GetMarketSectionAggregationAsync()
+        public async Task<List<MarketSectionAggregationResponse>> GetMarketSectionAggregationAsync(int? year = null)
         {
-            var (yearStart, now) = GetCurrentYearRange();
+            var (yearStart, now) = GetYearRange(year);
             var sections = await _ticketRepository.GetMarketSectionCountsAsync(yearStart, now);
 
             return sections.Select(section => new MarketSectionAggregationResponse
@@ -168,9 +169,9 @@ namespace MarikinaMarket.API.Application.Services
             }).ToList();
         }
 
-        public async Task<List<HotspotRankingResponse>> GetHotspotRankingAsync()
+        public async Task<List<HotspotRankingResponse>> GetHotspotRankingAsync(int? year = null)
         {
-            var (yearStart, now) = GetCurrentYearRange();
+            var (yearStart, now) = GetYearRange(year);
             var previousYearStart = yearStart.AddYears(-1);
             var manilaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
             var previousYearEnd = TimeZoneInfo.ConvertTimeToUtc(
@@ -201,9 +202,9 @@ namespace MarikinaMarket.API.Application.Services
                 .ToList();
         }
 
-        public async Task<List<VendorRiskRankingResponse>> GetVendorRiskRankingAsync()
+        public async Task<List<VendorRiskRankingResponse>> GetVendorRiskRankingAsync(int? year = null)
         {
-            var (yearStart, now) = GetCurrentYearRange();
+            var (yearStart, now) = GetYearRange(year);
             var vendors = await _ticketRepository.GetVendorRiskRankingAsync(yearStart, now);
 
             return vendors.Select((vendor, index) => new VendorRiskRankingResponse
@@ -218,13 +219,19 @@ namespace MarikinaMarket.API.Application.Services
                 .ToList();
         }
 
-        private (DateTime Start, DateTime End) GetCurrentYearRange()
+        private (DateTime Start, DateTime End) GetYearRange(int? year)
         {
             var now = _clock.GetUtcNow().UtcDateTime;
             var manilaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
-            var year = TimeZoneInfo.ConvertTimeFromUtc(now, manilaTimeZone).Year;
-            var localYearStart = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
-            return (TimeZoneInfo.ConvertTimeToUtc(localYearStart, manilaTimeZone), now);
+            var currentYear = TimeZoneInfo.ConvertTimeFromUtc(now, manilaTimeZone).Year;
+            var selectedYear = year ?? currentYear;
+            // Manila midnight and the preceding-year comparison must both fit in UTC DateTime.
+            if (selectedYear < 3 || selectedYear > currentYear)
+                throw new ValidationException($"Year must be between 3 and {currentYear}.");
+            var localYearStart = new DateTime(selectedYear, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+            var end = selectedYear == currentYear ? now
+                : TimeZoneInfo.ConvertTimeToUtc(localYearStart.AddYears(1), manilaTimeZone).AddTicks(-1);
+            return (TimeZoneInfo.ConvertTimeToUtc(localYearStart, manilaTimeZone), end);
         }
 
         private static string FormatCategory(ViolationCategory category)

@@ -9,6 +9,7 @@ interface HotspotRankingTableProps {
   isError: boolean;
   errorMessage: string;
   onRetry: () => void;
+  comparisonLabel?: string;
 }
 
 function trendDirection(trend: string): "up" | "down" | "stable" {
@@ -29,11 +30,12 @@ export default function HotspotRankingTable({
   isError,
   errorMessage,
   onRetry,
+  comparisonLabel = "Compared with the same period last year.",
 }: HotspotRankingTableProps) {
   return (
     <AnalyticsPanel
       title="Hotspot Ranking"
-      subtitle="Market sections with the highest violation activity."
+      subtitle={`Market sections with the highest violation activity. ${comparisonLabel}`}
       skeletonVariant="table"
       isLoading={isLoading}
       isError={isError}
@@ -54,7 +56,12 @@ export default function HotspotRankingTable({
           <tbody>
             {data.map((hotspot) => {
               const direction = trendDirection(hotspot.trend);
-              const TrendIcon = direction === "up" ? ArrowUp : direction === "down" ? ArrowDown : Minus;
+              const TrendIcon =
+                direction === "up"
+                  ? ArrowUp
+                  : direction === "down"
+                    ? ArrowDown
+                    : Minus;
               return (
                 <tr key={hotspot.marketSectionId}>
                   <td>#{hotspot.rank}</td>
@@ -74,7 +81,11 @@ export default function HotspotRankingTable({
               );
             })}
             {data.length === 0 && (
-              <tr><td className={styles.empty} colSpan={4}>No hotspot rankings available.</td></tr>
+              <tr>
+                <td className={styles.empty} colSpan={4}>
+                  No hotspot rankings available.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

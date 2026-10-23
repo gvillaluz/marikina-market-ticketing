@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
@@ -30,49 +31,66 @@ class VendorTicketDetailPage extends StatelessWidget {
       if (!didPop) context.go(Routes.vendorRecords);
     },
     child: Scaffold(
+      backgroundColor: AppTheme.ticketDetailBackground,
       appBar: AppBar(
-        title: const Text('Ticket Details'),
+        title: const Text(
+          'Ticket Details',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         leading: IconButton(
           tooltip: 'Back to records',
           onPressed: () => _back(context),
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: AppTheme.ticketCardPadding,
-          child: BlocConsumer<RecordDetailBloc, RecordDetailState>(
-            listenWhen: (previous, current) =>
-                current.detail != null && current.detail != previous.detail,
-            listener: (context, state) => context
-                .read<VendorSettlementBloc>()
-                .add(LoadVendorSettlement(state.detail!)),
-            builder: (context, state) {
-              if (state.isLoading) {
-                return const SkeletonBox(
-                  height: AppTheme.ticketDetailSkeletonHeight,
-                );
-              }
-              if (state.error != null) {
-                return RecordsNotice(
-                  message: state.error!,
-                  onRetry: () => context.read<RecordDetailBloc>().add(
-                    LoadRecordDetail(ticketId),
-                  ),
-                  icon: Icons.cloud_off_outlined,
-                );
-              }
-              final detail = state.detail;
-              return detail == null
-                  ? const RecordsNotice(message: 'Ticket not found.')
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        VendorRecordDetailContent(detail: detail),
-                        const VendorSettlementSection(),
-                      ],
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: AppTheme.ticketDetailMaxWidth,
+            ),
+            child: SingleChildScrollView(
+              padding: AppTheme.ticketDetailPadding,
+              child: BlocConsumer<RecordDetailBloc, RecordDetailState>(
+                listenWhen: (previous, current) =>
+                    current.detail != null && current.detail != previous.detail,
+                listener: (context, state) => context
+                    .read<VendorSettlementBloc>()
+                    .add(LoadVendorSettlement(state.detail!)),
+                builder: (context, state) {
+                  if (state.isLoading) {
+                    return const SkeletonBox(
+                      height: AppTheme.ticketDetailSkeletonHeight,
                     );
-            },
+                  }
+                  if (state.error != null) {
+                    return RecordsNotice(
+                      message: state.error!,
+                      onRetry: () => context.read<RecordDetailBloc>().add(
+                        LoadRecordDetail(ticketId),
+                      ),
+                      icon: Icons.cloud_off_outlined,
+                    );
+                  }
+                  final detail = state.detail;
+                  return detail == null
+                      ? const RecordsNotice(message: 'Ticket not found.')
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            VendorRecordDetailContent(detail: detail),
+                            const VendorSettlementSection(),
+                          ],
+                        );
+                },
+              ),
+            ),
           ),
         ),
       ),

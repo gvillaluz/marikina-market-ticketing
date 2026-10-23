@@ -1,12 +1,61 @@
 # Roadmap
 
-Current phase: **Phase 3 — Verify administration and reporting**.
-Current task: **Monorepo adopted at original workspace — in-place verification; mobile/live limits retained**.
+Current phase: **Phase 3 — closed within documented limits; phase advancement pending approval**.
+Current task: **Approved Phase 3 closure recorded; next slice awaiting approval**.
 In-place adoption and candidate removal are approved. Publishing is not yet approved.
 
 This roadmap organizes existing work; it does not authorize implementation. Each slice and phase advancement requires user approval. No Phase 0 implementation was performed when creating these workflow files.
 
+## Approved Phase 3 closure — 2026-10-24
+
+The user approved closing Phase 3 following the final evidence reconciliation.
+Administration/reporting verification is complete for the approved stories within
+the recorded isolated-host and coverage limits: accounts, vendor administration
+and compliance, ordinances, market sections, dashboard, yearly analytics with a
+year filter, reports/exports and audit read paths.
+
+- Implementation: approved paths were reconciled with the retained live results;
+  analytics remains yearly, with past-year selection and current-year-to-date behavior.
+- Automated evidence: latest recorded API and web builds passed; API tests had
+  576 passes, two explicit opt-in skips and zero failures; web tests had 113 passes
+  and zero failures. Skipped live checks are not counted as successful E2E checks.
+- Live evidence: independently derived SQL totals, persistence, role restrictions,
+  Manila date boundaries, report snapshots/exports and relevant recovery cases
+  passed in the approved stories against the disposable local database.
+- Current-source reconciliation: seven integrated slices, 223 artifact hash
+  comparisons and 1,953 source/workspace files were checked, plus ten matching
+  selected account source files. The account story was reused with matching
+  source evidence rather than rerun in the final dashboard task.
+
+The criterion matrix, individual runs, source linkage and retained limitations are
+in [the closure review](evidence/phase-3-dashboard-current/phase-3-closure-review.md)
+and [the reconciliation receipt](evidence/phase-3-dashboard-current/phase-3-reconciliation.json).
+These are historical verification records; their statements that the roadmap was
+unchanged describe the verification task before this separately approved closure.
+
+Closure retains these limits:
+
+- Isolated local API/web execution does not establish normal deployment startup,
+  real email/push/storage delivery, native-device behavior or infrastructure outage resilience.
+- Current empty recent-activity coverage remains historical; first-record empty
+  ordinance/section registries were not manufactured. Current empty-search and
+  empty dashboard-attention cases passed.
+- Analytics ranking truncation beyond ten and nonzero historical risk bands were
+  not exercised live. Historical offense/severity data follows the selected year;
+  risk rankings intentionally use current compliance. The preserved analytics
+  summary counts one severity case while the raw evidence records four passes.
+- Hardcoded configuration notes about active/draft counts and backup completion
+  remain an unrelated UI issue; they establish no backup-readiness evidence.
+  Existing package/build warnings remain documented in the linked review.
+
+Phase 0 remains closed with its documented limitations. Phases 1 and 2 retain
+their lifecycle, live delivery and device verification gaps. Phase 4 operational
+readiness remains open and has not started as a verification phase. This closure
+does not authorize the next slice or advance to another phase.
+
 ## Progress update — 2026-10-21
+
+Historical status below; the approved 2026-10-24 closure supersedes Phase 3 status.
 
 - Phase 0: closed with documented limitations.
 - Phase 1: implemented/unverified; remaining live lifecycle checks are outstanding.
@@ -29,12 +78,91 @@ This roadmap organizes existing work; it does not authorize implementation. Each
    Live/device verification pending.
    Evidence: evidence/enforcer-filters-slice-2/README.md
 
-### Deferred product work
+### Enforcer checks included in roadmap verification
 
-Slices 3–5 are saved in deferred-enforcer-slices.md:
-- Ticket paper and new-inspection form.
-- Enforcer notification parity.
-- Profile camera button overlap.
+The separate deferred-enforcer-slices.md tracker was removed at the user's
+request on 2026-10-22. All five slices have implementation evidence; remaining
+checks are tracked here with the corresponding roadmap stories. A single run can
+satisfy both when it explicitly covers the same acceptance criteria. None of these
+mobile slices is marked fully verified by this consolidation.
+
+| Existing slice | Roadmap verification | Remaining acceptance coverage |
+| --- | --- | --- |
+| 1 — Card summaries and ticket loading | Phase 1: enforcer inspection/ticket lists | Full `Ord No. {number}, Series of {series}` labels; private vendor without a stall; recoverable initial/refresh/paging errors; retry and ownership. Evidence: `evidence/enforcer-summary-slice-1/README.md`. |
+| 2 — Inspection and ticket filters | Phase 1: enforcer inspection/ticket lists | Inspections default All; tickets default Pending; All omits the filter; search survives selection; paging resets; stale responses cannot replace current results; narrow layout and role isolation. Evidence: `evidence/enforcer-filters-slice-2/README.md`. |
+| 3A — Ticket detail and preview paper | Phase 1: issuance, detail and settlement | Matching responsive paper; actual issued control number at 16px, PENDING in preview, none on warnings; full ordinance labels and code spacing; bottom-right prices only for cash fines; receipt selection/save/reopen and invalid-image recovery. Evidence: `evidence/enforcer-ticket-paper-slice-3a/redesign-report.md`. |
+| 3B — New-inspection form controls | Phase 1: new inspection | Full ordinance labels in rows/chips; selection/search/restrictions; compact photo action; native capture/cancel/permission/error/retry; small removal icons with accessible targets; gallery and draft preservation on preview Back. Evidence: `evidence/enforcer-form-controls-slice-3b/README.md`. |
+| 4 — Enforcer notification parity | Phase 2: cross-role notification integration | Vendor-style enforcer header/cards/filter; All/Unread counts and pagination; snapshot-before-write mark-all; partial failure and retry; correct role-specific detail navigation, ownership and persistence after relogin. Evidence: `evidence/enforcer-notification-slice-4/README.md`. |
+| 5 — Profile camera overlap | Phase 2: vendor/enforcer profile checks | Camera partly outside centered portrait; unclipped accessible outer-edge tap target; narrow/enlarged-text layouts; selection/cancel/removal/error/loading states and persisted photo changes. Evidence: `evidence/profile-camera-slice-5/README.md`. |
+
+Historical environment prerequisites (2026-10-22/23): later approved isolated-host
+verification and reuse are recorded in the closure evidence above. These earlier
+checks alone did not establish application or deployment readiness.
+
+Live E2E requires the explicitly identified disposable environment. The then-current
+local `marikina_market_e2e` schema was verified on 2026-10-22 with 35 migrations,
+four roles and reference data, but zero accounts. Shared synthetic account setup
+is proposed, not yet approved or executed. API/client routing and isolated
+email/push/storage/background-service configuration remain prerequisites.
+See `evidence/local-e2e-database/schema-completion-2026-10-22.md`.
+
+Account-setup preflight on 2026-10-23 supersedes the empty-account baseline:
+the database now has six users, six role assignments, two vendor profiles,
+one audit log and one backup schedule. The approved helper stopped before
+seeding; this task created no accounts or credentials. Existing records and
+credentials have not been validated. The user authorized preserving the
+LOGIN-enabled database owner; that setting was not changed. Confirm provenance
+and approve verification/reuse of the existing records before proceeding.
+No API/client startup is established by these checks. See
+`evidence/local-e2e-database/accounts-setup-status.md` and `accounts-preflight.json`
+in that directory.
+
+### Evidence reconciliation — 2026-10-22
+
+This read-only review of recorded results does not rerun application verification,
+advance phases or declare a whole phase complete. The 2026-10-21 overview above
+remains historical where later evidence is more specific.
+
+Recorded verified slices, within their approved scope:
+
+- Phase 3 accounts: `evidence/phase-3-accounts-live/README.md` and passing live TRX.
+- Phase 3 ordinances/penalties: `evidence/phase-3-ordinances-live/README.md` and passing live TRX.
+- Phase 3 vendor concurrency/narrow-layout fixes with final vendor story rerun:
+  `evidence/phase-3-vendor-fixes/README.md`, `browser-result.json`, `live-final.trx`.
+- Phase 3 market-section management/focus: `evidence/phase-3-market-section-focus-fix/README.md`
+  and passing focus-after TRX/browser results supersede the original focus blocker.
+- Phase 3 dashboard totals/navigation: `evidence/phase-3-dashboard-shortcut-fix/README.md`
+  and passing dashboard live TRX supersede the original shortcut blocker.
+- Phase 4 backup browser/manual download, automatic failure/retry/restart and
+  automated decrypt/restore drill: `evidence/phase-4-full-e2e/result.json` and
+  passing `full-e2e.trx`. Its README still says running; final artifacts establish
+  this bounded drill passed, not operational readiness or a user-operated restore.
+
+Remaining verification work as of 2026-10-22, grouped by phase:
+
+- Phase 1: registration submission/decisions and first login/OTP; warning/ticket
+  issuance; vendor-owned Records/proofs; cash-fine, blood-donation and
+  community-service settlement; cross-client persistence, role and failure paths.
+  Include enforcer slices 1–3 above.
+- Phase 2: vendor/enforcer inbox persistence/ownership and mark-all; real device
+  registration, push delivery/opening and post-commit delivery failure; profile,
+  account and QR actions with native-device/loading/empty/error/role coverage.
+  Include enforcer slices 4–5 above.
+- Phase 3: live analytics reconciliation and date boundaries; live audit filters,
+  counts/details/denial/recovery; close report snapshot/export regression gaps.
+  `evidence/phase-3-reports-live/README.md` records a passing live report story but
+  broad regression failures, so do not treat that whole slice as complete.
+  These historical Phase 3 gaps were subsequently reconciled by the current
+  analytics, audit and reports/regression evidence linked in the approved closure.
+- Phase 4: remaining outage/restart/permission cases, user-operated restore drill,
+  complete regression and cross-client E2E coverage, and current reproducible
+  setup/deployment/recovery documentation. Historical backup-drill results alone
+  do not close these criteria.
+
+At this 2026-10-22 review, Phase 0 remained closed with documented limitations and
+Phases 1–4 remained open as whole-phase verification. The approved 2026-10-24
+closure supersedes only the Phase 3 status. Previously passed isolated-host stories do not establish
+normal deployment startup or external delivery unless their evidence says so.
 
 ### Approved migration exception
 
@@ -74,7 +202,10 @@ Baseline: read-only inspection of the three working trees on 2026-10-15. All thr
 
 No product capability is initially marked complete. File or endpoint existence and historical results are insufficient.
 
-## Current progression decision (2026-10-17)
+## Historical progression decision (2026-10-17)
+
+Later separately approved verification tasks and the 2026-10-24 closure supersede
+the Phase 3 focus and verification deferral below. Phases 1 and 2 remain open.
 
 The user explicitly deferred further verification and approved moving to Phase 3. This advances the work focus; it does not establish completion of Phase 1 or Phase 2 exit criteria. The initial-state table above remains a historical baseline, not the current implementation inventory.
 
@@ -151,6 +282,9 @@ Exit criteria:
 - No blank placeholder remains in the approved vendor flows.
 
 ## Phase 3 — Verify administration and reporting
+
+Status: **Closed by user approval on 2026-10-24 for the approved stories within
+the limits and evidence recorded in the closure note above.**
 
 Goal: Make existing management and reporting functions dependable.
 

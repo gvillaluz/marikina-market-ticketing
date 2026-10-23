@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "marikina-market-mobile",
+            "cwd": "marikina-market-mobile",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "marikina-market-mobile (profile mode)",
+            "cwd": "marikina-market-mobile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "marikina-market-mobile (release mode)",
+            "cwd": "marikina-market-mobile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "marikina-market-mobile",
+            "cwd": ".workspace-backups\\monorepo-cutover-20261021\\originals\\marikina-market-mobile",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "marikina-market-mobile (profile mode)",
+            "cwd": ".workspace-backups\\monorepo-cutover-20261021\\originals\\marikina-market-mobile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "marikina-market-mobile (release mode)",
+            "cwd": ".workspace-backups\\monorepo-cutover-20261021\\originals\\marikina-market-mobile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

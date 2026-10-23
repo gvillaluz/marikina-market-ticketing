@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Application.Services;
 using MarikinaMarket.API.Domain.Entities;
@@ -13,6 +14,64 @@ namespace MarikinaMarket.Tests;
 
 public class AnalyticsCalculationTests
 {
+    [Fact]
+    public async Task Past_year_query_returns_the_selected_year_instead_of_current_year()
+    {
+        await using var context = Context(Records());
+        var service = new AdminAnalyticsService(new TicketRepository(context), new AnalyticsClock(Utc(2026, 2, 20)));
+        await using var host = await AuditHost.CreateAsync(services => services.AddSingleton<IAdminAnalyticsService>(service));
+        using var response = await host.SendAsync(HttpMethod.Get, "/api/admin/analytics/violation-trend?year=2025", "HeadAdmin");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.All(json.RootElement.EnumerateArray(), point => Assert.Equal(2025, point.GetProperty("year").GetInt32()));
+        Assert.Equal(1, json.RootElement[11].GetProperty("low_severity_count").GetInt32());
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("1")]
+    [InlineData("2")]
+    [InlineData("2027")]
+    [InlineData("not-a-year")]
+    [InlineData("2025.5")]
+    public async Task Every_analytics_endpoint_rejects_invalid_or_future_years(string year)
+    {
+        await using var context = Context([]);
+        var service = new AdminAnalyticsService(new TicketRepository(context), new AnalyticsClock(Utc(2026, 2, 20)));
+        await using var host = await AuditHost.CreateAsync(services => services.AddSingleton<IAdminAnalyticsService>(service));
+        foreach (var route in new[] { "violation-trend", "peak-violation-times", "violation-type-distribution", "inspection-ratio", "resolution-rate", "market-section-aggregation", "hotspot-ranking", "vendor-risk-ranking" })
+        {
+            using var response = await host.SendAsync(HttpMethod.Get, $"/api/admin/analytics/{route}?year={year}", "HeadAdmin");
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task Past_year_includes_exact_Manila_start_and_last_microsecond_but_excludes_adjacent_years()
+    {
+        var start = Utc(2024, 12, 31, 16);
+        var end = Utc(2025, 12, 31, 16);
+        await using var context = Context([
+            Record(1, start.AddTicks(-10)), Record(2, start),
+            Record(3, Utc(2025, 10, 24), severity: Severity.Moderate),
+            Record(4, end.AddTicks(-10), severity: Severity.High), Record(5, end)]);
+        var service = new AdminAnalyticsService(new TicketRepository(context), new AnalyticsClock(Utc(2026, 2, 20)));
+        Assert.Equal(3, (await service.GetInspectionRatioAsync(2025)).TicketCount);
+        var trend = await service.GetViolationTrendAsync(2025);
+        Assert.All(trend, row => Assert.Equal(2025, row.Year));
+        Assert.Equal(1, trend[0].LowSeverityCount);
+        Assert.Equal(1, trend[9].MediumSeverityCount);
+        Assert.Equal(1, trend[11].HighSeverityCount);
+        Assert.Equal(3, (await service.GetViolationResolutionRateAsync(2025)).TicketCount);
+        Assert.Equal(3, (await service.GetPeakViolationTimesAsync(2025)).Sum(row => row.TicketCount));
+        Assert.Equal(3, Assert.Single(await service.GetMarketSectionAggregationAsync(2025)).TicketCount);
+        var hotspot = Assert.Single(await service.GetHotspotRankingAsync(2025));
+        Assert.Equal(3, hotspot.TotalInspectionCount);
+        Assert.Equal(1, hotspot.PreviousPeriodCount);
+        Assert.Equal(1, (await service.GetInspectionRatioAsync()).TicketCount);
+        Assert.Equal(1, (await service.GetInspectionRatioAsync(2026)).TicketCount);
+    }
+
     private static DateTime Utc(int year, int month, int day, int hour = 0, int minute = 0) => new(year, month, day, hour, minute, 0, DateTimeKind.Utc);
     private static Ticket Record(int id, DateTime date, ViolationType type = ViolationType.Ticket, Severity severity = Severity.Minor) => new()
     { Id = id, IssuedAt = date, UpdatedAt = date, Type = type, HighestSeverity = severity, Status = type == ViolationType.Warning ? null : TicketStatus.Pending, Description = "Synthetic analytics record", MarketSectionId = 2 };

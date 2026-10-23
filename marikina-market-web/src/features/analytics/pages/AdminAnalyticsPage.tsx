@@ -1,4 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
+import AnalyticsYearFilter from "../components/AnalyticsYearFilter";
 import {
   InspectionRatioCard,
   ResolutionRateCard,
@@ -19,7 +20,12 @@ export default function AdminAnalyticsPage() {
     <div className={styles.page}>
       <PageHeader
         title="Violation Analytics"
-        subtitle="Year-to-date violation counts and trends in Manila time."
+        subtitle={
+          analytics.yearControl.year === analytics.yearControl.currentYear
+            ? "Year-to-date violation counts and trends in Manila time."
+            : `January–December ${analytics.yearControl.year} · Violation counts and trends in Manila time.`
+        }
+        actions={<AnalyticsYearFilter {...analytics.yearControl} />}
       />
 
       <section className={styles.section}>
@@ -63,6 +69,11 @@ export default function AdminAnalyticsPage() {
           />
           <HotspotRankingTable
             {...analytics.hotspots}
+            comparisonLabel={
+              analytics.yearControl.year === analytics.yearControl.currentYear
+                ? "Compared with the same period last year."
+                : `Compared with January–December ${analytics.yearControl.year - 1}.`
+            }
             onRetry={() => void analytics.hotspots.refetch()}
           />
         </div>

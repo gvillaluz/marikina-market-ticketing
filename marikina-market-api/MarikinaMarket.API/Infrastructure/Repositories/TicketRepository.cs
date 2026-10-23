@@ -971,10 +971,15 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     OffenseCount = v.Tickets.Count(t =>
                         t.Type == ViolationType.Ticket &&
                         t.IssuedAt >= start && t.IssuedAt <= end),
-                    HighestSeverity = v.Tickets
-                        .Where(t => t.Type == ViolationType.Ticket &&
-                            t.IssuedAt >= start && t.IssuedAt <= end)
-                        .Max(t => t.HighestSeverity),
+                    HighestSeverity = v.Tickets.Any(t => t.Type == ViolationType.Ticket &&
+                            t.IssuedAt >= start && t.IssuedAt <= end && t.HighestSeverity == Severity.High)
+                            ? Severity.High
+                        : v.Tickets.Any(t => t.Type == ViolationType.Ticket &&
+                            t.IssuedAt >= start && t.IssuedAt <= end && t.HighestSeverity == Severity.Moderate)
+                            ? Severity.Moderate
+                        : v.Tickets.Any(t => t.Type == ViolationType.Ticket &&
+                            t.IssuedAt >= start && t.IssuedAt <= end && t.HighestSeverity == Severity.Minor)
+                            ? Severity.Minor : null,
                     ComplianceScore = v.ComplianceScore
                 });
 

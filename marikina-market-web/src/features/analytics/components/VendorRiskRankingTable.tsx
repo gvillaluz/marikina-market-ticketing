@@ -21,7 +21,8 @@ function severityLabel(value: string | number | null): string {
 function severityClass(value: string | number | null): string {
   const severity = severityLabel(value).toLowerCase();
   if (severity.includes("high")) return styles.high;
-  if (severity.includes("moderate") || severity.includes("medium")) return styles.moderate;
+  if (severity.includes("moderate") || severity.includes("medium"))
+    return styles.moderate;
   if (severity.includes("low") || severity.includes("minor")) return styles.low;
   return styles.neutral;
 }
@@ -48,7 +49,7 @@ export default function VendorRiskRankingTable({
   return (
     <AnalyticsPanel
       title="Vendor Risk Ranking"
-      subtitle="Vendors ranked by recorded offenses and risk score."
+      subtitle="Offenses and severity are for the selected year. Risk scores and ranking use current compliance."
       skeletonVariant="table"
       isLoading={isLoading}
       isError={isError}
@@ -76,19 +77,27 @@ export default function VendorRiskRankingTable({
                 <td>{vendor.businessId}</td>
                 <td>{vendor.offenseCount}</td>
                 <td>
-                  <span className={`${styles.severity} ${severityClass(vendor.highestSeverity)}`}>
+                  <span
+                    className={`${styles.severity} ${severityClass(vendor.highestSeverity)}`}
+                  >
                     {severityLabel(vendor.highestSeverity)}
                   </span>
                 </td>
                 <td>
-                  <span className={`${styles.riskScore} ${riskClass(vendor.riskScore)}`}>
+                  <span
+                    className={`${styles.riskScore} ${riskClass(vendor.riskScore)}`}
+                  >
                     {riskLabel(vendor.riskScore)} · {vendor.riskScore}
                   </span>
                 </td>
               </tr>
             ))}
             {!isLoading && data.length === 0 && (
-              <tr><td className={styles.empty} colSpan={6}>No vendor risk records available.</td></tr>
+              <tr>
+                <td className={styles.empty} colSpan={6}>
+                  No vendor risk records available.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

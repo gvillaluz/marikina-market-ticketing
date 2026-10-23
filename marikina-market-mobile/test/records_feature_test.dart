@@ -1,4 +1,8 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,12 +26,16 @@ import 'package:marikina_market_mobile/features/records/data/repositories/record
 import 'package:marikina_market_mobile/features/records/domain/enums/records_filter.dart';
 import 'package:marikina_market_mobile/features/records/domain/entities/records_page_data.dart';
 import 'package:marikina_market_mobile/features/records/domain/entities/vendor_ticket_detail.dart';
+import 'package:marikina_market_mobile/features/records/data/models/vendor_ticket_detail_model.dart';
 import 'package:marikina_market_mobile/features/records/domain/use_cases/load_records_use_case.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/records/records_bloc.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/records/load_records.dart';
 import 'package:marikina_market_mobile/features/records/presentation/pages/records_page.dart';
 import 'package:marikina_market_mobile/features/records/presentation/widgets/record_card.dart';
 import 'package:marikina_market_mobile/features/records/presentation/widgets/vendor_record_detail_content.dart';
+import 'package:marikina_market_mobile/features/records/presentation/widgets/vendor_ticket_paper_header.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_header.dart';
+import 'features/tickets/presentation/ticket_paper_layout_test.dart' show paper;
 import 'features/auth/data/login_mobile_contract_test.dart'
     show contractClient, reply;
 import 'mobile_role_access_test.dart' show account;
@@ -95,6 +103,292 @@ Future<void> fetch(RecordsBloc bloc, LoadRecords event) async {
 }
 
 void main() {
+  const previews = bool.fromEnvironment('VENDOR_DETAIL_PREVIEWS');
+  setUpAll(() async {
+    if (!previews) return;
+    final sdk = Platform.environment['FLUTTER_ROOT']!;
+    final fonts = FontLoader('Roboto');
+    for (final font in ['roboto-regular.ttf', 'roboto-bold.ttf']) {
+      fonts.addFont(
+        File(
+          '$sdk/bin/cache/artifacts/material_fonts/$font',
+        ).readAsBytes().then(ByteData.sublistView),
+      );
+    }
+    await fonts.load();
+    await (FontLoader('MaterialIcons')..addFont(
+          File(
+            '$sdk/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+          ).readAsBytes().then(ByteData.sublistView),
+        ))
+        .load();
+  });
+
+  for (final width in [280.0, 400.0]) {
+    for (final ticket in [true, false]) {
+      testWidgets(
+        'vendor header matches enforcer pixels $width ticket=$ticket',
+        (tester) async {
+          tester.view.physicalSize = Size(width, 900);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          Future<ui.Image> render(Widget header) async {
+            await tester.pumpWidget(
+              MaterialApp(
+                theme: AppTheme.light,
+                home: Scaffold(
+                  body: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: RepaintBoundary(
+                      key: const ValueKey('header'),
+                      child: header,
+                    ),
+                  ),
+                ),
+              ),
+            );
+            await tester.runAsync(
+              () => precacheImage(
+                const AssetImage('assets/logo/org_logo.png'),
+                tester.element(find.byType(Scaffold)),
+              ),
+            );
+            await tester.pumpAndSettle();
+            return tester
+                .renderObject<RenderRepaintBoundary>(
+                  find.byKey(const ValueKey('header')),
+                )
+                .toImage();
+          }
+
+          final reference = await render(
+            TicketPaperHeader(
+              isTicket: ticket,
+              controlNumber: ticket ? 'TKT-2026-0042' : null,
+            ),
+          );
+          final actual = await render(
+            VendorTicketPaperHeader(
+              isTicket: ticket,
+              controlNumber: ticket ? 'TKT-2026-0042' : null,
+            ),
+          );
+          addTearDown(reference.dispose);
+          addTearDown(actual.dispose);
+          expect(actual.width, reference.width);
+          expect(actual.height, reference.height);
+          final expectedBytes = await reference.toByteData();
+          final actualBytes = await actual.toByteData();
+          expect(
+            actualBytes!.buffer.asUint8List(),
+            orderedEquals(expectedBytes!.buffer.asUint8List()),
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  for (final width in [280.0, 400.0]) {
+    for (final kind in [
+      'Warning',
+      'CashFine',
+      'BloodDonation',
+      'CommunityService',
+    ]) {
+      testWidgets('vendor paper fits $width with enlarged text: $kind', (
+        tester,
+      ) async {
+        tester.view.physicalSize = Size(width, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final warning = kind == 'Warning';
+        final fixture = VendorTicketDetailModel.fromJson({
+          ...detailResponse,
+          'type': warning ? 'Warning' : 'Ticket',
+          'control_number': warning ? null : 'TKT-2026-00000000000000000042',
+          'penalty_type': kind,
+          if (kind == 'CommunityService') 'community_service_hours': 8,
+        }).toEntity();
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: previews
+                ? AppTheme.light.copyWith(
+                    textTheme: AppTheme.light.textTheme.apply(
+                      fontFamily: 'Roboto',
+                    ),
+                  )
+                : AppTheme.light,
+            home: MediaQuery(
+              data: MediaQueryData(
+                size: Size(width, 900),
+                textScaler: const TextScaler.linear(2),
+                disableAnimations: true,
+              ),
+              child: Scaffold(
+                backgroundColor: AppTheme.ticketDetailBackground,
+                body: SingleChildScrollView(
+                  child: RepaintBoundary(
+                    key: const ValueKey('vendor-paper'),
+                    child: Padding(
+                      padding: AppTheme.ticketDetailPadding,
+                      child: VendorRecordDetailContent(detail: fixture),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.runAsync(
+          () => precacheImage(
+            const AssetImage('assets/logo/org_logo.png'),
+            tester.element(find.byType(Scaffold)),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Reyes Fresh Seafood'), findsOneWidget);
+        expect(find.text('Fish and Seafood Section'), findsOneWidget);
+        expect(find.text('1st offense'), findsOneWidget);
+        expect(find.text('₱500.00'), warning ? findsNothing : findsNWidgets(2));
+        expect(
+          find.text('CONTROL NO.'),
+          warning ? findsNothing : findsOneWidget,
+        );
+        expect(find.text('PENDING'), findsNothing);
+        expect(find.text('Submit receipt'), findsNothing);
+        expect(tester.takeException(), isNull);
+        if (previews) {
+          await tester.runAsync(() async {
+            final boundary = tester.renderObject<RenderRepaintBoundary>(
+              find.byKey(const ValueKey('vendor-paper')),
+            );
+            final image = await boundary.toImage();
+            try {
+              final png = await image.toByteData(
+                format: ui.ImageByteFormat.png,
+              );
+              final folder = Directory('build/vendor-detail-previews');
+              await folder.create(recursive: true);
+              await File(
+                '${folder.path}/vendor-$kind-${width.toInt()}-2x.png',
+              ).writeAsBytes(png!.buffer.asUint8List());
+            } finally {
+              image.dispose();
+            }
+          });
+        }
+      });
+    }
+  }
+
+  testWidgets('vendor and reference paper visual previews', (tester) async {
+    if (!previews) return;
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final role in ['vendor', 'enforcer']) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light.copyWith(
+            textTheme: AppTheme.light.textTheme.apply(fontFamily: 'Roboto'),
+          ),
+          home: Scaffold(
+            backgroundColor: AppTheme.ticketDetailBackground,
+            body: SingleChildScrollView(
+              child: RepaintBoundary(
+                key: const ValueKey('preview'),
+                child: Padding(
+                  padding: AppTheme.ticketDetailPadding,
+                  child: role == 'vendor'
+                      ? VendorRecordDetailContent(
+                          detail: VendorTicketDetailModel.fromJson(
+                            detailResponse,
+                          ).toEntity(),
+                        )
+                      : paper(isTicket: true, control: '101'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.runAsync(
+        () => precacheImage(
+          const AssetImage('assets/logo/org_logo.png'),
+          tester.element(find.byType(Scaffold)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.runAsync(() async {
+        final image = await tester
+            .renderObject<RenderRepaintBoundary>(
+              find.byKey(const ValueKey('preview')),
+            )
+            .toImage();
+        try {
+          final png = await image.toByteData(format: ui.ImageByteFormat.png);
+          await Directory(
+            'build/vendor-detail-previews',
+          ).create(recursive: true);
+          await File(
+            'build/vendor-detail-previews/$role-400.png',
+          ).writeAsBytes(png!.buffer.asUint8List());
+        } finally {
+          image.dispose();
+        }
+      });
+      expect(tester.takeException(), isNull);
+    }
+  });
+
+  testWidgets(
+    'vendor detail uses the issued paper header and ordinance layout',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: SizedBox(
+                width: 400,
+                child: VendorRecordDetailContent(
+                  detail: VendorTicketDetailModel.fromJson(
+                    detailResponse,
+                  ).toEntity(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('VIOLATION TICKET'), findsOneWidget);
+      final control = find.text('#101');
+      expect(control, findsOneWidget);
+      expect(
+        tester.widget<Text>(control).style,
+        AppTheme.ticketPaperControlStyle,
+      );
+      expect(find.text('PENDING'), findsNothing);
+      final price = find.text('₱500.00').first;
+      final code = find.text('SAMPLE-002');
+      expect(
+        tester.getTopLeft(price).dy,
+        greaterThan(tester.getBottomLeft(code).dy),
+      );
+      expect(
+        tester.getTopRight(price).dx,
+        greaterThan(tester.getTopRight(code).dx),
+      );
+      expect(find.text('Reyes Fresh Seafood'), findsOneWidget);
+      expect(find.text('Submit receipt'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets(
     'scrolling fetches only at the bottom and stops after the last page',
     (tester) async {

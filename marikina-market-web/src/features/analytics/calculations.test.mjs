@@ -11,6 +11,7 @@ import { MemoryRouter } from "react-router-dom";
 import ts from "typescript";
 
 const require = createRequire(import.meta.url);
+const { QueryClient, QueryClientProvider } = require("@tanstack/react-query");
 const root = path.resolve(
   path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1")),
   "../..",
@@ -77,6 +78,26 @@ const state = {
   errorMessage: "Unavailable",
   onRetry() {},
 };
+
+test("one labelled year control describes the selected full Manila year for all analytics", () => {
+  const Page = load("features/analytics/pages/AdminAnalyticsPage.tsx", {
+    "@/api/client": { default: {} },
+  }).default;
+  const html = renderToStaticMarkup(
+    React.createElement(
+      QueryClientProvider,
+      { client: new QueryClient() },
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ["/analytics?year=2025"] },
+        React.createElement(Page),
+      ),
+    ),
+  );
+  assert.match(html, /<label[^>]*for="analytics-year"[^>]*>Year<\/label>/);
+  assert.match(html, /id="analytics-year"[^>]*value="2025"/);
+  assert.match(html, /January–December 2025/);
+});
 function render(name, props) {
   const Component = load(`features/analytics/components/${name}.tsx`).default;
   return renderToStaticMarkup(
@@ -125,7 +146,70 @@ test("analytics panels show loading during a retry even when cached data exists"
       },
     },
   );
-  assert.ok(
-    Object.values(useAdminAnalyticsPage()).every((panel) => panel.isLoading),
+  function Probe() {
+    const { yearControl, ...panels } = useAdminAnalyticsPage();
+    assert.ok(yearControl.year > 0);
+    assert.ok(Object.values(panels).every((panel) => panel.isLoading));
+    return null;
+  }
+  renderToStaticMarkup(
+    React.createElement(MemoryRouter, null, React.createElement(Probe)),
+  );
+});
+
+test("every analytics query sends the selected year and separates years in its cache key", async () => {
+  const queries = [];
+  const requests = [];
+  const { useAdminAnalyticsPage } = load(
+    "features/analytics/hooks/useAdminAnalyticsPage.ts",
+    {
+      "@/api/client": {
+        default: {
+          get: async (route, options) => {
+            requests.push({ route, year: options.params.year });
+            return { data: [] };
+          },
+        },
+      },
+      "@tanstack/react-query": {
+        useQuery: (options) => {
+          queries.push(options);
+          return {
+            data: [],
+            isLoading: false,
+            isFetching: false,
+            isError: false,
+            refetch() {},
+          };
+        },
+      },
+    },
+  );
+  function Probe() {
+    useAdminAnalyticsPage();
+    return null;
+  }
+  for (const year of [2025, 2024]) {
+    renderToStaticMarkup(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: [`/analytics?year=${year}`] },
+        React.createElement(Probe),
+      ),
+    );
+  }
+  assert.equal(queries.length, 16);
+  for (let i = 0; i < queries.length; i++) {
+    assert.equal(queries[i].queryKey[2], i < 8 ? 2025 : 2024);
+    await queries[i].queryFn();
+  }
+  assert.equal(
+    new Set(queries.map((query) => JSON.stringify(query.queryKey))).size,
+    16,
+  );
+  assert.equal(new Set(requests.map((request) => request.route)).size, 8);
+  assert.deepEqual(
+    requests.map((request) => request.year),
+    [...Array(8).fill(2025), ...Array(8).fill(2024)],
   );
 });

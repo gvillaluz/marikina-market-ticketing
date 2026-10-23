@@ -22,15 +22,13 @@ class VendorSettlementSection extends StatelessWidget {
       }
       final colors = Theme.of(context).colorScheme;
       return Padding(
-        padding: const EdgeInsets.only(top: AppTheme.inspectionGap),
+        padding: const EdgeInsets.only(top: AppTheme.ticketSmallGap),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               state.isService ? 'Community Service Log' : 'Settlement Receipt',
-              style: AppTheme.profileHeadingStyle.copyWith(
-                color: colors.primary,
-              ),
+              style: AppTheme.detailTitleStyle.copyWith(color: colors.primary),
             ),
             Text(
               state.isService
@@ -38,17 +36,16 @@ class VendorSettlementSection extends StatelessWidget {
                   : detail.penaltyType == 'BloodDonation'
                   ? 'Upload a photo of the official donation receipt for this ticket.'
                   : 'Upload a photo of the official payment receipt to complete this ticket’s settlement record.',
-              style: AppTheme.inspectionBodyStyle,
             ),
-            const SizedBox(height: AppTheme.profileSmallGap),
+            const SizedBox(height: 10),
             DecoratedBox(
               decoration: BoxDecoration(
                 color: colors.surface,
-                borderRadius: AppTheme.settlementCardRadius,
+                borderRadius: AppTheme.ticketCardRadius,
                 border: Border.all(color: colors.outlineVariant),
               ),
               child: Padding(
-                padding: AppTheme.settlementCardPadding,
+                padding: AppTheme.ticketCardPadding,
                 child: state.isLoading
                     ? Center(
                         child: SizedBox.square(

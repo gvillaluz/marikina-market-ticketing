@@ -1,0 +1,15 @@
+.filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.year {
+  width: 7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.apply {
+  width: auto;
+}

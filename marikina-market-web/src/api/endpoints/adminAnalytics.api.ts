@@ -11,60 +11,70 @@ import type {
 } from "@/api/types/admin-analytics.types";
 
 export const adminAnalyticsApi = {
-  async getViolationTrend(): Promise<ViolationTrendPoint[]> {
+  async getViolationTrend(year?: number): Promise<ViolationTrendPoint[]> {
     const { data } = await client.get<ViolationTrendPoint[]>(
       "/admin/analytics/violation-trend",
+      { params: { year } },
     );
     return data;
   },
 
-  async getPeakViolationTimes(): Promise<PeakViolationTime[]> {
+  async getPeakViolationTimes(year?: number): Promise<PeakViolationTime[]> {
     const { data } = await client.get<PeakViolationTime[]>(
       "/admin/analytics/peak-violation-times",
+      { params: { year } },
     );
     return data;
   },
 
-  async getViolationTypeDistribution(): Promise<
-    ViolationCategoryDistribution[]
-  > {
+  async getViolationTypeDistribution(
+    year?: number,
+  ): Promise<ViolationCategoryDistribution[]> {
     const { data } = await client.get<ViolationCategoryDistribution[]>(
       "/admin/analytics/violation-type-distribution",
+      { params: { year } },
     );
     return data;
   },
 
-  async getInspectionRatio(): Promise<InspectionRatio> {
+  async getInspectionRatio(year?: number): Promise<InspectionRatio> {
     const { data } = await client.get<InspectionRatio>(
       "/admin/analytics/inspection-ratio",
+      { params: { year } },
     );
     return data;
   },
 
-  async getResolutionRate(): Promise<ViolationResolutionRate> {
+  async getResolutionRate(year?: number): Promise<ViolationResolutionRate> {
     const { data } = await client.get<ViolationResolutionRate>(
       "/admin/analytics/resolution-rate",
+      { params: { year } },
     );
     return data;
   },
 
-  async getMarketSectionAggregation(): Promise<MarketSectionAggregation[]> {
+  async getMarketSectionAggregation(
+    year?: number,
+  ): Promise<MarketSectionAggregation[]> {
     const { data } = await client.get<MarketSectionAggregation[]>(
       "/admin/analytics/market-section-aggregation",
+      { params: { year } },
     );
     return data;
   },
 
-  async getHotspotRanking(): Promise<HotspotRanking[]> {
+  async getHotspotRanking(year?: number): Promise<HotspotRanking[]> {
     const { data } = await client.get<HotspotRanking[]>(
       "/admin/analytics/hotspot-ranking",
+      { params: { year } },
     );
     return data;
   },
 
-  async getVendorRiskRanking(): Promise<VendorRiskRanking[]> {
+  async getVendorRiskRanking(year?: number): Promise<VendorRiskRanking[]> {
     const { data } = await client.get<VendorRiskRanking[]>(
       "/admin/analytics/vendor-risk-ranking",
+      { params: { year } },
     );
     return data;
   },
