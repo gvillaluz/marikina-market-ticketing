@@ -10,6 +10,7 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_penalty_detail.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_settlement_section.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ticket_summary_model.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_card.dart';
@@ -156,93 +157,140 @@ void main() {
     });
   }
 
-  testWidgets(
-    'warning details support null settlement status and large text at 280px',
-    (tester) async {
-      tester.view.physicalSize = const Size(280, 640);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      final client = contractClient(
-        (options) async => reply(options, {
-          'ticket_id': 42,
-          'enforcer_id': 7,
-          'vendor_id': 12,
-          'type': 'Warning',
-          'vendor_type': 'Public',
-          'business_id': 'BUS-12',
-          'business_name': 'Market Goods',
-          'first_name': 'Maria Isabel',
-          'last_name': 'Dela Cruz Santos',
-          'violations': [],
-          'issued_at': '2026-10-07T08:00:00Z',
-          'market_section_name': 'Section A',
-          'categories': [],
-          'description': 'Keep the stall and its surroundings clean.',
-        }),
-      );
-      addTearDown(client.dio.close);
-      final bloc = refreshBloc(client);
-      addTearDown(bloc.close);
-      await tester.runAsync(() async {
-        final loaded = bloc.stream.firstWhere(
-          (state) => state is TicketDetailLoaded,
-        );
-        bloc.add(LoadTicketDetail(42));
-        await loaded;
-      });
-      await tester.pumpWidget(
-        BlocProvider.value(
-          value: bloc,
-          child: MaterialApp(
+  for (final width in [280.0, 400.0]) {
+    testWidgets(
+      'warning details support null settlement status and large text at ${width.toInt()}px',
+      (tester) async {
+        tester.view.physicalSize = Size(width, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final paths = <String>[];
+        // Construct the real async pipeline in the same zone that awaits it.
+        final bloc = await tester.runAsync(() async {
+          final client = contractClient((options) async {
+            paths.add(options.path);
+            return reply(options, {
+              'ticket_id': 42,
+              'enforcer_id': 7,
+              'vendor_id': 12,
+              'type': 'Warning',
+              'status': null,
+              'penalty_type': null,
+              'control_number': null,
+              'vendor_type': 'Public',
+              'business_id': 'BUS-12',
+              'business_name': 'Market Goods',
+              'first_name': 'Maria Isabel',
+              'last_name': 'Dela Cruz Santos',
+              'violations': [],
+              'issued_at': '2026-10-07T08:00:00Z',
+              'market_section_name': 'Section A',
+              'categories': [],
+              'description': 'Keep the stall and its surroundings clean.',
+            });
+          });
+          addTearDown(client.dio.close);
+          final bloc = refreshBloc(client);
+          addTearDown(bloc.close);
+          final loaded = bloc.stream.firstWhere(
+            (state) => state is TicketDetailLoaded,
+          );
+          bloc.add(LoadTicketDetail(42));
+          await loaded.timeout(const Duration(seconds: 5));
+          return bloc;
+        });
+        expect(bloc, isNotNull);
+        final loaded = bloc!.state as TicketDetailLoaded;
+        expect(loaded.ticket.ticketStatus, isNull);
+        expect(loaded.ticket.penaltyType, isNull);
+        try {
+          await tester.pumpWidget(
+            BlocProvider.value(
+              value: bloc,
+              child: MaterialApp(
+                theme: AppTheme.light,
+                home: MediaQuery(
+                  data: const MediaQueryData(
+                    disableAnimations: true,
+                    textScaler: TextScaler.linear(2),
+                  ),
+                  child: const TicketDetailPage(ticketId: 42),
+                ),
+              ),
+            ),
+          );
+          expect(find.text('WRITTEN WARNING'), findsOneWidget);
+          expect(find.text('Market Goods'), findsOneWidget);
+          expect(
+            find.text('Keep the stall and its surroundings clean.'),
+            findsOneWidget,
+          );
+          expect(find.text('CONTROL NO.'), findsNothing);
+          expect(find.text('PENDING'), findsNothing);
+          expect(find.byType(TicketPenaltyDetail), findsNothing);
+          expect(find.byType(TicketSettlementSection), findsNothing);
+          expect(find.text('Total Fine Due:'), findsNothing);
+          expect(find.textContaining('₱'), findsNothing);
+          expect(paths, ['/enforcer/tickets/42']);
+          expect(tester.takeException(), isNull);
+        } finally {
+          await tester.pumpWidget(const SizedBox());
+        }
+      },
+    );
+  }
+  setUp(() => FlutterSecureStorage.setMockInitialValues({}));
+  for (final width in [280.0, 400.0]) {
+    testWidgets(
+      'ticket card wraps status, long control number, and dates at ${width.toInt()}px',
+      (tester) async {
+        tester.view.physicalSize = Size(width, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          MaterialApp(
             theme: AppTheme.light,
             home: MediaQuery(
-              data: const MediaQueryData(
-                disableAnimations: true,
-                textScaler: TextScaler.linear(2),
-              ),
-              child: const TicketDetailPage(ticketId: 42),
-            ),
-          ),
-        ),
-      );
-      expect(find.text('WRITTEN WARNING'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await tester.pumpWidget(const SizedBox());
-    },
-  );
-  setUp(() => FlutterSecureStorage.setMockInitialValues({}));
-  testWidgets(
-    'ticket card wraps status, long control number, and dates at 280px',
-    (tester) async {
-      tester.view.physicalSize = const Size(280, 640);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light,
-          home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
-            child: Scaffold(
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: TicketCard(
-                  ticketSummary: TicketSummaryModel.fromJson({
-                    ...ticketResponse,
-                    'control_number': 'TKT-2026-0000000042',
-                    'status': 'Contested',
-                  }).toEntity(),
+              data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+              child: Scaffold(
+                body: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: TicketCard(
+                    ticketSummary: TicketSummaryModel.fromJson({
+                      ...ticketResponse,
+                      'control_number': 'TKT-2026-0000000042',
+                      'status': 'Contested',
+                    }).toEntity(),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-      expect(tester.takeException(), isNull);
-      expect(find.text('Contested'), findsOneWidget);
-    },
-  );
+        );
+        expect(tester.takeException(), isNull);
+        expect(find.text('Contested'), findsOneWidget);
+        expect(find.text('#TKT-2026-0000000042'), findsOneWidget);
+        expect(find.textContaining('Oct 7, 2026'), findsOneWidget);
+        expect(find.text('CONTROL NO.'), findsOneWidget);
+        expect(find.text('Market Goods'), findsOneWidget);
+        final card = tester.getRect(find.byType(TicketCard));
+        for (final text
+            in find
+                .descendant(
+                  of: find.byType(TicketCard),
+                  matching: find.byType(Text),
+                )
+                .evaluate()) {
+          final bounds = tester.getRect(find.byWidget(text.widget));
+          expect(bounds.left, greaterThanOrEqualTo(card.left));
+          expect(bounds.right, lessThanOrEqualTo(card.right));
+        }
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+  }
   testWidgets('changing ticket status cancels pending search debounce', (
     tester,
   ) async {

@@ -49,32 +49,37 @@ DashboardBloc dashboardBloc(
   return bloc;
 }
 
-Future<void> loadSummary(DashboardBloc bloc) async {
-  final finished = bloc.stream.firstWhere(
-    (state) => state is DashboardSummaryLoaded || state is DashboardError,
-  );
+Future<void> loadSummary(WidgetTester tester, DashboardBloc bloc) async {
   bloc.add(LoadDashboardSummary());
-  await finished;
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 20));
+  expect(
+    bloc.state,
+    anyOf(isA<DashboardSummaryLoaded>(), isA<DashboardError>()),
+  );
 }
 
-Future<void> showOverview(WidgetTester tester, DashboardBloc bloc) =>
-    tester.pumpWidget(
-      BlocProvider.value(
-        value: bloc,
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: MediaQuery(
-            data: const MediaQueryData(disableAnimations: true),
-            child: const Scaffold(
-              body: SingleChildScrollView(
-                padding: EdgeInsets.all(20),
-                child: WeeklyOverviewSection(),
-              ),
-            ),
+Future<void> showOverview(
+  WidgetTester tester,
+  DashboardBloc bloc, {
+  bool disableAnimations = true,
+}) => tester.pumpWidget(
+  BlocProvider.value(
+    value: bloc,
+    child: MaterialApp(
+      theme: AppTheme.light,
+      home: MediaQuery(
+        data: MediaQueryData(disableAnimations: disableAnimations),
+        child: const Scaffold(
+          body: SingleChildScrollView(
+            padding: EdgeInsets.all(20),
+            child: WeeklyOverviewSection(),
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
 
 void main() {
   setUp(
@@ -83,60 +88,129 @@ void main() {
     }),
   );
 
+  for (final disableAnimations in [true, false]) {
+    testWidgets(
+      'refresh progress exposes valid semantics: disableAnimations=$disableAnimations',
+      (tester) async {
+        final semantics = tester.ensureSemantics();
+        final release = Completer<void>();
+        var calls = 0;
+        final bloc = dashboardBloc((options) async {
+          if (++calls > 1) await release.future;
+          return reply(options, summaryResponse);
+        });
+        try {
+          await loadSummary(tester, bloc);
+          await showOverview(
+            tester,
+            bloc,
+            disableAnimations: disableAnimations,
+          );
+          bloc.add(LoadDashboardSummary());
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 20));
+          expect(calls, 2);
+          final indicator = find.byType(CircularProgressIndicator);
+          expect(indicator, findsOneWidget);
+          final data = tester.getSemantics(indicator).getSemanticsData();
+          expect(data.label, 'Refreshing overview');
+          expect(data.value, disableAnimations ? '75' : '');
+          expect(data.minValue, disableAnimations ? '0' : isNull);
+          expect(data.maxValue, disableAnimations ? '100' : isNull);
+          expect(tester.takeException(), isNull);
+        } finally {
+          if (!release.isCompleted) release.complete();
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 20));
+          await tester.pumpWidget(const SizedBox.shrink());
+          semantics.dispose();
+        }
+      },
+    );
+  }
+
   testWidgets(
     'refresh preserves counters, coalesces requests, and retains data on failure',
     (tester) async {
       var calls = 0;
-      final pending = Completer<Response<Object?>>();
-      final requestStarted = Completer<RequestOptions>();
+      final releaseFailure = Completer<void>();
+      RequestOptions? refreshRequest;
       final bloc = dashboardBloc((options) async {
         calls++;
         if (calls == 1) return reply(options, summaryResponse);
-        requestStarted.complete(options);
-        return pending.future;
-      });
-      await loadSummary(bloc);
-      await showOverview(tester, bloc);
-      final cardsBefore = tester
-          .widgetList<CountCard>(find.byType(CountCard))
-          .toList();
-      final finished = bloc.stream.firstWhere(
-        (state) =>
-            state is DashboardSummaryLoaded &&
-            !state.isRefreshing &&
-            state.errorMessage != null,
-      );
-      bloc.add(LoadDashboardSummary());
-      final options = await requestStarted.future;
-      bloc.add(LoadDashboardSummary());
-      await tester.pump();
-      expect(calls, 2);
-      expect(find.byType(CountCard), findsNWidgets(3));
-      expect(find.byType(SkeletonBox), findsNothing);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      final cardsDuring = tester
-          .widgetList<CountCard>(find.byType(CountCard))
-          .toList();
-      for (var index = 0; index < cardsBefore.length; index++) {
-        expect(identical(cardsBefore[index], cardsDuring[index]), isTrue);
-      }
-      pending.completeError(
-        DioException(
+        refreshRequest = options;
+        await releaseFailure.future;
+        throw DioException(
           requestOptions: options,
           type: DioExceptionType.connectionError,
-        ),
-      );
-      await finished;
-      await tester.pumpAndSettle();
-      expect(find.text('2'), findsOneWidget);
-      expect(find.text('1'), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
-      expect(
-        find.text('No internet connection. Please try again.'),
-        findsOneWidget,
-      );
-      expect(find.text('Try again'), findsOneWidget);
-      expect(tester.takeException(), isNull);
+        );
+      });
+      final states = <DashboardState>[];
+      final subscription = bloc.stream.listen(states.add);
+      addTearDown(subscription.cancel);
+      try {
+        await loadSummary(tester, bloc);
+        await showOverview(tester, bloc);
+        expect(find.text('2'), findsOneWidget);
+        expect(find.text('1'), findsOneWidget);
+        expect(find.text('3'), findsOneWidget);
+        final cardsBefore = tester
+            .widgetList<CountCard>(find.byType(CountCard))
+            .toList();
+        bloc.add(LoadDashboardSummary());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(calls, 2);
+        expect(refreshRequest!.method, 'GET');
+        expect(refreshRequest!.path, '/enforcer/tickets/dashboard');
+        bloc.add(LoadDashboardSummary());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(calls, 2);
+        expect(
+          states.whereType<DashboardSummaryLoaded>().where(
+            (state) => state.isRefreshing,
+          ),
+          hasLength(1),
+        );
+        expect(find.byType(CountCard), findsNWidgets(3));
+        expect(find.byType(SkeletonBox), findsNothing);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        final cardsDuring = tester
+            .widgetList<CountCard>(find.byType(CountCard))
+            .toList();
+        for (var index = 0; index < cardsBefore.length; index++) {
+          expect(identical(cardsBefore[index], cardsDuring[index]), isTrue);
+        }
+        releaseFailure.complete();
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 20),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 2),
+        );
+        expect(bloc.state, isA<DashboardSummaryLoaded>());
+        final loaded = bloc.state as DashboardSummaryLoaded;
+        expect(loaded.isRefreshing, isFalse);
+        expect(
+          loaded.errorMessage,
+          'No internet connection. Please try again.',
+        );
+        expect(find.text('2'), findsOneWidget);
+        expect(find.text('1'), findsOneWidget);
+        expect(find.text('3'), findsOneWidget);
+        expect(
+          find.text('No internet connection. Please try again.'),
+          findsOneWidget,
+        );
+        expect(find.text('Try again'), findsOneWidget);
+        expect(calls, 2);
+        expect(tester.takeException(), isNull);
+      } finally {
+        if (!releaseFailure.isCompleted) releaseFailure.complete();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        await tester.pumpWidget(const SizedBox.shrink());
+      }
     },
   );
 
@@ -153,7 +227,7 @@ void main() {
         }
         return reply(options, summaryResponse);
       });
-      await loadSummary(bloc);
+      await loadSummary(tester, bloc);
       await showOverview(tester, bloc);
       expect(
         find.text('No internet connection. Please try again.'),
@@ -177,7 +251,7 @@ void main() {
         'total_recorded': 0,
       }),
     );
-    await loadSummary(bloc);
+    await loadSummary(tester, bloc);
     await showOverview(tester, bloc);
     expect(find.text('No activity this week'), findsOneWidget);
     expect(find.text('0'), findsNWidgets(3));
@@ -239,58 +313,61 @@ void main() {
         connectivity,
         (options) async => reply(options, profileResponse),
       );
-      addTearDown(auth.close);
-      await auth.stream.firstWhere((state) => state is Unauthenticated);
-      final authenticated = auth.stream.firstWhere(
-        (state) => state is Authenticated,
-      );
-      auth.add(
-        UserUpdated(
-          UserModel.fromJson({
-            ...profileResponse,
-            'firstName': 'Maria Isabel',
-            'lastName': 'Dela Cruz Santos',
-          }).toEntity(),
-        ),
-      );
-      await authenticated;
-      final bloc = dashboardBloc(
-        (options) async => reply(options, summaryResponse),
-      );
-      await loadSummary(bloc);
-      await tester.pumpWidget(
-        MultiBlocProvider(
-          providers: [
-            BlocProvider<DashboardBloc>.value(value: bloc),
-            BlocProvider<AuthBloc>.value(value: auth),
-            BlocProvider<ConnectivityCubit>.value(value: connectivity),
-          ],
-          child: MaterialApp(
-            theme: AppTheme.light,
-            home: MediaQuery(
-              data: const MediaQueryData(
-                disableAnimations: true,
-                textScaler: TextScaler.linear(2),
+      try {
+        await auth.stream.firstWhere((state) => state is Unauthenticated);
+        final authenticated = auth.stream.firstWhere(
+          (state) => state is Authenticated,
+        );
+        auth.add(
+          UserUpdated(
+            UserModel.fromJson({
+              ...profileResponse,
+              'firstName': 'Maria Isabel',
+              'lastName': 'Dela Cruz Santos',
+            }).toEntity(),
+          ),
+        );
+        await authenticated;
+        final bloc = dashboardBloc(
+          (options) async => reply(options, summaryResponse),
+        );
+        await loadSummary(tester, bloc);
+        await tester.pumpWidget(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<DashboardBloc>.value(value: bloc),
+              BlocProvider<AuthBloc>.value(value: auth),
+              BlocProvider<ConnectivityCubit>.value(value: connectivity),
+            ],
+            child: MaterialApp(
+              theme: AppTheme.light,
+              home: MediaQuery(
+                data: const MediaQueryData(
+                  disableAnimations: true,
+                  textScaler: TextScaler.linear(2),
+                ),
+                child: const Scaffold(body: DashboardPage()),
               ),
-              child: const Scaffold(body: DashboardPage()),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(
-        find.text('Welcome, Maria Isabel Dela Cruz Santos'),
-        findsOneWidget,
-      );
-      expect(find.text('Offline'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await tester.drag(
-        find.byType(SingleChildScrollView).first,
-        const Offset(0, -500),
-      );
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-      await tester.pumpWidget(const SizedBox());
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Welcome, Maria Isabel Dela Cruz Santos'),
+          findsOneWidget,
+        );
+        expect(find.text('Offline'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.drag(
+          find.byType(SingleChildScrollView).first,
+          const Offset(0, -500),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        unawaited(auth.close());
+      }
     },
   );
 
@@ -304,7 +381,7 @@ void main() {
       final bloc = dashboardBloc(
         (options) async => reply(options, summaryResponse),
       );
-      await loadSummary(bloc);
+      await loadSummary(tester, bloc);
       await showOverview(tester, bloc);
       final cards = find.byType(CountCard);
       expect(

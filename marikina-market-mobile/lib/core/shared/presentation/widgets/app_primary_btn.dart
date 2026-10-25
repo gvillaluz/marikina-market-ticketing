@@ -27,7 +27,6 @@ class AppPrimaryButton extends StatelessWidget {
                 value: MediaQuery.disableAnimationsOf(context) ? 0.75 : null,
                 strokeWidth: AppTheme.buttonProgressStrokeWidth,
                 semanticsLabel: 'Loading',
-                semanticsValue: 'In progress',
                 color: Theme.of(context).colorScheme.primary,
               ),
             )

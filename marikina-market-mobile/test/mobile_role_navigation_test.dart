@@ -24,6 +24,9 @@ import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
 import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:marikina_market_mobile/features/dashboard/data/data_sources/dashboard_remote_data_source.dart';
+import 'package:marikina_market_mobile/features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import 'package:marikina_market_mobile/features/dashboard/domain/use_cases/load_dashboard_summary_use_case.dart';
 import 'package:marikina_market_mobile/features/dashboard/presentation/pages/vendor_dashboard_page.dart';
 import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/vendor_dashboard_bloc.dart';
 import 'vendor_dashboard_test.dart' show vendorDashboardBloc, dashboardResponse;
@@ -45,7 +48,7 @@ import 'features/auth/login_mobile_flow_test.dart' show loginBloc, startLogin;
 import 'features/auth/login_test_network_info.dart';
 import 'features/auth/data/login_mobile_contract_test.dart'
     show profileResponse, otpResponse, tokenResponse, reply, contractClient;
-import 'dashboard_ui_test.dart' show dashboardBloc, summaryResponse;
+import 'dashboard_ui_test.dart' show summaryResponse;
 import 'vendor_notifications_test.dart' show vendorBloc, vendorWarning;
 
 Future<void> authenticate(
@@ -366,75 +369,108 @@ void main() {
     final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
     addTearDown(connectivity.close);
     final auth = loginBloc(connectivity, (options) async => reply(options, {}));
-    addTearDown(auth.close);
-    await tester.runAsync(
-      () => auth.stream.firstWhere((state) => state is Unauthenticated),
-    );
     final appRouter = AppRouter(authBloc: auth);
-    addTearDown(appRouter.dispose);
-    sl.registerFactory<DashboardBloc>(
-      () => dashboardBloc((options) async => reply(options, summaryResponse)),
+    final dashboardClient = contractClient(
+      (options) async => reply(options, summaryResponse),
     );
+    addTearDown(dashboardClient.dio.close);
+    final enforcerDashboard = DashboardBloc(
+      loadDashboardSummaryUseCase: LoadDashboardSummaryUseCase(
+        DashboardRepositoryImpl(DashboardRemoteDataSourceImpl(dashboardClient)),
+      ),
+    );
+    sl.registerFactory<DashboardBloc>(() => enforcerDashboard);
     addTearDown(() => sl.unregister<DashboardBloc>());
-    await tester.runAsync(() => authenticate(auth, 'MarketVendor'));
-    await showRoleApp(tester, appRouter, auth);
-    await tester.pumpAndSettle();
-    final oldShell = tester.state<State>(find.byType(StatefulNavigationShell));
-    appRouter.router.go(Routes.vendorRecords);
-    await tester.pumpAndSettle();
-    await tester.runAsync(() => authenticate(auth, 'MarketVendor', userId: 2));
-    await tester.pumpAndSettle();
-    expect(
-      appRouter.router.routeInformationProvider.value.uri.path,
-      Routes.vendorDashboard,
-    );
-    expect(
-      identical(
-        oldShell,
-        tester.state<State>(find.byType(StatefulNavigationShell)),
-      ),
-      isFalse,
-    );
-    appRouter.router.go(Routes.vendorRecords);
-    await tester.pumpAndSettle();
-    final sameAccountShell = tester.state<State>(
-      find.byType(StatefulNavigationShell),
-    );
-    await tester.runAsync(() => authenticate(auth, 'MarketVendor', userId: 2));
-    await tester.pumpAndSettle();
-    expect(
-      appRouter.router.routeInformationProvider.value.uri.path,
-      Routes.vendorRecords,
-    );
-    expect(
-      identical(
-        sameAccountShell,
-        tester.state<State>(find.byType(StatefulNavigationShell)),
-      ),
-      isTrue,
-    );
-    await tester.runAsync(
-      () => authenticate(auth, 'MarketEnforcer', userId: 3),
-    );
-    await tester.pumpAndSettle();
-    expect(
-      appRouter.router.routeInformationProvider.value.uri.path,
-      Routes.dashboard,
-    );
-    expect(
-      tester
-          .widgetList<NavigationDestination>(find.byType(NavigationDestination))
-          .map((destination) => destination.label),
-      ['Dashboard', 'Inspections', 'Tickets', 'Profile'],
-    );
-    appRouter.router.go(Routes.vendorRecords);
-    await tester.pumpAndSettle();
-    expect(
-      appRouter.router.routeInformationProvider.value.uri.path,
-      Routes.dashboard,
-    );
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox());
+    Future<void> updateAccount(String role, {int userId = 1}) async {
+      final changed = authenticate(auth, role, userId: userId);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(auth.state, isA<Authenticated>());
+      final user = (auth.state as Authenticated).user;
+      expect(user.role.value, role);
+      expect(user.userId, userId);
+      await changed;
+    }
+
+    Future<void> settleRoutes() async {
+      await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      await tester.pumpAndSettle();
+    }
+
+    try {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(auth.state, isA<Unauthenticated>());
+      await updateAccount('MarketVendor');
+      await showRoleApp(tester, appRouter, auth);
+      await settleRoutes();
+      final oldShell = tester.state<State>(
+        find.byType(StatefulNavigationShell),
+      );
+      appRouter.router.go(Routes.vendorRecords);
+      await settleRoutes();
+      await updateAccount('MarketVendor', userId: 2);
+      await settleRoutes();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.vendorDashboard,
+      );
+      expect(
+        identical(
+          oldShell,
+          tester.state<State>(find.byType(StatefulNavigationShell)),
+        ),
+        isFalse,
+      );
+      appRouter.router.go(Routes.vendorRecords);
+      await settleRoutes();
+      final sameAccountShell = tester.state<State>(
+        find.byType(StatefulNavigationShell),
+      );
+      await updateAccount('MarketVendor', userId: 2);
+      await settleRoutes();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.vendorRecords,
+      );
+      expect(
+        identical(
+          sameAccountShell,
+          tester.state<State>(find.byType(StatefulNavigationShell)),
+        ),
+        isTrue,
+      );
+      await updateAccount('MarketEnforcer', userId: 3);
+      await settleRoutes();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.dashboard,
+      );
+      expect(
+        tester
+            .widgetList<NavigationDestination>(
+              find.byType(NavigationDestination),
+            )
+            .map((destination) => destination.label),
+        ['Dashboard', 'Inspections', 'Tickets', 'Profile'],
+      );
+      appRouter.router.go(Routes.vendorRecords);
+      await settleRoutes();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.dashboard,
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      appRouter.dispose();
+      unawaited(auth.close());
+      if (!enforcerDashboard.isClosed) unawaited(enforcerDashboard.close());
+      await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      await tester.pump();
+    }
   });
 
   testWidgets(

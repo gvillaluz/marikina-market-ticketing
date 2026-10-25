@@ -39,13 +39,9 @@ class VendorSettlementSection extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.surface,
-                borderRadius: AppTheme.ticketCardRadius,
-                border: Border.all(color: colors.outlineVariant),
-              ),
+              decoration: AppTheme.ticketSettlementDecoration,
               child: Padding(
-                padding: AppTheme.ticketCardPadding,
+                padding: AppTheme.ticketSettlementPadding,
                 child: state.isLoading
                     ? Center(
                         child: SizedBox.square(

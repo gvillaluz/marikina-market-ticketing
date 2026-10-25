@@ -302,12 +302,25 @@ void main() {
   });
   test('duplicate recovery operations use one pending request', () async {
     final requested = Completer<RequestOptions>();
-    final pending = Completer<Response<Object?>>();
+    final releaseFailure = Completer<void>();
     var calls = 0;
-    final client = contractClient((options) {
+    final client = contractClient((options) async {
       calls++;
-      requested.complete(options);
-      return pending.future;
+      expect(options.path, '/auth/send-otp');
+      expect(options.data, {'username': 'enforcer01', 'channel': 'email'});
+      if (calls == 1) {
+        requested.complete(options);
+        await releaseFailure.future;
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+        );
+      }
+      return reply(options, {
+        'message': 'Code sent.',
+        'resend_cooldown_seconds': 30,
+        'code_expiry_seconds': 600,
+      });
     });
     addTearDown(client.dio.close);
     final repository = PasswordRecoveryRepositoryImpl(
@@ -319,19 +332,54 @@ void main() {
       verifyOtpUseCase: VerifyCodeUseCase(repository),
       resetPasswordUseCase: ResetPasswordUseCase(repository),
     );
-    addTearDown(bloc.close);
+    addTearDown(() async {
+      if (!releaseFailure.isCompleted) releaseFailure.complete();
+      await bloc.close();
+    });
+    final states = <PasswordRecoveryState>[];
+    final subscription = bloc.stream.listen(states.add);
+    addTearDown(subscription.cancel);
     bloc.add(SendOtp(username: 'enforcer01', channel: 'email'));
-    final options = await requested.future;
+    await requested.future;
     bloc.add(SendOtp(username: 'enforcer01', channel: 'email'));
     await Future<void>.delayed(Duration.zero);
+    expect(states.whereType<SendOtpLoading>(), hasLength(1));
     expect(calls, 1);
     final failed = bloc.stream.firstWhere((state) => state is SendOtpFailed);
-    pending.completeError(
-      DioException(
-        requestOptions: options,
-        type: DioExceptionType.connectionError,
+    releaseFailure.complete();
+    expect(
+      await failed,
+      isA<SendOtpFailed>().having(
+        (state) => state.message,
+        'message',
+        'No internet connection. Please try again.',
       ),
     );
-    await failed;
+    expect(calls, 1);
+
+    final retried = bloc.stream.firstWhere((state) => state is OtpSent);
+    bloc.add(SendOtp(username: 'enforcer01', channel: 'email'));
+    expect(
+      await retried,
+      isA<OtpSent>()
+          .having((state) => state.result.message, 'message', 'Code sent.')
+          .having(
+            (state) => state.result.resendCooldownSeconds,
+            'resend cooldown',
+            30,
+          )
+          .having(
+            (state) => state.result.codeExpirySeconds,
+            'code expiry',
+            600,
+          ),
+    );
+    expect(calls, 2);
+    expect(states, [
+      isA<SendOtpLoading>(),
+      isA<SendOtpFailed>(),
+      isA<SendOtpLoading>(),
+      isA<OtpSent>(),
+    ]);
   });
 }

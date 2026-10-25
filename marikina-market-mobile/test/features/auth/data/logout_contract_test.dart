@@ -55,11 +55,12 @@ void main() {
   testWidgets('logout validation feedback remains visible after navigation', (
     tester,
   ) async {
+    final received = <RequestOptions>[];
     final connectivity = ConnectivityCubit(LogoutTestNetworkInfo());
     addTearDown(connectivity.close);
-    final bloc = loginBloc(
-      connectivity,
-      (options) async => throw DioException(
+    final bloc = loginBloc(connectivity, (options) async {
+      received.add(options);
+      throw DioException(
         requestOptions: options,
         type: DioExceptionType.badResponse,
         response: Response<Object?>(
@@ -67,27 +68,53 @@ void main() {
           statusCode: 400,
           data: {'message': 'Device token is invalid.'},
         ),
-      ),
-    );
-    addTearDown(bloc.close);
-    await tester.runAsync(() async {
-      await bloc.stream.firstWhere((state) => state is Unauthenticated);
-      final failed = bloc.stream.firstWhere(
-        (state) => state is AuthConnectionError,
       );
-      bloc.add(LogoutUser(false));
-      await failed;
     });
-    await tester.pumpWidget(
-      BlocProvider.value(
+    try {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(bloc.state, isA<Unauthenticated>());
+      expect(received, isEmpty);
+      bloc.add(LogoutUser(false));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(bloc.state, isA<AuthConnectionError>());
+      expect(
+        (bloc.state as AuthConnectionError).message,
+        'Device token is invalid.',
+      );
+      expect(received, hasLength(1));
+      final request = received.single;
+      expect(request.method, 'POST');
+      expect(request.path, '/Auth/logout');
+      expect(request.headers.containsKey('Authorization'), isFalse);
+      expect(request.extra['skipAuth'], isTrue);
+      expect(request.contentType, Headers.jsonContentType);
+      expect(request.data, {
+        'device_token': 'test-device-token',
+        'refresh_token': 'test-refresh-token',
+      });
+      expect(await storage.read(key: 'access_token'), isNull);
+      expect(await storage.read(key: 'refresh_token'), isNull);
+      expect(await storage.read(key: 'user_info_key'), isNull);
+      expect(await storage.read(key: 'pending_logouts'), isNull);
+      final destination = BlocProvider.value(
         value: bloc,
         child: MaterialApp(
           home: Scaffold(body: SingleChildScrollView(child: LoginCard())),
         ),
-      ),
-    );
-    expect(find.text('Device token is invalid.'), findsOneWidget);
-    await tester.pumpWidget(const SizedBox.shrink());
+      );
+      await tester.pumpWidget(destination);
+      expect(find.text('Device token is invalid.'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(destination);
+      expect(find.text('Device token is invalid.'), findsOneWidget);
+      expect(received, hasLength(1));
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      unawaited(bloc.close());
+    }
   });
 
   for (final onlineAtStartup in [true, false]) {

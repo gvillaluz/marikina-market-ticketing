@@ -22,31 +22,36 @@ void main() {
       expect(MobileRouteAccess.redirect(auth, path), Routes.vendorDashboard);
     }
   });
-  test('vendor access is limited to its four empty tabs', () {
-    final auth = account('MarketVendor');
-    for (final path in [
-      Routes.vendorDashboard,
-      Routes.vendorRecords,
-      Routes.vendorNotifications,
-      Routes.vendorProfile,
-    ]) {
-      expect(MobileRouteAccess.redirect(auth, path), isNull);
-    }
-    for (final path in [
-      Routes.dashboard,
-      Routes.inspetions,
-      Routes.tickets,
-      '/ticket/42',
-      Routes.newInspection,
-      Routes.newInspectionPreview,
-      Routes.notifications,
-      Routes.profile,
-      Routes.editProfile,
-      Routes.changePassword,
-    ]) {
-      expect(MobileRouteAccess.redirect(auth, path), Routes.vendorDashboard);
-    }
-  });
+  test(
+    'vendor access includes approved vendor pages and rejects enforcer pages',
+    () {
+      final auth = account('MarketVendor');
+      for (final path in [
+        Routes.vendorDashboard,
+        Routes.vendorRecords,
+        Routes.vendorNotifications,
+        Routes.vendorProfile,
+        Routes.vendorQr,
+        Routes.editProfile,
+        Routes.changePassword,
+        '/vendor/records/42',
+      ]) {
+        expect(MobileRouteAccess.redirect(auth, path), isNull);
+      }
+      for (final path in [
+        Routes.dashboard,
+        Routes.inspetions,
+        Routes.tickets,
+        '/ticket/42',
+        Routes.newInspection,
+        Routes.newInspectionPreview,
+        Routes.notifications,
+        Routes.profile,
+      ]) {
+        expect(MobileRouteAccess.redirect(auth, path), Routes.vendorDashboard);
+      }
+    },
+  );
   test('enforcers keep their pages and cannot open vendor routes', () {
     final auth = account('MarketEnforcer');
     expect(MobileRouteAccess.redirect(auth, Routes.login), Routes.dashboard);

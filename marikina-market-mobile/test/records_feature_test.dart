@@ -18,6 +18,9 @@ import 'package:marikina_market_mobile/features/records/domain/use_cases/submit_
 import 'package:marikina_market_mobile/features/records/presentation/bloc/vendor_settlement/vendor_settlement_bloc.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/record_detail/record_detail_bloc.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
+import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_penalty_detail.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
 import 'package:marikina_market_mobile/core/errors/failure.dart';
 import 'package:marikina_market_mobile/core/router/mobile_route_access.dart';
@@ -103,6 +106,57 @@ Future<void> fetch(RecordsBloc bloc, LoadRecords event) async {
 }
 
 void main() {
+  for (final severity in Severity.values) {
+    testWidgets('vendor severity matches issued paper ${severity.value}', (
+      tester,
+    ) async {
+      Widget frame(Widget child) => MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(body: SingleChildScrollView(child: child)),
+      );
+      await tester.pumpWidget(
+        frame(
+          TicketPenaltyDetail(
+            severity: severity,
+            penaltyType: PenaltyType.cashFine,
+            totalFineAmount: 500,
+            dueDate: DateTime.utc(2026, 10, 18),
+          ),
+        ),
+      );
+      final referenceText = tester.widget<Text>(find.text(severity.value));
+      final referenceBadge = tester.widget<Container>(
+        find
+            .ancestor(
+              of: find.text(severity.value),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      await tester.pumpWidget(
+        frame(
+          VendorRecordDetailContent(
+            detail: VendorTicketDetailModel.fromJson({
+              ...detailResponse,
+              'severity': severity.value,
+            }).toEntity(),
+          ),
+        ),
+      );
+      final actualText = tester.widget<Text>(find.text(severity.value));
+      final actualBadge = tester.widget<Container>(
+        find
+            .ancestor(
+              of: find.text(severity.value),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      expect(actualText.style!.color, referenceText.style!.color);
+      expect(actualBadge.decoration, referenceBadge.decoration);
+      expect(tester.takeException(), isNull);
+    });
+  }
   const previews = bool.fromEnvironment('VENDOR_DETAIL_PREVIEWS');
   setUpAll(() async {
     if (!previews) return;
@@ -155,11 +209,13 @@ void main() {
               ),
             );
             await tester.pumpAndSettle();
-            return tester
-                .renderObject<RenderRepaintBoundary>(
-                  find.byKey(const ValueKey('header')),
-                )
-                .toImage();
+            return (await tester.runAsync(
+              () => tester
+                  .renderObject<RenderRepaintBoundary>(
+                    find.byKey(const ValueKey('header')),
+                  )
+                  .toImage(),
+            ))!;
           }
 
           final reference = await render(
@@ -178,8 +234,8 @@ void main() {
           addTearDown(actual.dispose);
           expect(actual.width, reference.width);
           expect(actual.height, reference.height);
-          final expectedBytes = await reference.toByteData();
-          final actualBytes = await actual.toByteData();
+          final expectedBytes = await tester.runAsync(reference.toByteData);
+          final actualBytes = await tester.runAsync(actual.toByteData);
           expect(
             actualBytes!.buffer.asUint8List(),
             orderedEquals(expectedBytes!.buffer.asUint8List()),
@@ -251,7 +307,10 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Reyes Fresh Seafood'), findsOneWidget);
         expect(find.text('Fish and Seafood Section'), findsOneWidget);
-        expect(find.text('1st offense'), findsOneWidget);
+        expect(
+          find.text('1st offense'),
+          warning ? findsNothing : findsOneWidget,
+        );
         expect(find.text('₱500.00'), warning ? findsNothing : findsNWidgets(2));
         expect(
           find.text('CONTROL NO.'),
@@ -259,6 +318,12 @@ void main() {
         );
         expect(find.text('PENDING'), findsNothing);
         expect(find.text('Submit receipt'), findsNothing);
+        expect(
+          find.text('Photo Evidence Record'),
+          warning ? findsNothing : findsOneWidget,
+        );
+        expect(find.text('Settlement Receipt'), findsNothing);
+        expect(find.text('Community Service Log'), findsNothing);
         expect(tester.takeException(), isNull);
         if (previews) {
           await tester.runAsync(() async {
@@ -375,6 +440,12 @@ void main() {
       expect(find.text('PENDING'), findsNothing);
       final price = find.text('₱500.00').first;
       final code = find.text('SAMPLE-002');
+      expect(
+        (tester.getCenter(price).dy -
+                tester.getCenter(find.text('1st offense')).dy)
+            .abs(),
+        lessThanOrEqualTo(3),
+      );
       expect(
         tester.getTopLeft(price).dy,
         greaterThan(tester.getBottomLeft(code).dy),
@@ -735,6 +806,112 @@ void main() {
       expect(bloc.state.items, hasLength(2));
       expect(bloc.state.error, isNotNull);
       expect(bloc.state.isRefreshing, isFalse);
+    },
+  );
+  test(
+    'records paging failure preserves data and retry appends once',
+    () async {
+      final queries = <Map<String, Object?>>[];
+      final repository = recordsRepository((options) async {
+        queries.add(Map<String, Object?>.from(options.queryParameters));
+        if (queries.length == 2) {
+          throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.connectionError,
+          );
+        }
+        return reply(options, {
+          'items': [
+            {...recordResponse, 'ticket_id': queries.length == 1 ? 101 : 102},
+          ],
+          'has_more': queries.length == 1,
+          'total': 2,
+        });
+      });
+      final bloc = RecordsBloc(LoadRecordsUseCase(repository));
+      addTearDown(bloc.close);
+      await fetch(bloc, const LoadRecords());
+      await fetch(bloc, const LoadRecords(offset: 1));
+      expect(bloc.state.items.map((item) => item.ticketId), [101]);
+      expect(bloc.state.isLoadMoreError, isTrue);
+      expect(bloc.state.isLoadingMore, isFalse);
+      expect(bloc.state.hasMore, isTrue);
+      expect(bloc.state.error, isNotNull);
+      await fetch(bloc, const LoadRecords(offset: 1));
+      expect(bloc.state.items.map((item) => item.ticketId), [101, 102]);
+      expect(bloc.state.isLoadMoreError, isFalse);
+      expect(bloc.state.isLoadingMore, isFalse);
+      expect(bloc.state.error, isNull);
+      expect(bloc.state.hasMore, isFalse);
+      expect(queries.map((query) => query['offset']), [0, 1, 1]);
+    },
+  );
+  test(
+    'records query change resets paging and ignores an old pending page',
+    () async {
+      final started = Completer<RequestOptions>();
+      final pending = Completer<Response<Object?>>();
+      final queries = <Map<String, Object?>>[];
+      final repository = recordsRepository((options) async {
+        queries.add(Map<String, Object?>.from(options.queryParameters));
+        if (queries.length == 2) {
+          started.complete(options);
+          return pending.future;
+        }
+        final changed = queries.length > 2;
+        return reply(options, {
+          'items': [
+            {
+              ...recordResponse,
+              'ticket_id': changed ? 201 : 101,
+              'type': changed ? 'Warning' : 'Ticket',
+            },
+          ],
+          'has_more': !changed,
+          'total': changed ? 1 : 2,
+        });
+      });
+      final bloc = RecordsBloc(LoadRecordsUseCase(repository));
+      addTearDown(bloc.close);
+      await fetch(bloc, const LoadRecords());
+      bloc.add(const LoadRecords(offset: 1));
+      final options = await started.future;
+      await fetch(
+        bloc,
+        const LoadRecords(
+          search: 'market & attire',
+          filter: RecordsFilter.warning,
+        ),
+      );
+      expect(queries, [
+        {'offset': 0},
+        {'offset': 1},
+        {'offset': 0, 'search': 'market & attire', 'type': 'Warning'},
+      ]);
+      expect(bloc.state.items.map((item) => item.ticketId), [201]);
+      final afterChange = <List<int>>[];
+      final subscription = bloc.stream.listen(
+        (state) =>
+            afterChange.add(state.items.map((item) => item.ticketId).toList()),
+      );
+      pending.complete(
+        reply(options, {
+          'items': [
+            {...recordResponse, 'ticket_id': 102},
+          ],
+          'has_more': false,
+          'total': 2,
+        }),
+      );
+      // Keep the BLoC open while the HTTP/interceptor continuation completes.
+      // A separate negative-control run checks sensitivity to a late append.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await subscription.cancel();
+      expect(afterChange, isEmpty);
+      expect(bloc.state.items.map((item) => item.ticketId), [201]);
+      expect(bloc.state.search, 'market & attire');
+      expect(bloc.state.filter, RecordsFilter.warning);
+      expect(bloc.state.total, 1);
     },
   );
   test(

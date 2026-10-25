@@ -16,7 +16,6 @@ class ProcessLoadingOverlay extends StatelessWidget {
             child: CircularProgressIndicator(
               value: MediaQuery.disableAnimationsOf(context) ? 0.75 : null,
               semanticsLabel: 'Processing inspection',
-              semanticsValue: 'In progress',
             ),
           ),
           const SizedBox(height: AppTheme.inspectionSmallGap),

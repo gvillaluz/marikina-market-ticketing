@@ -30,6 +30,7 @@ Use the build, test, and format commands listed in the `AGENTS.md` of each repo 
 - Wait for explicit user approval before implementation. Approval covers this slice only.
 - Plan approval is a strict scope gate. Stop and request approval if any prerequisite, path, dependency, or change falls outside the approved plan. Do not ask again for unchanged approval.
 - Missing prerequisites become separate small approved tasks. Do not claim readiness based on assumptions.
+- Before asking for approval, explain the acceptance criteria and the tests in plain language, including what each test proves. I approve only when I can explain them myself.
 
 ## 4. Build
 
@@ -48,6 +49,8 @@ Use the build, test, and format commands listed in the `AGENTS.md` of each repo 
 - Preserve existing architectures, naming, paging, security, styling, and secret-storage patterns.
 - Keep writes within approved paths. Preserve existing uncommitted work.
 - Run targeted checks during implementation. Stop if an unapproved dependency, path, or prerequisite is required.
+
+- If a check fails, find the root cause before changing more code. Do not patch symptoms or retry blindly.
 
 ## 5. End-to-end Verify
 

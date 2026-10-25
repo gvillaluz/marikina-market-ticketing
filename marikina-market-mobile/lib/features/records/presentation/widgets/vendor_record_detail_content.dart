@@ -169,16 +169,20 @@ class VendorRecordDetailContent extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
-                              color: AppTheme.inspectionSeverityBackground(
-                                detail.severity!,
-                              ),
+                              color: switch (detail.severity!) {
+                                'High' => AppColors.secondaryRed,
+                                'Moderate' => AppColors.primaryYellow,
+                                _ => AppColors.tertiary,
+                              },
                             ),
                             child: Text(
                               detail.severity!,
                               style: TextStyle(
-                                color: AppTheme.inspectionSeverityColor(
-                                  detail.severity!,
-                                ),
+                                color: switch (detail.severity!) {
+                                  'High' => AppColors.primaryRed,
+                                  'Moderate' => AppColors.secondaryYellow,
+                                  _ => AppColors.primary,
+                                },
                               ),
                             ),
                           ),
@@ -278,8 +282,10 @@ class VendorRecordDetailContent extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: AppTheme.ticketSmallGap),
-        VendorRecordEvidenceSection(urls: detail.evidenceUrls),
+        if (!warning) ...[
+          const SizedBox(height: AppTheme.ticketSmallGap),
+          VendorRecordEvidenceSection(urls: detail.evidenceUrls),
+        ],
       ],
     );
   }

@@ -16,22 +16,13 @@ class VendorRecordViolationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final count = violation.offenseCount;
-    // Same offense palette as the issued enforcer paper.
-    final background = count > 2
-        ? const Color(0xFFFCEBEB)
-        : count > 1
-        ? const Color(0xFFFAEEDA)
-        : const Color(0xFFEAF3DE);
-    final foreground = count > 2
-        ? const Color(0xFF791F1F)
-        : count > 1
-        ? const Color(0xFF633806)
-        : const Color(0xFF27500A);
+    final background = AppTheme.ticketOffenseBackground(count);
+    final foreground = AppTheme.ticketOffenseColor(count);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: AppTheme.ticketOrdinancePadding,
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.lightGrey),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: AppTheme.ticketOrdinanceRadius,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,40 +40,53 @@ class VendorRecordViolationCard extends StatelessWidget {
               color: AppColors.mediumGrey,
             ),
           ),
-          const SizedBox(height: AppTheme.ticketSmallGap),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-              decoration: BoxDecoration(
-                color: background,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Wrap(
-                spacing: AppTheme.ticketTinyGap,
-                children: [
-                  Icon(Icons.restore_outlined, color: foreground, size: 15),
-                  Text(
-                    '${count.toOrdinal()} offense',
-                    style: TextStyle(
-                      color: foreground,
-                      fontSize: AppTheme.captionFontSize,
+          if (!warning) ...[
+            const SizedBox(height: AppTheme.ticketSmallGap),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              spacing: AppTheme.ticketTinyGap,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: AppTheme.ticketOffensePadding,
+                      decoration: BoxDecoration(
+                        color: background,
+                        borderRadius: AppTheme.ticketOrdinanceRadius,
+                      ),
+                      child: Wrap(
+                        spacing: AppTheme.ticketTinyGap,
+                        children: [
+                          Icon(
+                            Icons.restore_outlined,
+                            color: foreground,
+                            size: 15,
+                          ),
+                          Text(
+                            '${count.toOrdinal()} offense',
+                            style: TextStyle(
+                              color: foreground,
+                              fontSize: AppTheme.captionFontSize,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          // Preserve the vendor's existing amount visibility for every penalty type.
-          if (!warning && violation.penaltyAmount != null) ...[
-            const SizedBox(height: AppTheme.ticketTinyGap),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '₱${violation.penaltyAmount!.toStringAsFixed(2)}',
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+                ),
+                // Preserve vendor amounts for every existing penalty type.
+                if (violation.penaltyAmount != null)
+                  Flexible(
+                    flex: 2,
+                    child: Text(
+                      '₱${violation.penaltyAmount!.toStringAsFixed(2)}',
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+              ],
             ),
           ],
         ],

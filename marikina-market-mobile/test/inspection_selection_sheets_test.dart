@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_hive_model.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_model.dart';
@@ -32,6 +33,54 @@ void main() {
     }
   });
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
+
+  for (final disableAnimations in [true, false]) {
+    testWidgets(
+      'loading primary button has valid semantics: disableAnimations=$disableAnimations',
+      (tester) async {
+        final semantics = tester.ensureSemantics();
+        var presses = 0;
+        try {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: AppTheme.light,
+              home: MediaQuery(
+                data: MediaQueryData(disableAnimations: disableAnimations),
+                child: Scaffold(
+                  body: AppPrimaryButton(
+                    label: 'Confirm selection',
+                    iconData: Icons.check,
+                    isLoading: true,
+                    onPressed: () => presses++,
+                  ),
+                ),
+              ),
+            ),
+          );
+          final indicator = find.byType(CircularProgressIndicator);
+          final data = tester.getSemantics(indicator).getSemanticsData();
+          expect(data.label, 'Loading\nConfirm selection');
+          expect(data.value, disableAnimations ? '75' : '');
+          expect(data.minValue, disableAnimations ? '0' : isNull);
+          expect(data.maxValue, disableAnimations ? '100' : isNull);
+          expect(
+            tester
+                .widget<ElevatedButton>(find.byType(ElevatedButton))
+                .onPressed,
+            isNull,
+          );
+          await tester.tap(find.text('Confirm selection'));
+          expect(presses, 0);
+          await tester.pump(const Duration(milliseconds: 100));
+          expect(tester.binding.hasScheduledFrame, !disableAnimations);
+          expect(tester.takeException(), isNull);
+        } finally {
+          await tester.pumpWidget(const SizedBox.shrink());
+          semantics.dispose();
+        }
+      },
+    );
+  }
 
   for (final width in [280.0, 400.0]) {
     for (final warning in [true, false]) {
@@ -247,7 +296,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       final request = Completer<RequestOptions>();
-      final response = Completer<Response<Object?>>();
+      final release = Completer<void>();
       var checks = 0;
       final bloc = await tester.runAsync(
         () => listBloc((options) async {
@@ -255,10 +304,17 @@ void main() {
             return reply(options, [ordinanceResponse]);
           }
           checks++;
-          request.complete(options);
-          return response.future;
+          if (!request.isCompleted) request.complete(options);
+          await release.future;
+          throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.connectionError,
+          );
         }),
       );
+      addTearDown(() {
+        if (!release.isCompleted) release.complete();
+      });
       await tester.runAsync(() async {
         final loaded = bloc!.stream.firstWhere(
           (state) => state is OrdinanceSelectionLoaded,
@@ -298,37 +354,40 @@ void main() {
           .onPressed!;
       confirm();
       confirm();
-      final options = await tester.runAsync(() => request.future);
       await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(request.isCompleted, isTrue);
+      final options = await request.future;
+      expect(options.path, '/enforcer/tickets/warning-check');
       expect(checks, 1);
       expect(
         tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
         isNull,
       );
+      // The selected chip is above the viewport with enlarged text and a keyboard.
       expect(
-        tester.widget<InputChip>(find.byType(InputChip)).onDeleted,
+        tester
+            .widget<InputChip>(find.byType(InputChip, skipOffstage: false))
+            .onDeleted,
         isNull,
       );
       expect(tester.takeException(), isNull);
-      await tester.runAsync(() async {
-        final failed = bloc.stream.firstWhere(
-          (state) => state is WarningOrdinanceCheckError,
-        );
-        response.completeError(
-          DioException(
-            requestOptions: options!,
-            type: DioExceptionType.connectionError,
-          ),
-        );
-        await failed;
-      });
+      release.complete();
+      await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      await tester.pump(const Duration(milliseconds: 20));
       await tester.pumpAndSettle();
+      expect(bloc.state, isA<WarningOrdinanceCheckError>());
+      expect(checks, 1);
       expect(
         tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
         isNotNull,
       );
       expect(
-        tester.widget<InputChip>(find.byType(InputChip)).onDeleted,
+        tester
+            .widget<InputChip>(find.byType(InputChip, skipOffstage: false))
+            .onDeleted,
         isNotNull,
       );
       expect(tester.takeException(), isNull);

@@ -10,6 +10,7 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_prim
 import '../bloc/vendor_settlement/vendor_settlement_bloc.dart';
 import '../bloc/vendor_settlement/vendor_settlement_state.dart';
 import '../bloc/vendor_settlement/submit_vendor_receipt.dart';
+import '../bloc/vendor_settlement/clear_vendor_receipt_upload_error.dart';
 import 'vendor_settlement_photo.dart';
 
 class VendorReceiptSection extends StatefulWidget {
@@ -71,6 +72,9 @@ class _VendorReceiptSectionState extends State<VendorReceiptSection> {
       );
       if (mounted && photo != null && widget.settlement.canUpload) {
         setState(() => _photo = photo);
+        context.read<VendorSettlementBloc>().add(
+          const ClearVendorReceiptUploadError(),
+        );
       }
     } on PlatformException {
       if (mounted) {
@@ -154,7 +158,14 @@ class _VendorReceiptSectionState extends State<VendorReceiptSection> {
           ),
           if (_photo != null)
             TextButton.icon(
-              onPressed: busy ? null : () => setState(() => _photo = null),
+              onPressed: busy
+                  ? null
+                  : () {
+                      setState(() => _photo = null);
+                      context.read<VendorSettlementBloc>().add(
+                        const ClearVendorReceiptUploadError(),
+                      );
+                    },
               icon: const Icon(Icons.close),
               label: const Text('Remove photo'),
             ),

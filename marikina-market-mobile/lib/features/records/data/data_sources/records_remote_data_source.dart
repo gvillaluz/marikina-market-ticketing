@@ -59,9 +59,8 @@ class RecordsRemoteDataSource {
           8,
           (index) => bytes[index] == pngSignature[index],
         ).every((matches) => matches);
-    if ((!jpeg && !png) ||
-        (extension == 'png' && !png) ||
-        (extension != 'png' && !jpeg)) {
+    // Picker compression can change the encoding without updating the suffix.
+    if (!jpeg && !png) {
       throw ValidationException('Choose a valid JPG, JPEG, or PNG photo.');
     }
     final form = FormData.fromMap({

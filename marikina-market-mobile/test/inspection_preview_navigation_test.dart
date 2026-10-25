@@ -20,6 +20,9 @@ import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_even
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_hive_model.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_summary.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
+import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/fine_summary_section.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
@@ -69,6 +72,53 @@ Future<void> flush(WidgetTester tester) async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  for (final width in [280.0, 390.0, 800.0]) {
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('fine total fits $width px at text scale $scale', (
+        tester,
+      ) async {
+        tester.view.physicalSize = Size(width, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light,
+            home: MediaQuery(
+              data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+              child: Scaffold(
+                body: SingleChildScrollView(
+                  padding: AppTheme.inspectionCardPadding,
+                  child: FineSummarySection(
+                    items: [],
+                    fineSummary: FineSummary(
+                      totalPaymentAmount: 12500.50,
+                      severity: Severity.minor,
+                      breakdownItems: [],
+                    ),
+                    isTicket: true,
+                    onDelete: (_) => fail('Layout must not change selections.'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        final label = find.text('Total Fine Amount: ');
+        final amount = find.text('₱12,500.50');
+        expect(label, findsOneWidget);
+        expect(amount, findsOneWidget);
+        final section = tester.getRect(find.byType(FineSummarySection));
+        for (final finder in [label, amount]) {
+          final rect = tester.getRect(finder);
+          expect(rect.left, greaterThanOrEqualTo(section.left));
+          expect(rect.right, lessThanOrEqualTo(section.right));
+        }
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
   setUpAll(() {
     final adapter = OrdinanceHiveModelAdapter();
     if (!Hive.isAdapterRegistered(adapter.typeId)) {

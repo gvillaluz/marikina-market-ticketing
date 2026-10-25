@@ -67,3 +67,13 @@ These rules cover the whole system. Layer details live in `marikina-market-api/A
 - Mark a feature slice complete only when its approved acceptance criteria and required verification pass. Otherwise report implemented/unverified or blocked, with the remaining steps.
 - Record pre-existing failures separately from failures introduced by the task.
 - Propose roadmap completion or advancement only with evidence, and wait for approval before starting the next slice or phase.
+
+## Learned rules
+
+When I correct you or reject your approach, fix it first, then propose
+a one-line rule: `N. [CATEGORY] Always/Never X, because Y.` Add it
+below only after I confirm. Before proposing, check whether an existing
+rule already covers it; if so, propose superseding it. Rules specific
+to one app go in that app's AGENTS.md. Newer rules win conflicts.
+
+<!-- Rules below this line -->

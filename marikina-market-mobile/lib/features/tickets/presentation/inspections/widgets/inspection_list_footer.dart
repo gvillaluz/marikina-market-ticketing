@@ -22,7 +22,6 @@ class InspectionListFooter extends StatelessWidget {
               semanticsLabel: state.isLoadingMore
                   ? 'Loading more inspections'
                   : 'Refreshing inspections',
-              semanticsValue: 'In progress',
             ),
           ),
         ),

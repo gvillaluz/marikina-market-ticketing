@@ -102,7 +102,10 @@ void main() {
             );
           }
         });
-        await tester.runAsync(() => loadFirstPage(bloc));
+        bloc.add(LoadTicketSummary());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(bloc.state, isA<TicketsLoaded>());
         await tester.pumpWidget(
           BlocProvider.value(
             value: bloc,
@@ -117,8 +120,11 @@ void main() {
             .widget<RefreshIndicator>(find.byType(RefreshIndicator))
             .onRefresh()
             .then((_) => finished = true);
-        final options = await tester.runAsync(() => requested.future);
         await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(requested.isCompleted, isTrue);
+        final options = await requested.future;
+        expect(requests, 2);
         expect(bloc.state, isA<TicketsLoaded>());
         expect((bloc.state as TicketsLoaded).isRefreshing, isTrue);
         expect(find.byType(SkeletonBox), findsNothing);
@@ -127,20 +133,20 @@ void main() {
           findsOneWidget,
         );
         expect(finished, isFalse);
-        await tester.runAsync(() async {
-          response.complete(
-            reply(options!, {
-              'items': [
-                if (!empty)
-                  {...ticketResponse, 'business_name': 'Updated Market Goods'},
-              ],
-              'has_more': false,
-            }),
-          );
-          await refresh;
-        });
+        response.complete(
+          reply(options, {
+            'items': [
+              if (!empty)
+                {...ticketResponse, 'business_name': 'Updated Market Goods'},
+            ],
+            'has_more': false,
+          }),
+        );
         await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
         expect(finished, isTrue);
+        await refresh;
+        expect(requests, 2);
         expect((bloc.state as TicketsLoaded).isRefreshing, isFalse);
         expect(
           find.text(empty ? 'No Tickets Found' : 'Updated Market Goods'),

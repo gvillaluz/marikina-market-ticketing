@@ -251,6 +251,38 @@ class AppTheme {
       BoxShadow(color: Color(0x0A17212D), blurRadius: 12, offset: Offset(0, 3)),
     ],
   );
+  static const ticketOrdinancePadding = EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 10,
+  );
+  static const ticketOrdinanceRadius = BorderRadius.all(Radius.circular(10));
+  static const ticketOffensePadding = EdgeInsets.symmetric(
+    horizontal: 5,
+    vertical: 3,
+  );
+  static Color ticketOffenseBackground(int count) => count > 2
+      ? const Color(0xFFFCEBEB)
+      : count > 1
+      ? const Color(0xFFFAEEDA)
+      : const Color(0xFFEAF3DE);
+  static Color ticketOffenseColor(int count) => count > 2
+      ? const Color(0xFF791F1F)
+      : count > 1
+      ? const Color(0xFF633806)
+      : const Color(0xFF27500A);
+  static const ticketSettlementPadding = EdgeInsets.all(14);
+  static final ticketSettlementDecoration = BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(14),
+    border: Border.all(color: AppColors.lightGrey.withValues(alpha: .5)),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: .06),
+        blurRadius: 4,
+        offset: const Offset(0, 2),
+      ),
+    ],
+  );
   static const notificationCompactHeaderPadding = EdgeInsets.fromLTRB(
     13,
     20,

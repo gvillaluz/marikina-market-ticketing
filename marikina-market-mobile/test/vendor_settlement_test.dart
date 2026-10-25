@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +15,7 @@ import 'package:marikina_market_mobile/core/shared/domain/entities/community_ser
 import 'package:marikina_market_mobile/core/shared/domain/entities/ticket_receipt_proof.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
 import 'package:marikina_market_mobile/features/records/data/models/vendor_ticket_detail_model.dart';
 import 'package:marikina_market_mobile/features/records/domain/entities/vendor_ticket_detail.dart';
 import 'package:marikina_market_mobile/features/records/domain/entities/submit_vendor_receipt_params.dart';
@@ -22,7 +25,9 @@ import 'package:marikina_market_mobile/features/records/domain/use_cases/submit_
 import 'package:marikina_market_mobile/features/records/presentation/bloc/vendor_settlement/vendor_settlement_bloc.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/vendor_settlement/load_vendor_settlement.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/vendor_settlement/submit_vendor_receipt.dart';
+import 'package:marikina_market_mobile/features/records/presentation/bloc/vendor_settlement/clear_vendor_receipt_upload_error.dart';
 import 'package:marikina_market_mobile/features/records/presentation/widgets/vendor_settlement_section.dart';
+import 'package:marikina_market_mobile/features/records/presentation/widgets/vendor_record_detail_content.dart';
 import 'package:marikina_market_mobile/features/records/presentation/widgets/vendor_service_progress_section.dart';
 import 'records_feature_test.dart' show recordsRepository, detailResponse;
 import 'features/auth/data/login_mobile_contract_test.dart' show reply;
@@ -87,6 +92,184 @@ void main() {
       'access_token': 'vendor-test-token',
     }),
   );
+  for (final kind in ['CashFine', 'BloodDonation']) {
+    for (final action in ['replace', 'remove']) {
+      testWidgets('receipt error recovery $kind $action', (tester) async {
+        late File invalid;
+        late File valid;
+        late VendorSettlementBloc bloc;
+        var posts = 0;
+        final response = {...receiptResponse, 'penalty_type': kind};
+        await tester.runAsync(() async {
+          final folder = await proofFolder();
+          invalid = File('${folder.path}/invalid.png');
+          await invalid.writeAsString('THIS IS NOT AN IMAGE');
+          valid = await File(
+            'assets/logo/org_logo.png',
+          ).absolute.copy('${folder.path}/replacement.png');
+          final repository = recordsRepository((options) async {
+            if (options.method == 'POST') {
+              posts++;
+              return reply(options, {
+                ...response,
+                'proof_urls': ['https://example.com/saved-receipt'],
+              });
+            }
+            return reply(options, response);
+          });
+          bloc = VendorSettlementBloc(
+            loadReceipt: LoadVendorReceiptUseCase(repository),
+            loadProgress: LoadVendorServiceProgressUseCase(repository),
+            submitReceipt: SubmitVendorReceiptUseCase(repository),
+          );
+          await load(bloc, detail(kind: kind));
+        });
+        addTearDown(bloc.close);
+        String? pickerPath = invalid.path;
+        const picker = MethodChannel('plugins.flutter.io/image_picker');
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        messenger.setMockMethodCallHandler(picker, (_) async => pickerPath);
+        addTearDown(() => messenger.setMockMethodCallHandler(picker, null));
+        await tester.pumpWidget(
+          BlocProvider.value(
+            value: bloc,
+            child: MaterialApp(
+              theme: AppTheme.light,
+              home: const Scaffold(
+                body: SingleChildScrollView(child: VendorSettlementSection()),
+              ),
+            ),
+          ),
+        );
+        Future<void> flushReceipt() async {
+          for (var i = 0; i < 10; i++) {
+            await tester.pump();
+            await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 20)),
+            );
+          }
+          await tester.pumpAndSettle();
+        }
+
+        Future<void> choosePhoto(Finder target) async {
+          await tester.ensureVisible(target);
+          await tester.tap(target);
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Choose from photos'));
+          await flushReceipt();
+        }
+
+        await choosePhoto(find.text('Attach receipt photo'));
+        await tester.ensureVisible(find.text('Submit receipt'));
+        await tester.tap(find.text('Submit receipt'));
+        await flushReceipt();
+        const error = 'Choose a valid JPG, JPEG, or PNG photo.';
+        expect(find.text(error), findsOneWidget);
+        expect(bloc.state.uploadError, error);
+        expect(posts, 0);
+
+        // Cancelling the native picker must not clear the failed selection.
+        pickerPath = null;
+        await choosePhoto(find.byType(Image).first);
+        expect(find.text(error), findsOneWidget);
+        expect(find.text('Remove photo'), findsOneWidget);
+        expect(bloc.state.uploadError, error);
+
+        if (action == 'remove') {
+          await tester.ensureVisible(find.text('Remove photo'));
+          await tester.tap(find.text('Remove photo'));
+          await flushReceipt();
+          expect(find.text('Attach receipt photo'), findsOneWidget);
+          final submit = tester.widget<AppPrimaryButton>(
+            find.widgetWithText(AppPrimaryButton, 'Submit receipt'),
+          );
+          expect(submit.onPressed, isNull);
+        } else {
+          pickerPath = valid.path;
+          await choosePhoto(find.byType(Image).first);
+          expect(find.text('Remove photo'), findsOneWidget);
+        }
+        expect(find.text(error), findsNothing);
+        expect(bloc.state.uploadError, isNull);
+        expect(posts, 0);
+        if (action == 'replace') {
+          // Clearing an old error must not hide a later invalid submission.
+          pickerPath = invalid.path;
+          await choosePhoto(find.byType(Image).first);
+          await tester.ensureVisible(find.text('Submit receipt'));
+          await tester.tap(find.text('Submit receipt'));
+          await flushReceipt();
+          expect(find.text(error), findsOneWidget);
+          expect(posts, 0);
+          pickerPath = valid.path;
+          await choosePhoto(find.byType(Image).first);
+          expect(find.text(error), findsNothing);
+          await tester.ensureVisible(find.text('Submit receipt'));
+          await tester.tap(find.text('Submit receipt'));
+          await flushReceipt();
+          expect(posts, 1);
+          expect(bloc.state.hasUploaded, isTrue);
+          expect(bloc.state.detail!.status, TicketStatus.pending);
+          expect(find.text('Submit receipt'), findsNothing);
+          expect(
+            find.text(
+              'Settlement receipt saved. This record cannot be changed.',
+            ),
+            findsOneWidget,
+          );
+        }
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+  }
+  testWidgets('warning hides evidence and every settlement section', (
+    tester,
+  ) async {
+    var calls = 0;
+    final repository = recordsRepository((options) async {
+      calls++;
+      return reply(options, receiptResponse);
+    });
+    late VendorSettlementBloc bloc;
+    final warning = detail(type: 'Warning');
+    await tester.runAsync(() async {
+      bloc = VendorSettlementBloc(
+        loadReceipt: LoadVendorReceiptUseCase(repository),
+        loadProgress: LoadVendorServiceProgressUseCase(repository),
+        submitReceipt: SubmitVendorReceiptUseCase(repository),
+      );
+      await load(bloc, warning).timeout(const Duration(seconds: 5));
+    });
+    addTearDown(bloc.close);
+    await tester.pumpWidget(
+      BlocProvider.value(
+        value: bloc,
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  VendorRecordDetailContent(detail: warning),
+                  const VendorSettlementSection(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('WRITTEN WARNING'), findsOneWidget);
+    expect(find.text('1st offense'), findsNothing);
+    expect(find.text('Photo Evidence Record'), findsNothing);
+    expect(find.text('Settlement Receipt'), findsNothing);
+    expect(find.text('Community Service Log'), findsNothing);
+    expect(find.text('Submit receipt'), findsNothing);
+    expect(calls, 0);
+    expect(tester.takeException(), isNull);
+  });
   test(
     'shared models parse the vendor contracts, including BloodDonation and integer hours',
     () {
@@ -148,6 +331,7 @@ void main() {
     );
     addTearDown(bloc.close);
     await load(bloc, detail(status: 'Paid'));
+    bloc.add(const ClearVendorReceiptUploadError());
     bloc.add(const SubmitVendorReceipt('unused.png'));
     await Future<void>.delayed(Duration.zero);
     expect(posts, 0);
@@ -184,9 +368,11 @@ void main() {
       final saved = bloc.stream.firstWhere((state) => state.hasUploaded);
       bloc.add(SubmitVendorReceipt(photo.path));
       final options = await request.future;
+      bloc.add(const ClearVendorReceiptUploadError());
       bloc.add(SubmitVendorReceipt(photo.path));
       await Future<void>.delayed(Duration.zero);
       expect(posts, 1);
+      expect(bloc.state.isUploading, isTrue);
       expect(options.path, '/vendor/tickets/101/settlement/receipt');
       expect(options.headers['Authorization'], 'Bearer vendor-test-token');
       expect(options.contentType, startsWith('multipart/form-data'));
@@ -208,6 +394,52 @@ void main() {
       expect(posts, 1);
     },
   );
+  for (final sample in [
+    ('scaled_receipt.png', true, 'proof.jpg', 'image/jpeg'),
+    ('receipt.jpg', true, 'proof.jpg', 'image/jpeg'),
+    ('receipt.jpeg', true, 'proof.jpg', 'image/jpeg'),
+    ('receipt.png', false, 'proof.png', 'image/png'),
+    ('receipt.jpeg', false, 'proof.png', 'image/png'),
+  ]) {
+    test(
+      'receipt bytes determine multipart format: ${sample.$1}/${sample.$4}',
+      () async {
+        final folder = await proofFolder();
+        final bytes = sample.$2
+            ? base64Decode(
+                '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9U6KKKAP/2Q==',
+              )
+            : await File('assets/logo/org_logo.png').readAsBytes();
+        final photo = File('${folder.path}/${sample.$1}');
+        await photo.writeAsBytes(bytes);
+        var posts = 0;
+        final repository = recordsRepository((options) async {
+          posts++;
+          expect(options.method, 'POST');
+          expect(options.path, '/vendor/tickets/101/settlement/receipt');
+          final form = options.data as FormData;
+          expect(form.fields, isEmpty);
+          expect(form.files.single.key, 'proof_file');
+          final upload = form.files.single.value;
+          expect(upload.filename, sample.$3);
+          expect(upload.contentType.toString(), sample.$4);
+          expect(
+            await upload.finalize().expand((chunk) => chunk).toList(),
+            bytes,
+          );
+          return reply(options, {
+            ...receiptResponse,
+            'proof_urls': ['https://example.com/saved-receipt'],
+          });
+        });
+        final result = await repository.submitReceipt(
+          SubmitVendorReceiptParams(ticketId: 101, filePath: photo.path),
+        );
+        expect(result, isA<Success<TicketReceiptProof>>());
+        expect(posts, 1);
+      },
+    );
+  }
   test(
     'invalid type, disguised files, and files over 5 MB never reach HTTP',
     () async {
@@ -220,12 +452,25 @@ void main() {
       await handle.close();
       final gif = File('${folder.path}/invalid.gif');
       await gif.writeAsBytes([71, 73, 70]);
+      final empty = File('${folder.path}/empty.jpg');
+      await empty.writeAsBytes([]);
+      final shortJpeg = File('${folder.path}/short.jpeg');
+      await shortJpeg.writeAsBytes([255, 216]);
+      final shortPng = File('${folder.path}/short.png');
+      await shortPng.writeAsBytes([137, 80, 78, 71, 13, 10, 26]);
       var calls = 0;
       final repository = recordsRepository((options) async {
         calls++;
         return reply(options, receiptResponse);
       });
-      for (final path in [invalid.path, oversized.path, gif.path]) {
+      for (final path in [
+        invalid.path,
+        oversized.path,
+        gif.path,
+        empty.path,
+        shortJpeg.path,
+        shortPng.path,
+      ]) {
         expect(
           await repository.submitReceipt(
             SubmitVendorReceiptParams(ticketId: 101, filePath: path),
@@ -272,6 +517,10 @@ void main() {
       bloc.add(SubmitVendorReceipt(photo.path));
       await failed;
       expect(bloc.state.canUpload, isFalse);
+      final uncertainState = bloc.state;
+      bloc.add(const ClearVendorReceiptUploadError());
+      await Future<void>.delayed(Duration.zero);
+      expect(identical(bloc.state, uncertainState), isTrue);
       bloc.add(SubmitVendorReceipt(photo.path));
       await Future<void>.delayed(Duration.zero);
       expect(posts, 1);
@@ -290,13 +539,19 @@ void main() {
       final repository = recordsRepository(
         (options) async => reply(options, receiptResponse),
       );
-      final bloc = VendorSettlementBloc(
-        loadReceipt: LoadVendorReceiptUseCase(repository),
-        loadProgress: LoadVendorServiceProgressUseCase(repository),
-        submitReceipt: SubmitVendorReceiptUseCase(repository),
-      );
+      late VendorSettlementBloc bloc;
+      await tester.runAsync(() async {
+        bloc = VendorSettlementBloc(
+          loadReceipt: LoadVendorReceiptUseCase(repository),
+          loadProgress: LoadVendorServiceProgressUseCase(repository),
+          submitReceipt: SubmitVendorReceiptUseCase(repository),
+        );
+        await load(
+          bloc,
+          detail(status: 'Paid'),
+        ).timeout(const Duration(seconds: 5));
+      });
       addTearDown(bloc.close);
-      await tester.runAsync(() => load(bloc, detail(status: 'Paid')));
       await tester.pumpWidget(
         BlocProvider.value(
           value: bloc,

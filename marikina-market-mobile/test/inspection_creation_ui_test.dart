@@ -27,6 +27,7 @@ Future<void> showCreationWidget(
   WidgetTester tester,
   Widget widget, {
   double scale = 2,
+  bool disableAnimations = true,
 }) => tester.pumpWidget(
   MaterialApp(
     theme: AppTheme.light,
@@ -34,7 +35,7 @@ Future<void> showCreationWidget(
       builder: (context) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
           textScaler: TextScaler.linear(scale),
-          disableAnimations: true,
+          disableAnimations: disableAnimations,
         ),
         child: Scaffold(body: widget),
       ),
@@ -150,12 +151,16 @@ void main() {
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
   test('duplicate submission makes only one request while pending', () async {
     final started = Completer<RequestOptions>();
-    final pending = Completer<Response<Object?>>();
+    final release = Completer<void>();
     var calls = 0;
-    final bloc = await listBloc((options) {
+    final bloc = await listBloc((options) async {
       calls++;
-      started.complete(options);
-      return pending.future;
+      if (!started.isCompleted) started.complete(options);
+      await release.future;
+      throw DioException(
+        requestOptions: options,
+        type: DioExceptionType.connectionError,
+      );
     });
     NewInspectionSubmitted submission() => NewInspectionSubmitted(
       vendorId: 12,
@@ -169,21 +174,25 @@ void main() {
       primaryCategory: [],
       evidences: null,
     );
-    bloc.add(submission());
-    final options = await started.future;
-    bloc.add(submission());
-    await Future<void>.delayed(Duration.zero);
-    expect(calls, 1);
-    final failed = bloc.stream.firstWhere(
-      (state) => state is InspectionSubmitConnectionError,
-    );
-    pending.completeError(
-      DioException(
-        requestOptions: options,
-        type: DioExceptionType.connectionError,
-      ),
-    );
-    await failed;
+    try {
+      bloc.add(submission());
+      final options = await started.future;
+      expect(options.method, 'POST');
+      expect(options.path, '/enforcer/tickets/new-inspection');
+      expect(bloc.state, isA<SubmitNewTicketLoading>());
+      bloc.add(submission());
+      await pumpEventQueue();
+      expect(calls, 1);
+      expect(bloc.state, isA<SubmitNewTicketLoading>());
+      final failed = bloc.stream.firstWhere(
+        (state) => state is InspectionSubmitConnectionError,
+      );
+      release.complete();
+      await failed;
+      expect(calls, 1);
+    } finally {
+      if (!release.isCompleted) release.complete();
+    }
   });
   testWidgets(
     'photo preview uses valid parent data and bounds thumbnail decoding',
@@ -277,16 +286,38 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-    'processing dialog supports reduced motion without scheduled animation',
-    (tester) async {
-      await showCreationWidget(
-        tester,
-        const ProcessLoadingOverlay(message: 'Recording your inspection.'),
-      );
-      await tester.pumpAndSettle();
-      expect(tester.binding.hasScheduledFrame, isFalse);
-      expect(tester.takeException(), isNull);
-    },
-  );
+  for (final disableAnimations in [true, false]) {
+    testWidgets(
+      'processing dialog exposes valid semantics: disableAnimations=$disableAnimations',
+      (tester) async {
+        final semantics = tester.ensureSemantics();
+        try {
+          await showCreationWidget(
+            tester,
+            const ProcessLoadingOverlay(message: 'Recording your inspection.'),
+            disableAnimations: disableAnimations,
+          );
+          if (disableAnimations) {
+            await tester.pumpAndSettle();
+            expect(tester.binding.hasScheduledFrame, isFalse);
+          } else {
+            await tester.pump(const Duration(milliseconds: 100));
+            expect(tester.binding.hasScheduledFrame, isTrue);
+          }
+          final indicator = find.byType(CircularProgressIndicator);
+          expect(indicator, findsOneWidget);
+          final data = tester.getSemantics(indicator).getSemanticsData();
+          expect(data.label, 'Processing inspection');
+          expect(data.value, disableAnimations ? '75' : '');
+          expect(data.minValue, disableAnimations ? '0' : isNull);
+          expect(data.maxValue, disableAnimations ? '100' : isNull);
+          expect(find.text('Recording your inspection.'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        } finally {
+          await tester.pumpWidget(const SizedBox.shrink());
+          semantics.dispose();
+        }
+      },
+    );
+  }
 }

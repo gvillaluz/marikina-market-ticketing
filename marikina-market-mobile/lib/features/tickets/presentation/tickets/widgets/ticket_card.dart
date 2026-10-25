@@ -33,7 +33,10 @@ class TicketCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: AppTheme.ticketTinyGap,
+              runSpacing: AppTheme.ticketTinyGap,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
                   'CONTROL NO.',
@@ -41,14 +44,12 @@ class TicketCard extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(width: AppTheme.ticketTinyGap),
                 Text(
                   '#${ticketSummary.controlNumber}',
                   style: AppTheme.ticketHeadingStyle.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                const Spacer(),
                 TicketStatusBadge(status: ticketSummary.ticketStatus),
               ],
             ),

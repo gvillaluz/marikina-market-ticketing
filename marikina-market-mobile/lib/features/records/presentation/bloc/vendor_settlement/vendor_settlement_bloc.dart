@@ -13,6 +13,7 @@ import 'vendor_settlement_event.dart';
 import 'vendor_settlement_state.dart';
 import 'load_vendor_settlement.dart';
 import 'submit_vendor_receipt.dart';
+import 'clear_vendor_receipt_upload_error.dart';
 
 class VendorSettlementBloc
     extends Bloc<VendorSettlementEvent, VendorSettlementState> {
@@ -26,6 +27,10 @@ class VendorSettlementBloc
   }) : super(const VendorSettlementState()) {
     on<LoadVendorSettlement>(_load);
     on<SubmitVendorReceipt>(_submit);
+    on<ClearVendorReceiptUploadError>((event, emit) {
+      if (!state.canUpload || state.uploadError == null) return;
+      emit(state.copyWith(error: state.error));
+    });
   }
   Future<void> _load(
     LoadVendorSettlement event,

@@ -141,41 +141,50 @@ class FineSummarySection extends StatelessWidget {
         if (isTicket) ...{
           const Divider(height: 30),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                spacing: 10,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: AppColors.secondaryGreen,
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppTheme.detailRowGap,
+              runSpacing: AppTheme.inspectionSmallGap,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: AppTheme.detailRowGap,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: AppColors.secondaryGreen,
+                      ),
+                      child: Icon(
+                        Icons.lock_outline,
+                        color: AppColors.primaryGreen,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.lock_outline,
-                      color: AppColors.primaryGreen,
+                    const Flexible(
+                      child: Text(
+                        'Total Fine Amount: ',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: AppTheme.sectionHeadingFontSize,
+                        ),
+                      ),
                     ),
-                  ),
-                  const Text(
-                    'Total Fine Amount: ',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: AppTheme.sectionHeadingFontSize,
-                    ),
-                  ),
-                ],
-              ),
-
-              Text(
-                _currencyFormat.format(fineSummary?.totalPaymentAmount),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: AppTheme.sectionHeadingFontSize,
+                  ],
                 ),
-              ),
-            ],
+
+                Text(
+                  _currencyFormat.format(fineSummary?.totalPaymentAmount),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: AppTheme.sectionHeadingFontSize,
+                  ),
+                ),
+              ],
+            ),
           ),
         },
       ],

@@ -79,7 +79,6 @@ class WeeklyOverviewSection extends StatelessWidget {
                             : null,
                         strokeWidth: AppTheme.buttonProgressStrokeWidth,
                         semanticsLabel: 'Refreshing overview',
-                        semanticsValue: 'In progress',
                       )
                     : null,
               ),

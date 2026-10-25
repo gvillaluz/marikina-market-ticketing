@@ -26,6 +26,8 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_card.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_list_footer.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/filter_row.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/pages/inspections_page.dart';
 import 'features/auth/data/login_mobile_contract_test.dart'
     show contractClient, reply;
@@ -100,6 +102,55 @@ Future<void> showList(WidgetTester tester, InspectionBloc bloc) =>
 void main() {
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
 
+  for (final disableAnimations in [true, false]) {
+    for (final loadingMore in [true, false]) {
+      testWidgets(
+        'inspection footer has valid semantics: disableAnimations=$disableAnimations loadingMore=$loadingMore',
+        (tester) async {
+          final semantics = tester.ensureSemantics();
+          try {
+            await tester.pumpWidget(
+              MaterialApp(
+                theme: AppTheme.light,
+                home: MediaQuery(
+                  data: MediaQueryData(disableAnimations: disableAnimations),
+                  child: Scaffold(
+                    body: InspectionListFooter(
+                      state: InspectionTicketsLoaded(
+                        [],
+                        true,
+                        isRefreshing: !loadingMore,
+                        isLoadingMore: loadingMore,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+            final data = tester
+                .getSemantics(find.byType(CircularProgressIndicator))
+                .getSemanticsData();
+            expect(
+              data.label,
+              loadingMore
+                  ? 'Loading more inspections'
+                  : 'Refreshing inspections',
+            );
+            expect(data.value, disableAnimations ? '75' : '');
+            expect(data.minValue, disableAnimations ? '0' : isNull);
+            expect(data.maxValue, disableAnimations ? '100' : isNull);
+            await tester.pump(const Duration(milliseconds: 100));
+            expect(tester.binding.hasScheduledFrame, !disableAnimations);
+            expect(tester.takeException(), isNull);
+          } finally {
+            await tester.pumpWidget(const SizedBox.shrink());
+            semantics.dispose();
+          }
+        },
+      );
+    }
+  }
+
   testWidgets(
     'inspection card wraps at 280px with large text and missing overdue date',
     (tester) async {
@@ -136,16 +187,23 @@ void main() {
     (tester) async {
       var calls = 0;
       final started = Completer<RequestOptions>();
-      final pending = Completer<Response<Object?>>();
+      final release = Completer<void>();
       final bloc = await tester.runAsync(
         () => listBloc((options) async {
           if (++calls == 1) {
             return reply(options, {'items': [], 'has_more': false});
           }
-          started.complete(options);
-          return pending.future;
+          if (!started.isCompleted) started.complete(options);
+          await release.future;
+          throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.connectionError,
+          );
         }),
       );
+      addTearDown(() {
+        if (!release.isCompleted) release.complete();
+      });
       await tester.runAsync(() async {
         final loaded = bloc!.stream.firstWhere(
           (state) => state is InspectionTicketsLoaded,
@@ -157,20 +215,24 @@ void main() {
       final refresh = tester
           .widget<RefreshIndicator>(find.byType(RefreshIndicator))
           .onRefresh();
-      final options = await tester.runAsync(() => started.future);
       await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(started.isCompleted, isTrue);
+      final options = await started.future;
+      expect(options.path, '/enforcer/tickets/inspections');
+      expect(calls, 2);
+      expect((bloc.state as InspectionTicketsLoaded).isRefreshing, isTrue);
       expect(find.text('No inspections found'), findsOneWidget);
       expect(find.byType(SkeletonBox), findsNothing);
-      await tester.runAsync(() async {
-        pending.completeError(
-          DioException(
-            requestOptions: options!,
-            type: DioExceptionType.connectionError,
-          ),
-        );
-        await refresh;
-      });
+      release.complete();
+      await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      await tester.pump(const Duration(milliseconds: 20));
       await tester.pumpAndSettle();
+      expect((bloc.state as InspectionTicketsLoaded).isRefreshing, isFalse);
+      await refresh;
+      expect(calls, 2);
       expect(find.text('No inspections found'), findsOneWidget);
       expect(
         find.text('No internet connection. Please try again.'),
@@ -226,22 +288,65 @@ void main() {
   testWidgets('changing filter cancels pending search debounce', (
     tester,
   ) async {
-    var calls = 0;
+    final requests = <RequestOptions>[];
     final bloc = await tester.runAsync(
       () => listBloc((options) async {
-        calls++;
+        requests.add(options);
         return reply(options, {'items': [], 'has_more': false});
       }),
     );
-    await showList(tester, bloc!);
-    await tester.enterText(find.byType(TextField), 'Market');
-    await tester.tap(
-      find.widgetWithText(ChoiceChip, ViolationType.ticket.value),
-    );
-    await tester.pump(const Duration(milliseconds: 450));
-    await tester.pumpAndSettle();
-    expect(calls, 1);
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox());
+    try {
+      await showList(tester, bloc!);
+      final filters = find.byType(FilterRow);
+      for (final label in ['All', 'Warnings', 'Tickets']) {
+        expect(
+          find.descendant(
+            of: filters,
+            matching: find.widgetWithText(TextButton, label),
+          ),
+          findsOneWidget,
+        );
+      }
+      expect(tester.widget<FilterRow>(filters).typeSelected, isNull);
+      await tester.enterText(find.byType(TextField), 'Market');
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(requests, isEmpty);
+      await tester.tap(
+        find.descendant(
+          of: filters,
+          matching: find.widgetWithText(TextButton, 'Tickets'),
+        ),
+      );
+      await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(requests, hasLength(1));
+      expect(requests.single.method, 'GET');
+      expect(requests.single.path, '/enforcer/tickets/inspections');
+      expect(requests.single.queryParameters, {
+        'search': 'Market',
+        'offset': 0,
+        'type': 'Ticket',
+      });
+      expect(bloc.state, isA<InspectionTicketsLoaded>());
+      expect((bloc.state as InspectionTicketsLoaded).isRefreshing, isFalse);
+      expect(
+        tester.widget<FilterRow>(filters).typeSelected,
+        ViolationType.ticket,
+      );
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'Market',
+      );
+      // Finish the filter request before the old search timer would fire, so a
+      // duplicate request cannot be hidden by the BLoC's in-flight guard.
+      await tester.pump(const Duration(milliseconds: 450));
+      await tester.runAsync(() => pumpEventQueue());
+      await tester.pumpAndSettle();
+      expect(requests, hasLength(1));
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+    }
   });
 }

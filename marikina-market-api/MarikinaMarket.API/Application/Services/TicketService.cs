@@ -283,7 +283,7 @@ namespace MarikinaMarket.API.Application.Services
 
         private async Task<string> UploadSettlementProofAsync(IFormFile? file)
         {
-            ValidateSettlementProof(file);
+            await ValidateSettlementProofAsync(file);
 
             var proofFile = file!;
             var proofKey = GenerateFileKey(proofFile);
@@ -1374,7 +1374,7 @@ namespace MarikinaMarket.API.Application.Services
                 throw new InvalidRequestException("Photo evidence must be a valid JPEG image.");
         }
 
-        private static void ValidateSettlementProof(IFormFile? file)
+        private static async Task ValidateSettlementProofAsync(IFormFile? file)
         {
             if (file is null || file.Length <= 0)
                 throw new InvalidRequestException("A settlement proof file is required.");
@@ -1386,15 +1386,19 @@ namespace MarikinaMarket.API.Application.Services
 
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
-            if (extension is ".jpg" or ".jpeg"
-                && string.Equals(file.ContentType, "image/jpeg", StringComparison.OrdinalIgnoreCase))
-                return;
+            var jpeg = extension is ".jpg" or ".jpeg"
+                && string.Equals(file.ContentType, "image/jpeg", StringComparison.OrdinalIgnoreCase);
+            var png = extension == ".png"
+                && string.Equals(file.ContentType, "image/png", StringComparison.OrdinalIgnoreCase);
+            if (!jpeg && !png)
+                throw new InvalidRequestException("Settlement proof must be a JPG or PNG image.");
 
-            if (extension == ".png"
-                && string.Equals(file.ContentType, "image/png", StringComparison.OrdinalIgnoreCase))
-                return;
-
-            throw new InvalidRequestException("Settlement proof must be a JPG or PNG image.");
+            byte[] signature = png ? [137, 80, 78, 71, 13, 10, 26, 10] : [255, 216, 255];
+            using var stream = file.OpenReadStream();
+            var header = new byte[signature.Length];
+            var bytesRead = await stream.ReadAtLeastAsync(header, header.Length, throwOnEndOfStream: false);
+            if (bytesRead != signature.Length || !header.SequenceEqual(signature))
+                throw new InvalidRequestException("Settlement proof must be a valid JPG or PNG image.");
         }
     }
 }

@@ -13,13 +13,15 @@ import 'package:marikina_market_mobile/features/profile/domain/use_cases/change_
 import 'package:marikina_market_mobile/features/profile/domain/use_cases/edit_profile_use_case.dart';
 import 'package:marikina_market_mobile/features/profile/domain/use_cases/remove_profile_photo_use_case.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:marikina_market_mobile/features/profile/presentation/bloc/profile_event.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/bloc/profile_state.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/widgets/edit_profile_card.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_detail_row.dart';
 
 import '../auth/data/login_mobile_contract_test.dart'
     show contractClient, reply;
-import 'profile_contract_test.dart' show profileRepository, profileResponse;
+import 'profile_contract_test.dart'
+    show profileParams, profileRepository, profileResponse;
 
 ProfileBloc formBloc(ApiClient client) {
   final repository = profileRepository(client);
@@ -186,44 +188,95 @@ void main() {
       final client = contractClient((options) async {
         requests++;
         requestOptions = options;
-        expect((options.data as Map)['middle_name'], isNull);
         return response.future;
       });
       final bloc = formBloc(client);
+      final states = <ProfileState>[];
+      final subscription = bloc.stream.listen(states.add);
       addTearDown(client.dio.close);
       addTearDown(bloc.close);
-      await showForm(
-        tester,
-        bloc,
-        response: {...profileResponse, 'middleName': null},
-      );
-      await tester.ensureVisible(find.text('SAVE CHANGES'));
-      await tester.tap(find.text('SAVE CHANGES'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 20));
-      expect(bloc.state, isA<EditProfileLoading>());
-      final save = tester.widget<ElevatedButton>(
-        find.descendant(
-          of: find.byKey(const ValueKey('save_profile')),
-          matching: find.byType(ElevatedButton),
-        ),
-      );
-      expect(save.onPressed, isNull);
-      expect(
-        tester
-            .widget<TextFormField>(find.byKey(const ValueKey('EMAIL')))
-            .enabled,
-        isFalse,
-      );
-      response.complete(
-        reply(requestOptions!, {...profileResponse, 'middleName': null}),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 20));
-      expect(bloc.state, isA<ProfileUpdated>());
-      expect((bloc.state as ProfileUpdated).user.middleName, isNull);
-      expect(requests, 1);
-      await tester.pumpWidget(const SizedBox.shrink());
+      addTearDown(subscription.cancel);
+      try {
+        await showForm(
+          tester,
+          bloc,
+          response: {...profileResponse, 'middleName': null},
+        );
+        await tester.ensureVisible(find.text('SAVE CHANGES'));
+        final saveBeforeRequest = tester
+            .widget<ElevatedButton>(
+              find.descendant(
+                of: find.byKey(const ValueKey('save_profile')),
+                matching: find.byType(ElevatedButton),
+              ),
+            )
+            .onPressed!;
+        await tester.tap(find.text('SAVE CHANGES'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(bloc.state, isA<EditProfileLoading>());
+        expect(requests, 1);
+        final request = requestOptions!;
+        expect(request.method, 'POST');
+        expect(request.path, '/User/profile');
+        expect(request.data, {
+          'first_name': 'Juan',
+          'middle_name': null,
+          'last_name': 'Dela Cruz',
+          'date_of_birth': '1995-06-15',
+          'email': 'juan@example.com',
+          'phone_number': '09171234567',
+          'house_number': '123',
+          'street': 'J.P. Rizal',
+          'barangay': 'Sta. Elena',
+          'city': 'Marikina',
+        });
+        final save = tester.widget<ElevatedButton>(
+          find.descendant(
+            of: find.byKey(const ValueKey('save_profile')),
+            matching: find.byType(ElevatedButton),
+          ),
+        );
+        expect(save.onPressed, isNull);
+        for (final field in tester.widgetList<TextFormField>(
+          find.byType(TextFormField),
+        )) {
+          expect(field.enabled, isFalse);
+        }
+
+        // A queued tap must also respect the form's in-flight guard.
+        saveBeforeRequest();
+        await tester.pump();
+        // Exercise the BLoC guard independently of the disabled form.
+        bloc.add(EditProfileSubmitted(profileParams(middleName: null)));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(requests, 1);
+        expect(states, [isA<EditProfileLoading>()]);
+
+        response.complete(
+          reply(request, {...profileResponse, 'middleName': null}),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(bloc.state, isA<ProfileUpdated>());
+        expect((bloc.state as ProfileUpdated).user.middleName, isNull);
+        expect(requests, 1);
+        expect(states, [isA<EditProfileLoading>(), isA<ProfileUpdated>()]);
+        expect(tester.takeException(), isNull);
+      } finally {
+        if (!response.isCompleted) {
+          response.complete(
+            reply(requestOptions ?? RequestOptions(path: '/User/profile'), {
+              ...profileResponse,
+              'middleName': null,
+            }),
+          );
+        }
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        await tester.pumpWidget(const SizedBox.shrink());
+      }
     },
   );
 

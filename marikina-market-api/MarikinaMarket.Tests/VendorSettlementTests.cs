@@ -15,6 +15,85 @@ public class VendorSettlementTests
     private const string Receipt = "/api/vendor/tickets/101/settlement/receipt";
     private const string Community = "/api/vendor/tickets/101/settlement/community-service";
 
+    public static IEnumerable<object[]> SettlementConsumers()
+    {
+        yield return ["vendor", PenaltyType.CashFine];
+        yield return ["vendor", PenaltyType.BloodDonation];
+        yield return ["enforcer", PenaltyType.CashFine];
+        yield return ["enforcer", PenaltyType.BloodDonation];
+        yield return ["enforcer", PenaltyType.CommunityService];
+    }
+
+    [Theory]
+    [MemberData(nameof(SettlementConsumers))]
+    public async Task SettlementPost_RejectsSpoofedAndTruncatedImageBytesBeforeStorage(
+        string actor, PenaltyType penalty)
+    {
+        foreach (var (filename, mime, bytes) in new[]
+        {
+            ("invalid.png", "image/png", System.Text.Encoding.UTF8.GetBytes("THIS IS NOT AN IMAGE")),
+            ("invalid.jpg", "image/jpeg", System.Text.Encoding.UTF8.GetBytes("THIS IS NOT AN IMAGE")),
+            ("wrong.png", "image/png", ImageBytes("proof.jpg")),
+            ("wrong.jpeg", "image/jpeg", ImageBytes("proof.png")),
+            ("short.png", "image/png", ImageBytes("proof.png")[..7]),
+            ("short.jpg", "image/jpeg", ImageBytes("proof.jpg")[..2])
+        })
+        {
+            await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets =>
+            {
+                tickets[0].PenaltyType = penalty;
+                tickets[0].CommunityServiceHours = penalty == PenaltyType.CommunityService ? 8 : null;
+            });
+            var before = host.Tickets[0].UpdatedAt;
+            using var form = Proof(filename, mime, bytes: bytes);
+            var action = penalty == PenaltyType.CommunityService ? "community-service" : "receipt";
+            if (penalty == PenaltyType.CommunityService)
+            {
+                form.Add(new StringContent("2026-10-01"), "service_date");
+                form.Add(new StringContent("1"), "hours_worked");
+            }
+            using var response = await host.SendAsync(HttpMethod.Post,
+                $"/api/{actor}/tickets/101/settlement/{action}", form,
+                actor == "vendor" ? "MarketVendor" : "MarketEnforcer", actor == "vendor" ? "7" : "12");
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Empty(host.Storage.UploadedKeys);
+            Assert.Equal(0, host.UnitOfWork.SaveCalls);
+            Assert.Null(host.Tickets[0].ProofUrls);
+            Assert.Empty(host.Tickets[0].CommunityServiceLogs);
+            Assert.Equal(TicketStatus.Pending, host.Tickets[0].Status);
+            Assert.Equal(before, host.Tickets[0].UpdatedAt);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(SettlementConsumers))]
+    public async Task SettlementPost_AcceptsMatchingPngAndJpegForEveryConsumer(string actor, PenaltyType penalty)
+    {
+        foreach (var (filename, mime) in new[] { ("proof.png", "image/png"), ("proof.jpg", "image/jpeg"), ("proof.jpeg", "image/jpeg") })
+        {
+            await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets =>
+            {
+                tickets[0].PenaltyType = penalty;
+                tickets[0].CommunityServiceHours = penalty == PenaltyType.CommunityService ? 8 : null;
+            });
+            using var form = Proof(filename, mime);
+            var action = penalty == PenaltyType.CommunityService ? "community-service" : "receipt";
+            if (penalty == PenaltyType.CommunityService)
+            {
+                form.Add(new StringContent("2026-10-01"), "service_date");
+                form.Add(new StringContent("1"), "hours_worked");
+            }
+            using var response = await host.SendAsync(HttpMethod.Post,
+                $"/api/{actor}/tickets/101/settlement/{action}", form,
+                actor == "vendor" ? "MarketVendor" : "MarketEnforcer", actor == "vendor" ? "7" : "12");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Single(host.Storage.UploadedKeys);
+            Assert.Equal(1, host.UnitOfWork.SaveCalls);
+            Assert.Equal(penalty == PenaltyType.CommunityService ? TicketStatus.InProgress : TicketStatus.Pending,
+                host.Tickets[0].Status);
+        }
+    }
+
     [Theory]
     [InlineData(PenaltyType.CashFine)]
     [InlineData(PenaltyType.BloodDonation)]
@@ -261,10 +340,17 @@ public class VendorSettlementTests
         Assert.Contains("WHERE", sql);
     }
 
-    private static MultipartFormDataContent Proof(string filename, string mime, int length = 16)
+    private static byte[] ImageBytes(string filename) => Convert.FromBase64String(
+        filename.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+            ? "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aS1sAAAAASUVORK5CYII="
+            : "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9U6KKKAP/2Q==");
+
+    private static MultipartFormDataContent Proof(string filename, string mime, int? length = null, byte[]? bytes = null)
     {
         var form = new MultipartFormDataContent();
-        var content = new ByteArrayContent(new byte[length]);
+        var image = bytes ?? ImageBytes(filename);
+        if (length.HasValue) Array.Resize(ref image, length.Value);
+        var content = new ByteArrayContent(image);
         content.Headers.ContentType = new MediaTypeHeaderValue(mime);
         form.Add(content, "proof_file", filename);
         return form;

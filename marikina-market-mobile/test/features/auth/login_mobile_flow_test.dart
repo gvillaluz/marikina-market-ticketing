@@ -192,36 +192,50 @@ void main() {
           ),
         );
       });
-      addTearDown(bloc.close);
       addTearDown(connectivity.close);
-      await tester.runAsync(() => startLogin(bloc));
-      await tester.pumpWidget(
-        BlocProvider.value(
-          value: bloc,
-          child: MaterialApp(theme: AppTheme.light, home: const LoginOtpPage()),
-        ),
-      );
-      expect(find.text('SIGN-IN VERIFICATION'), findsOneWidget);
-      expect(find.textContaining('e***@example.com'), findsOneWidget);
-      expect(
-        find.text(
-          'Enter the 6-digit code sent to e***@example.com to finish signing in.',
-        ),
-        findsOneWidget,
-      );
-      expect(find.textContaining('Code expires in'), findsNothing);
-      expect(find.text('Didn’t receive the email?'), findsOneWidget);
-      expect(find.text('Resend in 00:30'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await tester.enterText(find.byType(EditableText), '001234');
-      await tester.ensureVisible(find.text('Verify & sign in'));
-      await tester.tap(find.text('Verify & sign in'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 20));
-      expect(submittedCode, '001234');
-      expect(find.text('Incorrect code. Try again.'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await tester.pumpWidget(const SizedBox.shrink());
+      try {
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(bloc.state, isA<Unauthenticated>());
+        bloc.add(
+          LoginSubmitted(username: 'enforcer01', password: ' ExamplePass123 '),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(bloc.state, isA<LoginOtpPending>());
+        await tester.pumpWidget(
+          BlocProvider.value(
+            value: bloc,
+            child: MaterialApp(
+              theme: AppTheme.light,
+              home: const LoginOtpPage(),
+            ),
+          ),
+        );
+        expect(find.text('SIGN-IN VERIFICATION'), findsOneWidget);
+        expect(find.textContaining('e***@example.com'), findsOneWidget);
+        expect(
+          find.text(
+            'Enter the 6-digit code sent to e***@example.com to finish signing in.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Code expires in'), findsNothing);
+        expect(find.text('Didn’t receive the email?'), findsOneWidget);
+        expect(find.text('Resend in 00:30'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.enterText(find.byType(EditableText), '001234');
+        await tester.ensureVisible(find.text('Verify & sign in'));
+        await tester.tap(find.text('Verify & sign in'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(submittedCode, '001234');
+        expect(find.text('Incorrect code. Try again.'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        unawaited(bloc.close());
+      }
     },
   );
 
@@ -234,42 +248,48 @@ void main() {
       (options) async => reply(options, otpResponse),
     );
     final appRouter = AppRouter(authBloc: bloc);
-    addTearDown(appRouter.dispose);
-    addTearDown(bloc.close);
     addTearDown(connectivity.close);
-    await tester.pumpWidget(
-      BlocProvider.value(
-        value: bloc,
-        child: MaterialApp.router(
-          theme: AppTheme.light,
-          routerConfig: appRouter.router,
+    try {
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: bloc,
+          child: MaterialApp.router(
+            theme: AppTheme.light,
+            routerConfig: appRouter.router,
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    appRouter.router.go(Routes.loginOtp);
-    await tester.pumpAndSettle();
-    expect(
-      appRouter.router.routeInformationProvider.value.uri.path,
-      Routes.login,
-    );
-    bloc.add(
-      LoginSubmitted(username: 'enforcer01', password: 'ExamplePass123'),
-    );
-    await tester.pumpAndSettle();
-    expect(find.byType(LoginOtpCard), findsOneWidget);
-    expect(
-      appRouter.router.routeInformationProvider.value.uri.path,
-      Routes.loginOtp,
-    );
-    await tester.ensureVisible(find.text('Back to login'));
-    await tester.tap(find.text('Back to login'));
-    await tester.pumpAndSettle();
-    expect(
-      appRouter.router.routeInformationProvider.value.uri.path,
-      Routes.login,
-    );
-    await tester.pumpWidget(const SizedBox.shrink());
+      );
+      await tester.pumpAndSettle();
+      appRouter.router.go(Routes.loginOtp);
+      await tester.pumpAndSettle();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.login,
+      );
+      bloc.add(
+        LoginSubmitted(username: 'enforcer01', password: 'ExamplePass123'),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(LoginOtpCard), findsOneWidget);
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.loginOtp,
+      );
+      await tester.ensureVisible(find.text('Back to login'));
+      await tester.tap(find.text('Back to login'));
+      await tester.pumpAndSettle();
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.login,
+      );
+      expect(bloc.state, isA<Unauthenticated>());
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      appRouter.dispose();
+      // Cancel the auth timer before Flutter verifies widget-test invariants.
+      unawaited(bloc.close());
+    }
   });
 
   testWidgets('expired code shows guidance without an expiry countdown', (
