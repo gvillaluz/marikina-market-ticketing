@@ -4,6 +4,8 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Internal
 {
     public class TicketSummary
     {
+        public string? PaperReference { get; set; }
+        public string? IssuePlace { get; set; }
         public required int Id { get; init; }
         public required string ControlNumber { get; init; }
         public required int VendorId { get; init; }

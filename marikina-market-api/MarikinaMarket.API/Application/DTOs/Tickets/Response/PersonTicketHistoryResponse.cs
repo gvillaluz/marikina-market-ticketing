@@ -4,6 +4,8 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response;
 
 public class PersonTicketHistoryResponse
 {
+        public string? PaperReference { get; set; }
+        public string? IssuePlace { get; set; }
     public int TicketId { get; set; }
     public string? ControlNumber { get; set; }
     public string? PaperViolatorName { get; set; }

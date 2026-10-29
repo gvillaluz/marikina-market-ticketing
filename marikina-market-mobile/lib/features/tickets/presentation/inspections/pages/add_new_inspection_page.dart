@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/paper_citation_fields.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_candidate.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/person_identity_review.dart';
 // ignore_for_file: curly_braces_in_flow_control_structures
@@ -49,6 +50,9 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
       TextEditingController();
   final TextEditingController _communityHrsController = TextEditingController();
 
+  final _paperReferenceController = TextEditingController();
+  final _issuePlaceController = TextEditingController();
+
   String? _photoError;
   String? _ordinanceError;
   String? _communityHrsError;
@@ -66,6 +70,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     _vendorSummary?.id,
     _confirmedPerson?.id,
     _paperName,
+    _paperReferenceController.text,
+    _issuePlaceController.text,
     _selectedType,
     _ticketDescriptionController.text,
     _communityHrsController.text,
@@ -87,6 +93,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     super.initState();
     _ticketDescriptionController.addListener(_updateTextDraft);
     _communityHrsController.addListener(_updateTextDraft);
+    _paperReferenceController.addListener(_updateTextDraft);
+    _issuePlaceController.addListener(_updateTextDraft);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       WakelockPlus.enable();
@@ -98,6 +106,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   void dispose() {
     _ticketDescriptionController.dispose();
     _communityHrsController.dispose();
+    _paperReferenceController.dispose();
+    _issuePlaceController.dispose();
     WakelockPlus.disable();
     super.dispose();
   }
@@ -152,7 +162,9 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   void _updateTextDraft() {
     final hasText =
         _ticketDescriptionController.text.trim().isNotEmpty ||
-        _communityHrsController.text.trim().isNotEmpty;
+        _communityHrsController.text.trim().isNotEmpty ||
+        _paperReferenceController.text.trim().isNotEmpty ||
+        _issuePlaceController.text.trim().isNotEmpty;
     setState(() => _hasTextDraft = hasText);
   }
 
@@ -477,6 +489,12 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
           personId: _confirmedPerson?.id,
           personFullName: _confirmedPerson?.fullName,
           paperViolatorName: _paperName,
+          paperReference: _selectedType == ViolationType.ticket
+              ? _paperReferenceController.text.trim()
+              : null,
+          issuePlace: _selectedType == ViolationType.ticket
+              ? _issuePlaceController.text.trim()
+              : null,
           enforcerId: widget.user.userId,
           vendorSummary: _vendorSummary!,
           fineSummary: _fineSummary,
@@ -583,6 +601,11 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                         const SizedBox(height: 20),
 
                         if (isTicket)
+                          PaperCitationFields(
+                            referenceController: _paperReferenceController,
+                            placeController: _issuePlaceController,
+                          ),
+                        if (isTicket)
                           PersonIdentityReview(
                             onChanged: (person, paperName) => setState(() {
                               _confirmedPerson = person;
@@ -626,6 +649,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                         const Text('DESCRIPTION'),
                         const SizedBox(height: 5),
                         TextFormField(
+                          key: const ValueKey('inspection-description'),
                           controller: _ticketDescriptionController,
                           maxLines: 5,
                           minLines: 3,

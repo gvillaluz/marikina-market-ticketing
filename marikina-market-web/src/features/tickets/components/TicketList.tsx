@@ -26,9 +26,10 @@ export default function TicketList({
       keyExtractor={(ticket) => ticket.id.toString()}
       emptyMessage="No tickets match your search or filters."
       columns={[
+        { key: "paperReference", header: "Paper reference", render: (ticket) => ticket.paperReference || "Unavailable (legacy record)" },
         {
           key: "controlNumber",
-          header: "CTRL #",
+          header: "System #",
           align: "left",
           render: (ticket) =>
             formatControlNumber(ticket.controlNumber).replace(/^CTRL #/, "#") ||

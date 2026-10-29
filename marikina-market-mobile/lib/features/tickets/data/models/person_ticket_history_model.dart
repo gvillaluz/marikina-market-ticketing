@@ -11,6 +11,8 @@ class PersonTicketHistoryModel {
     businessName: _json['business_name'] as String,
     enforcerName: _json['enforcer_name'] as String,
     paperViolatorName: _json['paper_violator_name'] as String?,
+    paperReference: _json['paper_reference'] as String?,
+    issuePlace: _json['issue_place'] as String?,
     status: _json['status'] as String?,
     penaltyType: _json['penalty_type'] as String?,
     issuedAt: DateTime.parse(_json['issued_at'] as String),

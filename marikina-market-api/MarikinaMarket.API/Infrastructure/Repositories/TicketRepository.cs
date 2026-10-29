@@ -170,6 +170,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
                     ControlNumber = t.ControlNumber ?? null,
@@ -205,6 +206,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     TicketEvidences = t.TicketEvidences!.Select(e => e.FileKey).ToList() ?? new List<string>(),
                 });
         }
+
+        public Task<bool> PaperReferenceExistsAsync(string paperReference)
+            => _context.Tickets.AsNoTracking().AnyAsync(ticket => ticket.Type == ViolationType.Ticket
+                && ticket.PaperReference == paperReference);
 
         public async Task<int> GetNewControlNumber()
         {
@@ -287,6 +292,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(t => new PersonTicketHistoryResponse
                 {
                     TicketId = t.Id, ControlNumber = t.ControlNumber, PaperViolatorName = t.PaperViolatorName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     BusinessName = t.Vendor!.BusinessName,
                     RegisteredOwnerName = t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerName = t.Enforcer!.FirstName + " " + t.Enforcer.LastName,
@@ -359,6 +365,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
                 query = query.Where(t =>
                     t.ControlNumber!.ToLower().Contains(search) ||
+                    (t.PaperReference != null && t.PaperReference.ToLower().Contains(search.ToLower())) ||
                     t.Vendor!.BusinessName.ToLower().Contains(search) ||
                     t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
                     t.Vendor.OwnerLastName.ToLower().Contains(search));
@@ -375,6 +382,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     LastName = t.Vendor!.OwnerLastName,
                     FirstName = t.Vendor.OwnerFirstName,
@@ -415,6 +423,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
                 query = query.Where(t =>
                     t.ControlNumber!.ToLower().Contains(search) ||
+                    (t.PaperReference != null && t.PaperReference.ToLower().Contains(search.ToLower())) ||
                     t.Vendor!.BusinessName.ToLower().Contains(search) ||
                     t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
                     t.Vendor.OwnerLastName.ToLower().Contains(search));
@@ -431,6 +440,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     BusinessName = t.Vendor!.BusinessName,
                     MarketSectionName = t.MarketSection!.Name,
@@ -463,6 +473,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     VendorLastName = t.Vendor!.OwnerLastName!,
                     VendorFirstName = t.Vendor.OwnerFirstName!,
@@ -494,6 +505,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 var search = filters.Search.Trim();
                 query = query.Where(t =>
                     t.ControlNumber!.Contains(search) ||
+                    (t.PaperReference != null && t.PaperReference.ToLower().Contains(search.ToLower())) ||
                     t.Vendor!.OwnerLastName.Contains(search) ||
                     t.Vendor.OwnerFirstName.Contains(search) ||
                     t.Vendor.BusinessName.Contains(search) ||
@@ -519,6 +531,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 var search = filters.Search.Trim().ToLower();
                 query = query.Where(t =>
                     t.ControlNumber!.Contains(search) ||
+                    (t.PaperReference != null && t.PaperReference.ToLower().Contains(search.ToLower())) ||
                     t.Vendor!.OwnerLastName.ToLower().Contains(search) ||
                     t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
                     t.Vendor.BusinessName.ToLower().Contains(search) ||
@@ -539,6 +552,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     VendorFirstName = t.Vendor!.OwnerFirstName,
                     VendorLastName = t.Vendor.OwnerLastName,
@@ -602,6 +616,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
                     ControlNumber = t.ControlNumber ?? null,

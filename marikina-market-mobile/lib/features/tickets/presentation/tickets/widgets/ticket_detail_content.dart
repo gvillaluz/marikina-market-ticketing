@@ -185,6 +185,7 @@ class TicketDetailContent extends StatelessWidget {
                     TicketPaperHeader(
                       isTicket: isTicket,
                       controlNumber: ticket.controlNumber,
+                      paperReference: ticket.paperReference,
                     ),
                   ],
                 ),
@@ -212,6 +213,7 @@ class TicketDetailContent extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 20, right: 20),
                 child: TicketViolationSection(
+                  issuePlace: ticket.issuePlace,
                   penaltyType: ticket.penaltyType,
                   violations: ticket.violations,
                   description: ticket.description,

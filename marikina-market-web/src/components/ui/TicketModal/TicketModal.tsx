@@ -97,7 +97,7 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
                   </div>
                   {isTicket && (
                     <div className={styles.controlNo}>
-                      <span className={styles.controlLabel}>CONTROL NO.</span>
+                      <span className={styles.controlLabel}>SYSTEM CONTROL NO.</span>
                       <span className={styles.controlValue}>
                         {ticket?.controlNumber || "N/A"}
                       </span>

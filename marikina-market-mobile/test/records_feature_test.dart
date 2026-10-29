@@ -181,7 +181,9 @@ void main() {
   for (final width in [280.0, 400.0]) {
     for (final ticket in [true, false]) {
       testWidgets(
-        'vendor header matches enforcer pixels $width ticket=$ticket',
+        ticket
+            ? 'citation header shows paper reference and system control at $width'
+            : 'vendor header matches enforcer pixels $width ticket=$ticket',
         (tester) async {
           tester.view.physicalSize = Size(width, 900);
           tester.view.devicePixelRatio = 1;
@@ -216,6 +218,30 @@ void main() {
                   )
                   .toImage(),
             ))!;
+          }
+
+          if (ticket) {
+            final image = await render(
+              const TicketPaperHeader(
+                isTicket: true,
+                paperReference: '000456',
+                controlNumber: 'TKT-2026-0042',
+              ),
+            );
+            addTearDown(image.dispose);
+            expect(find.text('PAPER REFERENCE:'), findsOneWidget);
+            expect(find.text('000456'), findsOneWidget);
+            expect(find.text('SYSTEM CONTROL:'), findsOneWidget);
+            expect(find.text('#TKT-2026-0042'), findsOneWidget);
+            expect(find.text('CONTROL NO.'), findsNothing);
+            final header = tester.getRect(find.byKey(const ValueKey('header')));
+            for (final element in find.byType(Text).evaluate()) {
+              final bounds = tester.getRect(find.byWidget(element.widget));
+              expect(bounds.left, greaterThanOrEqualTo(header.left));
+              expect(bounds.right, lessThanOrEqualTo(header.right));
+            }
+            expect(tester.takeException(), isNull);
+            return;
           }
 
           final reference = await render(

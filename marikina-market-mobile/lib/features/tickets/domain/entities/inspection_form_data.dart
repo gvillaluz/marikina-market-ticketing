@@ -6,6 +6,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dar
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class InspectionFormData {
+  final String? paperReference, issuePlace;
   final int? personId;
   final String? paperViolatorName, personFullName, reviewedCalculation;
   final int enforcerId;
@@ -19,6 +20,8 @@ class InspectionFormData {
   final int? communityServiceHrs;
 
   InspectionFormData({
+    this.paperReference,
+    this.issuePlace,
     this.personId,
     this.paperViolatorName,
     this.personFullName,

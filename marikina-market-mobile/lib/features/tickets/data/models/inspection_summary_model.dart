@@ -5,6 +5,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/business_ty
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class InspectionSummaryModel {
+  final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
@@ -28,6 +29,8 @@ class InspectionSummaryModel {
   final DateTime updatedAt;
 
   InspectionSummaryModel({
+    this.paperReference,
+    this.issuePlace,
     this.personId,
     this.personFullName,
     this.paperViolatorName,
@@ -64,6 +67,8 @@ class InspectionSummaryModel {
       personId: json['person_id'] as int?,
       personFullName: json['person_full_name'] as String?,
       paperViolatorName: json['paper_violator_name'] as String?,
+      paperReference: json['paper_reference'] as String?,
+      issuePlace: json['issue_place'] as String?,
       registeredOwnerName: json['registered_owner_name'] as String?,
       vendorFirstName: json['first_name'] as String,
       vendorLastName: json['last_name'] as String,
@@ -94,6 +99,8 @@ class InspectionSummaryModel {
   factory InspectionSummaryModel.fromEntity(InspectionTicketSummary entity) {
     return InspectionSummaryModel(
       ticketId: entity.ticketId,
+      paperReference: entity.paperReference,
+      issuePlace: entity.issuePlace,
       ticketType: entity.ticketType,
       controlNumber: entity.controlNumber,
       vendorId: entity.vendorId,
@@ -124,6 +131,8 @@ class InspectionSummaryModel {
       personId: personId,
       personFullName: personFullName,
       paperViolatorName: paperViolatorName,
+      paperReference: paperReference,
+      issuePlace: issuePlace,
       registeredOwnerName: registeredOwnerName,
       vendorFirstName: vendorFirstName,
       vendorLastName: vendorLastName,

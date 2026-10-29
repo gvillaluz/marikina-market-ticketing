@@ -12,6 +12,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/widgets/tic
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class ViolationDetailsSection extends StatelessWidget {
+  final String? issuePlace;
   final FineSummary? fine;
   final List<Ordinance> ordinances;
   final bool isTicket;
@@ -20,6 +21,7 @@ class ViolationDetailsSection extends StatelessWidget {
   final String description;
 
   const ViolationDetailsSection({
+    this.issuePlace,
     this.fine,
     required this.ordinances,
     required this.isTicket,
@@ -177,7 +179,15 @@ class ViolationDetailsSection extends StatelessWidget {
               label: 'DATE & TIME:',
               value: DateTimeFormatter.getDateTime(DateTime.now()),
             ),
-            TicketPaperField(label: 'LOCATION:', value: marketSection),
+            if (isTicket)
+              TicketPaperField(
+                label: 'ISSUE PLACE:',
+                value: issuePlace ?? 'Unavailable (legacy record)',
+              ),
+            TicketPaperField(
+              label: isTicket ? 'MARKET SECTION:' : 'LOCATION:',
+              value: marketSection,
+            ),
             TicketPaperField(
               label: 'VIOLATION COMMITTED:',
               value: ordinances

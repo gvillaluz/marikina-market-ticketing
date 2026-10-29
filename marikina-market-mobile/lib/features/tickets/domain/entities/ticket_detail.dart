@@ -7,6 +7,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/business_ty
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class TicketDetail {
+  final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
@@ -35,6 +36,8 @@ class TicketDetail {
   final List<String>? evidenceUrls;
 
   const TicketDetail({
+    this.paperReference,
+    this.issuePlace,
     this.personId,
     this.personFullName,
     this.paperViolatorName,

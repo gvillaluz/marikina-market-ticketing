@@ -229,7 +229,7 @@ void main() {
             find.text('Keep the stall and its surroundings clean.'),
             findsOneWidget,
           );
-          expect(find.text('CONTROL NO.'), findsNothing);
+          expect(find.text('SYSTEM CONTROL:'), findsNothing);
           expect(find.text('PENDING'), findsNothing);
           expect(find.byType(TicketPenaltyDetail), findsNothing);
           expect(find.byType(TicketSettlementSection), findsNothing);
@@ -264,6 +264,8 @@ void main() {
                     ticketSummary: TicketSummaryModel.fromJson({
                       ...ticketResponse,
                       'control_number': 'TKT-2026-0000000042',
+                      'paper_reference': '000456',
+                      'issue_place': 'Fish aisle near F-014',
                       'status': 'Contested',
                     }).toEntity(),
                   ),
@@ -276,7 +278,7 @@ void main() {
         expect(find.text('Contested'), findsOneWidget);
         expect(find.text('#TKT-2026-0000000042'), findsOneWidget);
         expect(find.textContaining('Oct 7, 2026'), findsOneWidget);
-        expect(find.text('CONTROL NO.'), findsOneWidget);
+        expect(find.text('SYSTEM CONTROL:'), findsOneWidget);
         expect(find.text('Market Goods'), findsOneWidget);
         final card = tester.getRect(find.byType(TicketCard));
         for (final text

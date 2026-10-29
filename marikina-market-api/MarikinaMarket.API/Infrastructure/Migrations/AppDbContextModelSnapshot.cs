@@ -908,6 +908,13 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnName("market_section_id");
 
                     b.Property<int?>("PersonId").HasColumnType("integer").HasColumnName("person_id");
+                    b.Property<string>("PaperReference").HasMaxLength(200)
+                        .HasColumnType("character varying(200)").HasColumnName("paper_reference").UseCollation("C");
+                    b.Property<string>("IssuePlace").HasMaxLength(500)
+                        .HasColumnType("character varying(500)").HasColumnName("issue_place");
+                    b.HasIndex("PaperReference").IsUnique().HasDatabaseName("ix_tickets_paper_reference")
+                        .HasFilter("\"type\" = 'Ticket' AND paper_reference IS NOT NULL");
+
                     b.Property<string>("PaperViolatorName").HasMaxLength(200)
                         .HasColumnType("character varying(200)").HasColumnName("paper_violator_name");
                     b.HasIndex("PersonId", "IssuedAt").HasDatabaseName("ix_tickets_person_id_issued_at");

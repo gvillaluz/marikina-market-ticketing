@@ -275,6 +275,8 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
       final formData = FormData.fromMap({
         "vendor_id": params.vendorId,
         "person_id": params.personId,
+        "paper_reference": params.paperReference?.trim(),
+        "issue_place": params.issuePlace?.trim(),
         "paper_violator_name": params.paperViolatorName,
         "reviewed_calculation": params.reviewedCalculation,
         "market_section_id": params.marketSectionId,
@@ -426,6 +428,8 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
       data: {
         'vendor_id': input.vendorId,
         'person_id': input.personId,
+        'paper_reference': input.paperReference?.trim(),
+        'issue_place': input.issuePlace?.trim(),
         'paper_violator_name': input.paperViolatorName,
         'ordinance_ids': input.ordinanceIds,
         'description': input.description,

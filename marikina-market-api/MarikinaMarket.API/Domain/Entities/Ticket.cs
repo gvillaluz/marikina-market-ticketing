@@ -12,6 +12,8 @@ namespace MarikinaMarket.API.Domain.Entities
         public int? PersonId { get; set; }
         public Person? Person { get; set; }
         public string? PaperViolatorName { get; set; }
+        public string? PaperReference { get; set; }
+        public string? IssuePlace { get; set; }
 
         public int MarketSectionId { get; set; }
         public MarketSection? MarketSection { get; set; }

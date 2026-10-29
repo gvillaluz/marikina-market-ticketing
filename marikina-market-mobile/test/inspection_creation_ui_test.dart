@@ -163,6 +163,8 @@ void main() {
       );
     });
     NewInspectionSubmitted submission() => NewInspectionSubmitted(
+      paperReference: '000456',
+      issuePlace: 'Fish aisle near F-014',
       vendorId: 12,
       enforcerId: 7,
       marketSectionId: 1,

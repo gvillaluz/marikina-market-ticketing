@@ -4,8 +4,8 @@ Precedence: roadmap rules win on scope and what may be worked on. feature-workfl
 
 **Mode:** revision implementation/verification; application changes require approval per slice.
 **Current phase:** Revision Phase — FIRST PRIORITY; business/person criteria 1–3 closed with recorded limits.
-**Current task:** criterion-3 closure recorded 2026-10-29; subsequent work awaits a separate approved slice.
-**Approved:** completed named slices and criterion-3 closure with unrelated verification limits. This status does not authorize additional implementation or publishing.
+**Current task:** criterion 4 slice 2 (paper reference/place) closed 2026-10-30 with explicit user-approved verification limits; criterion 4 remains open. See [slice 2 closure](docs/criterion-4-plan.md#slice-2-closure--2026-10-30-asiamanila).
+**Approved:** completed named slices, criterion-3 closure and criterion-4 slice-2 closure with recorded limits. Vendor-facing mobile removal is confirmed product direction; its bounded removal plan and later criterion-4 slices need separate approval before implementation. This status does not authorize publishing.
 
 This roadmap organizes work; it does not authorize implementation. Preserve existing code, data and uncommitted work until each affected change is explicitly approved.
 

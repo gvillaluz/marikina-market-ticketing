@@ -158,6 +158,9 @@ const TicketDetailPage: FC = () => {
 
         <DetailCard title="TICKET PARAMETERS" icon={ClipboardList}>
           <div className={styles.fieldGrid}>
+            <InfoField label="PAPER REFERENCE" value={ticket.paperReference || "Unavailable (legacy record)"} />
+            <InfoField label="ISSUE PLACE" value={ticket.issuePlace || "Unavailable (legacy record)"} />
+            <InfoField label="SYSTEM CONTROL NUMBER" value={ticket.controlNumber || "Unavailable"} />
             <InfoField
               label="DATE ISSUED"
               value={formatDateTime(ticket?.issuedAt || "")}

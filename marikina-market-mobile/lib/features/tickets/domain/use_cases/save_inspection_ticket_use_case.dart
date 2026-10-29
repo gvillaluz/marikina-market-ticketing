@@ -32,6 +32,18 @@ class SaveInspectionTicketUseCase
     }
 
     if (params.ticketType == ViolationType.ticket) {
+      if (params.paperReference == null ||
+          params.paperReference!.trim().isEmpty ||
+          params.issuePlace == null ||
+          params.issuePlace!.trim().isEmpty ||
+          params.paperReference!.trim().length > 200 ||
+          params.issuePlace!.trim().length > 500) {
+        return Result.failure(
+          ValidationFailure(
+            'Enter the reviewed paper reference and issue place.',
+          ),
+        );
+      }
       if (params.evidences == null || params.evidences!.isEmpty) {
         return Result.failure(
           ValidationFailure('Photo evidence is required for tickets.'),
@@ -55,6 +67,8 @@ class SaveInspectionTicketUseCase
       SaveInspectionParams(
         personId: params.personId,
         paperViolatorName: params.paperViolatorName,
+        paperReference: params.paperReference?.trim(),
+        issuePlace: params.issuePlace?.trim(),
         reviewedCalculation: params.reviewedCalculation,
         vendorId: params.vendorId,
         marketSectionId: params.marketSectionId,

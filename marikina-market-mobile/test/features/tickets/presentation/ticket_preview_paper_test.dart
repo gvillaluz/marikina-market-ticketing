@@ -70,6 +70,8 @@ void main() {
                   value: bloc,
                   child: NewInspectionPreviewPage(
                     formData: InspectionFormData(
+                      paperReference: isTicket ? '000456' : null,
+                      issuePlace: isTicket ? 'Fish aisle near F-014' : null,
                       enforcerId: 7,
                       vendorSummary: vendor,
                       fineSummary: isTicket

@@ -33,6 +33,7 @@ public class AdminTicketDetailTests
         var ticket = new Ticket
         {
             Id = 42, Description = "Blocked market walkway", Type = ViolationType.Ticket,
+            PaperReference = "000456", IssuePlace = "Fish aisle near F-014",
             Vendor = new Business
             {
                 Type = businessType, BusinessAccountNumber = "BUS-0042", BusinessName = "Market Goods",
@@ -50,6 +51,11 @@ public class AdminTicketDetailTests
         Assert.NotNull(detail);
         Assert.Equal(businessType, detail.BusinessType);
         Assert.Equal(ticket.Vendor.StallNumber, detail.StallNumber);
+        Assert.Equal("000456", detail.PaperReference);
+        Assert.Equal("Fish aisle near F-014", detail.IssuePlace);
+        var enforcerDetail = await new TicketRepository(context).GetTicketDetailAsync(42);
+        Assert.Equal("000456", enforcerDetail!.PaperReference);
+        Assert.Equal("Fish aisle near F-014", enforcerDetail.IssuePlace);
     }
 
     [Theory]

@@ -40,6 +40,7 @@ export function InspectionTable({
           loading={isLoading}
           emptyMessage="No inspection records match your search or filters."
           columns={[
+            { key: "paperReference", header: "Paper reference", render: (row) => row.type === "Ticket" ? (row.paperReference || "Unavailable (legacy record)") : "—" },
             {
               key: "vendor",
               header: "Person",

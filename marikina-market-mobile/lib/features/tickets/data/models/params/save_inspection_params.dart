@@ -3,6 +3,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dar
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class SaveInspectionParams {
+  final String? paperReference, issuePlace;
   final int? personId;
   final String? paperViolatorName, personFullName, reviewedCalculation;
   final int vendorId;
@@ -16,6 +17,8 @@ class SaveInspectionParams {
   final List<XFile>? evidences;
 
   SaveInspectionParams({
+    this.paperReference,
+    this.issuePlace,
     this.personId,
     this.paperViolatorName,
     this.personFullName,

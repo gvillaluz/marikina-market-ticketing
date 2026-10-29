@@ -51,6 +51,8 @@ TicketDetailContent paper({
     data: TicketDetailContentData(
       ticket: TicketDetail(
         ticketId: 42,
+        paperReference: isTicket ? '000456' : null,
+        issuePlace: isTicket ? 'Fish aisle near F-014' : null,
         controlNumber: isTicket ? control : null,
         enforcerId: 7,
         vendorId: 12,
@@ -293,8 +295,10 @@ void main() {
         closeTo(tester.getCenter(find.byType(Image).first).dy, 1),
       );
       if (isTicket) {
-        expect(find.text('CONTROL NO.'), findsOneWidget);
+        expect(find.text('SYSTEM CONTROL:'), findsOneWidget);
         expect(find.text('#TKT-2026-0042'), findsOneWidget);
+        expect(find.text('000456'), findsOneWidget);
+        expect(find.text('Fish aisle near F-014'), findsOneWidget);
         expect(find.text('PENDING'), findsNothing);
         // 20px page padding + 20px paper padding puts the right edge at 440.
         expect(
@@ -302,7 +306,7 @@ void main() {
           closeTo(440, 1),
         );
       } else {
-        expect(find.text('CONTROL NO.'), findsNothing);
+        expect(find.text('SYSTEM CONTROL:'), findsNothing);
         expect(find.text('#TKT-2026-0042'), findsNothing);
       }
       expect(tester.takeException(), isNull);
@@ -349,7 +353,7 @@ void main() {
       ),
     );
     expect(find.text('WRITTEN WARNING'), findsOneWidget);
-    expect(find.text('CONTROL NO.'), findsNothing);
+    expect(find.text('SYSTEM CONTROL:'), findsNothing);
     expect(
       tester.getCenter(find.text('WRITTEN WARNING')).dy,
       closeTo(tester.getCenter(find.byType(Image).first).dy, 1),

@@ -4,6 +4,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/business_ty
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class InspectionTicketSummary {
+  final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
@@ -27,6 +28,8 @@ class InspectionTicketSummary {
   final DateTime updatedAt;
 
   InspectionTicketSummary({
+    this.paperReference,
+    this.issuePlace,
     this.personId,
     this.personFullName,
     this.paperViolatorName,

@@ -16,6 +16,10 @@ function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail }) {
     <>
       <TicketSectionHeader title={"VIOLATION DETAILS"} icon={FileWarning} />
       <section className={styles.detailsSection}>
+        {detail?.type === "Ticket" && <>
+          <TicketInfoRow label="PAPER REFERENCE" value={detail.paperReference || "Unavailable (legacy record)"} />
+          <TicketInfoRow label="ISSUE PLACE" value={detail.issuePlace || "Unavailable (legacy record)"} />
+        </>}
         <div className={styles.ordinanceList}>
           {detail?.violations.map((violation, i) => (
             <OrdinanceCard
@@ -36,7 +40,7 @@ function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail }) {
           label="DATE & TIME"
           value={`${formatDateTime(detail?.issuedAt || "")}`}
         />
-        <TicketInfoRow label="LOCATION" value={detail?.marketSectionName} />
+        <TicketInfoRow label="MARKET SECTION" value={detail?.marketSectionName} />
         <TicketInfoRow
           label="VIOLATION COMMITTED"
           value={detail?.categories.join(", ")}

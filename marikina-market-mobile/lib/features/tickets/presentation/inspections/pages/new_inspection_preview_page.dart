@@ -53,6 +53,14 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
 
   void _verify() {
     final data = widget.formData;
+    if ((data.paperReference?.trim().isEmpty ?? true) ||
+        (data.issuePlace?.trim().isEmpty ?? true)) {
+      setState(
+        () => _verificationMessage =
+            'Enter the reviewed paper reference and issue place.',
+      );
+      return;
+    }
     if (data.personId == null ||
         data.penaltyType == null ||
         _verifying ||
@@ -65,6 +73,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
           vendorId: data.vendorSummary.id,
           personId: data.personId!,
           paperViolatorName: data.paperViolatorName ?? '',
+          paperReference: data.paperReference,
+          issuePlace: data.issuePlace,
           description: data.description,
           ordinanceIds: data.ordinances.map((o) => o.id).toList(),
           penaltyType: data.penaltyType!,
@@ -84,6 +94,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
       NewInspectionSubmitted(
         personId: widget.formData.personId,
         paperViolatorName: widget.formData.paperViolatorName,
+        paperReference: widget.formData.paperReference,
+        issuePlace: widget.formData.issuePlace,
         reviewedCalculation: _verification?.reviewedCalculation,
         vendorId: widget.formData.vendorSummary.id,
         enforcerId: widget.formData.enforcerId,
@@ -290,7 +302,13 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: Column(
-                              children: [TicketPaperHeader(isTicket: isTicket)],
+                              children: [
+                                TicketPaperHeader(
+                                  isTicket: isTicket,
+                                  paperReference:
+                                      widget.formData.paperReference,
+                                ),
+                              ],
                             ),
                           ),
 
@@ -320,6 +338,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: ViolationDetailsSection(
+                              issuePlace: widget.formData.issuePlace,
                               penaltyType: penaltyType,
                               fine: fineSummary,
                               ordinances: widget.formData.ordinances,

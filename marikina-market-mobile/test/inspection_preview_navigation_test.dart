@@ -325,6 +325,22 @@ void main() {
               .onChange(type);
           await tester.pump();
           if (type == ViolationType.ticket) {
+            expect(find.text('Paper reference'), findsOneWidget);
+            expect(find.text('Issue place'), findsOneWidget);
+            await tester.ensureVisible(
+              find.byKey(const ValueKey('paper-reference')),
+            );
+            await tester.enterText(
+              find.byKey(const ValueKey('paper-reference')),
+              '000456',
+            );
+            await tester.ensureVisible(
+              find.byKey(const ValueKey('issue-place')),
+            );
+            await tester.enterText(
+              find.byKey(const ValueKey('issue-place')),
+              'Fish aisle near F-014',
+            );
             final name = find.byWidgetPredicate(
               (widget) =>
                   widget is TextField &&
@@ -376,7 +392,7 @@ void main() {
           expect(find.text('Description is required.'), findsWidgets);
           expect(find.byType(NewInspectionPreviewPage), findsNothing);
           await tester.enterText(
-            find.byType(TextFormField),
+            find.byKey(const ValueKey('inspection-description')),
             'Keep the stall and surroundings clean.',
           );
           await tester.ensureVisible(formAction());
@@ -408,7 +424,9 @@ void main() {
           expect(find.byType(AddNewInspectionPage), findsOneWidget);
           expect(
             tester
-                .widget<TextFormField>(find.byType(TextFormField))
+                .widget<TextFormField>(
+                  find.byKey(const ValueKey('inspection-description')),
+                )
                 .controller!
                 .text,
             data.description,
@@ -430,6 +448,45 @@ void main() {
               tester.widget<AppPrimaryButton>(submit).onPressed,
               isNotNull,
             );
+          }
+          if (type == ViolationType.ticket) {
+            for (final field in ['paper-reference', 'issue-place']) {
+              router.pop();
+              await flush(tester);
+              final value = field == 'paper-reference'
+                  ? '000457'
+                  : 'Fish aisle near F-015';
+              final input = find.byKey(ValueKey(field));
+              await tester.ensureVisible(input);
+              await tester.enterText(input, value);
+              await tester.ensureVisible(formAction());
+              await tester.tap(formAction());
+              await flush(tester);
+              final submit = find.byWidgetPredicate(
+                (widget) =>
+                    widget is AppPrimaryButton &&
+                    widget.label == 'Submit Ticket',
+              );
+              expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
+              final updated = tester
+                  .widget<NewInspectionPreviewPage>(
+                    find.byType(NewInspectionPreviewPage),
+                  )
+                  .formData;
+              expect(
+                field == 'paper-reference'
+                    ? updated.paperReference
+                    : updated.issuePlace,
+                value,
+              );
+              await tester.ensureVisible(find.text('Verify ticket'));
+              await tester.tap(find.text('Verify ticket'));
+              await flush(tester);
+              expect(
+                tester.widget<AppPrimaryButton>(submit).onPressed,
+                isNotNull,
+              );
+            }
           }
           await tester.ensureVisible(find.text('Submit ${type.value}'));
           await tester.tap(find.text('Submit ${type.value}'));

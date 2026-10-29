@@ -5,6 +5,8 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request;
 
 public class VerifyInspectionRequest
 {
+    [StringLength(200)] public string? PaperReference { get; set; }
+    [StringLength(500)] public string? IssuePlace { get; set; }
     [Range(1, int.MaxValue)] public int VendorId { get; set; }
     [Range(1, int.MaxValue)] public int PersonId { get; set; }
     [Required, StringLength(200)] public required string PaperViolatorName { get; set; }

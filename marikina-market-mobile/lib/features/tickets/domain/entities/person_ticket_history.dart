@@ -1,4 +1,5 @@
 class PersonTicketHistory {
+  final String? paperReference, issuePlace;
   final int ticketId;
   final String reference, businessName, enforcerName;
   final String? paperViolatorName, status, penaltyType;
@@ -7,6 +8,8 @@ class PersonTicketHistory {
   final double outstandingCashFine;
   final List<String> ordinances;
   const PersonTicketHistory({
+    this.paperReference,
+    this.issuePlace,
     required this.ticketId,
     required this.reference,
     required this.businessName,

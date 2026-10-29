@@ -373,11 +373,17 @@ namespace MarikinaMarket.API.Application.Services
 
         public async Task<InspectionSummaryResponse> CreateTicketAsync(CreateTicketRequest request)
         {
+            if (request.Type == ViolationType.Ticket)
+            {
+                request.PaperReference = request.PaperReference?.Trim();
+                request.IssuePlace = request.IssuePlace?.Trim();
+            }
             Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
             if (request.EnforcerId <= 0 || !Enum.IsDefined(request.Type) || !Enum.IsDefined(request.PenaltyType))
                 throw new ValidationException("A valid enforcer, inspection type and penalty type are required.");
             if (request.Type == ViolationType.Ticket)
             {
+                await ValidatePaperMetadataAsync(request.PaperReference, request.IssuePlace);
                 if (request.TicketEvidenceFiles is null || request.TicketEvidenceFiles.Count == 0
                     || request.TicketEvidenceFiles.Any(file => file is null || file.Length <= 0))
                     throw new InvalidRequestException("Photo evidence is required for tickets.");
@@ -579,6 +585,7 @@ namespace MarikinaMarket.API.Application.Services
 
                 var ticket = new Ticket
                 {
+                    PaperReference = request.PaperReference, IssuePlace = request.IssuePlace,
                     PersonId = person!.Id, PaperViolatorName = request.PaperViolatorName!.Trim(),
                     ControlNumber = newControlNumber.ToString(),
                     VendorId = vendor.Id,
@@ -665,6 +672,7 @@ namespace MarikinaMarket.API.Application.Services
                     ControlNumber = newTicket!.ControlNumber!,
                     VendorId = newTicket.VendorId,
                     PersonId = person.Id, PersonFullName = person.FullName, PaperViolatorName = newTicket.PaperViolatorName,
+                    PaperReference = newTicket.PaperReference, IssuePlace = newTicket.IssuePlace,
                     RegisteredOwnerName = vendor.FirstName + " " + vendor.LastName,
                     LastName = vendor.LastName,
                     FirstName = vendor.FirstName,
@@ -684,6 +692,14 @@ namespace MarikinaMarket.API.Application.Services
                     DuplicateOrdinances = duplicateOrdinances,
                     WarningMessageForDuplicates = $"{duplicateOrdinances.Count} ordinance(s) were excluded as active tickets already exist."
                 };
+            }
+            catch (Exception exception) when (request.Type == ViolationType.Ticket &&
+                (exception is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_tickets_paper_reference" }
+                or DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_tickets_paper_reference" } }
+                or InvalidOperationException { InnerException: DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_tickets_paper_reference" } } }))
+            {
+                if (!transactionCommitted) await _unitOfWork.RollbackAsync();
+                throw new ConcurrencyConflictException("A citation with this paper reference already exists. Review the reference before submitting.");
             }
             catch (Exception exception) when (request.Type == ViolationType.Ticket &&
                 (exception is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure }
@@ -783,6 +799,7 @@ namespace MarikinaMarket.API.Application.Services
                 VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.PersonFullName,
                     PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                 LastName = t.LastName,
                 FirstName = t.FirstName,
                 BusinessName = t.BusinessName,
@@ -918,6 +935,7 @@ namespace MarikinaMarket.API.Application.Services
                 VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.PersonFullName,
                     PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                 BusinessName = t.BusinessName,
                 MarketSectionName = t.MarketSectionName,
                 BusinessType = t.BusinessType,
@@ -1153,6 +1171,7 @@ namespace MarikinaMarket.API.Application.Services
                 VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.PersonFullName,
                     PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                 VendorLastName = t.VendorLastName,
                 VendorFirstName = t.VendorFirstName,
                 StallNumber = t.StallNumber,
@@ -1196,6 +1215,7 @@ namespace MarikinaMarket.API.Application.Services
                 VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.PersonFullName,
                     PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
+                    PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                 VendorLastName = t.VendorLastName,
                 VendorFirstName = t.VendorFirstName,
                 BusinessAccountNumber = t.BusinessAccountNumber,
@@ -1478,7 +1498,10 @@ namespace MarikinaMarket.API.Application.Services
 
         public async Task<InspectionVerificationResponse> VerifyInspectionAsync(VerifyInspectionRequest request)
         {
+            request.PaperReference = request.PaperReference?.Trim();
+            request.IssuePlace = request.IssuePlace?.Trim();
             Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+            await ValidatePaperMetadataAsync(request.PaperReference, request.IssuePlace);
             if (request.PenaltyType == PenaltyType.CommunityService && request.CommunityServiceHours is null or < 3)
                 throw new ValidationException("Community service requires a minimum of 3 hours.");
             if (await _vendorRepository.GetByIdAsync(request.VendorId) is null)
@@ -1490,6 +1513,14 @@ namespace MarikinaMarket.API.Application.Services
             if (request.PenaltyType != PenaltyType.CashFine && calculation.HighestSeverity == Severity.High)
                 throw new ValidationException("High severity violations must be paid as cash fine.");
             return new() { Calculation = calculation, ReviewedCalculation = JsonSerializer.Serialize(calculation, ReviewJson) };
+        }
+
+        private async Task ValidatePaperMetadataAsync(string? paperReference, string? issuePlace)
+        {
+            if (string.IsNullOrWhiteSpace(paperReference) || string.IsNullOrWhiteSpace(issuePlace))
+                throw new ValidationException("Enter the reviewed paper reference and issue place before verifying or submitting.");
+            if (await _ticketRepository.PaperReferenceExistsAsync(paperReference))
+                throw new ConcurrencyConflictException("A citation with this paper reference already exists. Review the reference before submitting.");
         }
 
         private static void EnsureReviewedCalculation(string? reviewed, FineSummaryResponse current)

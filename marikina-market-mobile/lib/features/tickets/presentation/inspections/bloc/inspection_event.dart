@@ -84,6 +84,7 @@ class NewWarningSubmitted extends InspectionEvent {
 }
 
 class NewInspectionSubmitted extends InspectionEvent {
+  final String? paperReference, issuePlace;
   final int? personId;
   final String? paperViolatorName, reviewedCalculation;
   final int vendorId;
@@ -98,6 +99,8 @@ class NewInspectionSubmitted extends InspectionEvent {
   final List<XFile>? evidences;
 
   NewInspectionSubmitted({
+    this.paperReference,
+    this.issuePlace,
     this.personId,
     this.paperViolatorName,
     this.reviewedCalculation,

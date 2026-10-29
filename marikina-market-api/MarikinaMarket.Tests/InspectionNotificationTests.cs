@@ -23,6 +23,34 @@ namespace MarikinaMarket.Tests;
 public class InspectionNotificationTests
 {
     [Fact]
+    public async Task Paper_metadata_is_required_before_any_upload_or_save()
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        request.PaperReference = null;
+        request.IssuePlace = null;
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(
+            () => fixture.Service.CreateTicketAsync(request));
+        Assert.Equal(0, fixture.UploadCalls);
+        Assert.Null(fixture.CreatedTicket);
+    }
+
+    [Fact]
+    public async Task Paper_metadata_is_required_when_verifying_without_writing()
+    {
+        using var fixture = new Fixture();
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(
+            () => fixture.Service.VerifyInspectionAsync(new()
+            {
+                VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
+                OrdinanceIds = [1], Description = "Market identification card not displayed",
+                PenaltyType = PenaltyType.CashFine, EvidenceCount = 1
+            }));
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+    }
+
+    [Fact]
     public async Task Noncash_high_severity_is_rejected_before_evidence_upload()
     {
         using var fixture = new Fixture { HighSeverity = true };
@@ -60,6 +88,7 @@ public class InspectionNotificationTests
         var verified = await fixture.Service.VerifyInspectionAsync(new()
         {
             VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
+            PaperReference = "000456", IssuePlace = "Fish aisle near F-014",
             OrdinanceIds = [1], Description = "Market identification card not displayed",
             PenaltyType = PenaltyType.CashFine, EvidenceCount = 1
         });
@@ -74,6 +103,75 @@ public class InspectionNotificationTests
         Assert.Equal("Juan Dela Cruz", saved.PersonFullName);
         Assert.Equal("Juan Cruz", saved.PaperViolatorName);
         Assert.Equal(17, saved.VendorId);
+        Assert.Equal("000456", saved.PaperReference);
+        Assert.Equal("Fish aisle near F-014", saved.IssuePlace);
+    }
+
+    [Theory]
+    [InlineData(null, "Fish aisle")]
+    [InlineData("   ", "Fish aisle")]
+    [InlineData("000456", null)]
+    [InlineData("000456", "  ")]
+    public async Task Missing_reviewed_field_is_rejected_before_upload(string? reference, string? place)
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        request.PaperReference = reference;
+        request.IssuePlace = place;
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => fixture.Service.CreateTicketAsync(request));
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+    }
+
+    [Fact]
+    public async Task Overlong_metadata_is_rejected_and_trimmed_text_keeps_leading_zeros()
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        request.PaperReference = new string('1', 201);
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => fixture.Service.CreateTicketAsync(request));
+        request.PaperReference = " 000456 ";
+        request.IssuePlace = new string('x', 501);
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => fixture.Service.CreateTicketAsync(request));
+        Assert.Equal(0, fixture.UploadCalls);
+        request.IssuePlace = " Fish aisle near F-014 ";
+        var saved = await fixture.Service.CreateTicketAsync(request);
+        Assert.Equal("000456", saved.PaperReference);
+        Assert.Equal("Fish aisle near F-014", saved.IssuePlace);
+        Assert.Equal("11", saved.ControlNumber);
+    }
+
+    [Fact]
+    public async Task Existing_paper_reference_blocks_verify_and_save_without_upload()
+    {
+        using var fixture = new Fixture { ExistingPaperReference = true };
+        await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.VerifyInspectionAsync(new()
+        {
+            VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
+            PaperReference = "000456", IssuePlace = "Fish aisle near F-014",
+            OrdinanceIds = [1], Description = "Synthetic citation",
+            PenaltyType = PenaltyType.CashFine, EvidenceCount = 1
+        }));
+        await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket)));
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+    }
+
+    [Theory]
+    [InlineData("ix_tickets_paper_reference", true)]
+    [InlineData("unrelated_constraint", false)]
+    public async Task Only_the_paper_reference_constraint_is_converted_to_its_conflict(string constraint, bool controlled)
+    {
+        using var fixture = new Fixture { UniqueConstraint = constraint };
+        var action = () => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket));
+        if (controlled)
+        {
+            var error = await Assert.ThrowsAsync<ConcurrencyConflictException>(action);
+            Assert.Contains("paper reference", error.Message);
+        }
+        else await Assert.ThrowsAsync<DbUpdateException>(action);
+        Assert.True(fixture.RolledBack);
+        Assert.False(fixture.Committed);
     }
 
     [Fact]
@@ -274,6 +372,8 @@ public class InspectionNotificationTests
         public Ticket? CreatedTicket;
         public bool Committed, RolledBack, FailPush, FailNotificationSave, FailConcurrentSave;
         public bool HighSeverity;
+        public bool ExistingPaperReference;
+        public string? UniqueConstraint;
         public int PushCalls;
         public int EmailCalls;
         public string EmailBody = "";
@@ -316,6 +416,7 @@ public class InspectionNotificationTests
                 "GetPersonDuplicatesAsync" => Task.FromResult(new List<DuplicateOrdinance>()),
                 "GetWarningOrdinancesForVendor" => Task.FromResult(new List<WarningOrdinance>()),
                 "GetNewControlNumber" => Task.FromResult(11),
+                "PaperReferenceExistsAsync" => Task.FromResult(ExistingPaperReference),
                 "AddTicketAsync" => AddTicket((Ticket)args[0]!),
                 "GetTicketByIdAsync" => Task.FromResult(CreatedTicket),
                 "GetNewlyOverdueTicketsAsync" => Task.FromResult(new List<Ticket> { CreatedTicket! }),
@@ -356,7 +457,9 @@ public class InspectionNotificationTests
         }
         private Task<Ticket> AddTicket(Ticket ticket) { ticket.Id = 11; ticket.Version = 7; CreatedTicket = ticket; return Task.FromResult(ticket); }
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-            => FailConcurrentSave
+            => UniqueConstraint is not null
+                ? Task.FromException<int>(new DbUpdateException("Synthetic collision", new Npgsql.PostgresException("Synthetic collision", "ERROR", "ERROR", "23505", constraintName: UniqueConstraint)))
+                : FailConcurrentSave
                 ? Task.FromException<int>(new DbUpdateException("Synthetic concurrent collision", new Npgsql.PostgresException("Synthetic collision", "ERROR", "ERROR", "40001")))
                 : FailNotificationSave && NotificationsSaved.Count > 0
                 ? Task.FromException<int>(new InvalidOperationException("Notification save failed")) : Task.FromResult(1);
@@ -365,6 +468,8 @@ public class InspectionNotificationTests
             VendorId = 17, EnforcerId = 8, MarketSectionId = 1, Type = type,
             PersonId = type == ViolationType.Ticket ? 31 : null,
             PaperViolatorName = type == ViolationType.Ticket ? "Juan Cruz" : null,
+            PaperReference = type == ViolationType.Ticket ? "000456" : null,
+            IssuePlace = type == ViolationType.Ticket ? "Fish aisle near F-014" : null,
             ReviewedCalculation = "{\"total_payment_amount\":500,\"highest_severity\":\"Minor\",\"breakdown\":[{\"ordinance_id\":1,\"ordinance_no\":\"011\",\"ordinance_code\":\"MKT-001\",\"offense_number\":1,\"payment_amount\":500,\"severity\":\"Minor\"}]}",
             Description = "Market identification card not displayed", PenaltyType = PenaltyType.CashFine,
             Ordinances = [1], TicketEvidenceFiles = type == ViolationType.Ticket

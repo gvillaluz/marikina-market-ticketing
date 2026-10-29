@@ -403,6 +403,8 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
       SaveInspectionParams(
         personId: event.personId,
         paperViolatorName: event.paperViolatorName,
+        paperReference: event.paperReference,
+        issuePlace: event.issuePlace,
         reviewedCalculation: event.reviewedCalculation,
         vendorId: event.vendorId,
         marketSectionId: event.marketSectionId,

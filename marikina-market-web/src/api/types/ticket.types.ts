@@ -66,6 +66,8 @@ interface BaseRecordDetail {
 }
 
 export interface InspectionSummary {
+  paperReference?: string | null;
+  issuePlace?: string | null;
   personId?: number | null;
   personFullName?: string | null;
   paperViolatorName?: string | null;
@@ -144,6 +146,8 @@ export interface TicketHistoryEntry {
 export type PenaltyType = "CashFine" | "BloodDonation" | "CommunityService";
 
 export interface TicketSummary {
+  paperReference?: string | null;
+  issuePlace?: string | null;
   personId?: number | null;
   personFullName?: string | null;
   paperViolatorName?: string | null;
@@ -202,6 +206,8 @@ export interface TicketStatusUpdateResponse {
 }
 
 export interface TicketDetail {
+  paperReference?: string | null;
+  issuePlace?: string | null;
   personId?: number | null;
   personFullName?: string | null;
   paperViolatorName?: string | null;
@@ -243,6 +249,8 @@ export interface TicketDetail {
 }
 
 export interface PersonTicketHistoryItem {
+  paperReference?: string | null;
+  issuePlace?: string | null;
   ticketId: number;
   controlNumber: string | null;
   paperViolatorName: string | null;

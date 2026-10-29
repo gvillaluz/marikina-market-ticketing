@@ -83,9 +83,11 @@ class _PersonHistorySheetState extends State<PersonHistorySheet> {
           for (final ticket in _items)
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text('${ticket.reference} · ${ticket.businessName}'),
+              title: Text(
+                'Paper reference: ${ticket.paperReference ?? 'Unavailable (legacy record)'} · ${ticket.businessName}',
+              ),
               subtitle: Text(
-                'Recorded violator: ${ticket.paperViolatorName ?? 'Unconfirmed'}\n${ticket.ordinances.join('; ')}\n${ticket.issuedAt.toLocal()} · ${ticket.status ?? 'Unknown'}\nOfficer: ${ticket.enforcerName}\nAssessed cash: ${ticket.assessedCashFine?.toStringAsFixed(2) ?? 'Not cash'} · Outstanding cash: ${ticket.outstandingCashFine.toStringAsFixed(2)}',
+                'System control: ${ticket.reference}\nIssue place: ${ticket.issuePlace ?? 'Unavailable (legacy record)'}\nRecorded violator: ${ticket.paperViolatorName ?? 'Unconfirmed'}\n${ticket.ordinances.join('; ')}\n${ticket.issuedAt.toLocal()} · ${ticket.status ?? 'Unknown'}\nOfficer: ${ticket.enforcerName}\nAssessed cash: ${ticket.assessedCashFine?.toStringAsFixed(2) ?? 'Not cash'} · Outstanding cash: ${ticket.outstandingCashFine.toStringAsFixed(2)}',
               ),
             ),
           if (_loading) const Center(child: CircularProgressIndicator()),

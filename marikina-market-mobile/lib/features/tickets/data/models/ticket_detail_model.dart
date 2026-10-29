@@ -8,6 +8,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/business_ty
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class TicketDetailModel {
+  final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
@@ -36,6 +37,8 @@ class TicketDetailModel {
   final List<String>? evidenceUrls;
 
   const TicketDetailModel({
+    this.paperReference,
+    this.issuePlace,
     this.personId,
     this.personFullName,
     this.paperViolatorName,
@@ -75,6 +78,8 @@ class TicketDetailModel {
       personId: json['person_id'] as int?,
       personFullName: json['person_full_name'] as String?,
       paperViolatorName: json['paper_violator_name'] as String?,
+      paperReference: json['paper_reference'] as String?,
+      issuePlace: json['issue_place'] as String?,
       registeredOwnerName: json['registered_owner_name'] as String?,
       violationType: ViolationType.fromValue(json['type'] as String),
       businessType: BusinessType.fromValue(json['business_type'] as String),
@@ -129,6 +134,8 @@ class TicketDetailModel {
       personId: personId,
       personFullName: personFullName,
       paperViolatorName: paperViolatorName,
+      paperReference: paperReference,
+      issuePlace: issuePlace,
       registeredOwnerName: registeredOwnerName,
       violationType: violationType,
       businessType: businessType,

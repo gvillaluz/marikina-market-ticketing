@@ -20,6 +20,8 @@ const input = VerifyInspectionInput(
   vendorId: 17,
   personId: 31,
   paperViolatorName: 'Juan Cruz',
+  paperReference: '000456',
+  issuePlace: 'Fish aisle near F-014',
   description: 'Market aisle obstructed',
   ordinanceIds: [1],
   penaltyType: PenaltyType.cashFine,
@@ -87,6 +89,8 @@ void main() {
         NewInspectionSubmitted(
           personId: 31,
           paperViolatorName: 'Juan Cruz',
+          paperReference: '000456',
+          issuePlace: 'Fish aisle near F-014',
           reviewedCalculation: 'server-reviewed-calculation',
           vendorId: 17,
           enforcerId: 7,
@@ -105,6 +109,8 @@ void main() {
       expect(fields['paper_violator_name'], 'Juan Cruz');
       expect(fields['reviewed_calculation'], 'server-reviewed-calculation');
       expect(fields['vendor_id'], '17');
+      expect(fields['paper_reference'], '000456');
+      expect(fields['issue_place'], 'Fish aisle near F-014');
     },
   );
   test(
@@ -117,6 +123,8 @@ void main() {
         expect(options.path, '/enforcer/tickets/verify');
         expect(options.data['vendor_id'], 17);
         expect(options.data['person_id'], 31);
+        expect(options.data['paper_reference'], '000456');
+        expect(options.data['issue_place'], 'Fish aisle near F-014');
         if (++calls == 1) {
           firstRequest.complete(options);
           return first.future;

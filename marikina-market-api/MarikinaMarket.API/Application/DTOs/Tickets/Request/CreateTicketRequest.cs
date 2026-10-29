@@ -16,6 +16,10 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
         public int? PersonId { get; set; }
         [FromForm(Name = "paper_violator_name"), StringLength(200)]
         public string? PaperViolatorName { get; set; }
+        [FromForm(Name = "paper_reference"), StringLength(200)]
+        public string? PaperReference { get; set; }
+        [FromForm(Name = "issue_place"), StringLength(500)]
+        public string? IssuePlace { get; set; }
         [FromForm(Name = "reviewed_calculation"), StringLength(20000)]
         public string? ReviewedCalculation { get; set; }
 

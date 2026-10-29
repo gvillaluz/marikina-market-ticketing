@@ -39,7 +39,7 @@ class TicketCard extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
-                  'CONTROL NO.',
+                  'SYSTEM CONTROL:',
                   style: AppTheme.ticketCaptionStyle.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -52,6 +52,14 @@ class TicketCard extends StatelessWidget {
                 ),
                 TicketStatusBadge(status: ticketSummary.ticketStatus),
               ],
+            ),
+            Text(
+              'Paper reference: ${ticketSummary.paperReference ?? 'Unavailable (legacy record)'}',
+              style: AppTheme.ticketBodyStyle,
+            ),
+            Text(
+              'Issue place: ${ticketSummary.issuePlace ?? 'Unavailable (legacy record)'}',
+              style: AppTheme.ticketBodyStyle,
             ),
             const SizedBox(height: AppTheme.ticketSmallGap),
             Text(

@@ -13,6 +13,11 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(x => new { x.VendorId, x.Categories, x.IssuedAt });
             builder.Property(x => x.PaperViolatorName).HasMaxLength(200);
+            builder.Property(x => x.PaperReference).HasMaxLength(200).UseCollation("C");
+            builder.Property(x => x.IssuePlace).HasMaxLength(500);
+            builder.HasIndex(x => x.PaperReference).IsUnique()
+                .HasDatabaseName("ix_tickets_paper_reference")
+                .HasFilter("\"type\" = 'Ticket' AND paper_reference IS NOT NULL");
             builder.HasIndex(x => new { x.PersonId, x.IssuedAt });
             builder.HasOne(x => x.Person).WithMany().HasForeignKey(x => x.PersonId)
                 .OnDelete(DeleteBehavior.Restrict);

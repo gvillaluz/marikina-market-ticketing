@@ -1,6 +1,7 @@
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 
 class TicketSummary {
+  final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
@@ -17,6 +18,8 @@ class TicketSummary {
   final DateTime? overDueDate;
 
   const TicketSummary({
+    this.paperReference,
+    this.issuePlace,
     this.personId,
     this.personFullName,
     this.paperViolatorName,

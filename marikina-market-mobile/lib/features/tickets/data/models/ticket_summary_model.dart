@@ -2,6 +2,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_s
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 
 class TicketSummaryModel {
+  final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
@@ -18,6 +19,8 @@ class TicketSummaryModel {
   final DateTime? overDueDate;
 
   const TicketSummaryModel({
+    this.paperReference,
+    this.issuePlace,
     this.personId,
     this.personFullName,
     this.paperViolatorName,
@@ -44,6 +47,8 @@ class TicketSummaryModel {
       personId: json['person_id'] as int?,
       personFullName: json['person_full_name'] as String?,
       paperViolatorName: json['paper_violator_name'] as String?,
+      paperReference: json['paper_reference'] as String?,
+      issuePlace: json['issue_place'] as String?,
       registeredOwnerName: json['registered_owner_name'] as String?,
       controlNumber: json['control_number'] as String,
       ticketStatus: TicketStatus.fromValue(json['status'] as String),
@@ -69,6 +74,8 @@ class TicketSummaryModel {
       personId: personId,
       personFullName: personFullName,
       paperViolatorName: paperViolatorName,
+      paperReference: paperReference,
+      issuePlace: issuePlace,
       registeredOwnerName: registeredOwnerName,
       controlNumber: controlNumber,
       ticketStatus: ticketStatus,
