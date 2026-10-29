@@ -1,3 +1,6 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_verification.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/person_history_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_header.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +35,46 @@ class NewInspectionPreviewPage extends StatefulWidget {
 
 class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
   bool _isConfirmationOpen = false;
+  bool _verifying = false, _submissionUncertain = false;
+  InspectionVerification? _verification;
+  String? _verificationMessage;
+  InspectionBloc? _inspectionBloc;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _inspectionBloc = context.read<InspectionBloc>();
+  }
+
+  @override
+  void dispose() {
+    _inspectionBloc?.invalidateVerification();
+    super.dispose();
+  }
+
+  void _verify() {
+    final data = widget.formData;
+    if (data.personId == null ||
+        data.penaltyType == null ||
+        _verifying ||
+        _submissionUncertain) {
+      return;
+    }
+    context.read<InspectionBloc>().add(
+      InspectionVerificationRequested(
+        VerifyInspectionInput(
+          vendorId: data.vendorSummary.id,
+          personId: data.personId!,
+          paperViolatorName: data.paperViolatorName ?? '',
+          description: data.description,
+          ordinanceIds: data.ordinances.map((o) => o.id).toList(),
+          penaltyType: data.penaltyType!,
+          communityServiceHours: data.communityServiceHrs,
+          evidenceCount: data.evidences?.length ?? 0,
+        ),
+      ),
+    );
+  }
+
   void _submit(BuildContext context) {
     final categories = widget.formData.ordinances
         .map((o) => o.category)
@@ -39,6 +82,9 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
 
     context.read<InspectionBloc>().add(
       NewInspectionSubmitted(
+        personId: widget.formData.personId,
+        paperViolatorName: widget.formData.paperViolatorName,
+        reviewedCalculation: _verification?.reviewedCalculation,
         vendorId: widget.formData.vendorSummary.id,
         enforcerId: widget.formData.enforcerId,
         marketSectionId: widget.formData.vendorSummary.marketSectionId,
@@ -60,11 +106,12 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
     final ViolationType ticketType = widget.formData.ticketType;
     final bool isTicket = ticketType == ViolationType.ticket;
 
-    final breakdownItems = widget.formData.fineSummary?.breakdownItems ?? [];
+    final fineSummary =
+        _verification?.calculation ?? widget.formData.fineSummary;
+    final breakdownItems = fineSummary?.breakdownItems ?? [];
     final sorted = breakdownItems.map((item) => item.severity).toList()..sort();
     final highest = sorted.isEmpty ? null : sorted.last;
 
-    final fineSummary = widget.formData.fineSummary;
     final penaltyType = widget.formData.penaltyType;
 
     return Scaffold(
@@ -80,6 +127,28 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
       ),
       body: BlocListener<InspectionBloc, InspectionState>(
         listener: (context, state) async {
+          if (state is InspectionVerificationLoading) {
+            setState(() {
+              _verifying = true;
+              _verification = null;
+              _verificationMessage = null;
+            });
+          }
+          if (state is InspectionVerified) {
+            setState(() {
+              _verifying = false;
+              _verification = state.verification;
+              _verificationMessage =
+                  'Verified. Review the calculated offense positions and fine before submitting.';
+            });
+          }
+          if (state is InspectionVerificationError) {
+            setState(() {
+              _verifying = false;
+              _verification = null;
+              _verificationMessage = state.message;
+            });
+          }
           if (state is SubmitNewTicketLoading) {
             showDialog(
               context: context,
@@ -125,6 +194,10 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
           }
 
           if (state is DuplicationConflictInspection) {
+            setState(() {
+              _verification = null;
+              _verificationMessage = state.message;
+            });
             disposeDialog();
 
             if (!context.mounted) return;
@@ -156,19 +229,22 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
           }
 
           if (state is InspectionSubmitConnectionError) {
+            setState(() {
+              _verification = null;
+              _submissionUncertain = true;
+              _verificationMessage = state.message;
+            });
             disposeDialog();
             showSnackbar(state.message);
-            if (context.mounted) {
-              context.pop();
-            }
           }
 
           if (state is InspectionSubmitError) {
+            setState(() {
+              _verification = null;
+              _verificationMessage = state.message;
+            });
             disposeDialog();
             showSnackbar(state.message);
-            if (context.mounted) {
-              context.pop();
-            }
           }
         },
         child: SafeArea(
@@ -226,6 +302,10 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: ViolatorInfoSection(
                               vendor: widget.formData.vendorSummary,
+                              personId: widget.formData.personId,
+                              personFullName: widget.formData.personFullName,
+                              paperViolatorName:
+                                  widget.formData.paperViolatorName,
                               isTicket: isTicket,
                             ),
                           ),
@@ -241,7 +321,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: ViolationDetailsSection(
                               penaltyType: penaltyType,
-                              fine: widget.formData.fineSummary,
+                              fine: fineSummary,
                               ordinances: widget.formData.ordinances,
                               isTicket: isTicket,
                               marketSection: widget
@@ -407,42 +487,74 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
 
                     const SizedBox(height: AppTheme.ticketSmallGap),
 
+                    if (isTicket) ...[
+                      if (_verificationMessage != null)
+                        Text(_verificationMessage!),
+                      TextButton(
+                        onPressed: () async {
+                          final checked = await PersonHistorySheet.show(
+                            context,
+                            widget.formData.personId!,
+                            widget.formData.personFullName ??
+                                'Confirmed person',
+                          );
+                          if (mounted &&
+                              checked == true &&
+                              _submissionUncertain) {
+                            setState(() => _submissionUncertain = false);
+                          }
+                        },
+                        child: const Text('Check person citation history'),
+                      ),
+                      AppPrimaryButton(
+                        label: 'Verify ticket',
+                        iconData: Icons.fact_check_outlined,
+                        isLoading: _verifying,
+                        onPressed: _submissionUncertain ? null : _verify,
+                      ),
+                    ],
                     AppPrimaryButton(
                       label: 'Submit ${isTicket ? 'Ticket' : 'Warning'}',
                       iconData: Icons.gavel,
-                      onPressed: () async {
-                        if (_isConfirmationOpen ||
-                            context.read<InspectionBloc>().state
-                                is SubmitNewTicketLoading) {
-                          return;
-                        }
-                        _isConfirmationOpen = true;
-                        try {
-                          await showModalBottomSheet(
-                            context: context,
-                            enableDrag: true,
-                            showDragHandle: true,
-                            isScrollControlled: true,
-                            builder: (_) => SubmitConfirmationBottomSheet(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                _submit(context);
-                              },
-                              fineSummary: widget.formData.fineSummary,
-                              penaltyType: widget.formData.penaltyType,
-                              communityServiceHrs:
-                                  widget.formData.penaltyType ==
-                                      PenaltyType.communityService
-                                  ? widget.formData.communityServiceHrs
-                                  : null,
-                              severity: highest,
-                              isTicket: isTicket,
-                            ),
-                          );
-                        } finally {
-                          _isConfirmationOpen = false;
-                        }
-                      },
+                      onPressed:
+                          isTicket &&
+                              (_verification == null ||
+                                  _verifying ||
+                                  _submissionUncertain)
+                          ? null
+                          : () async {
+                              if (_isConfirmationOpen ||
+                                  context.read<InspectionBloc>().state
+                                      is SubmitNewTicketLoading) {
+                                return;
+                              }
+                              _isConfirmationOpen = true;
+                              try {
+                                await showModalBottomSheet(
+                                  context: context,
+                                  enableDrag: true,
+                                  showDragHandle: true,
+                                  isScrollControlled: true,
+                                  builder: (_) => SubmitConfirmationBottomSheet(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      _submit(context);
+                                    },
+                                    fineSummary: fineSummary,
+                                    penaltyType: widget.formData.penaltyType,
+                                    communityServiceHrs:
+                                        widget.formData.penaltyType ==
+                                            PenaltyType.communityService
+                                        ? widget.formData.communityServiceHrs
+                                        : null,
+                                    severity: highest,
+                                    isTicket: isTicket,
+                                  ),
+                                );
+                              } finally {
+                                _isConfirmationOpen = false;
+                              }
+                            },
                     ),
 
                     const SizedBox(height: 10),

@@ -36,7 +36,7 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Request
         public required string BusinessName { get; set; }
 
         [Required, StringLength(20)]
-        public required string BusinessId { get; set; }
+        public required string BusinessAccountNumber { get; set; }
 
         [Required, StringLength(100, MinimumLength = 2)]
         public required string NatureOfBusiness { get; set; }
@@ -47,8 +47,8 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Request
         public string? StallNumber { get; set; }
 
         [Required]
-        [EnumDataType(typeof(VendorType))]
-        public VendorType? VendorType { get; set; }
+        [EnumDataType(typeof(BusinessType))]
+        public BusinessType? BusinessType { get; set; }
 
         [Required, EmailAddress]
         public required string Email { get; set; }

@@ -1,0 +1,2 @@
+/* One fluid column: available canvas width minus the existing layout's equal gutters. */
+.page { display: grid; gap: var(--space-xl); min-width: 0; }

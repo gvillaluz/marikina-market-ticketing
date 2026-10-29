@@ -3,15 +3,38 @@
   min-height: 100vh;
   align-items: center;
   justify-content: center;
-  padding: 36px 24px;
-  background:
-    radial-gradient(circle at 12% 15%, rgba(7, 82, 152, 0.06), transparent 35%),
-    #f3f6fa;
+  padding: var(--space-section) var(--space-lg);
+  background: var(--bg-page);
+  color: var(--text-heading);
+}
+
+.page section {
+  width: 100%;
+  max-width: var(--staff-modal-width);
+}
+
+.page h1 {
+  margin-bottom: var(--space-lg);
+}
+
+.page p {
+  margin-bottom: var(--space-lg);
+  font-size: var(--form-font-body);
+  line-height: 1.6;
+}
+
+.page a {
+  color: var(--button-primary);
+  font-size: var(--form-font-body);
+}
+
+.page a:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
 }
 
 @media (max-width: 720px) {
   .page {
     align-items: flex-start;
-    padding: 20px 14px;
   }
 }

@@ -73,7 +73,22 @@ Future<void> authenticate(
       }).toEntity(),
     ),
   );
-  await finished;
+  await finished.timeout(const Duration(seconds: 5));
+}
+
+void registerEnforcerDashboard() {
+  final client = contractClient(
+    (options) async => reply(options, summaryResponse),
+  );
+  addTearDown(client.dio.close);
+  sl.registerFactory<DashboardBloc>(
+    () => DashboardBloc(
+      loadDashboardSummaryUseCase: LoadDashboardSummaryUseCase(
+        DashboardRepositoryImpl(DashboardRemoteDataSourceImpl(client)),
+      ),
+    ),
+  );
+  addTearDown(() => sl.unregister<DashboardBloc>());
 }
 
 Future<void> showRoleApp(
@@ -474,11 +489,11 @@ void main() {
   });
 
   testWidgets(
-    'logout and restored vendor sessions cannot expose prior navigation',
+    'logout and restored enforcer sessions cannot expose prior navigation',
     (tester) async {
-      final vendor = UserModel.fromJson({
+      final restoredEnforcer = UserModel.fromJson({
         ...profileResponse,
-        'role': 'MarketVendor',
+        'role': 'MarketEnforcer',
       });
       final payload = base64Url
           .encode(
@@ -500,36 +515,47 @@ void main() {
         'refresh_expiration': DateTime.now()
             .add(const Duration(days: 2))
             .toIso8601String(),
-        'user_info_key': jsonEncode(vendor.toJson()),
+        'user_info_key': jsonEncode(restoredEnforcer.toJson()),
       });
-      final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+      registerEnforcerDashboard();
+      late ConnectivityCubit connectivity;
+      late AuthBloc auth;
+      await tester.runAsync(() async {
+        connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+        auth = loginBloc(connectivity, (options) async => reply(options, {}));
+        await auth.stream
+            .firstWhere((state) => state is Authenticated)
+            .timeout(const Duration(seconds: 5));
+      });
       addTearDown(connectivity.close);
-      final auth = loginBloc(
-        connectivity,
-        (options) async => reply(options, {}),
-      );
       addTearDown(auth.close);
       final appRouter = AppRouter(authBloc: auth);
       addTearDown(appRouter.dispose);
-      await tester.runAsync(
-        () => auth.stream.firstWhere((state) => state is Authenticated),
-      );
       await showRoleApp(tester, appRouter, auth);
       await tester.pumpAndSettle();
       expect(
         appRouter.router.routeInformationProvider.value.uri.path,
-        Routes.vendorDashboard,
+        Routes.dashboard,
       );
-      appRouter.router.go(Routes.vendorRecords);
+      appRouter.router.go(Routes.vendorProfile);
       await tester.pumpAndSettle();
-      expect(find.byTooltip('Logout'), findsNothing);
-      auth.add(LogoutUser(false));
+      expect(
+        appRouter.router.routeInformationProvider.value.uri.path,
+        Routes.dashboard,
+      );
+      await tester.runAsync(() async {
+        final signedOut = auth.stream
+            .firstWhere((state) => state is Unauthenticated)
+            .timeout(const Duration(seconds: 5));
+        auth.add(LogoutUser(false));
+        await signedOut;
+      });
       await tester.pumpAndSettle();
       expect(
         appRouter.router.routeInformationProvider.value.uri.path,
         Routes.login,
       );
-      appRouter.router.go(Routes.vendorProfile);
+      appRouter.router.go(Routes.dashboard);
       await tester.pumpAndSettle();
       expect(
         appRouter.router.routeInformationProvider.value.uri.path,
@@ -538,37 +564,58 @@ void main() {
       expect(find.byType(NavigationBar), findsNothing);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
+      await tester.runAsync(auth.close);
     },
   );
   testWidgets(
-    'required password update preserves its form and reaches vendor access after success',
+    'required password update preserves its form and reaches enforcer access after success',
     (tester) async {
-      final pending = List.generate(2, (_) => Completer<Response<Object?>>());
+      final pending = List.generate(2, (_) => Completer<void>());
       final requests = List.generate(2, (_) => Completer<RequestOptions>());
       var updates = 0;
-      final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
-      addTearDown(connectivity.close);
-      final auth = loginBloc(connectivity, (options) async {
-        final index = updates++;
-        requests[index].complete(options);
-        return pending[index].future;
+      registerEnforcerDashboard();
+      late ConnectivityCubit connectivity;
+      late AuthBloc auth;
+      await tester.runAsync(() async {
+        connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+        auth = loginBloc(connectivity, (options) async {
+          expect(options.path, '/auth/mandatory-change-password');
+          final index = updates++;
+          requests[index].complete(options);
+          await pending[index].future;
+          if (index == 0) {
+            throw DioException(
+              requestOptions: options,
+              type: DioExceptionType.connectionError,
+            );
+          }
+          return reply(options, {});
+        });
+        await auth.stream
+            .firstWhere((state) => state is Unauthenticated)
+            .timeout(const Duration(seconds: 5));
       });
+      addTearDown(connectivity.close);
       addTearDown(auth.close);
-      await tester.runAsync(
-        () => auth.stream.firstWhere((state) => state is Unauthenticated),
-      );
       await tester.runAsync(() async {
         await const FlutterSecureStorage().write(
           key: 'user_info_key',
           value: jsonEncode(
             UserModel.fromJson({
               ...profileResponse,
-              'role': 'MarketVendor',
+              'role': 'MarketEnforcer',
               'mustChangedPassword': true,
             }).toJson(),
           ),
         );
-        await authenticate(auth, 'MarketVendor', mustChangePassword: true);
+        await authenticate(auth, 'MarketEnforcer', mustChangePassword: true);
+      });
+      addTearDown(() {
+        for (final response in pending) {
+          if (!response.isCompleted) {
+            response.complete();
+          }
+        }
       });
       final appRouter = AppRouter(authBloc: auth);
       addTearDown(appRouter.dispose);
@@ -581,7 +628,11 @@ void main() {
       final confirm = tester.widget<AuthBtn>(find.byType(AuthBtn)).onPressed!;
       confirm();
       confirm();
-      final firstRequest = await tester.runAsync(() => requests[0].future);
+      await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      final firstRequest = await tester.runAsync(
+        () => requests[0].future.timeout(const Duration(seconds: 5)),
+      );
       await tester.pump();
       expect(updates, 1);
       expect((firstRequest!.data as Map<String, Object?>)['user_id'], 1);
@@ -600,13 +651,8 @@ void main() {
         final failed = auth.stream.firstWhere(
           (state) => state is AuthChangePasswordNetworkError,
         );
-        pending[0].completeError(
-          DioException(
-            requestOptions: firstRequest,
-            type: DioExceptionType.connectionError,
-          ),
-        );
-        await failed;
+        pending[0].complete();
+        await failed.timeout(const Duration(seconds: 5));
       });
       await tester.pumpAndSettle();
       expect(
@@ -625,22 +671,28 @@ void main() {
         'NewPass123',
       );
       tester.widget<AuthBtn>(find.byType(AuthBtn)).onPressed!();
-      final secondRequest = await tester.runAsync(() => requests[1].future);
+      await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      final secondRequest = await tester.runAsync(
+        () => requests[1].future.timeout(const Duration(seconds: 5)),
+      );
+      expect(secondRequest, isNotNull);
       await tester.runAsync(() async {
         final success = auth.stream.firstWhere(
           (state) => state is Authenticated && !state.user.mustChangePassword,
         );
-        pending[1].complete(reply(secondRequest!, {}));
-        await success;
+        pending[1].complete();
+        await success.timeout(const Duration(seconds: 5));
       });
       await tester.pumpAndSettle();
       expect(
         appRouter.router.routeInformationProvider.value.uri.path,
-        Routes.vendorDashboard,
+        Routes.dashboard,
       );
-      expect(find.byType(VendorDashboardPage), findsOneWidget);
+      expect(find.text('Your market activity at a glance.'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
+      await tester.runAsync(auth.close);
     },
   );
 }

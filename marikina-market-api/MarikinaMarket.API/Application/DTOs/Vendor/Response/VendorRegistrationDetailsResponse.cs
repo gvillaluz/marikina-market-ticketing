@@ -6,10 +6,10 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Response
     {
         public int RegistrationId { get; set; }
         public uint Version { get; set; }
-        public required string BusinessId { get; set; }
+        public required string BusinessAccountNumber { get; set; }
         public required string BusinessName { get; set; }
         public required string NatureOfBusiness { get; set; }
-        public VendorType VendorType { get; set; }
+        public BusinessType BusinessType { get; set; }
         public required string MarketSectionName { get; set; }
         public string? StallNumber { get; set; }
         public required string FirstName { get; set; }

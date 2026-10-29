@@ -92,7 +92,7 @@ class VendorRecordDetailContent extends StatelessWidget {
                     ),
                     VendorTicketPaperField(
                       label: 'BUSINESS ID:',
-                      value: detail.businessId,
+                      value: detail.businessAccountNumber,
                     ),
                     if (detail.stallNumber != null)
                       VendorTicketPaperField(
@@ -109,7 +109,7 @@ class VendorRecordDetailContent extends StatelessWidget {
                     ),
                     VendorTicketPaperField(
                       label: 'VENDOR TYPE:',
-                      value: detail.vendorType,
+                      value: detail.businessType,
                     ),
                     if (detail.address?.trim().isNotEmpty == true)
                       VendorTicketPaperField(

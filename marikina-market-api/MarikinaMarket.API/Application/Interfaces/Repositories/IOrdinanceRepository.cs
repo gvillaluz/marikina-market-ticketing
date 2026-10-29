@@ -6,6 +6,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
     public interface IOrdinanceRepository
     {
         public Task<List<OrdinanceOffenseSummary>> GetByIdsAsync(List<int> ordinanceIds, int vendorId);
+        Task<List<OrdinanceOffenseSummary>> GetByPersonIdsAsync(List<int> ordinanceIds, int personId);
         //public Task<List<OrdinancePenaltyTier>> GetPenaltyTiersAsync(List<int> ordinanceTiers);
         public Task<List<Ordinance>> GetOrdinances();
         public Task<int> GetActiveCountAsync();

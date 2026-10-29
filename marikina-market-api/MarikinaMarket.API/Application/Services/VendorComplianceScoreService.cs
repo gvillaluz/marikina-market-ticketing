@@ -51,7 +51,7 @@ namespace MarikinaMarket.API.Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        private static void UpdateScore(VendorProfile vendor, VendorComplianceScoreResponse response)
+        private static void UpdateScore(Business vendor, VendorComplianceScoreResponse response)
         {
             vendor.ComplianceScore = response.ComplianceScore;
             vendor.ScoreUpdatedAt = response.CalculatedAt;

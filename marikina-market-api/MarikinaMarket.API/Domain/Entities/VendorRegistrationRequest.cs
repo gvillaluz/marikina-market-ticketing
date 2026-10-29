@@ -10,8 +10,8 @@ namespace MarikinaMarket.API.Domain.Entities
         public required string GovernmentIdNumber { get; set; }
         public required string GovernmentIdPhotoUrl { get; set; }
         public required string BusinessDocumentPhotoUrl { get; set; }
-        public VendorType Type { get; set; }
-        public required string BusinessId { get; set; }
+        public BusinessType Type { get; set; }
+        public required string BusinessAccountNumber { get; set; }
         public required string BusinessName { get; set; }
         public required string NatureOfBusiness { get; set; }
         public required string FirstName { get; set; }

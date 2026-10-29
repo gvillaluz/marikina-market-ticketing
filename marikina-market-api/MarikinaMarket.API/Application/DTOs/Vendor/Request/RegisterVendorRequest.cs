@@ -39,13 +39,13 @@ namespace MarikinaMarket.API.Application.DTOs.User.Request
         [StringLength(100)]
         public required string City { get; set; }
 
-        [Required(ErrorMessage = "Business ID is required.")]
+        [Required(ErrorMessage = "Business Account Number is required.")]
         [StringLength(20)]
-        public required string BusinessId { get; set; }
+        public required string BusinessAccountNumber { get; set; }
 
-        [Required(ErrorMessage = "Vendor type is required.")]
-        [EnumDataType(typeof(VendorType), ErrorMessage = "Invalid vendor type.")]
-        public VendorType VendorType { get; set; }
+        [Required(ErrorMessage = "Business type is required.")]
+        [EnumDataType(typeof(BusinessType), ErrorMessage = "Invalid business type.")]
+        public BusinessType BusinessType { get; set; }
 
         [Required(ErrorMessage = "Business name is required.")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "Business name must be between 2 and 100 characters.")]

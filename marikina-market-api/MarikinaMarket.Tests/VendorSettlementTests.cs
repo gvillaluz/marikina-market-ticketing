@@ -55,6 +55,13 @@ public class VendorSettlementTests
             using var response = await host.SendAsync(HttpMethod.Post,
                 $"/api/{actor}/tickets/101/settlement/{action}", form,
                 actor == "vendor" ? "MarketVendor" : "MarketEnforcer", actor == "vendor" ? "7" : "12");
+            if (actor == "vendor")
+            {
+                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+                Assert.Empty(host.Storage.UploadedKeys);
+                Assert.Equal(0, host.UnitOfWork.SaveCalls);
+                continue;
+            }
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Empty(host.Storage.UploadedKeys);
             Assert.Equal(0, host.UnitOfWork.SaveCalls);
@@ -86,6 +93,13 @@ public class VendorSettlementTests
             using var response = await host.SendAsync(HttpMethod.Post,
                 $"/api/{actor}/tickets/101/settlement/{action}", form,
                 actor == "vendor" ? "MarketVendor" : "MarketEnforcer", actor == "vendor" ? "7" : "12");
+            if (actor == "vendor")
+            {
+                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+                Assert.Empty(host.Storage.UploadedKeys);
+                Assert.Equal(0, host.UnitOfWork.SaveCalls);
+                continue;
+            }
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Single(host.Storage.UploadedKeys);
             Assert.Equal(1, host.UnitOfWork.SaveCalls);
@@ -97,24 +111,12 @@ public class VendorSettlementTests
     [Theory]
     [InlineData(PenaltyType.CashFine)]
     [InlineData(PenaltyType.BloodDonation)]
-    public async Task ReceiptGet_ReturnsTheSameSignedProofsAsEnforcer(PenaltyType penalty)
+    public async Task Former_account_cannot_retrieve_receipt_proofs(PenaltyType penalty)
     {
-        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets =>
-        {
-            tickets[0].PenaltyType = penalty;
-            tickets[0].ProofUrls = ["receipts/first.png", "receipts/second.jpg"];
-        });
-        using var vendor = await host.GetAsync(Receipt);
-        Assert.Equal(HttpStatusCode.OK, vendor.StatusCode);
-        var body = await vendor.Content.ReadAsStringAsync();
-        using var json = JsonDocument.Parse(body);
-        Assert.Equal(101, json.RootElement.GetProperty("ticket_id").GetInt32());
-        Assert.Equal(penalty.ToString(), json.RootElement.GetProperty("penalty_type").GetString());
-        Assert.Equal(new[] { VendorTicketStorageBoundary.Signed("receipts/first.png"), VendorTicketStorageBoundary.Signed("receipts/second.jpg") },
-            json.RootElement.GetProperty("proof_urls").EnumerateArray().Select(value => value.GetString()));
-        using var enforcer = await host.GetAsync("/api/enforcer/tickets/101/settlement/receipt", role: "MarketEnforcer", userId: "12");
-        Assert.Equal(HttpStatusCode.OK, enforcer.StatusCode);
-        Assert.Equal(body, await enforcer.Content.ReadAsStringAsync());
+        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets => tickets[0].PenaltyType = penalty);
+        using var response = await host.GetAsync(Receipt);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, host.Storage.Calls);
         Assert.Equal(0, host.UnitOfWork.SaveCalls);
     }
 
@@ -122,44 +124,28 @@ public class VendorSettlementTests
     [InlineData("proof.jpg", "image/jpeg", PenaltyType.CashFine)]
     [InlineData("proof.jpeg", "image/jpeg", PenaltyType.BloodDonation)]
     [InlineData("proof.png", "image/png", PenaltyType.CashFine)]
-    public async Task ReceiptPost_AppendsProofAndUpdatesUtcTimestampWithoutChangingStatus(
+    public async Task Former_account_cannot_append_receipt_proof(
         string filename, string mime, PenaltyType penalty)
     {
-        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets =>
-        {
-            tickets[0].PenaltyType = penalty;
-            tickets[0].ProofUrls = ["receipts/first.png"];
-        });
-        var before = DateTime.UtcNow;
+        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets => tickets[0].PenaltyType = penalty);
         using var form = Proof(filename, mime);
-        form.Add(new StringContent("88"), "user_id");
-        form.Add(new StringContent("7"), "vendor_id");
         using var response = await host.SendAsync(HttpMethod.Post, Receipt, form);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var ticket = host.Tickets[0];
-        var key = Assert.Single(host.Storage.UploadedKeys);
-        Assert.Matches(@"^tickets/[0-9]{4}/[0-9]{2}/[0-9a-f-]{36}\.(jpg|jpeg|png)$", key);
-        Assert.Equal(new[] { "receipts/first.png", key }, ticket.ProofUrls);
-        Assert.Equal(TicketStatus.Pending, ticket.Status);
-        Assert.Null(ticket.ResolvedAt);
-        Assert.Equal(DateTimeKind.Utc, ticket.UpdatedAt.Kind);
-        Assert.InRange(ticket.UpdatedAt, before, DateTime.UtcNow);
-        Assert.Equal(1, host.UnitOfWork.SaveCalls);
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        Assert.Equal(new[] { VendorTicketStorageBoundary.Signed("receipts/first.png"), VendorTicketStorageBoundary.Signed(key) },
-            json.RootElement.GetProperty("proof_urls").EnumerateArray().Select(value => value.GetString()));
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Empty(host.Storage.UploadedKeys);
+        Assert.Equal(0, host.UnitOfWork.SaveCalls);
+        Assert.Null(host.Tickets[0].ProofUrls);
     }
 
     [Fact]
-    public async Task ReceiptPost_InitializesNullProofListAndAcceptsTheFiveMegabyteBoundary()
+    public async Task Former_account_cannot_initialize_proof_storage()
     {
         await using var host = await VendorTicketHost.CreateAsync();
-        host.Tickets[0].ProofUrls = null;
-        using var form = Proof("proof.png", "image/png", 5 * 1024 * 1024);
+        using var form = Proof("proof.png", "image/png");
         using var response = await host.SendAsync(HttpMethod.Post, Receipt, form);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Single(host.Tickets[0].ProofUrls!);
-        Assert.Equal(1, host.UnitOfWork.SaveCalls);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Empty(host.Storage.UploadedKeys);
+        Assert.Equal(0, host.UnitOfWork.SaveCalls);
+        Assert.Null(host.Tickets[0].ProofUrls);
     }
 
     [Theory]
@@ -168,12 +154,12 @@ public class VendorSettlementTests
     [InlineData("proof.jpg", "image/png", 16)]
     [InlineData("proof.png", "image/png", 0)]
     [InlineData("proof.png", "image/png", 5242881)]
-    public async Task ReceiptPost_RejectsInvalidFilesBeforeUploadingOrSaving(string filename, string mime, int length)
+    public async Task Former_account_cannot_upload_files_of_any_shape(string filename, string mime, int length)
     {
         await using var host = await VendorTicketHost.CreateAsync();
         using var form = Proof(filename, mime, length);
         using var response = await host.SendAsync(HttpMethod.Post, Receipt, form);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Empty(host.Storage.UploadedKeys);
         Assert.Equal(0, host.UnitOfWork.SaveCalls);
         Assert.Null(host.Tickets[0].ProofUrls);
@@ -194,33 +180,13 @@ public class VendorSettlementTests
     }
 
     [Fact]
-    public async Task CommunityGet_ReturnsSortedSignedLogsAndTheSameProgressAsEnforcer()
+    public async Task Former_account_cannot_retrieve_service_history()
     {
-        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets =>
-        {
-            tickets[0].PenaltyType = PenaltyType.CommunityService;
-            tickets[0].CommunityServiceHours = 8;
-            tickets[0].CommunityServiceLogs =
-            [
-                new() { ServiceDate = new DateTime(2026, 10, 14, 0, 0, 0, DateTimeKind.Utc), HoursWorked = 3m, ProofUrl = "service/second.png" },
-                new() { ServiceDate = new DateTime(2026, 10, 13, 0, 0, 0, DateTimeKind.Utc), HoursWorked = 2.5m, ProofUrl = "service/first.png" }
-            ];
-        });
+        await using var host = await VendorTicketHost.CreateAsync();
         using var response = await host.GetAsync(Community);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadAsStringAsync();
-        using var json = JsonDocument.Parse(body);
-        Assert.Equal(8, json.RootElement.GetProperty("hours_required").GetInt32());
-        Assert.Equal(5.5m, json.RootElement.GetProperty("hours_completed").GetDecimal());
-        Assert.Equal(2.5m, json.RootElement.GetProperty("hours_remaining").GetDecimal());
-        Assert.Equal(68.8m, json.RootElement.GetProperty("completion_percentage").GetDecimal());
-        Assert.Equal("2026-10-13T00:00:00Z", json.RootElement.GetProperty("entries")[0].GetProperty("service_date").GetString());
-        Assert.Equal(VendorTicketStorageBoundary.Signed("service/first.png"), json.RootElement.GetProperty("entries")[0].GetProperty("proof_url").GetString());
-        using var enforcer = await host.GetAsync("/api/enforcer/tickets/101/settlement/community-service", role: "MarketEnforcer", userId: "12");
-        Assert.Equal(HttpStatusCode.OK, enforcer.StatusCode);
-        Assert.Equal(body, await enforcer.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, host.Storage.Calls);
         Assert.Equal(0, host.UnitOfWork.SaveCalls);
-        Assert.Empty(host.Storage.UploadedKeys);
     }
 
     [Fact]
@@ -237,7 +203,7 @@ public class VendorSettlementTests
     [InlineData(0)]
     [InlineData(-1)]
     [InlineData(null)]
-    public async Task CommunityGet_RejectsInvalidRequiredHours(int? hours)
+    public async Task Former_account_cannot_retrieve_service_with_any_hours(int? hours)
     {
         await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets =>
         {
@@ -245,7 +211,7 @@ public class VendorSettlementTests
             tickets[0].CommunityServiceHours = hours;
         });
         using var response = await host.GetAsync(Community);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal(0, host.Storage.Calls);
     }
 
@@ -300,7 +266,7 @@ public class VendorSettlementTests
     [InlineData("receipt", false)]
     [InlineData("receipt", true)]
     [InlineData("community-service", false)]
-    public async Task Settlement_RejectsWarningsMissingPenaltyAndWrongPenaltyType(string action, bool post)
+    public async Task Former_account_cannot_access_any_settlement_type(string action, bool post)
     {
         foreach (var scenario in new[] { "warning", "missing", "wrong" })
         {
@@ -314,7 +280,7 @@ public class VendorSettlementTests
             using var form = Proof("proof.png", "image/png");
             using var response = await host.SendAsync(post ? HttpMethod.Post : HttpMethod.Get,
                 $"/api/vendor/tickets/101/settlement/{action}", post ? form : null);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             Assert.Empty(host.Storage.UploadedKeys);
             Assert.Equal(0, host.Storage.Calls);
             Assert.Equal(0, host.UnitOfWork.SaveCalls);
@@ -322,7 +288,7 @@ public class VendorSettlementTests
     }
 
     [Fact]
-    public async Task TrackedOwnedSettlementQuery_TranslatesToPostgres()
+    public async Task Retired_settlement_query_has_no_account_join()
     {
         using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);
         var fixture = new VendorTicketDbSet<Ticket>(VendorTicketHost.Records());
@@ -336,7 +302,8 @@ public class VendorSettlementTests
         var expression = new ReplaceReportQueryRoot(fixture.RootExpression,
             ((IQueryable<Ticket>)postgres.Tickets).Expression).Visit(fixture.State.LastExpression!);
         var sql = ((IQueryable<Ticket>)postgres.Tickets).Provider.CreateQuery(expression!).ToQueryString();
-        Assert.Contains("user_id", sql);
+        Assert.DoesNotContain("user_id", sql);
+        Assert.Contains("FALSE", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("WHERE", sql);
     }
 

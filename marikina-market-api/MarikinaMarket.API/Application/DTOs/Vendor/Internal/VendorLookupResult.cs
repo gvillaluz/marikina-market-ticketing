@@ -5,9 +5,9 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Internal
     public class VendorLookupResult
     {
         public required int VendorId;
-        public required string Username;
-        public VendorType Type;
-        public required string BusinessId;
+        public string? Username;
+        public BusinessType Type;
+        public required string BusinessAccountNumber;
         public string? StallNumber;
         public required string TradeName;
         public required string LastName;

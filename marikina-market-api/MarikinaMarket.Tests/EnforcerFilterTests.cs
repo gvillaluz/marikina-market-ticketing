@@ -144,9 +144,8 @@ public class EnforcerFilterTests
             Status = id % 2 == 0 ? (id % 4 == 0 ? TicketStatus.Paid : TicketStatus.Pending) : null,
             IssuedAt = new DateTime(2026, 10, 21, 0, 0, 0, DateTimeKind.Utc).AddMinutes(-id),
             Description = "Synthetic market inspection",
-            Vendor = new VendorProfile { BusinessName = "Market Goods", BusinessId = "BUS-17", QrCodeValue = "synthetic-17",
-                User = new User { FirstName = "Juan", LastName = "Santos", DateOfBirth = new DateOnly(1990, 1, 1),
-                    HouseNumber = "1", Street = "Test Street", Barangay = "Test Barangay", City = "Marikina" } },
+            Vendor = new Business { BusinessName = "Market Goods", BusinessAccountNumber = "BUS-17", QrCodeValue = "synthetic-17",
+                 OwnerFirstName = "Juan", OwnerLastName = "Santos", HouseNumber = "1", Street = "Test Street", Barangay = "Test Barangay", City = "Marikina"  },
             MarketSection = new MarketSection { Name = "Dry Goods", Description = "Synthetic section" },
             TicketViolations = []
         }).ToList());

@@ -51,7 +51,11 @@ class SaveInspectionTicketUseCase
     }
 
     return await _repository.saveNewInspection(
+      // Preserve the confirmed identity and Verify snapshot across this boundary.
       SaveInspectionParams(
+        personId: params.personId,
+        paperViolatorName: params.paperViolatorName,
+        reviewedCalculation: params.reviewedCalculation,
         vendorId: params.vendorId,
         marketSectionId: params.marketSectionId,
         enforcerId: params.enforcerId,

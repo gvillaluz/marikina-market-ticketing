@@ -154,11 +154,15 @@ namespace MarikinaMarket.API.Presentation.Controllers
             if (request.OrdinanceIds is null
                 || !request.OrdinanceIds.Any()
                 || request.OrdinanceIds.Any(id => id <= 0)
-                || request.VendorId <= 0)
+                || request.PersonId is null or <= 0)
                 return BadRequest("Ordinance and vendor must not be empty.");
 
-            return Ok(await _service.GetOffenseCountsAndPaymentBy(request.OrdinanceIds, request.VendorId));
+            return Ok(await _service.GetPersonFineSummaryAsync(request.OrdinanceIds, request.PersonId.Value));
         }
+
+        [HttpPost("verify")]
+        public async Task<ActionResult<InspectionVerificationResponse>> Verify([FromBody] VerifyInspectionRequest request)
+            => Ok(await _service.VerifyInspectionAsync(request));
 
         [HttpPost("warning-check")]
         public async Task<ActionResult<List<WarningOrdinance>>> GetWarningOrdinances([FromBody] FineSummaryRequest request)

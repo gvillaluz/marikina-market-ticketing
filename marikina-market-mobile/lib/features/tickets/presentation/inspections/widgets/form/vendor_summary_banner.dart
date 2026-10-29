@@ -50,8 +50,12 @@ class VendorSummaryBanner extends StatelessWidget {
                           fontSize: AppTheme.sectionHeadingFontSize,
                         ),
                       ),
-                      Text('Business ID: ${vendor.businessId}'),
-                      Text('${vendor.lastName}, ${vendor.firstName}'),
+                      Text(
+                        'Business Account Number: ${vendor.businessAccountNumber}',
+                      ),
+                      Text(
+                        'Registered owner: ${vendor.lastName}, ${vendor.firstName}',
+                      ),
                       Text(
                         '${vendor.stallNumber ?? 'No stall assigned'} \u2022 ${vendor.marketSectionName}',
                         style: TextStyle(color: AppColors.mediumGrey),

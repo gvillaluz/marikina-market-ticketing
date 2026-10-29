@@ -34,31 +34,15 @@ namespace MarikinaMarket.Tests;
 public class VendorSelfProfileTests
 {
     [Fact]
-    public async Task Read_and_edit_use_account_ownership_and_include_both_profiles()
+    public async Task Former_vendor_accounts_have_no_business_self_profile()
     {
         await using var host = await VendorSelfProfileHost.CreateAsync();
-        using var before = await host.Send(HttpMethod.Get);
-        Assert.Equal(HttpStatusCode.OK, before.StatusCode);
-        var profile = await before.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(7, profile.GetProperty("user").GetProperty("userId").GetInt32());
-        var vendor = profile.GetProperty("vendor");
-        Assert.Equal(70, vendor.GetProperty("vendor_id").GetInt32());
-        Assert.Equal("Reyes Fresh Fish", vendor.GetProperty("business_name").GetString());
-        Assert.Equal("Fish and Seafood", vendor.GetProperty("market_section_name").GetString());
-        Assert.Equal("F-12", vendor.GetProperty("stall_number").GetString());
-        Assert.Equal(92, vendor.GetProperty("compliance_score").GetInt32());
-        Assert.False(profile.GetProperty("user").TryGetProperty("passwordHash", out _));
-        using var updated = await host.Send(HttpMethod.Put, body: host.Edit());
-        Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
-        var result = await updated.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal("Juana", result.GetProperty("user").GetProperty("firstName").GetString());
-        Assert.Equal("MM-70", result.GetProperty("vendor").GetProperty("business_id").GetString());
-        using var refreshed = await host.Send(HttpMethod.Get);
-        var fresh = await refreshed.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal("Juana", fresh.GetProperty("user").GetProperty("firstName").GetString());
-        Assert.Equal("Santos", host.Users.Single(u => u.Id == 88).LastName);
-        Assert.Equal("other@example.invalid", host.Users.Single(u => u.Id == 88).Email);
-        Assert.False(host.Users.Single(u => u.Id == 7).EmailConfirmed);
+        foreach (var method in new[] { HttpMethod.Get, HttpMethod.Put })
+        {
+            using var response = await host.Send(method, body: method == HttpMethod.Put ? host.Edit() : null);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+        Assert.Equal(0, host.Writes);
     }
 
     [Theory]
@@ -89,7 +73,7 @@ public class VendorSelfProfileTests
         await using var host = await VendorSelfProfileHost.CreateAsync();
         var edit = host.Edit(); edit[field] = value;
         using var response = await host.Send(HttpMethod.Put, body: edit);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(field == "date_of_birth" || value == "other@example.invalid" ? HttpStatusCode.NotFound : HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(0, host.Writes);
         Assert.Equal("Juan", host.Users.Single(u => u.Id == 7).FirstName);
     }
@@ -101,7 +85,7 @@ public class VendorSelfProfileTests
     {
         await using var host = await VendorSelfProfileHost.CreateAsync();
         if (removeAccount) host.Users.RemoveAll(u => u.Id == 7);
-        else host.Vendors.RemoveAll(v => v.UserId == 7);
+        else host.Vendors.RemoveAll(v => v.Id == 70);
         foreach (var method in new[] { HttpMethod.Get, HttpMethod.Put })
         {
             using var response = await host.Send(method, body: method == HttpMethod.Put ? host.Edit() : null);
@@ -115,20 +99,11 @@ public class VendorSelfProfileTests
     {
         await using var host = await VendorSelfProfileHost.CreateAsync();
         var edit = host.Edit();
-        edit["user_id"] = "88"; edit["vendor_id"] = "7";
-        edit["role"] = "HeadAdmin"; edit["status"] = "Inactive";
-        edit["username"] = "changed"; edit["business_name"] = "changed";
-        edit["stall_number"] = "changed"; edit["compliance_score"] = "0";
+        edit["user_id"] = "88"; edit["vendor_id"] = "7"; edit["business_name"] = "changed";
         using var response = await host.Send(HttpMethod.Put, body: edit);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal("MarketVendor", result.GetProperty("user").GetProperty("role").GetString());
-        Assert.Equal("vendor-7", result.GetProperty("user").GetProperty("username").GetString());
-        Assert.Equal("Reyes Fresh Fish", result.GetProperty("vendor").GetProperty("business_name").GetString());
-        Assert.Equal("Active", result.GetProperty("vendor").GetProperty("status").GetString());
-        Assert.Equal("F-12", result.GetProperty("vendor").GetProperty("stall_number").GetString());
-        Assert.Equal(92, result.GetProperty("vendor").GetProperty("compliance_score").GetInt32());
-        Assert.Equal("Maria", host.Users.Single(u => u.Id == 88).FirstName);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, host.Writes);
+        Assert.Equal("Reyes Fresh Fish", host.Vendors.Single(v => v.Id == 70).BusinessName);
     }
 }
 
@@ -139,22 +114,22 @@ internal sealed class VendorSelfProfileHost : IAsyncDisposable
     private AppDbContext _context = null!;
     private readonly SymmetricSecurityKey _key = new(RandomNumberGenerator.GetBytes(32));
     public List<User> Users { get; } = [Account(7, "Juan", "Reyes", "juan@example.invalid"), Account(88, "Maria", "Santos", "other@example.invalid")];
-    public List<VendorProfile> Vendors { get; } = [];
+    public List<Business> Vendors { get; } = [];
     public int Writes;
 
     public static async Task<VendorSelfProfileHost> CreateAsync()
     {
         var host = new VendorSelfProfileHost();
-        host.Vendors.Add(new VendorProfile
+        host.Vendors.Add(new Business
         {
-            Id = 70, UserId = 7, BusinessId = "MM-70", BusinessName = "Reyes Fresh Fish", StallNumber = "F-12",
+            Id = 70, BusinessAccountNumber = "MM-70", BusinessName = "Reyes Fresh Fish", StallNumber = "F-12",
             MarketSectionId = 2, MarketSection = new() { Id = 2, Name = "Fish and Seafood", Description = "Fish retail" },
-            Status = VendorStatus.Active, Type = VendorType.Public, ComplianceScore = 92, QrCodeValue = "test-only",
-            RegisteredAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            Status = VendorStatus.Active, Type = BusinessType.Public, ComplianceScore = 92, QrCodeValue = "test-only",
+            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         });
-        host.Vendors.Add(new VendorProfile { Id = 7, UserId = 88, BusinessId = "MM-7", BusinessName = "Santos Meat", QrCodeValue = "other" });
+        host.Vendors.Add(new Business { Id = 7, BusinessAccountNumber = "MM-7", BusinessName = "Santos Meat", QrCodeValue = "other" });
         host._context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options)
-        { VendorProfiles = new VendorSelfProfileDatabaseBoundary(host.Vendors) };
+        { Businesses = new VendorSelfProfileDatabaseBoundary(host.Vendors) };
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseTestServer(); builder.Logging.ClearProviders(); builder.Logging.AddConsole();
         // Replace only persistence/Identity storage and external storage boundaries.
@@ -245,15 +220,15 @@ internal sealed class VendorSelfProfileHost : IAsyncDisposable
 public interface IVendorProfileIdentityStore : IUserEmailStore<User>, IUserRoleStore<User> { }
 
 // Execute the real repository predicate against the synthetic database boundary.
-internal sealed class VendorSelfProfileDatabaseBoundary(List<VendorProfile> records)
-    : DbSet<VendorProfile>, IQueryable<VendorProfile>, IAsyncQueryProvider
+internal sealed class VendorSelfProfileDatabaseBoundary(List<Business> records)
+    : DbSet<Business>, IQueryable<Business>, IAsyncQueryProvider
 {
-    private readonly IQueryable<VendorProfile> _source = records.AsQueryable();
+    private readonly IQueryable<Business> _source = records.AsQueryable();
     public override Microsoft.EntityFrameworkCore.Metadata.IEntityType EntityType => throw new NotSupportedException();
-    Type IQueryable.ElementType => typeof(VendorProfile);
+    Type IQueryable.ElementType => typeof(Business);
     Expression IQueryable.Expression => _source.Expression;
     IQueryProvider IQueryable.Provider => this;
-    IEnumerator<VendorProfile> IEnumerable<VendorProfile>.GetEnumerator() => _source.GetEnumerator();
+    IEnumerator<Business> IEnumerable<Business>.GetEnumerator() => _source.GetEnumerator();
     public IQueryable CreateQuery(Expression expression) => _source.Provider.CreateQuery(expression);
     public IQueryable<TElement> CreateQuery<TElement>(Expression expression) => _source.Provider.CreateQuery<TElement>(expression);
     public object? Execute(Expression expression) => _source.Provider.Execute(expression);
@@ -261,6 +236,6 @@ internal sealed class VendorSelfProfileDatabaseBoundary(List<VendorProfile> reco
     public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return (TResult)(object)Task.FromResult(_source.Provider.Execute<VendorProfile?>(expression));
+        return (TResult)(object)Task.FromResult(_source.Provider.Execute<Business?>(expression));
     }
 }

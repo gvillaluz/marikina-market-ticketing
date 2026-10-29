@@ -37,7 +37,7 @@
 }
 
 .controlNumber,
-.businessId {
+.businessAccountNumber {
   color: #174d83;
   font-weight: 700;
   white-space: nowrap;
@@ -277,13 +277,11 @@
     align-items: stretch;
     flex-direction: column;
   }
-
   .footer,
   .footerContent {
     align-items: flex-start;
     flex-direction: column;
   }
-
   .footerContent {
     width: 100%;
   }
@@ -293,4 +291,8 @@
   .progressTrack > span {
     transition: none;
   }
+}
+
+.logsCard .tableWrapper :global(table > thead > tr > th) {
+  white-space: normal;
 }

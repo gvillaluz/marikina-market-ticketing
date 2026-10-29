@@ -24,8 +24,6 @@ namespace MarikinaMarket.API.Application.Services
         private static readonly SemaphoreSlim SettingsGate = new(1, 1);
         private static readonly TimeZoneInfo Manila = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
         private static readonly string TempRoot = Path.Combine(Path.GetTempPath(), "MarikinaMarket-backups");
-        private static bool _initialized;
-        private static int _isRunning;
         private readonly IBackupRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStorageService _storage;
@@ -55,9 +53,14 @@ namespace MarikinaMarket.API.Application.Services
                 throw new ConcurrencyConflictException("A backup or backup maintenance operation is already running.");
             try
             {
+                await using var operation = await _repository.TryAcquireOperationLockAsync(cancellationToken);
+                if (operation is null)
+                    throw new ConcurrencyConflictException("A backup or backup maintenance operation is already running.");
+                using var owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, operation.ConnectionLost);
+                cancellationToken = owned.Token;
                 await InitializeCoreAsync(cancellationToken);
                 var attempt = (await StartAttemptAsync(BackupType.Manual, cancellationToken))!.Value;
-                return await ExecuteBackupAsync(attempt.Backup, attempt.Occurrence, attempt.ScheduleUpdatedAt, cancellationToken);
+                return await ExecuteBackupAsync(attempt.Backup, attempt.Occurrence, attempt.ScheduleUpdatedAt, cancellationToken, operation.ConnectionLost);
             }
             finally { ExecutionGate.Release(); }
         }
@@ -67,10 +70,14 @@ namespace MarikinaMarket.API.Application.Services
             if (!await ExecutionGate.WaitAsync(0, cancellationToken)) return;
             try
             {
+                await using var operation = await _repository.TryAcquireOperationLockAsync(cancellationToken);
+                if (operation is null) return;
+                using var owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, operation.ConnectionLost);
+                cancellationToken = owned.Token;
                 await InitializeCoreAsync(cancellationToken);
                 var attempt = await StartAttemptAsync(BackupType.Automatic, cancellationToken);
                 if (attempt.HasValue)
-                    await ExecuteBackupAsync(attempt.Value.Backup, attempt.Value.Occurrence, attempt.Value.ScheduleUpdatedAt, cancellationToken);
+                    await ExecuteBackupAsync(attempt.Value.Backup, attempt.Value.Occurrence, attempt.Value.ScheduleUpdatedAt, cancellationToken, operation.ConnectionLost);
             }
             finally { ExecutionGate.Release(); }
         }
@@ -78,17 +85,25 @@ namespace MarikinaMarket.API.Application.Services
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
             await ExecutionGate.WaitAsync(cancellationToken);
-            try { await InitializeCoreAsync(cancellationToken); }
+            try
+            {
+                await using var operation = await _repository.TryAcquireOperationLockAsync(cancellationToken);
+                if (operation is null) return;
+                using var owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, operation.ConnectionLost);
+                await InitializeCoreAsync(owned.Token);
+            }
             finally { ExecutionGate.Release(); }
         }
 
         private async Task InitializeCoreAsync(CancellationToken cancellationToken)
         {
-            if (_initialized) return;
+            // A surviving instance must also recover attempts abandoned after its
+            // own startup. The shared operation lock excludes every active owner.
             await _repository.RecoverInterruptedAsync(cancellationToken);
             await SettingsGate.WaitAsync(cancellationToken);
             try
             {
+                await using var settings = await _repository.AcquireSettingsLockAsync(cancellationToken);
                 var schedule = await _repository.GetScheduleAsync(cancellationToken);
                 if (schedule != null && schedule.Enabled && schedule.NextRetryAt == null &&
                     schedule.LastAttemptScheduledAt >= schedule.UpdatedAt)
@@ -105,7 +120,6 @@ namespace MarikinaMarket.API.Application.Services
             finally { SettingsGate.Release(); }
             // Only our application's temporary dump files are recovered; never recurse into other directories.
             CleanupTemporaryFiles();
-            _initialized = true;
         }
 
         private static void CleanupTemporaryFiles()
@@ -131,6 +145,7 @@ namespace MarikinaMarket.API.Application.Services
             await SettingsGate.WaitAsync(cancellationToken);
             try
             {
+                await using var settings = await _repository.AcquireSettingsLockAsync(cancellationToken);
                 var schedule = await GetOrCreateScheduleAsync(cancellationToken);
                 var now = DateTime.UtcNow;
                 var occurrence = LatestOccurrence(schedule, now);
@@ -172,9 +187,8 @@ namespace MarikinaMarket.API.Application.Services
         }
 
         private async Task<BackupResponse> ExecuteBackupAsync(Backup backup, DateTime? occurrence,
-            DateTime scheduleUpdatedAt, CancellationToken cancellationToken)
+            DateTime scheduleUpdatedAt, CancellationToken cancellationToken, CancellationToken connectionLost)
         {
-            Interlocked.Exchange(ref _isRunning, 1);
             var tempId = Guid.NewGuid().ToString("N");
             var dumpPath = Path.Combine(TempRoot, tempId + ".dump.tmp");
             var encryptedPath = Path.Combine(TempRoot, tempId + ".encrypted.tmp");
@@ -205,6 +219,7 @@ namespace MarikinaMarket.API.Application.Services
                 await SettingsGate.WaitAsync(timeout.Token);
                 try
                 {
+                    await using var settings = await _repository.AcquireSettingsLockAsync(timeout.Token);
                     var schedule = await _repository.GetScheduleAsync(timeout.Token)
                         ?? throw new InvalidOperationException("Backup schedule is missing.");
                     backup.Size = new FileInfo(encryptedPath).Length;
@@ -223,10 +238,16 @@ namespace MarikinaMarket.API.Application.Services
             }
             catch (Exception ex)
             {
+                if (connectionLost.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Backup {BackupId} stopped after losing database ownership.", backup.Id);
+                    throw new OperationCanceledException("Backup lost database ownership.", connectionLost);
+                }
                 var error = ex is OperationCanceledException
                     ? "Backup was cancelled or exceeded its time limit."
                     : $"Backup failed during {stage}.";
-                await RecordFailureAsync(backup, error, occurrence, scheduleUpdatedAt);
+                await RecordFailureAsync(backup, error, occurrence, scheduleUpdatedAt, connectionLost);
+                connectionLost.ThrowIfCancellationRequested();
                 if (backup.Type == BackupType.Automatic)
                     await RecordBackupAuditAsync(backup.Id, "CreateAutomaticBackup", LogResult.Failed, "System automatic backup failed.");
                 // Do not attach provider exceptions: they can include credentials or database diagnostics.
@@ -240,7 +261,6 @@ namespace MarikinaMarket.API.Application.Services
                 if (key != null) CryptographicOperations.ZeroMemory(key);
                 DeleteTemporaryFile(dumpPath);
                 DeleteTemporaryFile(encryptedPath);
-                Interlocked.Exchange(ref _isRunning, 0);
             }
 
             if (backup.Type == BackupType.Automatic)
@@ -350,9 +370,11 @@ namespace MarikinaMarket.API.Application.Services
             }
         }
 
-        private async Task RecordFailureAsync(Backup backup, string error, DateTime? occurrence, DateTime scheduleUpdatedAt)
+        private async Task RecordFailureAsync(Backup backup, string error, DateTime? occurrence, DateTime scheduleUpdatedAt,
+            CancellationToken connectionLost)
         {
-            using var storageRecovery = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var storageRecovery = CancellationTokenSource.CreateLinkedTokenSource(connectionLost);
+            storageRecovery.CancelAfter(TimeSpan.FromSeconds(15));
             backup.Status = BackupStatus.Failed;
             backup.IsFinalized = true;
             backup.CompletedAt = null;
@@ -370,12 +392,14 @@ namespace MarikinaMarket.API.Application.Services
             {
                 _logger.LogWarning("Backup {BackupId} storage cleanup will be retried ({ExceptionType}).", backup.Id, ex.GetType().Name);
             }
-            using var historyRecovery = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var historyRecovery = CancellationTokenSource.CreateLinkedTokenSource(connectionLost);
+            historyRecovery.CancelAfter(TimeSpan.FromSeconds(15));
             try
             {
                 await SettingsGate.WaitAsync(historyRecovery.Token);
                 try
                 {
+                    await using var settings = await _repository.AcquireSettingsLockAsync(historyRecovery.Token);
                     if (occurrence.HasValue)
                     {
                         var schedule = await _repository.GetScheduleAsync(historyRecovery.Token);
@@ -407,6 +431,10 @@ namespace MarikinaMarket.API.Application.Services
             if (!await ExecutionGate.WaitAsync(0, cancellationToken)) return;
             try
             {
+                await using var operation = await _repository.TryAcquireOperationLockAsync(cancellationToken);
+                if (operation is null) return;
+                using var owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, operation.ConnectionLost);
+                cancellationToken = owned.Token;
                 await InitializeCoreAsync(cancellationToken);
                 await CleanupCoreAsync(cancellationToken);
             }
@@ -419,6 +447,7 @@ namespace MarikinaMarket.API.Application.Services
             await SettingsGate.WaitAsync(cancellationToken);
             try
             {
+                await using var settings = await _repository.AcquireSettingsLockAsync(cancellationToken);
                 // Keep retention changes atomic with selecting and deleting expired objects.
                 foreach (var backup in await _repository.GetCleanupCandidatesAsync(DateTime.UtcNow, cancellationToken))
                 {
@@ -456,7 +485,11 @@ namespace MarikinaMarket.API.Application.Services
         public async Task<BackupScheduleResponse> GetScheduleAsync(CancellationToken cancellationToken)
         {
             await SettingsGate.WaitAsync(cancellationToken);
-            try { return ToScheduleResponse(await GetOrCreateScheduleAsync(cancellationToken)); }
+            try
+            {
+                await using var settings = await _repository.AcquireSettingsLockAsync(cancellationToken);
+                return ToScheduleResponse(await GetOrCreateScheduleAsync(cancellationToken));
+            }
             finally { SettingsGate.Release(); }
         }
 
@@ -466,6 +499,7 @@ namespace MarikinaMarket.API.Application.Services
             await SettingsGate.WaitAsync(cancellationToken);
             try
             {
+                await using var settings = await _repository.AcquireSettingsLockAsync(cancellationToken);
                 var schedule = await GetOrCreateScheduleAsync(cancellationToken);
                 await _unitOfWork.BeginTransactionAsync();
                 try
@@ -560,6 +594,7 @@ namespace MarikinaMarket.API.Application.Services
             await SettingsGate.WaitAsync(cancellationToken);
             try
             {
+                await using var settings = await _repository.AcquireSettingsLockAsync(cancellationToken);
                 var schedule = await GetOrCreateScheduleAsync(cancellationToken);
                 var latest = await _repository.GetLatestAsync(false, cancellationToken);
                 var completed = await _repository.GetLatestAsync(true, cancellationToken);
@@ -567,7 +602,7 @@ namespace MarikinaMarket.API.Application.Services
                 {
                     LatestAttempt = latest == null ? null : ToResponse(latest),
                     LatestSuccessfulBackup = completed == null ? null : ToResponse(completed),
-                    IsRunning = Volatile.Read(ref _isRunning) == 1,
+                    IsRunning = await _repository.IsRunningAsync(cancellationToken),
                     Enabled = schedule.Enabled,
                     RetentionDays = schedule.RetentionDays,
                     NextScheduledAt = NextOccurrence(schedule, DateTime.UtcNow)

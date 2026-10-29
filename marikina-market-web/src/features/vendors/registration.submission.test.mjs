@@ -28,7 +28,7 @@ for (const field of ["governmentIdPhoto", "businessDocumentPhoto"]) {
   test(`registration rejects an empty ${field} before submission`, () => {
     const form = {
       ...initialWizardState,
-      businessId: "MM-2026-0010",
+      businessAccountNumber: "MM-2026-0010",
       governmentIdType: "NationalId",
       governmentIdPhoto: {
         name: "government.pdf",

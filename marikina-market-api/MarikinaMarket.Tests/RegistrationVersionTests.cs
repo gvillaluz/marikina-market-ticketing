@@ -26,6 +26,16 @@ namespace MarikinaMarket.Tests;
 public class RegistrationVersionTests
 {
     [Fact]
+    public async Task Legacy_approval_cannot_create_an_account_even_with_current_version()
+    {
+        var fixture = new ReviewFixture();
+        await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.Review(RequestStatus.Approved, 1200));
+        Assert.Equal(0, fixture.UserCreates);
+        Assert.Equal(0, fixture.Saves);
+        Assert.Equal(0, fixture.Emails);
+    }
+
+    [Fact]
     public async Task RepositoryProjectsTheDatabaseConcurrencyToken()
     {
         var fixture = new ReviewFixture();
@@ -45,7 +55,6 @@ public class RegistrationVersionTests
     }
 
     [Theory]
-    [InlineData("approve-registry")]
     [InlineData("decline-registry")]
     [InlineData("request-more-information")]
     public async Task HttpVersionValidationAndConflict(string action)
@@ -144,7 +153,6 @@ public class RegistrationVersionTests
     }
 
     [Theory]
-    [InlineData(RequestStatus.Approved)]
     [InlineData(RequestStatus.Rejected)]
     [InlineData(RequestStatus.NeedsInformation)]
     public async Task StaleReviewFailsBeforeAccountCreationOrMutation(RequestStatus status)
@@ -159,7 +167,6 @@ public class RegistrationVersionTests
     }
 
     [Theory]
-    [InlineData(RequestStatus.Approved)]
     [InlineData(RequestStatus.Rejected)]
     [InlineData(RequestStatus.NeedsInformation)]
     public async Task SuccessfulReviewReturnsDatabaseVersionAndBlocksSecondReview(RequestStatus status)
@@ -176,7 +183,6 @@ public class RegistrationVersionTests
     }
 
     [Theory]
-    [InlineData(RequestStatus.Approved)]
     [InlineData(RequestStatus.Rejected)]
     public async Task NeedsInformationCanBeApprovedOrRejectedOnce(RequestStatus status)
     {
@@ -196,7 +202,6 @@ public class RegistrationVersionTests
     }
 
     [Theory]
-    [InlineData(RequestStatus.Approved, "Your vendor registration is approved")]
     [InlineData(RequestStatus.Rejected, "Your vendor registration was rejected")]
     [InlineData(RequestStatus.NeedsInformation, "More information is needed")]
     public async Task ReviewEmailIncludesBrandedNoticeAndCorrectDetailsAfterCommit(RequestStatus status, string heading)
@@ -229,7 +234,6 @@ public class RegistrationVersionTests
     }
 
     [Theory]
-    [InlineData(RequestStatus.Approved)]
     [InlineData(RequestStatus.Rejected)]
     [InlineData(RequestStatus.NeedsInformation)]
     public async Task ReviewEmailEscapesVendorAndReviewInput(RequestStatus status)
@@ -252,7 +256,6 @@ public class RegistrationVersionTests
     }
 
     [Theory]
-    [InlineData(RequestStatus.Approved)]
     [InlineData(RequestStatus.Rejected)]
     [InlineData(RequestStatus.NeedsInformation)]
     public async Task EmailFailureDoesNotUndoCommittedReview(RequestStatus status)
@@ -302,7 +305,6 @@ public class RegistrationVersionTests
     }
 
     [Theory]
-    [InlineData(RequestStatus.Approved, "#4C8B5A")]
     [InlineData(RequestStatus.Rejected, "#C0392B")]
     [InlineData(RequestStatus.NeedsInformation, "#B8792F")]
     public async Task ReviewEmailUsesTheActionAccent(RequestStatus status, string accent)
@@ -313,7 +315,6 @@ public class RegistrationVersionTests
     }
 
     [Theory]
-    [InlineData(RequestStatus.Approved)]
     [InlineData(RequestStatus.Rejected)]
     [InlineData(RequestStatus.NeedsInformation)]
     public async Task SaveConflictRollsBackAndSendsNoEmail(RequestStatus status)
@@ -385,7 +386,7 @@ internal sealed class ReviewFixture
     {
         Id = 42, Version = 1200, Status = RequestStatus.Pending,
         GovernmentIdNumber = "SAMPLE-ID", GovernmentIdPhotoUrl = "", BusinessDocumentPhotoUrl = "",
-        BusinessId = "MM-2026-0042", BusinessName = "Reyes Fresh Fish", NatureOfBusiness = "Fish retail",
+        BusinessAccountNumber = "MM-2026-0042", BusinessName = "Reyes Fresh Fish", NatureOfBusiness = "Fish retail",
         FirstName = "Juan", LastName = "Reyes", HouseNumber = "12", Street = "Sampaguita",
         Barangay = "Santa Elena", City = "Marikina", PhoneNumber = "09171234567",
         Email = "juan@example.invalid", Password = "sample-hash", MarketSectionId = 1,
@@ -406,12 +407,12 @@ internal sealed class ReviewFixture
             "GetRegistrationById" => Task.FromResult<VendorRegistrationRequest?>(Record),
             "GetVendorRegistrationSummariesAsync" => Task.FromResult(new List<VendorRegistrationSummary>
             {
-                new() { RegistrationId = Record.Id, BusinessId = Record.BusinessId, BusinessName = Record.BusinessName,
+                new() { RegistrationId = Record.Id, BusinessAccountNumber = Record.BusinessAccountNumber, BusinessName = Record.BusinessName,
                     VendorName = "Juan Reyes", MarketSectionName = "Fish and Seafood", Version = Record.Version }
             }),
             "GetVendorRegistrationSummaryCountAsync" => Task.FromResult(1),
             "SetOriginalVersion" => SetVersion((uint)a[1]!),
-            "CreateVendorAsync" => Task.FromResult((VendorProfile)a[0]!),
+            "CreateVendorAsync" => Task.FromResult((Business)a[0]!),
             _ => throw new InvalidOperationException(m.Name)
         });
         var users = ReviewBoundaryProxy.Create<IUserRepository>((m, a) => m.Name switch

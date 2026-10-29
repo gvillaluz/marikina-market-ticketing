@@ -1,10 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using MarikinaMarket.API.Application.DTOs.Vendor.Response;
 using MarikinaMarket.API.Application.Interfaces.Services;
+using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Presentation.Controllers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -33,7 +35,7 @@ public class VendorAdministrationAccessTests
             using var response = await host.Send(path, role);
             Assert.Equal(expectedStatus, (int)response.StatusCode);
         }
-        Assert.Equal(expectedStatus == 200 ? 4 : 0, host.ServiceCalls);
+        Assert.Equal(expectedStatus == 200 ? VendorAdministrationAccessHost.Paths.Length : 0, host.ServiceCalls);
     }
 
     [Fact]
@@ -47,13 +49,29 @@ public class VendorAdministrationAccessTests
         }
         Assert.Equal(0, host.ServiceCalls);
     }
+
+    [Theory]
+    [InlineData("HeadAdmin", 201, 200)]
+    [InlineData("AdminOfficer", 201, 200)]
+    [InlineData("MarketEnforcer", 403, 403)]
+    [InlineData("MarketVendor", 403, 403)]
+    [InlineData(null, 401, 401)]
+    public async Task Business_writes_are_admin_only(string? role, int createStatus, int editStatus)
+    {
+        await using var host = await VendorAdministrationAccessHost.Create();
+        using var created = await host.WriteBusiness(HttpMethod.Post, role);
+        using var edited = await host.WriteBusiness(HttpMethod.Put, role);
+        Assert.Equal(createStatus, (int)created.StatusCode);
+        Assert.Equal(editStatus, (int)edited.StatusCode);
+        Assert.Equal(createStatus == 201 ? 2 : 0, host.ServiceCalls);
+    }
 }
 
 // Authorization/model binding are under test; service responses are the boundary.
 // No application startup, database, storage, email or push configuration is used.
 internal sealed class VendorAdministrationAccessHost : IAsyncDisposable
 {
-    public static readonly string[] Paths = ["/api/admin/vendors", "/api/admin/vendors/70/profile", "/api/admin/vendors/70/compliance-score", "/api/admin/vendors/70/inspections"];
+    public static readonly string[] Paths = ["/api/admin/vendors", "/api/admin/vendors/70/profile", "/api/admin/vendors/70/compliance-score", "/api/admin/vendors/70/inspections", "/api/admin/businesses", "/api/admin/businesses/70"];
     private WebApplication _app = null!;
     private HttpClient _client = null!;
     private readonly SymmetricSecurityKey _key = new(RandomNumberGenerator.GetBytes(32));
@@ -71,6 +89,9 @@ internal sealed class VendorAdministrationAccessHost : IAsyncDisposable
             return method.Name switch
             {
                 "GetAdminVendorSummariesAsync" => Task.FromResult(new PageResponse<AdminVendorSummaryResponse> { Items = [], Total = 0, HasMore = false }),
+                "GetBusinessesAsync" => Task.FromResult(new PageResponse<BusinessRecordResponse> { Items = [], Total = 0, HasMore = false }),
+                "GetBusinessAsync" or "SaveBusinessAsync" => Task.FromResult(BusinessRecordResponse.FromEntity(new Business
+                    { Id = 70, BusinessAccountNumber = "0001842", BusinessName = "Reyes Fish Store", QrCodeValue = "test-business" })),
                 "GetVendorProfileAsync" => Task.FromResult(new VendorProfileResponse { Name = "Juan Reyes" }),
                 "GetVendorComplianceScoreAsync" => Task.FromResult(new VendorComplianceScoreResponse { Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low" }),
                 _ => throw new InvalidOperationException(method.Name)
@@ -106,6 +127,19 @@ internal sealed class VendorAdministrationAccessHost : IAsyncDisposable
     public Task<HttpResponseMessage> Send(string path, string? role)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, path);
+        if (role is not null)
+        {
+            var token = new JwtSecurityToken("vendor-admin-tests", "vendor-admin-tests", [new(JwtRegisteredClaimNames.Sub, "1"), new(ClaimTypes.Role, role)],
+                expires: DateTime.UtcNow.AddMinutes(5), signingCredentials: new(_key, SecurityAlgorithms.HmacSha256));
+            request.Headers.Authorization = new("Bearer", new JwtSecurityTokenHandler().WriteToken(token));
+        }
+        return _client.SendAsync(request);
+    }
+
+    public Task<HttpResponseMessage> WriteBusiness(HttpMethod method, string? role)
+    {
+        var request = new HttpRequestMessage(method, method == HttpMethod.Post ? "/api/admin/businesses" : "/api/admin/businesses/70")
+            { Content = JsonContent.Create(BusinessManagementTests.Request()) };
         if (role is not null)
         {
             var token = new JwtSecurityToken("vendor-admin-tests", "vendor-admin-tests", [new(JwtRegisteredClaimNames.Sub, "1"), new(ClaimTypes.Role, role)],

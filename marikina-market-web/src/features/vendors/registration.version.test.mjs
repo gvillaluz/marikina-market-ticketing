@@ -106,12 +106,12 @@ test("GET preserves database versions and list filters", async () => {
     await h.api.getRegistrationRequests({
       offset: 0,
       status: "Pending",
-      vendorType: "Public",
+      businessType: "Public",
     }),
     page,
   );
   assert.equal(h.calls[0][0], "/admin/vendors/registration-requests");
-  assert.equal(h.calls[0][1].params.vendorType, "Public");
+  assert.equal(h.calls[0][1].params.businessType, "Public");
   h.respond({ ...registration, version: 1307 });
   assert.equal((await h.api.getRegistrationDetails(42)).version, 1307);
 });
@@ -176,7 +176,7 @@ function actionHarness(mode) {
         },
       },
       "@tanstack/react-query": {
-        useQueryClient: () => ({ invalidateQueries: async () => {} }),
+        useQueryClient: () => ({ invalidateQueries: async () => { } }),
       },
       "@/components/ui/Toast/useToast": {
         useToast: () => ({ showToast: (toast) => toasts.push(toast) }),

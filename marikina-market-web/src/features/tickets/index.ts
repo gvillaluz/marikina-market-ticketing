@@ -9,5 +9,5 @@ export { useTicketSettlementGallery } from "./hooks/useTicketSettlementGallery";
 export {
   formatPenaltyType,
   getTicketTotalFineAmount,
-  getTicketVendorType,
+  getTicketBusinessType,
 } from "./tickets.utils";

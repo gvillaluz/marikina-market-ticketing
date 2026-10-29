@@ -27,7 +27,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         public async Task<List<MarketSection>> GetAllAsync()
         {
             return await _context.MarketSections
-                .Include(section => section.VendorProfiles)
+                .Include(section => section.Businesses)
                 .OrderBy(section => section.Name)
                 .ToListAsync();
         }
@@ -46,7 +46,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         public async Task<int> GetVendorCountAsync(int id)
         {
             return await _context.MarketSections.Where(s => s.Id == id)
-                .Select(s => s.VendorProfiles.Count).SingleAsync();
+                .Select(s => s.Businesses.Count).SingleAsync();
         }
 
         public async Task SaveChangesAsync()

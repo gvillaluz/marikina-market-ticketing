@@ -8,7 +8,7 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Request
         [FromQuery(Name = "status")]
         public RequestStatus? Status { get; set; }
 
-        [FromQuery(Name = "vendor_type")]
-        public VendorType? VendorType { get; set; }
+        [FromQuery(Name = "business_type")]
+        public BusinessType? BusinessType { get; set; }
     }
 }

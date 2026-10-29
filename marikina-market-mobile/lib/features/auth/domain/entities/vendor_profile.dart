@@ -1,6 +1,6 @@
 class VendorProfile {
   final int vendorId;
-  final String businessId;
+  final String businessAccountNumber;
   final String businessName;
   final String? stallNumber;
   final int marketSectionId;
@@ -10,11 +10,11 @@ class VendorProfile {
   final String qrCodeValue;
   final int? complianceScore;
   final DateTime? scoreUpdatedAt;
-  final DateTime? registeredAt;
+  final DateTime? createdAt;
 
   const VendorProfile({
     required this.vendorId,
-    required this.businessId,
+    required this.businessAccountNumber,
     required this.businessName,
     required this.stallNumber,
     required this.marketSectionId,
@@ -24,6 +24,6 @@ class VendorProfile {
     required this.qrCodeValue,
     this.complianceScore,
     this.scoreUpdatedAt,
-    this.registeredAt,
+    this.createdAt,
   });
 }

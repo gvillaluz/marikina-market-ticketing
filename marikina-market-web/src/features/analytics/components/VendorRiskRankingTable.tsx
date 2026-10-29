@@ -63,7 +63,7 @@ export default function VendorRiskRankingTable({
             <tr>
               <th scope="col">Rank</th>
               <th scope="col">Business Name</th>
-              <th scope="col">Business ID</th>
+              <th scope="col">Business Account Number</th>
               <th scope="col">Offense Count</th>
               <th scope="col">Highest Severity</th>
               <th scope="col">Risk Score</th>
@@ -71,10 +71,10 @@ export default function VendorRiskRankingTable({
           </thead>
           <tbody>
             {data.map((vendor) => (
-              <tr key={`${vendor.businessId}-${vendor.rank}`}>
+              <tr key={`${vendor.businessAccountNumber}-${vendor.rank}`}>
                 <td>#{vendor.rank}</td>
                 <td className={styles.businessName}>{vendor.businessName}</td>
-                <td>{vendor.businessId}</td>
+                <td>{vendor.businessAccountNumber}</td>
                 <td>{vendor.offenseCount}</td>
                 <td>
                   <span

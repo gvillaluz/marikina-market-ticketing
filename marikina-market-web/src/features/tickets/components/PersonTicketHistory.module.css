@@ -1,0 +1,9 @@
+.history { padding-block: var(--space-md); color: var(--text-body); overflow-wrap: anywhere; }
+.history h3 { margin-block: 0 var(--space-sm); font-size: var(--font-size-body); }
+.history p { margin-block: var(--space-xs); }
+.records { margin: 0; padding: 0; list-style: none; }
+.records li { padding-block: var(--space-md); border-bottom: 1px solid var(--border-default); }
+.history button { margin-block: var(--space-sm); padding: var(--space-sm) var(--space-md); color: var(--text-body); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-sm); cursor: pointer; }
+.history button:hover { background: var(--bg-card); }
+.history button:focus-visible { outline: 2px solid var(--button-primary); outline-offset: 2px; }
+.history button:disabled { opacity: .6; cursor: wait; }

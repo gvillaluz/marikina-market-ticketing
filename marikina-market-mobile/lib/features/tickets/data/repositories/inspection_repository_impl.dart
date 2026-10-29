@@ -1,3 +1,7 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/person_candidate.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/person_ticket_history.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_verification.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'package:marikina_market_mobile/core/errors/exceptions.dart';
 import 'package:marikina_market_mobile/core/errors/failure.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
@@ -120,12 +124,14 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<Result<FineSummary>> getTicketFineSummary(
     List<int> ordinanceIds,
-    int vendorId,
-  ) async {
+    int vendorId, {
+    int? personId,
+  }) async {
     try {
       final fineModels = await remoteDataSource.getFineSummary(
         ordinanceIds,
         vendorId,
+        personId: personId,
       );
 
       return Result.success(fineModels.toEntity());
@@ -187,4 +193,56 @@ class InspectionRepositoryImpl implements InspectionRepository {
       return Result.failure(ServerFailure(e.message));
     }
   }
+
+  Future<Result<T>> _personResult<T>(Future<T> Function() request) async {
+    try {
+      return Result.success(await request());
+    } on ValidationException catch (e) {
+      return Result.failure(ValidationFailure(e.message));
+    } on NetworkException catch (e) {
+      return Result.failure(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Result.failure(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Result<PageResult<PersonCandidate>>> matchPeople(
+    String name,
+    String? address,
+    String? phone,
+    int offset,
+  ) => _personResult(
+    () async => (await remoteDataSource.matchPeople(
+      name,
+      address,
+      phone,
+      offset,
+    )).toEntity((m) => m.toEntity()),
+  );
+  @override
+  Future<Result<PersonCandidate>> createPerson(
+    String name,
+    String address,
+    String? phone,
+  ) => _personResult(
+    () async =>
+        (await remoteDataSource.createPerson(name, address, phone)).toEntity(),
+  );
+  @override
+  Future<Result<PageResult<PersonTicketHistory>>> getPersonHistory(
+    int personId,
+    int offset,
+  ) => _personResult(
+    () async => (await remoteDataSource.getPersonHistory(
+      personId,
+      offset,
+    )).toEntity((m) => m.toEntity()),
+  );
+  @override
+  Future<Result<InspectionVerification>> verifyInspection(
+    VerifyInspectionInput input,
+  ) => _personResult(
+    () async => (await remoteDataSource.verifyInspection(input)).toEntity(),
+  );
 }

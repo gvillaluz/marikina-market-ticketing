@@ -2,18 +2,24 @@
 
 namespace MarikinaMarket.API.Domain.Entities
 {
-    public class VendorProfile
+    public class Business
     {
         public int Id { get; set; }
 
-        public int UserId { get; set; }
-        public User? User { get; set; }
+        public string OwnerFirstName { get; set; } = "";
+        public string OwnerLastName { get; set; } = "";
+        public string HouseNumber { get; set; } = "";
+        public string Street { get; set; } = "";
+        public string Barangay { get; set; } = "";
+        public string City { get; set; } = "";
+        public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
 
         public int MarketSectionId { get; set; }
         public MarketSection? MarketSection { get; set; }
 
-        public VendorType Type { get; set; }
-        public required string BusinessId { get; set; }
+        public BusinessType Type { get; set; }
+        public required string BusinessAccountNumber { get; set; }
         public required string BusinessName { get; set; }
         public string? StallNumber { get; set; }
         public int ComplianceScore { get; set; }
@@ -21,7 +27,7 @@ namespace MarikinaMarket.API.Domain.Entities
         public required string QrCodeValue { get; set; }
 
         public VendorStatus Status { get; set; }
-        public DateTime RegisteredAt { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         public ICollection<Ticket> Tickets { get; set; } = [];
     }

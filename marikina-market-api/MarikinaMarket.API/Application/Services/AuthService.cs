@@ -158,7 +158,7 @@ namespace MarikinaMarket.API.Application.Services
 
             if (!role.HasValue || !Enum.IsDefined(role.Value) ||
                 (mobile
-                    ? role is not (Role.MarketEnforcer or Role.MarketVendor)
+                    ? role is not Role.MarketEnforcer
                     : role is not (Role.HeadAdmin or Role.AdminOfficer)))
                 throw new UnauthorizedAccessException("Account cannot use this application.");
 
@@ -253,7 +253,7 @@ namespace MarikinaMarket.API.Application.Services
 
         public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
         {
-            if (!Enum.IsDefined(request.Role) || request.Role == Role.HeadAdmin)
+            if (request.Role is not (Role.AdminOfficer or Role.MarketEnforcer))
                 throw new ValidationException("This role cannot be assigned through registration.");
 
             var existingUser = await _repository.FindByEmailAsync(request.EmailAddress);
@@ -380,6 +380,9 @@ namespace MarikinaMarket.API.Application.Services
 
             if (storedRefreshToken.User is null)
                 throw new SessionExpiredException("Invalid refresh token. Please log in again.");
+
+            if (await _repository.GetRoleAsync(storedRefreshToken.User) != Role.MarketEnforcer)
+                throw new SessionExpiredException("This account cannot use the mobile application.");
 
             var newAccessToken = await _tokenService.GenerateAccessToken(storedRefreshToken.User);
 

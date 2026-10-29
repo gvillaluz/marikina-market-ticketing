@@ -10,9 +10,9 @@ import styles from "./AdminVendorRegistrationTable.module.css";
 interface Props {
   registrations: VendorRegistrationSummary[];
   status: string;
-  vendorType: string;
+  businessType: string;
   setStatus: (value: string) => void;
-  setVendorType: (value: string) => void;
+  setBusinessType: (value: string) => void;
   page: number;
   totalPages: number;
   setPage: (page: number) => void;
@@ -45,9 +45,9 @@ function statusClass(status: string | number) {
 export default function AdminVendorRegistrationTable({
   registrations,
   status,
-  vendorType,
+  businessType,
   setStatus,
-  setVendorType,
+  setBusinessType,
   page,
   totalPages,
   setPage,
@@ -67,7 +67,7 @@ export default function AdminVendorRegistrationTable({
         <span className={styles.id}>REG-{row.registrationId}</span>
       ),
     },
-    { key: "businessId", header: "Business ID", width: "11%" },
+    { key: "businessAccountNumber", header: "Business Account Number", width: "11%" },
     {
       key: "businessName",
       header: "Business Name",
@@ -76,10 +76,10 @@ export default function AdminVendorRegistrationTable({
     },
     { key: "vendorName", header: "Vendor Name", width: "14%" },
     {
-      key: "vendorType",
+      key: "businessType",
       header: "Vendor Type",
       width: "10%",
-      render: (row) => displayValue(row.vendorType),
+      render: (row) => displayValue(row.businessType),
     },
     { key: "marketSectionName", header: "Market Section", width: "13%" },
     {
@@ -163,10 +163,10 @@ export default function AdminVendorRegistrationTable({
             ]}
           />
           <Dropdown
-            ariaLabel="Filter by vendor type"
-            triggerLabel={`Vendor Type: ${vendorType === "all" ? "All" : displayValue(vendorType)}`}
-            value={vendorType}
-            onChange={setVendorType}
+            ariaLabel="Filter by business type"
+            triggerLabel={`Vendor Type: ${businessType === "all" ? "All" : displayValue(businessType)}`}
+            value={businessType}
+            onChange={setBusinessType}
             options={[
               { value: "all", label: "All" },
               { value: "Public", label: "Public" },

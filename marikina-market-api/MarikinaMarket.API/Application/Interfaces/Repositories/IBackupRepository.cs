@@ -4,6 +4,9 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
 {
     public interface IBackupRepository
     {
+        Task<IBackupOperationLock?> TryAcquireOperationLockAsync(CancellationToken cancellationToken);
+        Task<IBackupOperationLock> AcquireSettingsLockAsync(CancellationToken cancellationToken);
+        Task<bool> IsRunningAsync(CancellationToken cancellationToken);
         Task<BackupSchedule?> GetScheduleAsync(CancellationToken cancellationToken);
         void AddSchedule(BackupSchedule schedule);
         void AddBackup(Backup backup);

@@ -119,10 +119,7 @@ void main() {
     );
   });
   test('notification taps respect role and validate ticket IDs', () {
-    expect(
-      MobileRouteAccess.notificationLocation(account('MarketVendor'), '42'),
-      Routes.vendorNotifications,
-    );
+    // Positive vendor-screen navigation is superseded; retain staff/ID guards.
     expect(
       MobileRouteAccess.notificationLocation(account('MarketEnforcer'), '42'),
       '/ticket/42',
@@ -144,7 +141,7 @@ void main() {
     );
     expect(
       MobileRouteAccess.notificationLocation(
-        account('MarketVendor', mustChangePassword: true),
+        account('MarketEnforcer', mustChangePassword: true),
         '42',
       ),
       isNull,

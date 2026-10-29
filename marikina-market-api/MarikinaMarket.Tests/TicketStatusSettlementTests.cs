@@ -216,15 +216,14 @@ public class TicketStatusSettlementTests
     {
         var fixture = new Fixture(PenaltyType.CashFine, failedMethod);
         fixture.Ticket.ProofUrls = ["receipt.png"];
-        fixture.Ticket.Vendor = new VendorProfile
+        fixture.Ticket.Vendor = new Business
         {
-            BusinessId = "business", BusinessName = "Stall", QrCodeValue = "qr",
-            User = new User
-            {
-                FirstName = "Juan", LastName = "Reyes", Email = "vendor@example.invalid",
-                DateOfBirth = new DateOnly(1990, 1, 1), HouseNumber = "1", Street = "Street",
+            BusinessAccountNumber = "business", BusinessName = "Stall", QrCodeValue = "qr",
+
+                OwnerFirstName = "Juan", OwnerLastName = "Reyes", Email = "vendor@example.invalid",
+                HouseNumber = "1", Street = "Street",
                 Barangay = "Barangay", City = "Marikina"
-            }
+
         };
         var response = await fixture.UpdateAsync(TicketStatus.Paid);
         Assert.Equal(TicketStatus.Paid, response.Status);
@@ -256,15 +255,14 @@ public class TicketStatusSettlementTests
     {
         var fixture = new Fixture(PenaltyType.CashFine);
         fixture.Ticket.ControlNumber = "<img src=x>";
-        fixture.Ticket.Vendor = new VendorProfile
+        fixture.Ticket.Vendor = new Business
         {
-            BusinessId = "business", BusinessName = "Stall", QrCodeValue = "qr",
-            User = new User
-            {
-                FirstName = "<script>alert(1)</script>", LastName = "Smith & Co", Email = "vendor@example.com",
-                DateOfBirth = new DateOnly(1990, 1, 1), HouseNumber = "1", Street = "Street",
+            BusinessAccountNumber = "business", BusinessName = "Stall", QrCodeValue = "qr",
+
+                OwnerFirstName = "<script>alert(1)</script>", OwnerLastName = "Smith & Co", Email = "vendor@example.com",
+                HouseNumber = "1", Street = "Street",
                 Barangay = "Barangay", City = "Marikina"
-            }
+
         };
         await fixture.UpdateAsync(TicketStatus.Contested);
         var html = Assert.Single(fixture.EmailBodies);
@@ -287,15 +285,14 @@ public class TicketStatusSettlementTests
     {
         var fixture = new Fixture(PenaltyType.CashFine);
         fixture.Ticket.ProofUrls = ["receipt.png"];
-        fixture.Ticket.Vendor = new VendorProfile
+        fixture.Ticket.Vendor = new Business
         {
-            BusinessId = "business", BusinessName = "Stall", QrCodeValue = "qr",
-            User = new User
-            {
-                FirstName = "Juan", LastName = "Reyes", Email = "vendor@example.invalid",
-                DateOfBirth = new DateOnly(1990, 1, 1), HouseNumber = "1", Street = "Street",
+            BusinessAccountNumber = "business", BusinessName = "Stall", QrCodeValue = "qr",
+
+                OwnerFirstName = "Juan", OwnerLastName = "Reyes", Email = "vendor@example.invalid",
+                HouseNumber = "1", Street = "Street",
                 Barangay = "Barangay", City = "Marikina"
-            }
+
         };
         await fixture.UpdateAsync(status);
         Assert.Equal(accent, Assert.Single(fixture.EmailAccents));

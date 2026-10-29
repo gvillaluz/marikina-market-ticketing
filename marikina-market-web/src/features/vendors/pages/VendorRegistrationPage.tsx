@@ -1,23 +1,12 @@
-import VendorRegistrationWizard from "@/features/vendors/components/registration/VendorRegistrationWizard";
-import { useVendorRegistration } from "@/features/vendors/hooks/useVendorRegistration";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styles from "./VendorRegistrationPage.module.css";
 
 export default function VendorRegistrationPage() {
-  const registration = useVendorRegistration();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const returnTo =
-    (location.state as { returnTo?: string } | null)?.returnTo ?? "/";
-
-  const handleCancel = () => {
-    registration.cancel();
-    navigate(returnTo);
-  };
-
-  return (
-    <main className={styles.page}>
-      <VendorRegistrationWizard {...registration} cancel={handleCancel} />
-    </main>
-  );
+  return <main className={styles.page}>
+    <section>
+      <h1>Business records</h1>
+      <p>Businesses and their owners do not have system login accounts. Contact the market office to register or update your business details.</p>
+      <Link to="/">Return to home</Link>
+    </section>
+  </main>;
 }

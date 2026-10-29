@@ -22,172 +22,47 @@ namespace MarikinaMarket.Tests;
 public class VendorRegistrationTests
 {
     [Theory]
-    [InlineData("0010", false)]
-    [InlineData("0010", true)]
-    [InlineData("9999", false)]
-    public async Task Approved_and_admin_created_vendors_use_the_staff_username_format(string sequence, bool adminCreated)
-    {
-        using var fixture = new Fixture { Sequence = sequence };
-        if (adminCreated)
-            await fixture.Service.CreateAdminVendorRegistrationAsync(fixture.AdminRequest(), 7);
-        else
-        {
-            var record = new ReviewFixture().Record;
-            fixture.Registrations.Add(record);
-            await fixture.Service.ApproveVendorRegistration(record.Id, new()
-            {
-                RequestStatus = RequestStatus.Approved, Version = record.Version, AdminId = 7
-            });
-        }
-        var username = $"VEN{sequence}-{DateTime.UtcNow.Year}";
-        Assert.Equal(username, Assert.Single(fixture.CreatedUsers).UserName);
-        Assert.Contains(username, Assert.Single(fixture.EmailBodies));
-    }
-
-    [Fact]
-    public async Task Vendor_username_never_exceeds_four_sequence_digits()
-    {
-        using var fixture = new Fixture { Sequence = "10000" };
-        var record = new ReviewFixture().Record;
-        fixture.Registrations.Add(record);
-        await Assert.ThrowsAsync<MarikinaMarket.API.Application.InvalidRequestException>(() =>
-            fixture.Service.ApproveVendorRegistration(record.Id, new()
-            {
-                RequestStatus = RequestStatus.Approved, Version = record.Version, AdminId = 7
-            }));
-        Assert.Empty(fixture.CreatedUsers);
-        Assert.Empty(fixture.EmailBodies);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task An_existing_business_id_does_not_report_the_new_email_as_used(bool adminCreated)
+    [InlineData("public")]
+    [InlineData("admin")]
+    [InlineData("approval")]
+    public async Task Retired_registration_paths_cannot_create_vendor_accounts(string path)
     {
         using var fixture = new Fixture();
-        var existing = new ReviewFixture().Record;
-        fixture.Registrations.Add(existing);
-        fixture.Request.Email = "new-vendor@example.invalid";
-        fixture.Request.BusinessId = " mm-2026-0042 ";
         var error = await Assert.ThrowsAsync<MarikinaMarket.API.Application.InvalidRequestException>(async () =>
         {
-            if (adminCreated) await fixture.Service.CreateAdminVendorRegistrationAsync(fixture.AdminRequest(), 7);
-            else await fixture.Service.CreateVendorRegistryAsync(fixture.Request);
+            if (path == "public") await fixture.Service.CreateVendorRegistryAsync(fixture.Request);
+            else if (path == "admin") await fixture.Service.CreateAdminVendorRegistrationAsync(fixture.AdminRequest(), 7);
+            else await fixture.Service.ApproveVendorRegistration(42, new()
+                { RequestStatus = RequestStatus.Approved, Version = 1200, AdminId = 7 });
         });
-        Assert.Equal("Business ID is already used by a vendor or registration request.", error.Message);
+        Assert.Contains("no longer supported", error.Message);
         Assert.Empty(fixture.CreatedUsers);
-        Assert.Equal(0, fixture.Uploads);
-    }
-
-    [Theory]
-    [InlineData(RequestStatus.Pending)]
-    [InlineData(RequestStatus.NeedsInformation)]
-    [InlineData(RequestStatus.Rejected)]
-    public async Task Registration_email_conflicts_are_explained_even_without_a_user_account(RequestStatus status)
-    {
-        using var fixture = new Fixture();
-        var existing = new ReviewFixture().Record;
-        existing.Status = status;
-        existing.Email = " Juan@Example.Invalid ";
-        fixture.Registrations.Add(existing);
-        fixture.Request.Email = " juan@example.invalid ";
-        var error = await Assert.ThrowsAsync<MarikinaMarket.API.Application.InvalidRequestException>(() =>
-            fixture.Service.CreateVendorRegistryAsync(fixture.Request));
-        Assert.Equal("A vendor registration request already uses this email address. Check your existing request or contact the market administration office.", error.Message);
-        Assert.Empty(fixture.CreatedUsers);
-        Assert.Equal(0, fixture.Uploads);
-    }
-
-    [Fact]
-    public async Task Existing_account_email_is_still_rejected()
-    {
-        using var fixture = new Fixture { AccountExists = true };
-        var error = await Assert.ThrowsAsync<MarikinaMarket.API.Application.InvalidRequestException>(() =>
-            fixture.Service.CreateVendorRegistryAsync(fixture.Request));
-        Assert.Equal("Email is already registered.", error.Message);
+        Assert.Empty(fixture.Profiles);
         Assert.Empty(fixture.Registrations);
+        Assert.Empty(fixture.EmailBodies);
         Assert.Equal(0, fixture.Uploads);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Unique_registration_normalizes_email_and_business_id(bool adminCreated)
-    {
-        using var fixture = new Fixture();
-        fixture.Request.Email = " Juan@Example.Invalid ";
-        fixture.Request.BusinessId = " MM-2026-0010 ";
-        if (adminCreated) await fixture.Service.CreateAdminVendorRegistrationAsync(fixture.AdminRequest(), 7);
-        else await fixture.Service.CreateVendorRegistryAsync(fixture.Request);
-        var record = Assert.Single(fixture.Registrations);
-        Assert.Equal("Juan@Example.Invalid", record.Email);
-        Assert.Equal("MM-2026-0010", record.BusinessId);
-        Assert.Equal("Juan@Example.Invalid", fixture.LastEmailLookup);
-    }
-
-    [Fact]
-    public async Task Confirmation_email_failure_returns_success_for_the_saved_registration()
-    {
-        using var fixture = new Fixture { FailEmail = true };
-        var response = await fixture.Service.CreateVendorRegistryAsync(fixture.Request);
-        Assert.Equal("Pending", response.Status);
-        Assert.Contains("confirmation email", response.Message);
-        Assert.Single(fixture.Registrations);
-        Assert.Equal(1, fixture.Saves);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Empty_email_is_rejected_before_lookups_or_writes(bool adminCreated)
-    {
-        using var fixture = new Fixture();
-        fixture.Request.Email = " ";
-        await Assert.ThrowsAsync<ValidationException>(async () =>
-        {
-            if (adminCreated) await fixture.Service.CreateAdminVendorRegistrationAsync(fixture.AdminRequest(), 7);
-            else await fixture.Service.CreateVendorRegistryAsync(fixture.Request);
-        });
-        Assert.Null(fixture.LastEmailLookup);
-        Assert.Empty(fixture.Registrations);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public async Task Public_registration_requires_a_stall_number_before_lookups_or_uploads(string? stallNumber)
-    {
-        using var fixture = new Fixture();
-        fixture.Request.StallNumber = stallNumber;
-
-        var error = await Assert.ThrowsAsync<ValidationException>(() => fixture.Service.CreateVendorRegistryAsync(fixture.Request));
-
-        Assert.Equal("Stall number is required for public vendors.", error.Message);
-        Assert.Null(fixture.LastEmailLookup);
-        Assert.Empty(fixture.Registrations);
-        Assert.Equal(0, fixture.Uploads);
+        Assert.Equal(0, fixture.Saves);
     }
 
     private sealed class Fixture : AppDbContext
     {
         public List<VendorRegistrationRequest> Registrations { get; } = [];
-        public List<VendorProfile> Profiles { get; } = [];
+        public List<Business> Profiles { get; } = [];
         public List<User> CreatedUsers { get; } = [];
         public List<string> EmailBodies { get; } = [];
         public string Sequence = "0010";
         public string? LastEmailLookup;
-        public bool FailEmail, AccountExists;
+        public bool FailEmail = false, AccountExists = false;
         public int Saves, Uploads;
         public VendorService Service { get; }
         public RegisterVendorRequest Request { get; } = new()
         {
             FirstName = "Juan", LastName = "Reyes", DateOfBirth = new(1990, 1, 1),
             HouseNumber = "12", Street = "Sampaguita", Barangay = "Santa Elena", City = "Marikina",
-            PhoneNumber = "09171234567", Email = "juan@example.invalid", BusinessId = "MM-2026-0010",
+            PhoneNumber = "09171234567", Email = "juan@example.invalid", BusinessAccountNumber = "MM-2026-0010",
             BusinessName = "Reyes Fresh Fish", NatureOfBusiness = "Fish retail", MarketSectionId = 1,
             StallNumber = "F-010",
-            VendorType = VendorType.Public, GovernmentIdType = GovernmentIdType.NationalId,
+            BusinessType = BusinessType.Public, GovernmentIdType = GovernmentIdType.NationalId,
             Password = "Registration-password-123", ConfirmPassword = "Registration-password-123",
             GovernmentIdPhoto = Photo("government.png"), BusinessDocumentPhoto = Photo("business.png")
         };
@@ -196,7 +71,7 @@ public class VendorRegistrationTests
             .UseNpgsql("Host=localhost;Database=unused;Username=unused").Options)
         {
             VendorRegistrationRequests = new RegistrationDbSet<VendorRegistrationRequest>(Registrations);
-            VendorProfiles = new RegistrationDbSet<VendorProfile>(Profiles);
+            Businesses = new RegistrationDbSet<Business>(Profiles);
             var users = ReviewBoundaryProxy.Create<IUserRepository>((method, args) => method.Name switch
             {
                 "FindByEmailAsync" => FindEmail((string)args[0]!),
@@ -256,9 +131,9 @@ public class VendorRegistrationTests
         {
             FirstName = Request.FirstName, LastName = Request.LastName, DateOfBirth = Request.DateOfBirth,
             HouseNumber = Request.HouseNumber, Street = Request.Street, Barangay = Request.Barangay, City = Request.City,
-            PhoneNumber = Request.PhoneNumber, Email = Request.Email, BusinessId = Request.BusinessId,
+            PhoneNumber = Request.PhoneNumber, Email = Request.Email, BusinessAccountNumber = Request.BusinessAccountNumber,
             BusinessName = Request.BusinessName, NatureOfBusiness = Request.NatureOfBusiness,
-            MarketSectionId = Request.MarketSectionId, VendorType = Request.VendorType,
+            MarketSectionId = Request.MarketSectionId, BusinessType = Request.BusinessType,
             Password = Request.Password, ConfirmPassword = Request.ConfirmPassword
         };
 

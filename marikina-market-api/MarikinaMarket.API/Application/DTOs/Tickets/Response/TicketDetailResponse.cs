@@ -9,10 +9,14 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
         public int TicketId { get; set; }
         public int EnforcerId { get; set; }
         public int VendorId { get; set; }
+        public int? PersonId { get; set; }
+        public string? PersonFullName { get; set; }
+        public string? PaperViolatorName { get; set; }
+        public string? RegisteredOwnerName { get; set; }
         public string? ControlNumber { get; set; }
         public ViolationType Type { get; set; }
-        public VendorType VendorType { get; set; }
-        public required string BusinessId { get; set; }
+        public BusinessType BusinessType { get; set; }
+        public required string BusinessAccountNumber { get; set; }
         public string? StallNumber { get; set; }
         public required string BusinessName { get; set; }
         public required string LastName { get; set; }

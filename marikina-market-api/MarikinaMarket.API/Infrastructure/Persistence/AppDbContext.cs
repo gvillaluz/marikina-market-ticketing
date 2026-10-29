@@ -19,7 +19,8 @@ namespace MarikinaMarket.API.Infrastructure.Persistence
         public DbSet<TicketEvidence> TicketEvidences { get; set; }
         public DbSet<TicketViolation> TicketViolations { get; set; }
         public DbSet<CommunityServiceLog> CommunityServiceLogs { get; set; }
-        public DbSet<VendorProfile> VendorProfiles { get; set; }
+        public DbSet<Business> Businesses { get; set; }
+        public DbSet<Person> Persons { get; set; }
         public DbSet<VendorRegistrationRequest> VendorRegistrationRequests { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<UserDeviceToken> UserDeviceTokens { get; set; }

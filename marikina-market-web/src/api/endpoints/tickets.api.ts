@@ -12,6 +12,7 @@ import type {
   TicketDetail,
   InspectionSummary,
   TicketStatusUpdateResponse,
+  PersonTicketHistoryItem,
 } from "../types/ticket.types";
 import { ApiRequestError } from "@/utils/apiErrors";
 
@@ -39,12 +40,18 @@ export function getTicketById(id: string): Promise<TicketRecord> {
   return apiClient.get(`/admin/tickets/inspections/${id}`).then((response) => {
     const payload =
       (response.data as { data?: TicketRecord }).data ?? response.data;
-    console.log("Ticket detail API data:", payload);
     return payload as TicketRecord;
   });
 }
 
 export const ticketsApi = {
+  getPersonHistory(personId: number, offset = 0): Promise<PaginatedResponse<PersonTicketHistoryItem>> {
+    if (!Number.isSafeInteger(personId) || personId <= 0 || !Number.isSafeInteger(offset) || offset < 0) {
+      return Promise.reject(new ApiRequestError("Invalid person or history offset.", 400));
+    }
+    return apiClient.get(`/persons/${personId}/tickets`, { params: { offset } })
+      .then(response => response.data as PaginatedResponse<PersonTicketHistoryItem>);
+  },
   inspectionList(
     params: GetInspectionsParams,
   ): Promise<PaginatedResponse<InspectionSummary>> {
@@ -139,7 +146,6 @@ export function getWarningById(id: string): Promise<WarningRecord> {
   return apiClient.get(`/admin/tickets/inspections/${id}`).then((response) => {
     const payload =
       (response.data as { data?: WarningRecord }).data ?? response.data;
-    console.log("Warning detail API data:", payload);
     return payload as WarningRecord;
   });
 }

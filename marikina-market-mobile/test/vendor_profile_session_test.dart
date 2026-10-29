@@ -13,7 +13,7 @@ import 'features/profile/profile_contract_test.dart' as profile;
 
 const vendorBusiness = <String, Object?>{
   'vendor_id': 70,
-  'business_id': 'MM-70',
+  'business_account_number': 'MM-70',
   'business_name': 'Reyes Fresh Fish',
   'stall_number': 'F-12',
   'market_section_id': 2,

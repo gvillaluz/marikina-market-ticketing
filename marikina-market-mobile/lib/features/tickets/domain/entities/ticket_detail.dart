@@ -3,17 +3,19 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.da
 import 'package:marikina_market_mobile/features/tickets/domain/entities/violation_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/ordinance_category.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class TicketDetail {
+  final int? personId;
+  final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
   final String? controlNumber;
   final int enforcerId;
   final int vendorId;
   final ViolationType violationType;
-  final VendorType vendorType;
-  final String businessId;
+  final BusinessType businessType;
+  final String businessAccountNumber;
   final String? stallNumber;
   final String tradeName;
   final String lastName;
@@ -33,13 +35,17 @@ class TicketDetail {
   final List<String>? evidenceUrls;
 
   const TicketDetail({
+    this.personId,
+    this.personFullName,
+    this.paperViolatorName,
+    this.registeredOwnerName,
     required this.ticketId,
     this.controlNumber,
     required this.enforcerId,
     required this.vendorId,
     required this.violationType,
-    required this.vendorType,
-    required this.businessId,
+    required this.businessType,
+    required this.businessAccountNumber,
     this.stallNumber,
     required this.tradeName,
     required this.lastName,

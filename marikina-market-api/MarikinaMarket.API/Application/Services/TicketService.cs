@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Diagnostics;
 using System.Net;
 using System.ComponentModel.DataAnnotations;
@@ -13,11 +15,14 @@ using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
 using MarikinaMarket.API.Application.DTOs.Audits.Internal;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MarikinaMarket.API.Application.Services
 {
     public class TicketService : ITicketService
     {
+        private readonly IPersonRepository? _personRepository;
         private readonly ITicketRepository _ticketRepository;
         private readonly IOrdinanceRepository _ordinanceRepository;
         private readonly IVendorRepository _vendorRepository;
@@ -39,7 +44,7 @@ namespace MarikinaMarket.API.Application.Services
             INotificationService notificationService,
             IVendorComplianceScoreService complianceScoreService,
             AuditLogContext? audit = null, IAuditLogService? auditService = null,
-            ILogger<TicketService>? logger = null
+            ILogger<TicketService>? logger = null, IPersonRepository? personRepository = null
             )
         {
             _ticketRepository = ticketRepository;
@@ -52,6 +57,7 @@ namespace MarikinaMarket.API.Application.Services
             _audit = audit;
             _auditService = auditService;
             _logger = logger;
+            _personRepository = personRepository;
         }
 
         public async Task<MobileDashboardSummaryResponse> GetMobileTicketCountAsync(int enforcerId)
@@ -381,6 +387,13 @@ namespace MarikinaMarket.API.Application.Services
                     && (request.CommunityServiceHours is null || request.CommunityServiceHours < 3))
                     throw new InvalidRequestException("Community service requires a minimum of 3 hours.");
             }
+            Person? person = null;
+            if (request.Type == ViolationType.Ticket)
+            {
+                if (request.PersonId is null or <= 0 || string.IsNullOrWhiteSpace(request.PaperViolatorName))
+                    throw new ValidationException("Confirm a person and enter the reviewed paper violator name.");
+                person = await RequirePersonAsync(request.PersonId.Value);
+            }
             await _unitOfWork.BeginTransactionAsync();
             var transactionCommitted = false;
 
@@ -391,7 +404,11 @@ namespace MarikinaMarket.API.Application.Services
                 if (vendor is null)
                     throw new RecordNotFoundException("Unable to find vendor.");
 
-                var duplicateOrdinances = await _ticketRepository.GetDuplicatedTickets(vendor.Id, request.Ordinances);
+                var duplicateOrdinances = request.Type == ViolationType.Ticket
+                    ? await _ticketRepository.GetPersonDuplicatesAsync(person!.Id, request.Ordinances, DateTime.UtcNow)
+                    : await _ticketRepository.GetDuplicatedTickets(vendor.Id, request.Ordinances);
+                if (request.Type == ViolationType.Ticket && duplicateOrdinances.Any())
+                    throw new DuplicateOrdinanceException("This person already has an active citation for a selected ordinance today. Review and verify again.", duplicateOrdinances);
 
                 if (duplicateOrdinances.Any())
                 {
@@ -407,7 +424,11 @@ namespace MarikinaMarket.API.Application.Services
                     );
                 }
 
-                var ordinanceWithTiers = await _ordinanceRepository.GetByIdsAsync(request.Ordinances, request.VendorId);
+                ValidateOrdinanceIds(request.Ordinances);
+                var ordinanceWithTiers = request.Type == ViolationType.Ticket
+                    ? await _ordinanceRepository.GetByPersonIdsAsync(request.Ordinances, person!.Id)
+                    : await _ordinanceRepository.GetByIdsAsync(request.Ordinances, request.VendorId);
+                if (request.Type == ViolationType.Ticket) ValidateOrdinanceConfiguration(ordinanceWithTiers, request.Ordinances);
 
                 var ordinanceFineSummary = BuildFineSummary(
                     ordinanceWithTiers,
@@ -511,8 +532,8 @@ namespace MarikinaMarket.API.Application.Services
                         FirstName = vendor.FirstName,
                         MarketSectionId = newWarningTicket.MarketSectionId,
                         MarketSectionName = vendor.MarketSectionName!,
-                        VendorType = vendor.Type,
-                        BusinessId = vendor.BusinessId,
+                        BusinessType = vendor.Type,
+                        BusinessAccountNumber = vendor.BusinessAccountNumber,
                         StallNumber = vendor.StallNumber,
                         BusinessName = vendor.BusinessName!,
                         EnforcerId = newWarningTicket.EnforcerId,
@@ -528,6 +549,9 @@ namespace MarikinaMarket.API.Application.Services
                     };
                 }
 
+                if (request.PenaltyType != PenaltyType.CashFine && ordinanceFineSummary.HighestSeverity == Severity.High)
+                    throw new ValidationException("High severity violations must be paid as cash fine.");
+                EnsureReviewedCalculation(request.ReviewedCalculation, ordinanceFineSummary);
                 var newControlNumber = await _ticketRepository.GetNewControlNumber();
                 var ticketEvidences = new List<TicketEvidence>();
 
@@ -553,11 +577,9 @@ namespace MarikinaMarket.API.Application.Services
 
                 bool isCashFine = request.PenaltyType == PenaltyType.CashFine;
 
-                if (!isCashFine && ordinanceFineSummary.HighestSeverity == Severity.High)
-                    throw new InvalidOperationException("High severity violations must be paid as cash fine.");
-
                 var ticket = new Ticket
                 {
+                    PersonId = person!.Id, PaperViolatorName = request.PaperViolatorName!.Trim(),
                     ControlNumber = newControlNumber.ToString(),
                     VendorId = vendor.Id,
                     MarketSectionId = vendor.MarketSectionId,
@@ -642,12 +664,14 @@ namespace MarikinaMarket.API.Application.Services
                     Id = newTicket.Id,
                     ControlNumber = newTicket!.ControlNumber!,
                     VendorId = newTicket.VendorId,
+                    PersonId = person.Id, PersonFullName = person.FullName, PaperViolatorName = newTicket.PaperViolatorName,
+                    RegisteredOwnerName = vendor.FirstName + " " + vendor.LastName,
                     LastName = vendor.LastName,
                     FirstName = vendor.FirstName,
                     MarketSectionId = newTicket.MarketSectionId,
                     MarketSectionName = vendor.MarketSectionName!,
-                    VendorType = vendor.Type,
-                    BusinessId = vendor.BusinessId,
+                    BusinessType = vendor.Type,
+                    BusinessAccountNumber = vendor.BusinessAccountNumber,
                     StallNumber = vendor.StallNumber,
                     BusinessName = vendor.BusinessName!,
                     EnforcerId = newTicket.EnforcerId,
@@ -660,6 +684,15 @@ namespace MarikinaMarket.API.Application.Services
                     DuplicateOrdinances = duplicateOrdinances,
                     WarningMessageForDuplicates = $"{duplicateOrdinances.Count} ordinance(s) were excluded as active tickets already exist."
                 };
+            }
+            catch (Exception exception) when (request.Type == ViolationType.Ticket &&
+                (exception is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure }
+                or DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.SerializationFailure } }
+                or InvalidOperationException { InnerException: DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.SerializationFailure } } }
+                or DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_tickets_control_number" } }))
+            {
+                if (!transactionCommitted) await _unitOfWork.RollbackAsync();
+                throw new ConcurrencyConflictException("Another citation changed the reviewed history. Check this person’s history and verify again before submitting.");
             }
             catch (Exception)
             {
@@ -748,13 +781,15 @@ namespace MarikinaMarket.API.Application.Services
                 Id = t.Id,
                 ControlNumber = t.ControlNumber,
                 VendorId = t.VendorId,
+                    PersonId = t.PersonId, PersonFullName = t.PersonFullName,
+                    PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
                 LastName = t.LastName,
                 FirstName = t.FirstName,
                 BusinessName = t.BusinessName,
                 MarketSectionId = t.MarketSectionId,
                 MarketSectionName = t.MarketSectionName,
-                BusinessId = t.BusinessId,
-                VendorType = t.VendorType,
+                BusinessAccountNumber = t.BusinessAccountNumber,
+                BusinessType = t.BusinessType,
                 StallNumber = t.StallNumber,
                 EnforcerId = t.EnforcerId,
                 Type = t.Type,
@@ -836,7 +871,7 @@ namespace MarikinaMarket.API.Application.Services
                 {
                     TicketId = log.TicketId,
                     ControlNumber = log.ControlNumber,
-                    BusinessId = log.BusinessId,
+                    BusinessAccountNumber = log.BusinessAccountNumber,
                     VendorName = log.VendorName,
                     CompletedHours = log.CompletedHours,
                     TotalHours = log.TotalHours,
@@ -881,10 +916,12 @@ namespace MarikinaMarket.API.Application.Services
                 Id = t.Id,
                 ControlNumber = t.ControlNumber,
                 VendorId = t.VendorId,
+                    PersonId = t.PersonId, PersonFullName = t.PersonFullName,
+                    PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
                 BusinessName = t.BusinessName,
                 MarketSectionName = t.MarketSectionName,
-                VendorType = t.VendorType,
-                BusinessId = t.BusinessId,
+                BusinessType = t.BusinessType,
+                BusinessAccountNumber = t.BusinessAccountNumber,
                 StallNumber = t.StallNumber,
                 EnforcerId = t.EnforcerId,
                 Status = t.Status ?? TicketStatus.Pending,
@@ -997,10 +1034,10 @@ namespace MarikinaMarket.API.Application.Services
             await SendVendorPushAsync(ticket, "ticket_updated", $"Ticket #{ticket.ControlNumber} updated",
                 $"Your ticket status changed from {previousStatus} to {ticket.Status}.");
 
-            if (!string.IsNullOrEmpty(ticket.Vendor?.User?.Email))
+            if (!string.IsNullOrEmpty(ticket.Vendor?.Email))
             {
-                var firstName = WebUtility.HtmlEncode(ticket.Vendor.User.FirstName);
-                var lastName = WebUtility.HtmlEncode(ticket.Vendor.User.LastName);
+                var firstName = WebUtility.HtmlEncode(ticket.Vendor.OwnerFirstName);
+                var lastName = WebUtility.HtmlEncode(ticket.Vendor.OwnerLastName);
 
                 string subject = $"Ticket Status Update - Control No. {ticket.ControlNumber}";
                 string body = $@"
@@ -1033,7 +1070,7 @@ namespace MarikinaMarket.API.Application.Services
                 };
                 try
                 {
-                    await _notificationService.SendEmailAsync(ticket.Vendor.User.Email, subject, body, accentColor);
+                    await _notificationService.SendEmailAsync(ticket.Vendor.Email, subject, body, accentColor);
                 }
                 catch (Exception exception)
                 {
@@ -1114,6 +1151,8 @@ namespace MarikinaMarket.API.Application.Services
                 EnforcerLastName = t.EnforcerLastName,
                 EnforcerFirstName = t.EnforcerFirstName,
                 VendorId = t.VendorId,
+                    PersonId = t.PersonId, PersonFullName = t.PersonFullName,
+                    PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
                 VendorLastName = t.VendorLastName,
                 VendorFirstName = t.VendorFirstName,
                 StallNumber = t.StallNumber,
@@ -1155,9 +1194,11 @@ namespace MarikinaMarket.API.Application.Services
                 EnforcerLastName = t.EnforcerLastName,
                 EnforcerFirstName = t.EnforcerFirstName,
                 VendorId = t.VendorId,
+                    PersonId = t.PersonId, PersonFullName = t.PersonFullName,
+                    PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
                 VendorLastName = t.VendorLastName,
                 VendorFirstName = t.VendorFirstName,
-                BusinessId = t.BusinessId,
+                BusinessAccountNumber = t.BusinessAccountNumber,
                 StallNumber = t.StallNumber,
                 MarketSectionId = t.MarketSectionId,
                 MarketSectionName = t.MarketSectionName,
@@ -1291,10 +1332,10 @@ namespace MarikinaMarket.API.Application.Services
                     $"{ticket.Vendor?.BusinessName}'s ticket is now overdue. It has not been paid or settled within 5 days of issuance."
                 );
 
-                if (!string.IsNullOrEmpty(ticket.Vendor?.User?.Email))
+                if (!string.IsNullOrEmpty(ticket.Vendor?.Email))
                 {
-                    var firstName = WebUtility.HtmlEncode(ticket.Vendor.User.FirstName);
-                    var lastName = WebUtility.HtmlEncode(ticket.Vendor.User.LastName);
+                    var firstName = WebUtility.HtmlEncode(ticket.Vendor.OwnerFirstName);
+                    var lastName = WebUtility.HtmlEncode(ticket.Vendor.OwnerLastName);
 
                     string subject = $"Overdue Notice - Control No. {ticket.ControlNumber}";
                     string body = $@"
@@ -1318,7 +1359,7 @@ namespace MarikinaMarket.API.Application.Services
                     <p style=""margin-top: 24px;"">Sincerely,<br>Market Administration Office</p>
                 ";
 
-                    await _notificationService.SendEmailAsync(ticket.Vendor.User.Email, subject, body, "#C0392B");
+                    await _notificationService.SendEmailAsync(ticket.Vendor.Email, subject, body, "#C0392B");
                 }
             }
 
@@ -1400,5 +1441,80 @@ namespace MarikinaMarket.API.Application.Services
             if (bytesRead != signature.Length || !header.SequenceEqual(signature))
                 throw new InvalidRequestException("Settlement proof must be a valid JPG or PNG image.");
         }
+        private static readonly JsonSerializerOptions ReviewJson = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            Converters = { new JsonStringEnumConverter() }
+        };
+
+        private async Task<Person> RequirePersonAsync(int id)
+        {
+            if (id <= 0) throw new ValidationException("Confirm a person before calculating or submitting a citation.");
+            return await (_personRepository ?? throw new InvalidOperationException("Person repository is unavailable.")).GetAsync(id)
+                ?? throw new RecordNotFoundException("Person not found.");
+        }
+
+        private static void ValidateOrdinanceIds(List<int> ids)
+        {
+            if (ids is null || ids.Count == 0 || ids.Any(id => id <= 0) || ids.Distinct().Count() != ids.Count)
+                throw new ValidationException("Select valid, distinct ordinances.");
+        }
+
+        private static void ValidateOrdinanceConfiguration(List<OrdinanceOffenseSummary> ordinances, List<int> ids)
+        {
+            if (ordinances.Count != ids.Count || ordinances.Any(o => o.PenaltyTiers.Count == 0))
+                throw new ValidationException("An ordinance or its penalty calculation is unavailable. Review the selected ordinances.");
+        }
+
+        public async Task<FineSummaryResponse> GetPersonFineSummaryAsync(List<int> ordinanceIds, int personId)
+        {
+            ValidateOrdinanceIds(ordinanceIds);
+            await RequirePersonAsync(personId);
+            var ordinances = await _ordinanceRepository.GetByPersonIdsAsync(ordinanceIds, personId);
+            ValidateOrdinanceConfiguration(ordinances, ordinanceIds);
+            return BuildFineSummary(ordinances, false,
+                await _ticketRepository.GetPersonDuplicatesAsync(personId, ordinanceIds, DateTime.UtcNow));
+        }
+
+        public async Task<InspectionVerificationResponse> VerifyInspectionAsync(VerifyInspectionRequest request)
+        {
+            Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+            if (request.PenaltyType == PenaltyType.CommunityService && request.CommunityServiceHours is null or < 3)
+                throw new ValidationException("Community service requires a minimum of 3 hours.");
+            if (await _vendorRepository.GetByIdAsync(request.VendorId) is null)
+                throw new RecordNotFoundException("Business not found.");
+            var calculation = await GetPersonFineSummaryAsync(request.OrdinanceIds, request.PersonId);
+            if (calculation.Breakdown.Any(item => item.IsDuplicate == true))
+                throw new DuplicateOrdinanceException("This person already has an active citation for a selected ordinance today.",
+                    await _ticketRepository.GetPersonDuplicatesAsync(request.PersonId, request.OrdinanceIds, DateTime.UtcNow));
+            if (request.PenaltyType != PenaltyType.CashFine && calculation.HighestSeverity == Severity.High)
+                throw new ValidationException("High severity violations must be paid as cash fine.");
+            return new() { Calculation = calculation, ReviewedCalculation = JsonSerializer.Serialize(calculation, ReviewJson) };
+        }
+
+        private static void EnsureReviewedCalculation(string? reviewed, FineSummaryResponse current)
+        {
+            FineSummaryResponse? previous;
+            try { previous = string.IsNullOrWhiteSpace(reviewed) ? null : JsonSerializer.Deserialize<FineSummaryResponse>(reviewed, ReviewJson); }
+            catch (JsonException) { throw new ValidationException("Verify the corrected citation before submitting."); }
+            if (previous?.Breakdown is null || previous.Breakdown.Count == 0
+                || previous.Breakdown.Any(item => item is null)
+                || previous.Breakdown.Select(item => item.OrdinanceId).Distinct().Count() != previous.Breakdown.Count)
+                throw new ValidationException("Verify the corrected citation before submitting.");
+            if (previous.TotalPaymentAmount != current.TotalPaymentAmount || previous.HighestSeverity != current.HighestSeverity
+                || previous.Breakdown.Count != current.Breakdown.Count
+                || current.Breakdown.Any(item => !previous.Breakdown.Any(old => old.OrdinanceId == item.OrdinanceId
+                    && old.OffenseNumber == item.OffenseNumber && old.PaymentAmount == item.PaymentAmount && old.Severity == item.Severity)))
+                throw new ConcurrencyConflictException("Offense history or the calculated fine changed. Review and verify again before submitting.");
+        }
+
+        public async Task<PageResponse<PersonTicketHistoryResponse>> GetPersonHistoryAsync(int personId, int offset)
+        {
+            if (offset < 0) throw new ValidationException("Offset must be nonnegative.");
+            await RequirePersonAsync(personId);
+            var (items, total) = await _ticketRepository.GetPersonHistoryAsync(personId, offset, PAGE_SIZE);
+            return new() { Items = items, Total = total, HasMore = (long)offset + items.Count < total };
+        }
+
     }
 }

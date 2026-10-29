@@ -19,7 +19,6 @@ namespace MarikinaMarket.API.Domain.Entities
         public bool MustChangePassword { get; set; } = false;
         public uint Version { get; set; }
 
-        public VendorProfile? VendorProfile { get; set; }
         public ICollection<Ticket> IssuedTickets { get; set; } = [];
         public ICollection<VendorRegistrationRequest> ReviewedVendorRegistrationRequests { get; set; } = [];
         public ICollection<RefreshToken> RefreshTokens { get; set; } = [];

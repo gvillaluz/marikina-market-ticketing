@@ -30,7 +30,7 @@ function isCommunityServiceSettlement(
 function exportVendorPage(vendors: AdminVendorSummary[]) {
   const rows = [
     [
-      "Business ID",
+      "Business Account Number",
       "Vendor Name",
       "Market Section",
       "Type",
@@ -39,7 +39,7 @@ function exportVendorPage(vendors: AdminVendorSummary[]) {
       "Tickets",
     ],
     ...vendors.map((vendor) => [
-      vendor.businessId,
+      vendor.businessAccountNumber,
       vendor.vendorName,
       vendor.marketSectionName,
       vendor.type,
@@ -66,6 +66,8 @@ function exportVendorPage(vendors: AdminVendorSummary[]) {
 }
 
 export function useAdminVendorsPage() {
+  const [businessOpen, setBusinessOpen] = useState(false);
+  const [editingBusinessId, setEditingBusinessId] = useState<number | null>(null);
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [section, setSection] = useState("all");
@@ -97,15 +99,23 @@ export function useAdminVendorsPage() {
   const settlementCount =
     settlementQuery.total ??
     settlementOffset +
-      settlementQuery.settlements.length +
-      (settlementQuery.hasMore ? 1 : 0);
+    settlementQuery.settlements.length +
+    (settlementQuery.hasMore ? 1 : 0);
   const totalSettlementPages = Math.max(
     settlementPage + (settlementQuery.hasMore ? 1 : 0),
     Math.ceil(settlementCount / SETTLEMENT_PAGE_SIZE),
   );
 
   return {
+    businessForm: {
+      open: businessOpen,
+      businessId: editingBusinessId,
+      onClose: () => setBusinessOpen(false),
+      onSaved: async () => { await vendorQuery.refetch(); },
+    },
     registry: {
+      onCreateBusiness: () => { setEditingBusinessId(null); setBusinessOpen(true); },
+      onEditBusiness: (vendor: AdminVendorSummary) => { setEditingBusinessId(vendor.vendorId); setBusinessOpen(true); },
       search,
       setSearch(value: string) {
         setSearch(value);
@@ -153,7 +163,7 @@ export function useAdminVendorsPage() {
         navigate(ROUTES.adminVendorInspections(String(vendor.vendorId)), {
           state: {
             vendorName: vendor.vendorName,
-            businessId: vendor.businessId,
+            businessAccountNumber: vendor.businessAccountNumber,
           },
         }),
     },

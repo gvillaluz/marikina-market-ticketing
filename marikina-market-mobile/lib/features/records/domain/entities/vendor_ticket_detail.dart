@@ -7,8 +7,8 @@ class VendorTicketDetail {
   final String? controlNumber;
   final RecordsFilter type;
   final String businessName,
-      vendorType,
-      businessId,
+      businessType,
+      businessAccountNumber,
       firstName,
       lastName,
       marketSection,
@@ -26,8 +26,8 @@ class VendorTicketDetail {
     required this.controlNumber,
     required this.type,
     required this.businessName,
-    required this.vendorType,
-    required this.businessId,
+    required this.businessType,
+    required this.businessAccountNumber,
     required this.firstName,
     required this.lastName,
     required this.marketSection,

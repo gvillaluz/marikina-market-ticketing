@@ -5,6 +5,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.da
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_ticket_summary.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_severity_badge.dart';
 
 class InspectionCard extends StatelessWidget {
@@ -24,7 +25,9 @@ class InspectionCard extends StatelessWidget {
     final location = [
       ticketSummary.marketSection,
       if (stall != null && stall.trim().isNotEmpty) stall,
-      '${ticketSummary.vendorLastName}, ${ticketSummary.vendorFirstName}',
+      ticketSummary.ticketType == ViolationType.ticket
+          ? (ticketSummary.paperViolatorName ?? 'Unconfirmed (legacy record)')
+          : 'Registered owner: ${ticketSummary.vendorLastName}, ${ticketSummary.vendorFirstName}',
     ].join(' • ');
     return Material(
       color: colors.surface,

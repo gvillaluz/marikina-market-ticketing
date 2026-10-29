@@ -156,6 +156,13 @@ void main() {
       await tester.pump();
       await tester.pump();
       expect(find.text('Branch 3'), findsOneWidget);
+      final reducedMotionPosition = tester.getTopLeft(find.text('Branch 3'));
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 10),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 1),
+      );
+      expect(tester.getTopLeft(find.text('Branch 3')), reducedMotionPosition);
       expect(tester.binding.hasScheduledFrame, isFalse);
       expect(tester.takeException(), isNull);
     },

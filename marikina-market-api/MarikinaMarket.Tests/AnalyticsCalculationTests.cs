@@ -107,7 +107,7 @@ public class AnalyticsCalculationTests
             Tickets = new AccountDatabaseSet<Ticket>(records),
             TicketViolations = new AccountDatabaseSet<TicketViolation>(links),
             MarketSections = new AccountDatabaseSet<MarketSection>(records.Count == 0 ? [] : [new() { Id = 2, Name = "Produce", Description = "Synthetic section", Tickets = records }]),
-            VendorProfiles = new AccountDatabaseSet<VendorProfile>([])
+            Businesses = new AccountDatabaseSet<Business>([])
         };
     }
 

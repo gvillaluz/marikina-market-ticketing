@@ -36,10 +36,10 @@ export interface VendorRegistrationForm {
   street: string;
   barangay: string;
   city: string;
-  businessId: string;
+  businessAccountNumber: string;
   businessName: string;
   natureOfBusiness: string;
-  vendorType: string;
+  businessType: string;
   stallNumber: string;
   marketSectionId: string;
   governmentIdType: string;

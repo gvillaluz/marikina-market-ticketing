@@ -49,7 +49,7 @@ export default function ComplianceActivityRow({
           <strong>{activity.vendorName}</strong>.
         </p>
         <span className={styles.activityVendor}>
-          {activity.businessId}
+          {activity.businessAccountNumber}
           {activity.controlNumber
             ? ` · ${formatControlNumber(activity.controlNumber)}`
             : ""}

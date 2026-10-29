@@ -8,6 +8,9 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
 {
     public interface IVendorService
     {
+        Task<PageResponse<BusinessRecordResponse>> GetBusinessesAsync(int offset, AdminVendorSummaryFilter filters);
+        Task<BusinessRecordResponse> GetBusinessAsync(int id);
+        Task<BusinessRecordResponse> SaveBusinessAsync(int? id, SaveBusinessRequest request);
         Task<VendorDashboardResponse> GetOwnDashboardAsync(int userId);
         public Task<VendorSelfProfileResponse> GetOwnProfileAsync(int userId);
         public Task<VendorSelfProfileResponse> UpdateOwnProfileAsync(int userId, EditUserRequest request);
@@ -30,7 +33,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
             VendorRegistrationRequestFilters filters);
         public Task<VendorRegistrationDetailsResponse> GetVendorRegistrationDetailsAsync(int registrationId);
         public Task<List<VendorRegistrationDocumentResponse>> GetVendorRegistrationDocumentsAsync(int registrationId);
-        public Task<List<GetVendorResponse>> GetVendorByBusinessIdAsync(string stallNumber);
+        public Task<List<GetVendorResponse>> GetVendorByBusinessAccountNumberAsync(string stallNumber);
         public Task<GetVendorResponse> GetVendorByQrCode(string qrCode);
         public Task<PageResponse<AdminVendorSummaryResponse>> GetAdminVendorSummariesAsync(
             int offset,

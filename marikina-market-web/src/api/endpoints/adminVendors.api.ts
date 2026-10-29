@@ -1,6 +1,8 @@
 import client from "@/api/client";
 import { ApiRequestError } from "@/utils/apiErrors";
 import type {
+  BusinessRecord,
+  SaveBusinessRequest,
   AdminPendingTicketSettlement,
   AdminCommunityServiceLog,
   AdminCommunityServiceLogFilters,
@@ -48,6 +50,21 @@ function validateRegistrationAction(request: RegistrationApprovalRequest) {
 }
 
 export const adminVendorsApi = {
+  async getBusiness(id: number): Promise<BusinessRecord> {
+    const { data } = await client.get<BusinessRecord>(`/admin/businesses/${id}`);
+    return data;
+  },
+  async saveBusiness(id: number | null, request: SaveBusinessRequest): Promise<BusinessRecord> {
+    const payload = {
+      ...request,
+      phoneNumber: request.phoneNumber?.trim() || null,
+      email: request.email?.trim() || null,
+    };
+    const { data } = id === null
+      ? await client.post<BusinessRecord>("/admin/businesses", payload)
+      : await client.put<BusinessRecord>(`/admin/businesses/${id}`, payload);
+    return data;
+  },
   async list(
     filters: AdminVendorSummaryFilters,
   ): Promise<AdminVendorPageResponse<AdminVendorSummary>> {

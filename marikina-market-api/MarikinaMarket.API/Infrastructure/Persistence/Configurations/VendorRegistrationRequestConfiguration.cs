@@ -21,11 +21,11 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
             builder.Property(v => v.BusinessDocumentPhotoUrl)
                 .HasMaxLength(1000);
 
-            builder.Property(v => v.BusinessId)
+            builder.Property(v => v.BusinessAccountNumber)
                 .HasMaxLength(20)
                 .IsRequired();
 
-            builder.HasIndex(v => v.BusinessId)
+            builder.HasIndex(v => v.BusinessAccountNumber)
                 .IsUnique();
 
             builder.Property(t => t.Type)

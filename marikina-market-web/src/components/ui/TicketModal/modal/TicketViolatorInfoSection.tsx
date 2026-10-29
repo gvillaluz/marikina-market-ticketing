@@ -3,10 +3,10 @@ import TicketInfoRow from "./TicketInfoRow";
 import TicketSectionHeader from "./TicketSectionHeader";
 import styles from "./TicketViolatorInfoSection.module.css";
 import { TicketDetail } from "@/api/types/ticket.types";
-import { getTicketVendorType } from "@/features/tickets";
+import { getTicketBusinessType } from "@/features/tickets";
 
 function TicketViolationInfoSection({ detail }: { detail?: TicketDetail }) {
-  const vendorType = getTicketVendorType(detail?.vendorType);
+  const businessType = getTicketBusinessType(detail?.businessType);
   const vendorName =
     [detail?.lastName, detail?.firstName]
       .filter((name) => typeof name === "string" && name.trim())
@@ -15,28 +15,32 @@ function TicketViolationInfoSection({ detail }: { detail?: TicketDetail }) {
     <>
       <TicketSectionHeader title={"VIOLATOR DETAILS"} icon={User} />
       <section
-        className={`${styles.infoSection} ${vendorType === "Private" ? styles.private : ""}`}
+        className={`${styles.infoSection} ${businessType === "Private" ? styles.private : ""}`}
       >
         <TicketInfoRow
           label="BUSINESS ID:"
           value={
-            typeof detail?.businessId === "string" && detail.businessId.trim()
-              ? detail.businessId
+            typeof detail?.businessAccountNumber === "string" && detail.businessAccountNumber.trim()
+              ? detail.businessAccountNumber
               : "\u2014"
           }
         />
-        <TicketInfoRow label="VENDOR TYPE:" value={vendorType || "\u2014"} />
+        <TicketInfoRow label="VENDOR TYPE:" value={businessType || "\u2014"} />
         <TicketInfoRow
           label="TRADE NAME:"
           value={detail?.businessName || "\u2014"}
         />
-        {vendorType !== "Private" && (
+        {businessType !== "Private" && (
           <TicketInfoRow
             label="STALL/UNIT NO:"
             value={detail?.stallNumber || "\u2014"}
           />
         )}
-        <TicketInfoRow label="NAME:" value={vendorName} />
+        <TicketInfoRow label="REGISTERED OWNER:" value={detail?.registeredOwnerName || vendorName} />
+        {detail?.type === "Ticket" && <>
+          <TicketInfoRow label="RECORDED VIOLATOR:" value={detail.paperViolatorName || "Unconfirmed (legacy record)"} />
+          <TicketInfoRow label="CONFIRMED PERSON:" value={detail.personId ? `${detail.personFullName || "Person"} · Person ${detail.personId}` : "Unconfirmed (legacy record)"} />
+        </>}
         <TicketInfoRow label="ADDRESS:" value={detail?.address || "\u2014"} />
       </section>
     </>

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:marikina_market_mobile/core/network/client.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/auth/data/models/user_model.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_header_card.dart';
@@ -99,14 +100,25 @@ void main() {
     'profile passwords are obscured and cannot be edited while changing',
     (tester) async {
       final requested = Completer<RequestOptions>();
-      final pending = Completer<Response<Object?>>();
-      final client = contractClient((options) {
-        requested.complete(options);
-        return pending.future;
+      final pending = Completer<void>();
+      late ApiClient client;
+      late ProfileBloc bloc;
+      await tester.runAsync(() async {
+        client = contractClient((options) async {
+          requested.complete(options);
+          await pending.future;
+          throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.connectionError,
+          );
+        });
+        bloc = formBloc(client);
       });
       addTearDown(client.dio.close);
-      final bloc = formBloc(client);
       addTearDown(bloc.close);
+      addTearDown(() {
+        if (!pending.isCompleted) pending.complete();
+      });
       final current = TextEditingController(text: 'OldPass123');
       final next = TextEditingController(text: ' NewPass123 ');
       final confirm = TextEditingController(text: ' NewPass123 ');
@@ -145,7 +157,11 @@ void main() {
           confirmNewPassword: confirm.text,
         ),
       );
-      final options = await tester.runAsync(() => requested.future);
+      await tester.pump();
+      await tester.runAsync(() => pumpEventQueue());
+      await tester.runAsync(
+        () => requested.future.timeout(const Duration(seconds: 5)),
+      );
       await tester.pump();
       expect(
         tester
@@ -158,13 +174,8 @@ void main() {
         (state) => state is ChangePasswordNetworkError,
       );
       await tester.runAsync(() async {
-        pending.completeError(
-          DioException(
-            requestOptions: options!,
-            type: DioExceptionType.connectionError,
-          ),
-        );
-        await failed;
+        pending.complete();
+        await failed.timeout(const Duration(seconds: 5));
       });
       await tester.pump();
       expect(

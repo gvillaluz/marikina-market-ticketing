@@ -25,7 +25,7 @@ public class MarketSeedTests
         using var context = CreateContext();
         var model = context.GetService<IDesignTimeModel>().Model;
         foreach (var type in new[] { typeof(Ordinance), typeof(OrdinancePenaltyTier), typeof(User),
-            typeof(IdentityUserRole<int>), typeof(VendorProfile), typeof(VendorRegistrationRequest),
+            typeof(IdentityUserRole<int>), typeof(Business), typeof(VendorRegistrationRequest),
             typeof(Ticket), typeof(TicketViolation) })
             Assert.Empty(model.FindEntityType(type)!.GetSeedData());
     }

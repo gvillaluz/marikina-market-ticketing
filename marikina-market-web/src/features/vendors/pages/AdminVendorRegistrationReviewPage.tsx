@@ -103,8 +103,8 @@ export default function AdminVendorRegistrationReviewPage() {
                 highlight
               />
               <ReviewField
-                label="Business ID"
-                value={details.businessId}
+                label="Business Account Number"
+                value={details.businessAccountNumber}
                 highlight
               />
               <ReviewField label="Status" value={details.status} />
@@ -149,7 +149,7 @@ export default function AdminVendorRegistrationReviewPage() {
                 label="Stall assignment"
                 value={details.stallNumber}
               />
-              <ReviewField label="Vendor type" value={details.vendorType} />
+              <ReviewField label="Business type" value={details.businessType} />
             </div>
           </ReviewSection>
 

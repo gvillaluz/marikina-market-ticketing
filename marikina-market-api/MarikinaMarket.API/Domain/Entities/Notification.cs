@@ -10,7 +10,7 @@ namespace MarikinaMarket.API.Domain.Entities
         public User? Enforcer { get; set; }
 
         public int VendorId { get; set; }
-        public VendorProfile? Vendor { get; set; }
+        public Business? Vendor { get; set; }
 
         public int TicketId { get; set; }
         public Ticket? Ticket { get; set; }

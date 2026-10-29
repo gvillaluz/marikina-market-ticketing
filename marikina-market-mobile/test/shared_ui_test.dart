@@ -7,6 +7,7 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/skeleton
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_page_skeleton.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_list_skeleton.dart';
+import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_skeleton_card.dart';
 
 Future<void> showUi(
   WidgetTester tester,
@@ -31,6 +32,39 @@ Future<void> showUi(
 );
 
 void main() {
+  testWidgets(
+    'reduced-motion outlined loading exposes valid progress semantics',
+    (tester) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        await showUi(
+          tester,
+          AppOutlinedBtn(
+            label: 'Save changes',
+            iconData: Icons.save,
+            onPressed: () {},
+            foregroundColor: AppTheme.light.colorScheme.primary,
+            backgroundColor: AppTheme.light.colorScheme.surface,
+            isLoading: true,
+          ),
+          reduceMotion: true,
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        final data = tester
+            .getSemantics(find.byType(CircularProgressIndicator))
+            .getSemanticsData();
+        expect(
+          data.label.split('\n'),
+          containsAll(['Loading', 'Save changes']),
+        );
+        expect(double.tryParse(data.value), inInclusiveRange(0, 100));
+        await tester.pumpWidget(const SizedBox());
+      } finally {
+        semantics.dispose();
+      }
+    },
+  );
   for (final outlined in [false, true]) {
     testWidgets(
       '${outlined ? "outlined" : "primary"} button blocks duplicate taps while loading and supports disabled state',
@@ -123,13 +157,37 @@ void main() {
     'inactive skeleton pauses and resumes when its tab becomes active',
     (tester) async {
       await showUi(tester, const SkeletonBox(height: 80), tickerEnabled: false);
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(tester.binding.hasScheduledFrame, isFalse);
       await showUi(tester, const SkeletonBox(height: 80));
       await tester.pump(const Duration(milliseconds: 100));
       expect(tester.binding.hasScheduledFrame, isTrue);
+      final activeOpacity = tester
+          .widget<FadeTransition>(find.byType(FadeTransition).last)
+          .opacity
+          .value;
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(
+        tester
+            .widget<FadeTransition>(find.byType(FadeTransition).last)
+            .opacity
+            .value,
+        isNot(activeOpacity),
+      );
       await showUi(tester, const SkeletonBox(height: 80), tickerEnabled: false);
-      await tester.pump();
+      await tester.pumpAndSettle();
+      final stoppedOpacity = tester
+          .widget<FadeTransition>(find.byType(FadeTransition).last)
+          .opacity
+          .value;
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        tester
+            .widget<FadeTransition>(find.byType(FadeTransition).last)
+            .opacity
+            .value,
+        stoppedOpacity,
+      );
       expect(tester.binding.hasScheduledFrame, isFalse);
       await tester.pumpWidget(const SizedBox());
     },
@@ -155,7 +213,7 @@ void main() {
     tester,
   ) async {
     await showUi(tester, const NotificationListSkeleton());
-    expect(find.byType(SkeletonBox), findsNWidgets(5));
+    expect(find.byType(NotificationSkeletonCard), findsNWidgets(5));
     expect(find.byType(SkeletonPulse), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     expect(tester.takeException(), isNull);
@@ -168,11 +226,35 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       expect(tester.binding.hasScheduledFrame, isTrue);
       await showUi(tester, const SkeletonBox(height: 80), reduceMotion: true);
-      await tester.pump();
+      await tester.pumpAndSettle();
+      final stoppedOpacity = tester
+          .widget<FadeTransition>(find.byType(FadeTransition).last)
+          .opacity
+          .value;
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        tester
+            .widget<FadeTransition>(find.byType(FadeTransition).last)
+            .opacity
+            .value,
+        stoppedOpacity,
+      );
       expect(tester.binding.hasScheduledFrame, isFalse);
       await showUi(tester, const SkeletonBox(height: 80));
       await tester.pump(const Duration(milliseconds: 100));
       expect(tester.binding.hasScheduledFrame, isTrue);
+      final resumedOpacity = tester
+          .widget<FadeTransition>(find.byType(FadeTransition).last)
+          .opacity
+          .value;
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(
+        tester
+            .widget<FadeTransition>(find.byType(FadeTransition).last)
+            .opacity
+            .value,
+        isNot(resumedOpacity),
+      );
       await tester.pumpWidget(const SizedBox());
       expect(tester.takeException(), isNull);
     },

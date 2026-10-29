@@ -21,9 +21,9 @@ namespace MarikinaMarket.Tests;
 public class AdminTicketDetailTests
 {
     [Theory]
-    [InlineData(VendorType.Public)]
-    [InlineData(VendorType.Private)]
-    public async Task Repository_preserves_vendor_type_in_admin_ticket_detail(VendorType vendorType)
+    [InlineData(BusinessType.Public)]
+    [InlineData(BusinessType.Private)]
+    public async Task Repository_preserves_vendor_type_in_admin_ticket_detail(BusinessType businessType)
     {
         var user = new User
         {
@@ -33,11 +33,11 @@ public class AdminTicketDetailTests
         var ticket = new Ticket
         {
             Id = 42, Description = "Blocked market walkway", Type = ViolationType.Ticket,
-            Vendor = new VendorProfile
+            Vendor = new Business
             {
-                Type = vendorType, BusinessId = "BUS-0042", BusinessName = "Market Goods",
-                QrCodeValue = "synthetic-vendor-42", StallNumber = vendorType == VendorType.Public ? "A-12" : null,
-                User = user
+                Type = businessType, BusinessAccountNumber = "BUS-0042", BusinessName = "Market Goods",
+                QrCodeValue = "synthetic-vendor-42", StallNumber = businessType == BusinessType.Public ? "A-12" : null,
+                OwnerFirstName = user.FirstName, OwnerLastName = user.LastName, Email = user.Email
             },
             MarketSection = new MarketSection { Name = "Dry Goods", Description = "Dry goods section" },
             Enforcer = user
@@ -48,24 +48,24 @@ public class AdminTicketDetailTests
         var detail = await new TicketRepository(context).GetAdminTicketDetailAsync(42);
 
         Assert.NotNull(detail);
-        Assert.Equal(vendorType, detail.VendorType);
+        Assert.Equal(businessType, detail.BusinessType);
         Assert.Equal(ticket.Vendor.StallNumber, detail.StallNumber);
     }
 
     [Theory]
-    [InlineData(VendorType.Public, "Public")]
-    [InlineData(VendorType.Private, "Private")]
-    public async Task Detail_endpoint_serializes_vendor_type(VendorType vendorType, string expected)
+    [InlineData(BusinessType.Public, "Public")]
+    [InlineData(BusinessType.Private, "Private")]
+    public async Task Detail_endpoint_serializes_vendor_type(BusinessType businessType, string expected)
     {
         var fixture = new Fixture();
-        fixture.Ticket.VendorType = vendorType;
+        fixture.Ticket.BusinessType = businessType;
         await using var host = await AuditHost.CreateAsync(services => services.AddSingleton<ITicketService>(fixture.Service));
 
         using var response = await host.SendAsync(HttpMethod.Get, "/api/admin/tickets/42");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        Assert.Equal(expected, json.RootElement.GetProperty("vendor_type").GetString());
+        Assert.Equal(expected, json.RootElement.GetProperty("business_type").GetString());
     }
 
     [Theory]
@@ -231,7 +231,7 @@ public class AdminTicketDetailTests
     {
         public AdminTicketDetailResponse Ticket { get; } = new()
         {
-            TicketId = 42, BusinessId = "BUS-42", BusinessName = "Store", FirstName = "Juan", LastName = "Santos",
+            TicketId = 42, BusinessAccountNumber = "BUS-42", BusinessName = "Store", FirstName = "Juan", LastName = "Santos",
             Address = "", MarketSectionName = "Dry Goods", Description = "Violation", EnforcerFirstName = "Maria",
             EnforcerLastName = "Reyes", Version = 123
         };

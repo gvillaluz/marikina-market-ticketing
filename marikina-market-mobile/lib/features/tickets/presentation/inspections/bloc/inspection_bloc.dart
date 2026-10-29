@@ -1,3 +1,11 @@
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/match_people_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/create_person_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_person_history_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/verify_inspection_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/person_candidate.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/person_ticket_history.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_verification.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/errors/failure.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
@@ -20,6 +28,10 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 
 class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
+  final MatchPeopleUseCase matchPeopleUseCase;
+  final CreatePersonUseCase createPersonUseCase;
+  final GetPersonHistoryUseCase getPersonHistoryUseCase;
+  final VerifyInspectionUseCase verifyInspectionUseCase;
   final LoadInspectionListUseCase loadInspectionListUseCase;
   final LoadOrdinancesUseCase loadOrdinancesUseCase;
   final SearchVendorByCodeUseCase searchVendorByCodeUseCase;
@@ -28,6 +40,20 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   final CheckWarningOrdinancesUseCase checkWarningOrdinancesUseCase;
   final SaveInspectionTicketUseCase saveInspectionTicketUseCase;
 
+  void invalidatePersonSearch() {
+    ++_personMatchRequest;
+  }
+
+  void invalidateVerification() {
+    ++_verificationRequest;
+    _verificationBusy = false;
+  }
+
+  int _verificationRequest = 0;
+  bool _verificationBusy = false;
+
+  int _personMatchRequest = 0;
+  bool _creatingPerson = false;
   List<InspectionTicketSummary> _inspectionSummary = [];
   List<InspectionTicketSummary> get inspectionSummaries => _inspectionSummary;
   String _listSearch = '';
@@ -43,6 +69,10 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   bool _hasLoadedTickets = false;
 
   InspectionBloc({
+    required this.matchPeopleUseCase,
+    required this.createPersonUseCase,
+    required this.getPersonHistoryUseCase,
+    required this.verifyInspectionUseCase,
     required this.loadInspectionListUseCase,
     required this.loadOrdinancesUseCase,
     required this.searchVendorByCodeUseCase,
@@ -51,6 +81,73 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     required this.checkWarningOrdinancesUseCase,
     required this.saveInspectionTicketUseCase,
   }) : super(InspectionInitial()) {
+    on<PersonMatchesRequested>((event, emit) async {
+      final request = ++_personMatchRequest;
+      emit(PersonMatchesLoading());
+      final result = await matchPeopleUseCase(
+        event.name,
+        event.address,
+        event.phone,
+        event.offset,
+      );
+      if (emit.isDone || request != _personMatchRequest) return;
+      switch (result) {
+        case Success<PageResult<PersonCandidate>>(:final data):
+          emit(PersonMatchesLoaded(data, event.name, event.offset));
+        case ResultFailure(:final failure):
+          emit(PersonMatchesError(failure.message));
+      }
+    });
+    on<PersonCreationRequested>((event, emit) async {
+      if (_creatingPerson) return;
+      _creatingPerson = true;
+      emit(PersonCreationLoading());
+      try {
+        final result = await createPersonUseCase(
+          event.name,
+          event.address,
+          event.phone,
+        );
+        if (emit.isDone) return;
+        switch (result) {
+          case Success<PersonCandidate>(:final data):
+            emit(PersonCreated(data));
+          case ResultFailure(:final failure):
+            emit(PersonCreationError(failure.message));
+        }
+      } finally {
+        _creatingPerson = false;
+      }
+    });
+    on<PersonHistoryRequested>((event, emit) async {
+      emit(PersonHistoryLoading());
+      final result = await getPersonHistoryUseCase(
+        event.personId,
+        event.offset,
+      );
+      if (emit.isDone) return;
+      switch (result) {
+        case Success<PageResult<PersonTicketHistory>>(:final data):
+          emit(PersonHistoryLoaded(data, event.personId, event.offset));
+        case ResultFailure(:final failure):
+          emit(PersonHistoryError(failure.message));
+      }
+    });
+    on<InspectionVerificationRequested>((event, emit) async {
+      if (_verificationBusy) return;
+      _verificationBusy = true;
+      final request = ++_verificationRequest;
+      emit(InspectionVerificationLoading());
+      final result = await verifyInspectionUseCase(event.input);
+      if (emit.isDone || request != _verificationRequest) return;
+      _verificationBusy = false;
+      switch (result) {
+        case Success<InspectionVerification>(:final data):
+          emit(InspectionVerified(data));
+        case ResultFailure(:final failure):
+          emit(InspectionVerificationError(failure.message));
+      }
+    });
     on<LoadOrdinances>(_onLoadOrdinances);
     on<LoadInspectionTickets>(_onLoadInspectionTickets);
     on<SearchByCodeRequested>(_onSearchByCodeRequested);
@@ -253,6 +350,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     final result = await getFineSummaryUseCase(
       event.ordinanceIds,
       event.vendorId,
+      personId: event.personId,
     );
 
     if (emit.isDone) return;
@@ -303,6 +401,9 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
 
     final result = await saveInspectionTicketUseCase(
       SaveInspectionParams(
+        personId: event.personId,
+        paperViolatorName: event.paperViolatorName,
+        reviewedCalculation: event.reviewedCalculation,
         vendorId: event.vendorId,
         marketSectionId: event.marketSectionId,
         enforcerId: event.enforcerId,

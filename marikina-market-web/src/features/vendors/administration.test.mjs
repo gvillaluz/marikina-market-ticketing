@@ -72,7 +72,10 @@ function harness(file, hookName) {
     requests = [];
   let stateCursor = 0,
     effectCursor = 0,
+    refCursor = 0,
     timerId = 0;
+  const refs = [], writes = [];
+  let writeHandler = async () => ({ data: queryState.data });
   let queryState = {
     data: { items: [], total: 30, hasMore: true },
     isLoading: false,
@@ -84,6 +87,10 @@ function harness(file, hookName) {
     file,
     {
       react: {
+        useRef(initial) {
+          const i = refCursor++;
+          return refs[i] ??= { current: initial };
+        },
         useState(initial) {
           const i = stateCursor++;
           if (!(i in states))
@@ -116,8 +123,8 @@ function harness(file, hookName) {
       "react-router-dom": {
         useNavigate:
           () =>
-          (...args) =>
-            navigation.push(args),
+            (...args) =>
+              navigation.push(args),
       },
       "@tanstack/react-query": {
         useQuery(options) {
@@ -136,6 +143,8 @@ function harness(file, hookName) {
             requests.push(args);
             return { data: queryState.data };
           },
+          async post(...args) { writes.push(["post", ...args]); return writeHandler(...args); },
+          async put(...args) { writes.push(["put", ...args]); return writeHandler(...args); },
         },
       },
     },
@@ -153,11 +162,13 @@ function harness(file, hookName) {
     queries,
     navigation,
     requests,
+    writes,
+    setWriteHandler(handler) { writeHandler = handler; },
     setQuery(value) {
       queryState = { ...queryState, ...value };
     },
     render(...args) {
-      stateCursor = effectCursor = 0;
+      stateCursor = effectCursor = refCursor = 0;
       queries.length = 0;
       return modules[hookName](...args);
     },
@@ -208,7 +219,7 @@ test("registry filter/search changes start at page one and debounce blocks pagin
   registry.onViewInspections({
     vendorId: 70,
     vendorName: "Juan Reyes",
-    businessId: "MM-70",
+    businessAccountNumber: "MM-70",
   });
   assert.equal(h.navigation[0][0], "/admin/vendors/70/inspections");
   registry.setPage(3);
@@ -241,7 +252,7 @@ test("inspection filters reset immediately; changing vendor drops old page and t
   assert.equal(h.render(70).selectedTicketId, 0);
 });
 
-const noop = () => {};
+const noop = () => { };
 const registryProps = {
   search: "",
   setSearch: noop,
@@ -351,4 +362,71 @@ test("unsafe vendor IDs disable profile, score and history queries", () => {
     history.render(id, { offset: 0, sortDirection: "desc" });
     assert.equal(history.queries[0].enabled, false);
   }
+});
+
+test("business form requires a stall only for Public businesses and accepts optional contacts", () => {
+  const { validateBusiness } = load("features/vendors/business.validation.ts");
+  const record = {
+    businessAccountNumber: "0001842", businessName: "Reyes Fish Store", ownerFirstName: "Juan",
+    ownerLastName: "Reyes", houseNumber: "12", street: "J. P. Rizal", barangay: "Sta. Elena",
+    city: "Marikina City", marketSectionId: 1, businessType: "Private", stallNumber: "",
+    phoneNumber: "", email: "",
+  };
+  assert.equal(Object.keys(validateBusiness(record)).length, 0);
+  assert.match(validateBusiness({ ...record, businessType: "Public" }).stallNumber, /required/);
+  assert.equal(Object.keys(validateBusiness({ ...record, businessType: "Public", stallNumber: "F-12" })).length, 0);
+  assert.ok(validateBusiness({ ...record, email: "not-an-email" }).email);
+  assert.ok(validateBusiness({ ...record, phoneNumber: "invalid" }).phoneNumber);
+  assert.ok(validateBusiness({ ...record, businessAccountNumber: " " }).businessAccountNumber);
+  assert.ok(validateBusiness({ ...record, businessType: "Other" }).businessType);
+});
+
+test("business creation submits once, has no credentials and retains a failed draft", async () => {
+  const h = harness("features/vendors/hooks/useBusinessForm.ts", "useBusinessForm");
+  let closed = 0, refreshed = 0;
+  const args = [true, null, async () => { refreshed++; }, () => { closed++; }];
+  h.render(...args); h.flushEffects();
+  let state = h.render(...args);
+  for (const [key, value] of Object.entries({
+    businessAccountNumber: "0001842", businessName: "Reyes Fish Store",
+    ownerFirstName: "Juan", ownerLastName: "Reyes", houseNumber: "12", street: "J. P. Rizal",
+    barangay: "Sta. Elena", city: "Marikina City", marketSectionId: 1, businessType: "Private"
+  })) state.update(key, value);
+  let fail;
+  h.setWriteHandler(() => new Promise((_, reject) => { fail = reject; }));
+  state = h.render(...args);
+  const first = state.submit();
+  await state.submit();
+  assert.equal(h.writes.length, 1);
+  assert.equal(h.writes[0][1], "/admin/businesses");
+  assert.equal(h.writes[0][2].businessAccountNumber, "0001842");
+  assert.equal("password" in h.writes[0][2], false);
+  assert.equal("username" in h.writes[0][2], false);
+  fail(new Error("Save unavailable")); await first;
+  state = h.render(...args);
+  assert.equal(state.form.businessName, "Reyes Fish Store");
+  assert.ok(state.submitError); assert.equal(closed, 0); assert.equal(refreshed, 0);
+  h.setWriteHandler(async () => ({ data: { id: 70 } }));
+  await state.submit();
+  assert.equal(closed, 1); assert.equal(refreshed, 1);
+});
+
+test("business editing loads saved fields and sends only editable fields", async () => {
+  const h = harness("features/vendors/hooks/useBusinessForm.ts", "useBusinessForm");
+  const record = {
+    id: 70, businessAccountNumber: "0001842", businessName: "Reyes Fish Store",
+    ownerFirstName: "Juan", ownerLastName: "Reyes", houseNumber: "12", street: "J. P. Rizal",
+    barangay: "Sta. Elena", city: "Marikina City", marketSectionId: 1, businessType: "Public", stallNumber: "F-12",
+    phoneNumber: null, email: null, createdAt: "2026-01-01T00:00:00Z", status: "Active"
+  };
+  h.setQuery({ data: record });
+  const args = [true, 70, async () => { }, () => { }];
+  h.render(...args); h.flushEffects();
+  let state = h.render(...args);
+  assert.equal(state.form.ownerLastName, "Reyes");
+  state.update("businessName", "Reyes Fresh Fish");
+  state = h.render(...args); await state.submit();
+  assert.equal(h.writes[0][0], "put"); assert.equal(h.writes[0][1], "/admin/businesses/70");
+  assert.equal(h.writes[0][2].businessName, "Reyes Fresh Fish");
+  for (const field of ["id", "createdAt", "status", "userId"]) assert.equal(field in h.writes[0][2], false);
 });

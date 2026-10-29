@@ -13,7 +13,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_d
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail_content_data.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/violation_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/ordinance_category.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/violation_details_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_detail_content.dart';
@@ -55,8 +55,8 @@ TicketDetailContent paper({
         enforcerId: 7,
         vendorId: 12,
         violationType: isTicket ? ViolationType.ticket : ViolationType.warning,
-        vendorType: VendorType.public,
-        businessId: 'TEST-12',
+        businessType: BusinessType.public,
+        businessAccountNumber: 'TEST-12',
         stallNumber: 'A-12',
         tradeName: 'Synthetic Market Goods',
         lastName: 'Vendor',

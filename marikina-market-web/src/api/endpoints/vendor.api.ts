@@ -48,10 +48,10 @@ export const vendorApi = {
     formData.append("Street", input.street.trim());
     formData.append("Barangay", input.barangay.trim());
     formData.append("City", input.city.trim());
-    formData.append("BusinessId", input.businessId.trim());
+    formData.append("BusinessAccountNumber", input.businessAccountNumber.trim());
     formData.append("BusinessName", input.businessName.trim());
     formData.append("NatureOfBusiness", input.natureOfBusiness.trim());
-    formData.append("VendorType", input.vendorType);
+    formData.append("BusinessType", input.businessType);
     formData.append("StallNumber", input.stallNumber.trim());
     formData.append("MarketSectionId", input.marketSectionId);
     formData.append("GovernmentIdType", input.governmentIdType);

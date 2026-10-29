@@ -67,6 +67,8 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<AuditLogContext>();
 builder.Services.AddScoped<AuditLogActionFilter>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
+builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+builder.Services.AddScoped<IPersonService, PersonService>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
@@ -138,6 +140,11 @@ builder.Services.AddAuthentication(options =>
         },
         OnTokenValidated = async context =>
         {
+            if (context.Principal?.FindAll("role").Any(claim => claim.Value == "MarketVendor") == true)
+            {
+                context.Fail("Vendor login accounts are no longer supported.");
+                return;
+            }
             var userIdValue = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var securityStamp = context.Principal?.FindFirst("security_stamp")?.Value;
             if (!int.TryParse(userIdValue, out var userId) || userId <= 0 || string.IsNullOrEmpty(securityStamp))

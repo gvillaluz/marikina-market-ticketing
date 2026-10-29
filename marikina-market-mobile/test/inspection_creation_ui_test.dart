@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -201,21 +201,28 @@ void main() {
         () => Directory.systemTemp.createTemp('inspection-photo-test-'),
       );
       final file = File('${folder!.path}/photo.png');
-      await tester.runAsync(
-        () => file.writeAsBytes(
-          base64Decode(
-            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/G0sAAAAASUVORK5CYII=',
-          ),
-        ),
-      );
-      addTearDown(() => folder.delete(recursive: true));
-      await showCreationWidget(
-        tester,
-        PhotoEvidencePreviewSection(evidences: [XFile(file.path)]),
-        scale: 1,
-      );
       await tester.runAsync(() async {
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        final recorder = ui.PictureRecorder();
+        Canvas(recorder).drawColor(Colors.black, BlendMode.src);
+        final picture = recorder.endRecording();
+        final image = await picture.toImage(4, 4);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        await file.writeAsBytes(bytes!.buffer.asUint8List());
+        image.dispose();
+        picture.dispose();
+      });
+      addTearDown(() => folder.delete(recursive: true));
+      await tester.runAsync(() async {
+        await showCreationWidget(
+          tester,
+          PhotoEvidencePreviewSection(evidences: [XFile(file.path)]),
+          scale: 1,
+        );
+        final provider = tester.widget<Image>(find.byType(Image).first).image;
+        await precacheImage(
+          provider,
+          tester.element(find.byType(Image).first),
+        ).timeout(const Duration(seconds: 5));
       });
       await tester.pump();
       expect(tester.takeException(), isNull);
@@ -223,7 +230,18 @@ void main() {
         tester.widget<Image>(find.byType(Image).first).image,
         isA<ResizeImage>(),
       );
+      expect(
+        tester.widget<RawImage>(find.byType(RawImage).first).image,
+        isNotNull,
+      );
+      final provider = tester.widget<Image>(find.byType(Image).first).image;
+      expect(
+        (provider as ResizeImage).width,
+        inInclusiveRange(1, AppTheme.evidenceDecodeMaxWidth),
+      );
       await tester.pumpWidget(const SizedBox());
+      await tester.runAsync(() => provider.evict());
+      await tester.pumpAndSettle();
     },
   );
 

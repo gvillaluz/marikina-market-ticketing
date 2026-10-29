@@ -1,6 +1,6 @@
 import type { TicketDetail } from "@/api/types/ticket.types";
 
-export function getTicketVendorType(
+export function getTicketBusinessType(
   value: unknown,
 ): "Public" | "Private" | null {
   if (value === 0) return "Public";

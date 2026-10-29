@@ -12,6 +12,13 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
         [Range(1, int.MaxValue, ErrorMessage = "Vendor's information is required.")]
         public int VendorId { get; set; }
 
+        [FromForm(Name = "person_id"), Range(1, int.MaxValue)]
+        public int? PersonId { get; set; }
+        [FromForm(Name = "paper_violator_name"), StringLength(200)]
+        public string? PaperViolatorName { get; set; }
+        [FromForm(Name = "reviewed_calculation"), StringLength(20000)]
+        public string? ReviewedCalculation { get; set; }
+
         [FromForm(Name = "market_section_id")]
         [Required(ErrorMessage = "Market section is required.")]
         public int MarketSectionId { get; set; }

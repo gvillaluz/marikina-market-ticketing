@@ -18,10 +18,10 @@ export const initialWizardState: VendorRegistrationForm = {
   street: "",
   barangay: "",
   city: "",
-  businessId: "",
+  businessAccountNumber: "",
   businessName: "",
   natureOfBusiness: "",
-  vendorType: "",
+  businessType: "",
   stallNumber: "",
   marketSectionId: "",
   governmentIdType: "",
@@ -128,25 +128,25 @@ function validateStep(
     );
     if (businessNameError) errors.businessName = businessNameError;
     if (natureError) errors.natureOfBusiness = natureError;
-    if (!form.vendorType) {
-      errors.vendorType = "Vendor type is required.";
+    if (!form.businessType) {
+      errors.businessType = "Business type is required.";
     }
     if (!form.marketSectionId || Number(form.marketSectionId) < 1) {
       errors.marketSectionId = "Select a valid market section.";
     }
-    if (form.vendorType === "Public" && !form.stallNumber.trim()) {
+    if (form.businessType === "Public" && !form.stallNumber.trim()) {
       errors.stallNumber = "Stall number is required for public vendors.";
     }
   }
 
   if (step === 3) {
     const businessIdError = validateRequiredText(
-      form.businessId,
-      "Business ID",
+      form.businessAccountNumber,
+      "Business Account Number",
       1,
       20,
     );
-    if (businessIdError) errors.businessId = businessIdError;
+    if (businessIdError) errors.businessAccountNumber = businessIdError;
     if (!form.governmentIdType) {
       errors.governmentIdType = "Government ID type is required.";
     }

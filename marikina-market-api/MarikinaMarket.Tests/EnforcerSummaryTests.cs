@@ -39,7 +39,7 @@ public class EnforcerSummaryTests
 
         Assert.Equal(2, response.Items.Count);
         Assert.All(response.Items, item => Assert.Equal(8, item.EnforcerId));
-        var privateVendor = Assert.Single(response.Items, item => item.VendorType == VendorType.Private);
+        var privateVendor = Assert.Single(response.Items, item => item.BusinessType == BusinessType.Private);
         Assert.Null(privateVendor.StallNumber);
         using var json = JsonDocument.Parse(JsonSerializer.Serialize(response.Items,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }));
@@ -65,20 +65,20 @@ public class EnforcerSummaryTests
             new Ordinance { Id = 11, OrdinanceNo = "011", Series = "2014", MarketCode = "SEC-8", Title = "Market walkway", Category = ViolationCategory.Obstruction },
             new Ordinance { Id = 145, OrdinanceNo = "145", Series = "2006", MarketCode = "SEC-9", Title = "Market access", Category = ViolationCategory.Obstruction }
         };
-        Ticket Record(int id, ViolationType type, VendorType vendorType, int enforcerId = 8) => new()
+        Ticket Record(int id, ViolationType type, BusinessType businessType, int enforcerId = 8) => new()
         {
             Id = id, ControlNumber = id.ToString(), EnforcerId = enforcerId, VendorId = 17,
             Type = type, Status = type == ViolationType.Ticket ? TicketStatus.Pending : null,
             Description = "Blocked market walkway", IssuedAt = new DateTime(2026, 10, 21, 2, 0, 0, DateTimeKind.Utc),
-            Vendor = new VendorProfile { Id = 17, BusinessId = "BUS-17", BusinessName = "Market Goods",
-                Type = vendorType, StallNumber = vendorType == VendorType.Public ? "A-12" : null, QrCodeValue = "synthetic-17", User = user },
+            Vendor = new Business { Id = 17, BusinessAccountNumber = "BUS-17", BusinessName = "Market Goods",
+                Type = businessType, StallNumber = businessType == BusinessType.Public ? "A-12" : null, QrCodeValue = "synthetic-17", OwnerFirstName = user.FirstName, OwnerLastName = user.LastName, Email = user.Email },
             MarketSection = new MarketSection { Name = "Dry Goods", Description = "Dry goods section" },
             TicketViolations = ordinances.Select((ordinance, index) => new TicketViolation { Id = index + 1, OrdinanceId = ordinance.Id, Ordinance = ordinance }).ToList()
         };
         var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);
         context.Tickets = new AccountDatabaseSet<Ticket>([
-            Record(42, ViolationType.Ticket, VendorType.Public), Record(43, ViolationType.Ticket, VendorType.Private),
-            Record(44, ViolationType.Warning, VendorType.Public), Record(45, ViolationType.Ticket, VendorType.Public, 9)]);
+            Record(42, ViolationType.Ticket, BusinessType.Public), Record(43, ViolationType.Ticket, BusinessType.Private),
+            Record(44, ViolationType.Warning, BusinessType.Public), Record(45, ViolationType.Ticket, BusinessType.Public, 9)]);
         context.Ordinances = new AccountDatabaseSet<Ordinance>(ordinances);
         return context;
     }

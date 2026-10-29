@@ -12,15 +12,10 @@ function display(value: string | null | undefined): string {
   return value?.trim() || "Not provided";
 }
 
-function roleLabel(role: string | number): string {
-  if (typeof role !== "string") return "Vendor";
-  return role.replace(/([a-z])([A-Z])/g, "$1 $2");
-}
-
 export default function AdminVendorPerformanceProfile({
   profile,
 }: AdminVendorPerformanceProfileProps) {
-  const name = profile.name.trim() || "Vendor";
+  const name = profile.name.trim() || "Registered owner";
   const lastViolation = profile.lastViolationIssuedAt;
 
   return (
@@ -36,7 +31,7 @@ export default function AdminVendorPerformanceProfile({
         <div className={styles.nameWrap}>
           <h2>{name}</h2>
           <span className={styles.username}>
-            ID: {display(profile.username)}
+            Business Account Number: {display(profile.businessAccountNumber)}
           </span>
         </div>
       </div>
@@ -59,16 +54,16 @@ export default function AdminVendorPerformanceProfile({
         <div className={styles.contactItem}>
           <span className={styles.contactIcon}><UserRound size={13} /></span>
           <span>
-            <small>ACCOUNT CREATED</small>
-            {formatDate(profile.accountCreatedAt)}
+            <small>BUSINESS CREATED</small>
+            {formatDate(profile.createdAt)}
           </span>
         </div>
       </div>
 
       <div className={styles.profileFooter}>
         <div>
-          <small>ROLE</small>
-          <strong>{roleLabel(profile.role)}</strong>
+          <small>BUSINESS NAME</small>
+          <strong>{profile.businessName}</strong>
         </div>
         <div>
           <small>LAST ACTIVITY</small>

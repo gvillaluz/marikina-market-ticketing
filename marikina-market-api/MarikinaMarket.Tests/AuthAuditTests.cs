@@ -25,11 +25,9 @@ public class AuthAuditTests
     [Theory]
     [InlineData("login", Role.AdminOfficer, "Login")]
     [InlineData("login", Role.HeadAdmin, "Login")]
-    [InlineData("login-mobile", Role.MarketVendor, "LoginMobile")]
     [InlineData("login-mobile", Role.MarketEnforcer, "LoginMobile")]
     [InlineData("verify-login", Role.AdminOfficer, "VerifyLogin")]
     [InlineData("verify-login", Role.HeadAdmin, "VerifyLogin")]
-    [InlineData("verify-login-mobile", Role.MarketVendor, "VerifyLoginMobile")]
     [InlineData("verify-login-mobile", Role.MarketEnforcer, "VerifyLoginMobile")]
     public async Task Login_and_verification_record_the_user_without_a_bearer_token(string route, Role role, string action)
     {
@@ -61,6 +59,8 @@ public class AuthAuditTests
     [InlineData("verify-login", Role.MarketVendor)]
     [InlineData("login", Role.MarketEnforcer)]
     [InlineData("verify-login", Role.MarketEnforcer)]
+    [InlineData("login-mobile", Role.MarketVendor)]
+    [InlineData("verify-login-mobile", Role.MarketVendor)]
     [InlineData("login-mobile", Role.AdminOfficer)]
     [InlineData("verify-login-mobile", Role.AdminOfficer)]
     [InlineData("login-mobile", Role.HeadAdmin)]
@@ -96,16 +96,15 @@ public class AuthAuditTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var log = Assert.Single(host.Repository.Logs);
         Assert.Equal(8, log.UserId);
-        Assert.Equal(Role.MarketVendor, log.Role);
+        Assert.Equal(Role.MarketEnforcer, log.Role);
     }
 
     [Theory]
-    [InlineData("verify-login-mobile", Role.MarketVendor, OtpVerificationResult.InvalidCode)]
-    [InlineData("verify-login-mobile", Role.MarketVendor, OtpVerificationResult.Expired)]
-    [InlineData("verify-login-mobile", Role.MarketVendor, OtpVerificationResult.TooManyAttempts)]
-    [InlineData("verify-login-mobile", Role.MarketVendor, OtpVerificationResult.NotFound)]
-    [InlineData("verify-login", Role.AdminOfficer, OtpVerificationResult.InvalidCode)]
     [InlineData("verify-login-mobile", Role.MarketEnforcer, OtpVerificationResult.InvalidCode)]
+    [InlineData("verify-login-mobile", Role.MarketEnforcer, OtpVerificationResult.Expired)]
+    [InlineData("verify-login-mobile", Role.MarketEnforcer, OtpVerificationResult.TooManyAttempts)]
+    [InlineData("verify-login-mobile", Role.MarketEnforcer, OtpVerificationResult.NotFound)]
+    [InlineData("verify-login", Role.AdminOfficer, OtpVerificationResult.InvalidCode)]
     public async Task Failed_OTP_authentication_is_logged_for_the_password_validated_user_without_issuing_a_token(
         string route, Role role, OtpVerificationResult result)
     {
@@ -166,7 +165,7 @@ public class AuthAuditTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var log = Assert.Single(host.Repository.Logs);
         Assert.Equal(actor, log.UserId);
-        Assert.Equal(actor.HasValue ? Role.MarketVendor : null, log.Role);
+        Assert.Equal(actor.HasValue ? Role.MarketEnforcer : null, log.Role);
         Assert.Equal("8", log.TargetId);
         Assert.Equal(actor.HasValue ? LogResult.Success : LogResult.Failed, log.Result);
         Assert.DoesNotContain("opaque-reset-token", JsonSerializer.Serialize(log));
@@ -193,7 +192,7 @@ public class AuthAuditTests
     [InlineData("refresh-web", Role.MarketEnforcer, 403)]
     [InlineData("refresh-web", Role.AdminOfficer, 200)]
     [InlineData("refresh-web", Role.HeadAdmin, 200)]
-    [InlineData("refresh", Role.MarketVendor, 200)]
+    [InlineData("refresh", Role.MarketVendor, 401)]
     [InlineData("refresh", Role.MarketEnforcer, 200)]
     public async Task Refresh_endpoints_do_not_record_audit_entries(string route, Role role, int status)
     {
@@ -217,7 +216,7 @@ public class AuthAuditTests
         Assert.All(host.Repository.Logs, log =>
         {
             Assert.Equal(8, log.UserId);
-            Assert.Equal(Role.MarketVendor, log.Role);
+            Assert.Equal(Role.MarketEnforcer, log.Role);
             Assert.Equal(LogResult.Failed, log.Result);
         });
         var email = Assert.Single(host.Repository.Logs, log => log.Action == "SendEmail");
@@ -276,7 +275,7 @@ internal sealed class AuthAuditFixture
         SecurityStamp = "user-8-stamp", Status = AccountStatus.Active
     };
 
-    public AuthAuditFixture(Role role = Role.MarketVendor) => Role = role;
+    public AuthAuditFixture(Role role = Role.MarketEnforcer) => Role = role;
 
     public Task<AuditHost> HostAsync() => AuditHost.CreateAsync(services =>
     {

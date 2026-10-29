@@ -10,56 +10,20 @@ namespace MarikinaMarket.Tests;
 public class VendorTicketDetailTests
 {
     [Fact]
-    public async Task OwnedTicket_ReturnsTheSameJsonAsEnforcerDetailAndSignsEvidence()
+    public async Task Former_account_cannot_read_a_ticket_or_sign_evidence()
     {
         await using var host = await VendorTicketHost.CreateAsync();
-        using var vendor = await host.GetAsync("/api/vendor/tickets/101?user_id=88&vendor_id=7");
-        Assert.Equal(HttpStatusCode.OK, vendor.StatusCode);
-        var vendorJson = await vendor.Content.ReadAsStringAsync();
-        using var json = JsonDocument.Parse(vendorJson);
-        var detail = json.RootElement;
-        Assert.Equal(101, detail.GetProperty("ticket_id").GetInt32());
-        Assert.Equal(70, detail.GetProperty("vendor_id").GetInt32());
-        Assert.Equal("Reyes Fresh Seafood", detail.GetProperty("business_name").GetString());
-        Assert.Equal("Juan", detail.GetProperty("first_name").GetString());
-        Assert.Equal("Reyes", detail.GetProperty("last_name").GetString());
-        Assert.Equal("Fish and Seafood Section", detail.GetProperty("market_section_name").GetString());
-        Assert.Equal("Public", detail.GetProperty("vendor_type").GetString());
-        Assert.Equal("F-014", detail.GetProperty("stall_number").GetString());
-        Assert.Equal("Pending", detail.GetProperty("status").GetString());
-        Assert.Equal("2026-10-18T00:01:00Z", detail.GetProperty("due_date").GetString());
-        Assert.Equal("CashFine", detail.GetProperty("penalty_type").GetString());
-        Assert.Equal("Minor", detail.GetProperty("severity").GetString());
-        Assert.Equal(1000m, detail.GetProperty("total_fine_amount").GetDecimal());
-        Assert.Equal(new[] { "Licensing" }, detail.GetProperty("categories").EnumerateArray().Select(value => value.GetString()));
-        var violation = detail.GetProperty("violations")[0];
-        Assert.Equal(2, violation.GetProperty("ordinance_id").GetInt32());
-        Assert.Equal("104", violation.GetProperty("ordinance_no").GetString());
-        Assert.Equal(1, violation.GetProperty("offense_count").GetInt32());
-        Assert.Equal(500m, violation.GetProperty("penalty_amount").GetDecimal());
-        Assert.Equal(new[] { VendorTicketStorageBoundary.Signed("tickets/2026/10/101-a.jpg"), VendorTicketStorageBoundary.Signed("tickets/2026/10/101-b.jpg") },
-            detail.GetProperty("ticket_evidences").EnumerateArray().Select(value => value.GetString()));
-        Assert.Equal(1, host.Storage.Calls);
-        Assert.Equal(new[] { "tickets/2026/10/101-a.jpg", "tickets/2026/10/101-b.jpg" }, host.Storage.SignedKeys);
-        Assert.False(detail.TryGetProperty("overdue_date", out _));
-        Assert.False(detail.TryGetProperty("ticket_status", out _));
-        using var enforcer = await host.GetAsync("/api/enforcer/tickets/101", role: "MarketEnforcer");
-        Assert.Equal(HttpStatusCode.OK, enforcer.StatusCode);
-        Assert.Equal(await enforcer.Content.ReadAsStringAsync(), vendorJson);
+        using var response = await host.GetAsync("/api/vendor/tickets/101?user_id=88&vendor_id=7");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, host.Storage.Calls);
     }
 
     [Fact]
-    public async Task Warning_ReturnsNullPenaltyFieldsAndNoEvidenceLookup()
+    public async Task Former_account_cannot_read_a_warning()
     {
         await using var host = await VendorTicketHost.CreateAsync();
         using var response = await host.GetAsync("/api/vendor/tickets/200");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        Assert.Equal("Warning", json.RootElement.GetProperty("type").GetString());
-        foreach (var field in new[] { "control_number", "status", "due_date", "severity", "penalty_type", "total_fine_amount" })
-            Assert.Equal(JsonValueKind.Null, json.RootElement.GetProperty(field).ValueKind);
-        Assert.Equal(JsonValueKind.Null, json.RootElement.GetProperty("violations")[0].GetProperty("penalty_amount").ValueKind);
-        Assert.Equal(0, json.RootElement.GetProperty("ticket_evidences").GetArrayLength());
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal(0, host.Storage.Calls);
     }
 
@@ -80,15 +44,12 @@ public class VendorTicketDetailTests
     }
 
     [Fact]
-    public async Task DifferentVendor_CanReadItsOwnPrivateVendorTicket()
+    public async Task Former_account_cannot_claim_a_private_business_ticket()
     {
         await using var host = await VendorTicketHost.CreateAsync();
-        using var response = await host.GetAsync("/api/vendor/tickets/901", userId: "88");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        Assert.Equal(7, json.RootElement.GetProperty("vendor_id").GetInt32());
-        Assert.Equal("Private", json.RootElement.GetProperty("vendor_type").GetString());
-        Assert.Equal("Santos Meat Shop", json.RootElement.GetProperty("business_name").GetString());
+        using var response = await host.GetAsync("/api/vendor/tickets/901");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, host.Storage.Calls);
     }
 
     [Theory]
@@ -131,7 +92,7 @@ public class VendorTicketDetailTests
     }
 
     [Fact]
-    public async Task OwnedDetailProjection_TranslatesToPostgres()
+    public async Task Retired_detail_query_has_no_account_join()
     {
         using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);
         var fixture = new VendorTicketDbSet<MarikinaMarket.API.Domain.Entities.Ticket>(VendorTicketHost.Records());
@@ -145,7 +106,8 @@ public class VendorTicketDetailTests
         var expression = new ReplaceReportQueryRoot(fixture.RootExpression,
             ((IQueryable<MarikinaMarket.API.Domain.Entities.Ticket>)postgres.Tickets).Expression).Visit(fixture.State.LastExpression!);
         var sql = ((IQueryable<MarikinaMarket.API.Domain.Entities.Ticket>)postgres.Tickets).Provider.CreateQuery(expression!).ToQueryString();
-        Assert.Contains("user_id", sql);
+        Assert.DoesNotContain("user_id", sql);
+        Assert.Contains("FALSE", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("penalty_amount", sql);
         Assert.Contains("file_key", sql);
         Assert.Contains("WHERE", sql);

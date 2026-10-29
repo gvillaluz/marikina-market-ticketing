@@ -52,7 +52,7 @@ class _VendorQrContentState extends State<VendorQrContent> {
         ExportVendorQr(
           ExportQrParams(
             pngBytes: bytes.buffer.asUint8List(),
-            businessId: widget.user.vendor!.businessId,
+            businessAccountNumber: widget.user.vendor!.businessAccountNumber,
             share: share,
             origin: (
               x: origin.dx,

@@ -31,7 +31,7 @@ export default function SettlementCard({
     >
       <div className={styles.settlementTop}>
         <strong>
-          {settlement.businessId} ·{" "}
+          {settlement.businessAccountNumber} ·{" "}
           {formatControlNumber(
             settlement.controlNumber,
             `Ticket #${settlement.ticketId}`,

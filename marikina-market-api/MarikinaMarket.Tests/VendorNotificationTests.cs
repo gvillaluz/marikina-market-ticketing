@@ -117,72 +117,39 @@ public class VendorNotificationTests
         Assert.False(model.FindProperty("VendorId")!.IsNullable);
         Assert.NotNull(model.FindProperty("VendorIsRead"));
         Assert.Contains(model.GetForeignKeys(), key => key.Properties.Any(property => property.Name == "VendorId")
-            && key.PrincipalEntityType.ClrType == typeof(VendorProfile));
+            && key.PrincipalEntityType.ClrType == typeof(Business));
         Assert.Contains(model.GetIndexes(), index => index.Properties[0].Name == "VendorId");
     }
 
     [Fact]
-    public async Task Vendor_list_is_owned_paged_and_independent_of_enforcer_read_state()
+    public async Task Former_account_cannot_list_business_notifications()
     {
         using var fixture = new Fixture();
-        for (var id = 1; id <= 12; id++) fixture.Add(id, 17, id == 1);
-        fixture.Add(99, 18);
+        fixture.Add(71, 17);
         await using var host = await fixture.HostAsync();
         using var response = await host.SendAsync(HttpMethod.Get, "/api/Notification/vendor?filter=Unread", "MarketVendor");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        Assert.Equal(11, json.RootElement.GetProperty("total").GetInt32());
-        Assert.True(json.RootElement.GetProperty("has_more").GetBoolean());
-        var rows = json.RootElement.GetProperty("items").EnumerateArray().ToList();
-        Assert.Equal(10, rows.Count);
-        Assert.Equal(12, rows[0].GetProperty("id").GetInt32());
-        Assert.All(rows, row =>
-        {
-            Assert.Equal(17, row.GetProperty("vendor_id").GetInt32());
-            Assert.False(row.GetProperty("is_read").GetBoolean());
-        });
-        using var next = await host.SendAsync(HttpMethod.Get, "/api/Notification/vendor?offset=10", "MarketVendor");
-        using var page = JsonDocument.Parse(await next.Content.ReadAsStringAsync());
-        Assert.False(page.RootElement.GetProperty("has_more").GetBoolean());
-        Assert.Equal(2, page.RootElement.GetProperty("items").GetArrayLength());
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
-    public async Task Warning_metadata_has_no_penalty_status_or_due_date()
+    public async Task Former_account_cannot_read_business_warning_notifications()
     {
         using var fixture = new Fixture();
-        var record = fixture.Add(71, 17);
-        record.Ticket!.Type = ViolationType.Warning;
-        record.Ticket.Status = null;
-        record.Ticket.PenaltyType = null;
+        fixture.Add(71, 17);
         await using var host = await fixture.HostAsync();
         using var response = await host.SendAsync(HttpMethod.Get, "/api/Notification/vendor", "MarketVendor");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        var row = json.RootElement.GetProperty("items")[0];
-        Assert.Equal("Warning", row.GetProperty("type").GetString());
-        Assert.Equal(JsonValueKind.Null, row.GetProperty("penalty_type").ValueKind);
-        Assert.Equal(JsonValueKind.Null, row.GetProperty("status").ValueKind);
-        Assert.Equal(JsonValueKind.Null, row.GetProperty("due_date").ValueKind);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
-    public async Task Vendor_read_changes_only_vendor_flag_and_rejects_other_owners()
+    public async Task Former_account_cannot_mark_business_notifications_read()
     {
         using var fixture = new Fixture();
-        var own = fixture.Add(71, 17);
-        own.IsRead = false;
-        fixture.Add(72, 18);
+        var notification = fixture.Add(71, 17);
         await using var host = await fixture.HostAsync();
         using var response = await host.SendAsync(HttpMethod.Patch, "/api/Notification/vendor/71/read", "MarketVendor");
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        Assert.False(own.IsRead);
-        Assert.True(own.VendorIsRead);
-        using var other = await host.SendAsync(HttpMethod.Patch, "/api/Notification/vendor/72/read", "MarketVendor");
-        Assert.Equal(HttpStatusCode.NotFound, other.StatusCode);
-        await fixture.Service.MarkAsReadNotificationAsync(71, 8);
-        Assert.True(own.IsRead);
-        Assert.True(own.VendorIsRead);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.False(notification.VendorIsRead);
     }
 
     [Theory]
@@ -212,14 +179,14 @@ public class VendorNotificationTests
     }
 
     [Fact]
-    public async Task Vendor_push_resolves_profile_id_to_account_tokens()
+    public async Task Businesses_have_no_push_token_owner()
     {
         using var fixture = new Fixture();
         var result = await fixture.Service.SendPushNotificationToVendorAsync(17, "New inspection", "A warning was issued.",
             new Dictionary<string, string> { ["ticketId"] = "11" });
-        Assert.True(result);
-        Assert.Equal(7, fixture.TokenOwner);
-        Assert.Equal(1, fixture.PushCalls);
+        Assert.False(result);
+        Assert.Equal(0, fixture.TokenOwner);
+        Assert.Equal(0, fixture.PushCalls);
     }
 
     [Fact]
@@ -239,9 +206,9 @@ public class VendorNotificationTests
             .UseNpgsql("Host=localhost;Database=unused;Username=unused").UseSnakeCaseNamingConvention().Options)
         {
             Notifications = new RegistrationDbSet<Notification>(Records);
-            VendorProfiles = new RegistrationDbSet<VendorProfile>(
-            [new() { Id = 17, UserId = 7, BusinessId = "MM-17", BusinessName = "Reyes Fresh Fish", QrCodeValue = "sample" },
-             new() { Id = 18, UserId = 42, BusinessId = "MM-18", BusinessName = "Another store", QrCodeValue = "sample2" }]);
+            Businesses = new RegistrationDbSet<Business>(
+            [new() { Id = 17, BusinessAccountNumber = "MM-17", BusinessName = "Reyes Fresh Fish", QrCodeValue = "sample" },
+             new() { Id = 18, BusinessAccountNumber = "MM-18", BusinessName = "Another store", QrCodeValue = "sample2" }]);
             var users = ReviewBoundaryProxy.Create<IUserRepository>((method, args) =>
             {
                 TokenOwner = (int)args[0]!;
@@ -266,7 +233,7 @@ public class VendorNotificationTests
                     Id = id + 100, VendorId = vendorId, Description = "Inspection", ControlNumber = "VIO-0101",
                     Type = ViolationType.Ticket, Status = TicketStatus.Pending, PenaltyType = PenaltyType.CashFine,
                     IssuedAt = new DateTime(2026, 10, 14, 2, 0, 0, DateTimeKind.Utc),
-                    Vendor = new VendorProfile { Id = vendorId, BusinessId = "MM-17", BusinessName = "Reyes Fresh Fish", QrCodeValue = "sample" },
+                    Vendor = new Business { Id = vendorId, BusinessAccountNumber = "MM-17", BusinessName = "Reyes Fresh Fish", QrCodeValue = "sample" },
                     MarketSection = new MarketSection { Name = "Fish and Seafood", Description = "Fish retail" }
                 }
             };

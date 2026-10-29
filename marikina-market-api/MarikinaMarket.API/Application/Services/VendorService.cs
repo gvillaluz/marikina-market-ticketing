@@ -93,7 +93,7 @@ namespace MarikinaMarket.API.Application.Services
             return BuildOwnProfile(updated, vendor);
         }
 
-        private async Task<VendorProfile> GetOwnVendorAsync(int userId)
+        private async Task<Business> GetOwnVendorAsync(int userId)
         {
             if (userId <= 0)
                 throw new ValidationException("User ID must be greater than zero.");
@@ -102,352 +102,23 @@ namespace MarikinaMarket.API.Application.Services
         }
 
         private static VendorSelfProfileResponse BuildOwnProfile(
-            MarikinaMarket.API.Application.DTOs.User.Response.UserProfileResponse user, VendorProfile vendor)
+            MarikinaMarket.API.Application.DTOs.User.Response.UserProfileResponse user, Business vendor)
             => new()
             {
                 User = user,
                 Vendor = VendorBusinessProfileResponse.FromEntity(vendor)
             };
 
-        public async Task<RegisterVendorResponse> CreateVendorRegistryAsync(RegisterVendorRequest request)
-        {
-            request.Email = request.Email?.Trim() ?? "";
-            request.BusinessId = request.BusinessId?.Trim() ?? "";
-            Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+        public Task<RegisterVendorResponse> CreateVendorRegistryAsync(RegisterVendorRequest request)
+        => throw new InvalidRequestException("Vendor login accounts are no longer supported. An administrator must maintain a business record.");
 
-            if (request.VendorType == VendorType.Public && string.IsNullOrWhiteSpace(request.StallNumber))
-                throw new ValidationException("Stall number is required for public vendors.");
-
-            ValidateDocumentFile(request.GovernmentIdPhoto, "Government ID photo");
-            ValidateDocumentFile(request.BusinessDocumentPhoto, "Business document photo");
-
-            var dateOfBirth = request.DateOfBirth
-                ?? throw new ValidationException("Birth date is required.");
-            var governmentIdType = request.GovernmentIdType
-                ?? throw new ValidationException("Government ID type is required.");
-            var vendorType = request.VendorType;
-
-            if (dateOfBirth > DateOnly.FromDateTime(DateTime.UtcNow))
-                throw new ValidationException("Date of birth cannot be in the future.");
-
-            await ValidateRegistrationIdentityAsync(request.Email, request.BusinessId);
-
-            var marketSection = await _marketSectionRepository.GetById(request.MarketSectionId);
-
-            if (marketSection is null)
-                throw new RecordNotFoundException("Selected market section was not found.");
-
-            var hasher = new PasswordHasher<User>();
-
-            var tempUser = new User
-            { 
-                FirstName = request.FirstName,
-                MiddleName = request.MiddleName,
-                LastName = request.LastName,
-                DateOfBirth = dateOfBirth,
-                Email = request.Email,
-                PhoneNumber = request.PhoneNumber,
-                HouseNumber = request.HouseNumber,
-                Street = request.Street,
-                Barangay = request.Barangay,
-                City = request.City
-            };
-
-            var hashedPassword = hasher.HashPassword(tempUser, request.Password);
-            var governmentIdPhotoKey = CreateRegistrationDocumentKey(request.GovernmentIdPhoto);
-            var businessDocumentPhotoKey = CreateRegistrationDocumentKey(request.BusinessDocumentPhoto);
-
-            await _storageService.UploadFileAsync(
-                B2BucketType.Documents,
-                request.GovernmentIdPhoto,
-                governmentIdPhotoKey);
-            await _storageService.UploadFileAsync(
-                B2BucketType.Documents,
-                request.BusinessDocumentPhoto,
-                businessDocumentPhotoKey);
-
-            var vendorRegistry = new VendorRegistrationRequest
-            {
-                GovernmentIdType = governmentIdType,
-                GovernmentIdNumber = request.BusinessId,
-                GovernmentIdPhotoUrl = governmentIdPhotoKey,
-                BusinessDocumentPhotoUrl = businessDocumentPhotoKey,
-                Type = vendorType,
-                BusinessId = request.BusinessId,
-                BusinessName = request.BusinessName,
-                NatureOfBusiness = request.NatureOfBusiness,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                MiddleName = request.MiddleName,
-                DateOfBirth = dateOfBirth,
-                Age = CalculateAge(dateOfBirth),
-                HouseNumber = request.HouseNumber,
-                Street = request.Street,
-                Barangay = request.Barangay,
-                City = request.City,
-                PhoneNumber = request.PhoneNumber,
-                Email = request.Email,
-                Password = hashedPassword,
-                StallNumber = request.StallNumber,
-                MarketSectionId = request.MarketSectionId,
-                Status = RequestStatus.Pending
-            };
-
-            var savedVendorRegistry = await _vendorRepository.AddVendorRegistryAsync(vendorRegistry);
-            await _vendorRepository.SaveChangesAsync();
-
-            if (_audit?.Entry is not null) _audit.Entry.TargetId = savedVendorRegistry.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
-
-            try
-            {
-                await _notificationService.SendPushNotificationToAdminsAsync(
-                    "New vendor registration request",
-                    $"{savedVendorRegistry.BusinessName} submitted a registration request.",
-                    new Dictionary<string, string>
-                    {
-                        ["type"] = "vendor_registration",
-                        ["registration_id"] = savedVendorRegistry.Id.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                        ["status"] = savedVendorRegistry.Status.ToString()
-                    });
-            }
-            catch (Exception exception)
-            {
-                _logger.LogWarning(exception, "Could not notify admins about vendor registration {RegistrationId}.", savedVendorRegistry.Id);
-            }
-
-            var encodedName = HtmlEncoder.Default.Encode(savedVendorRegistry.FirstName);
-            var encodedBusinessName = HtmlEncoder.Default.Encode(savedVendorRegistry.BusinessName);
-            var emailBody = $@"
-                    <h1 style=""margin:0 0 22px;color:#0B2D5B;font-size:26px;line-height:1.3;"">Registration request received</h1>
-                    <p style=""margin:0 0 14px;"">Hello {encodedName},</p>
-                    <p style=""margin:0 0 14px;"">We received the vendor registration request for <strong>{encodedBusinessName}</strong>.</p>
-                    <p style=""margin:0 0 14px;"">Your request is pending review. We will email you after an administrator reaches a decision.</p>
-                ";
-
-            var emailSent = await SendReviewEmailAsync(
-                savedVendorRegistry,
-                "Vendor Registration Request Received",
-                emailBody);
-
-            return new RegisterVendorResponse
-            {
-                FirstName = savedVendorRegistry.FirstName,
-                LastName = savedVendorRegistry.LastName,
-                BusinessName = savedVendorRegistry.BusinessName,
-                EmailAddress = savedVendorRegistry.Email,
-                Status = savedVendorRegistry.Status.ToString(),
-                Message = emailSent
-                    ? "Registration successful! Your account has been submitted for review. You'll be able to sign in once an administrator approves your account."
-                    : "Registration successful! Your account has been submitted for review, but we couldn't send the confirmation email. Contact the market administration office for assistance."
-            };
-        }
-
-        public async Task<RegistrationApprovalResponse> CreateAdminVendorRegistrationAsync(
+        public Task<RegistrationApprovalResponse> CreateAdminVendorRegistrationAsync(
             AdminRegisterVendorRequest request,
             int adminId)
-        {
-            request.Email = request.Email?.Trim() ?? "";
-            request.BusinessId = request.BusinessId?.Trim() ?? "";
-            Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+        => throw new InvalidRequestException("Vendor login accounts are no longer supported. An administrator must maintain a business record.");
 
-            var dateOfBirth = request.DateOfBirth
-                ?? throw new ValidationException("Birth date is required.");
-            var vendorType = request.VendorType
-                ?? throw new ValidationException("Vendor type is required.");
-
-            if (dateOfBirth > DateOnly.FromDateTime(DateTime.UtcNow))
-                throw new ValidationException("Date of birth cannot be in the future.");
-
-            await ValidateRegistrationIdentityAsync(request.Email, request.BusinessId);
-
-            if (await _marketSectionRepository.GetById(request.MarketSectionId) is null)
-                throw new RecordNotFoundException("Selected market section was not found.");
-
-            var hasher = new PasswordHasher<User>();
-            var tempUser = new User
-            {
-                FirstName = request.FirstName,
-                MiddleName = request.MiddleName,
-                LastName = request.LastName,
-                DateOfBirth = dateOfBirth,
-                Email = request.Email,
-                PhoneNumber = request.PhoneNumber,
-                HouseNumber = request.HouseNumber,
-                Street = request.Street,
-                Barangay = request.Barangay,
-                City = request.City
-            };
-
-            var registration = new VendorRegistrationRequest
-            {
-                GovernmentIdNumber = "",
-                GovernmentIdPhotoUrl = "",
-                BusinessDocumentPhotoUrl = "",
-                Type = vendorType,
-                BusinessId = request.BusinessId,
-                BusinessName = request.BusinessName,
-                NatureOfBusiness = request.NatureOfBusiness,
-                FirstName = request.FirstName,
-                MiddleName = request.MiddleName,
-                LastName = request.LastName,
-                DateOfBirth = dateOfBirth,
-                Age = CalculateAge(dateOfBirth),
-                HouseNumber = request.HouseNumber,
-                Street = request.Street,
-                Barangay = request.Barangay,
-                City = request.City,
-                PhoneNumber = request.PhoneNumber,
-                Email = request.Email,
-                Password = hasher.HashPassword(tempUser, request.Password),
-                StallNumber = request.StallNumber,
-                MarketSectionId = request.MarketSectionId,
-                Status = RequestStatus.Pending,
-                ReviewedBy = adminId
-            };
-
-            await _unitOfWork.BeginTransactionAsync();
-
-            try
-            {
-                await _vendorRepository.AddVendorRegistryAsync(registration);
-                await _unitOfWork.SaveChangesAsync();
-
-                return await ApproveVendorRegistration(registration.Id, new RegistrationAdminAction
-                {
-                    VendorRegistrationId = registration.Id,
-                    RequestStatus = RequestStatus.Approved,
-                    Version = registration.Version,
-                    AdminId = adminId
-                });
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
-
-        public async Task<RegistrationApprovalResponse> ApproveVendorRegistration(int registrationId, RegistrationAdminAction request)
-        {
-            await _unitOfWork.BeginTransactionAsync();
-            var transactionCommitted = false;
-
-            try
-            {
-                if (request.RequestStatus is not RequestStatus.Approved)
-                    throw new InvalidRequestException("RequestStatus must be Approved."); 
-
-                var registration = await _vendorRepository.GetRegistrationById(registrationId);
-
-                if (registration is null)
-                    throw new RecordNotFoundException("Registration request record not found.");
-
-                ValidateReviewVersion(registration, request.Version);
-
-                if (registration.Status is not (RequestStatus.Pending or RequestStatus.NeedsInformation))
-                    throw new AlreadyProcessedException("This request has already been processed.");
-
-                var sequence = await _userRepository.GetNextUserNameAsync();
-                if (!int.TryParse(sequence, NumberStyles.None, CultureInfo.InvariantCulture, out var sequenceNumber)
-                    || sequenceNumber < 1 || sequenceNumber > 9999)
-                    throw new InvalidRequestException("Cannot create a vendor username: the shared sequence must be between 1 and 9999. Contact an administrator.");
-                var username = $"VEN{sequenceNumber.ToString("D4", CultureInfo.InvariantCulture)}-{DateTime.UtcNow.Year}";
-
-                registration.Status = request.RequestStatus;
-                registration.ReviewedAt = DateTime.UtcNow;
-                registration.ReviewedBy = request.AdminId;
-
-                var newUser = new User
-                {
-                    FirstName = registration.FirstName,
-                    MiddleName = registration.MiddleName,
-                    LastName = registration.LastName,
-                    DateOfBirth = registration.DateOfBirth,
-                    Email = registration.Email,
-                    UserName = username,
-                    PasswordHash = registration.Password,
-                    Status = AccountStatus.Active,
-                    PhoneNumber = registration.PhoneNumber,
-                    HouseNumber = registration.HouseNumber,
-                    Street = registration.Street,
-                    Barangay = registration.Barangay,
-                    City = registration.City
-                };
-
-                var userResult = await _userRepository.CreateUserWithPassAsync(newUser);
-
-                if (!userResult.Succeeded)
-                    throw new ResourceCreationFailedException("Failed to create user account.");
-
-                var roleResult = await _userRepository.AddToRoleAsync(newUser, nameof(Role.MarketVendor));
-
-                if (!roleResult.Succeeded)
-                    throw new ResourceCreationFailedException("Failed to assign the vendor role to the new account.");
-
-                var marketSection = await _marketSectionRepository.GetById(registration.MarketSectionId);
-
-                if (marketSection is null)
-                    throw new RecordNotFoundException("Failed to find selected market section.");
-
-                var vendor = new VendorProfile
-                {
-                    UserId = newUser.Id,
-                    MarketSectionId = marketSection.Id,
-                    BusinessId = registration.BusinessId,
-                    BusinessName = registration.BusinessName,
-                    Type = registration.Type,
-                    StallNumber = registration.StallNumber,
-                    ComplianceScore = 100,
-                    ScoreUpdatedAt = DateTime.UtcNow,
-                    Status = VendorStatus.Active,
-                    QrCodeValue = GenerateUniqueQrToken()
-                };
-
-                var vendorProfile = await _vendorRepository.CreateVendorAsync(vendor);
-
-                await _unitOfWork.SaveChangesAsync();
-                if (_auditService is not null) await _auditService.StageCurrentAsync();
-                await _unitOfWork.CommitAsync();
-                transactionCommitted = true;
-
-                var emailBody = CreateReviewEmail(registration, newUser.UserName);
-
-                var emailSent = await SendReviewEmailAsync(
-                    registration, "Vendor Registration Approved", emailBody);
-
-                return new RegistrationApprovalResponse
-                {
-                    RegistrationId = registration.Id,
-                    UserId = newUser.Id,
-                    VendorId = vendorProfile.Id,
-                    FirstName = newUser.FirstName,
-                    MiddleName = newUser.MiddleName ?? "",
-                    LastName = newUser.LastName,
-                    BusinessName = vendorProfile.BusinessName,
-                    MarketSectionId = vendorProfile.MarketSectionId,
-                    MarketSectionName = marketSection.Name,
-                    AdminId = request.AdminId,
-                    Status = registration.Status,
-                    VendorStatus = vendorProfile.Status,
-                    ReviewedAt = registration.ReviewedAt.Value,
-                    EmailSent = emailSent,
-                    CreatedAt = newUser.CreatedAt,
-                    Version = registration.Version
-                };
-            }
-            catch (ConcurrencyConflictException)
-            {
-                if (!transactionCommitted)
-                    await _unitOfWork.RollbackAsync();
-                throw new ConcurrencyConflictException("This registration was already reviewed by another admin. Please refresh and try again.");
-            }
-            catch (Exception)
-            {
-                if (!transactionCommitted)
-                    await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
+        public Task<RegistrationApprovalResponse> ApproveVendorRegistration(int registrationId, RegistrationAdminAction request)
+        => throw new InvalidRequestException("Vendor login accounts are no longer supported. An administrator must maintain a business record.");
 
         public async Task<RegistrationDeclinedResponse> DeclineVendorRegistration(int registrationId, RegistrationAdminAction request)
         {
@@ -608,7 +279,7 @@ namespace MarikinaMarket.API.Application.Services
             _vendorRepository.SetOriginalVersion(registration, version);
         }
 
-        private async Task ValidateRegistrationIdentityAsync(string email, string businessId)
+        private async Task ValidateRegistrationIdentityAsync(string email, string businessAccountNumber)
         {
             if (await _userRepository.FindByEmailAsync(email) is not null)
                 throw new InvalidRequestException("Email is already registered.");
@@ -616,8 +287,8 @@ namespace MarikinaMarket.API.Application.Services
             if (await _vendorRepository.RegistrationEmailExistsAsync(email))
                 throw new InvalidRequestException("A vendor registration request already uses this email address. Check your existing request or contact the market administration office.");
 
-            if (await _vendorRepository.RegistrationBusinessIdExistsAsync(businessId))
-                throw new InvalidRequestException("Business ID is already used by a vendor or registration request.");
+            if (await _vendorRepository.RegistrationBusinessAccountNumberExistsAsync(businessAccountNumber))
+                throw new InvalidRequestException("Business Account Number is already used by a vendor or registration request.");
         }
 
         private static string CreateReviewEmail(VendorRegistrationRequest registration, string? username = null)
@@ -739,16 +410,16 @@ namespace MarikinaMarket.API.Application.Services
             return Convert.ToHexString(bytes).ToLowerInvariant();
         }
 
-        public async Task<List<GetVendorResponse>> GetVendorByBusinessIdAsync(string businessId)
+        public async Task<List<GetVendorResponse>> GetVendorByBusinessAccountNumberAsync(string businessAccountNumber)
         {
-            var vendors = await _vendorRepository.GetVendorByBusinessId(businessId);
+            var vendors = await _vendorRepository.GetVendorByBusinessAccountNumber(businessAccountNumber);
 
             return vendors.Select(v => new GetVendorResponse
             {
                 VendorId = v.VendorId,
                 Username = v.Username,
                 Type = v.Type,
-                BusinessId = v.BusinessId,
+                BusinessAccountNumber = v.BusinessAccountNumber,
                 StallNumber = v.StallNumber,
                 TradeName = v.TradeName,
                 LastName = v.LastName,
@@ -772,13 +443,13 @@ namespace MarikinaMarket.API.Application.Services
                 VendorId = vendor.VendorId,
                 Username = vendor.Username,
                 Type = vendor.Type,
-                BusinessId = vendor.BusinessId,
+                BusinessAccountNumber = vendor.BusinessAccountNumber,
                 StallNumber = vendor.StallNumber,
                 TradeName = vendor.TradeName,
                 LastName = vendor.LastName,
                 FirstName = vendor.FirstName,
                 MiddleName = vendor.MiddleName,
-                Address = "",
+                Address = vendor.Address ?? "",
                 MarketSectionId = vendor.MarketSectionId,
                 MarketSectionName = vendor.MarketSectionName
             };
@@ -811,9 +482,10 @@ namespace MarikinaMarket.API.Application.Services
                 Items = vendors.Select(v => new AdminVendorSummaryResponse
                 {
                     VendorId = v.VendorId,
-                    BusinessId = v.BusinessId,
+                    BusinessAccountNumber = v.BusinessAccountNumber,
                     VendorName = v.VendorName,
-                    Type = v.VendorType,
+                    BusinessName = v.BusinessName,
+                    Type = v.BusinessType,
                     MarketSectionName = v.MarketSectionName,
                     ComplianceScore = v.ComplianceScore,
                     WarningCount = v.WarningCount,
@@ -853,10 +525,10 @@ namespace MarikinaMarket.API.Application.Services
                 Items = requests.Select(request => new VendorRegistrationSummaryResponse
                 {
                     RegistrationId = request.RegistrationId,
-                    BusinessId = request.BusinessId,
+                    BusinessAccountNumber = request.BusinessAccountNumber,
                     BusinessName = request.BusinessName,
                     VendorName = request.VendorName,
-                    VendorType = request.VendorType,
+                    BusinessType = request.BusinessType,
                     MarketSectionName = request.MarketSectionName,
                     StallNumber = request.StallNumber,
                     RequestedAt = request.RequestedAt,
@@ -877,10 +549,10 @@ namespace MarikinaMarket.API.Application.Services
             {
                 RegistrationId = registration.Id,
                 Version = registration.Version,
-                BusinessId = registration.BusinessId,
+                BusinessAccountNumber = registration.BusinessAccountNumber,
                 BusinessName = registration.BusinessName,
                 NatureOfBusiness = registration.NatureOfBusiness,
-                VendorType = registration.Type,
+                BusinessType = registration.Type,
                 MarketSectionName = registration.MarketSection?.Name ?? "",
                 StallNumber = registration.StallNumber,
                 FirstName = registration.FirstName,
@@ -982,7 +654,7 @@ namespace MarikinaMarket.API.Application.Services
                 {
                     TicketId = a.TicketId,
                     ControlNumber = a.ControlNumber,
-                    BusinessId = a.BusinessId,
+                    BusinessAccountNumber = a.BusinessAccountNumber,
                     VendorName = FormatVendorName(a.FirstName, a.MiddleName, a.LastName),
                     Type = a.Type,
                     IssuedAt = a.IssuedAt
@@ -1009,11 +681,11 @@ namespace MarikinaMarket.API.Application.Services
             return new VendorProfileResponse
             {
                 Name = FormatVendorName(vendor.FirstName, vendor.MiddleName, vendor.LastName),
-                Username = vendor.Username,
+                BusinessAccountNumber = vendor.BusinessAccountNumber,
+                BusinessName = vendor.BusinessName,
                 PhoneNumber = vendor.PhoneNumber,
                 Email = vendor.Email,
-                AccountCreatedAt = vendor.AccountCreatedAt,
-                Role = Role.MarketVendor,
+                CreatedAt = vendor.CreatedAt,
                 LastViolationIssuedAt = vendor.LastViolationIssuedAt
             };
         }
@@ -1047,7 +719,7 @@ namespace MarikinaMarket.API.Application.Services
                 {
                     TicketId = s.TicketId,
                     ControlNumber = s.ControlNumber,
-                    BusinessId = s.BusinessId,
+                    BusinessAccountNumber = s.BusinessAccountNumber,
                     VendorName = s.VendorName,
                     MarketSectionName = s.MarketSectionName,
                     Status = s.Status,
@@ -1060,6 +732,84 @@ namespace MarikinaMarket.API.Application.Services
                 HasMore = offset + settlements.Count < total,
                 Total = total
             };
+        }
+
+        public async Task<PageResponse<BusinessRecordResponse>> GetBusinessesAsync(int offset, AdminVendorSummaryFilter filters)
+        {
+            if (offset < 0) throw new ValidationException("Offset must not be negative.");
+            Validator.ValidateObject(filters, new ValidationContext(filters), true);
+            var records = await _vendorRepository.GetBusinessesAsync(offset, 10, filters);
+            var total = await _vendorRepository.GetAdminVendorSummaryCountAsync(filters);
+            return new() { Items = records.Select(BusinessRecordResponse.FromEntity).ToList(), Total = total,
+                HasMore = (long)offset + records.Count < total };
+        }
+
+        public async Task<BusinessRecordResponse> GetBusinessAsync(int id)
+        {
+            if (id < 1) throw new ValidationException("Business ID must be positive.");
+            return BusinessRecordResponse.FromEntity(await _vendorRepository.GetVendorProfileForUpdateAsync(id)
+                ?? throw new RecordNotFoundException("Business not found."));
+        }
+
+        public async Task<BusinessRecordResponse> SaveBusinessAsync(int? id, SaveBusinessRequest request)
+        {
+            if (id.HasValue && id < 1) throw new ValidationException("Business ID must be positive.");
+            request.BusinessAccountNumber = request.BusinessAccountNumber?.Trim() ?? "";
+            request.BusinessName = request.BusinessName?.Trim() ?? "";
+            request.OwnerFirstName = request.OwnerFirstName?.Trim() ?? "";
+            request.OwnerLastName = request.OwnerLastName?.Trim() ?? "";
+            request.HouseNumber = request.HouseNumber?.Trim() ?? "";
+            request.Street = request.Street?.Trim() ?? "";
+            request.Barangay = request.Barangay?.Trim() ?? "";
+            request.City = request.City?.Trim() ?? "";
+            request.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
+            request.Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
+            request.StallNumber = string.IsNullOrWhiteSpace(request.StallNumber) ? null : request.StallNumber.Trim();
+            Validator.ValidateObject(request, new ValidationContext(request), true);
+            if (request.BusinessType == BusinessType.Public && request.StallNumber is null)
+                throw new ValidationException("Stall number is required for public businesses.");
+            var section = await _marketSectionRepository.GetById(request.MarketSectionId);
+            if (section is null || !section.IsActive)
+                throw new ValidationException("Select an active market section.");
+
+            var business = id.HasValue
+                ? await _vendorRepository.GetVendorProfileForUpdateAsync(id.Value)
+                    ?? throw new RecordNotFoundException("Business not found.")
+                : new Business { BusinessAccountNumber = "", BusinessName = "", CreatedAt = DateTime.UtcNow,
+                    Status = VendorStatus.Active, QrCodeValue = Guid.NewGuid().ToString("N"),
+                    ScoreUpdatedAt = DateTime.UtcNow };
+            if (await _vendorRepository.BusinessAccountNumberExistsAsync(request.BusinessAccountNumber, id))
+                throw new InvalidRequestException("Business account number is already in use.");
+
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                business.BusinessAccountNumber = request.BusinessAccountNumber;
+                business.BusinessName = request.BusinessName;
+                business.OwnerFirstName = request.OwnerFirstName;
+                business.OwnerLastName = request.OwnerLastName;
+                business.HouseNumber = request.HouseNumber;
+                business.Street = request.Street;
+                business.Barangay = request.Barangay;
+                business.City = request.City;
+                business.PhoneNumber = request.PhoneNumber;
+                business.Email = request.Email;
+                business.Type = request.BusinessType!.Value;
+                business.MarketSectionId = section.Id;
+                business.MarketSection = section;
+                business.StallNumber = request.StallNumber;
+                if (!id.HasValue) await _vendorRepository.CreateVendorAsync(business);
+                await _vendorRepository.SaveBusinessChangesAsync();
+                if (_audit?.Entry is not null) _audit.Entry.TargetId = business.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (_auditService is not null) await _auditService.StageCurrentAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+            return BusinessRecordResponse.FromEntity(business);
         }
     }
 }

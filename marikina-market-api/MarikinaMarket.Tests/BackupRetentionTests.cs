@@ -122,6 +122,8 @@ internal sealed class BackupRetentionFixture
     public BackupRetentionFixture()
     {
         var repository = BackupTestBoundary.Create<IBackupRepository>((name, args) => name switch {
+            "TryAcquireOperationLockAsync" => Task.FromResult<IBackupOperationLock?>(new BackupTestLock()),
+            "AcquireSettingsLockAsync" => Task.FromResult<IBackupOperationLock>(new BackupTestLock()),
             "GetByIdAsync" => Task.FromResult(Records.SingleOrDefault(row => row.Id == (int)args![0]!)),
             "GetScheduleAsync" => Task.FromResult<BackupSchedule?>(Schedule),
             "GetLatestAutomaticAsync" => Task.FromResult<Backup?>(null),

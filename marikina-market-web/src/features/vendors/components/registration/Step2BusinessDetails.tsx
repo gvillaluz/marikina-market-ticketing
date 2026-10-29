@@ -23,8 +23,8 @@ export default function Step2BusinessDetails({
   update,
 }: Step2Props) {
   const vendorTypeLabel =
-    VENDOR_TYPE_OPTIONS.find((option) => option.value === form.vendorType)?.label ??
-    "Select vendor type";
+    VENDOR_TYPE_OPTIONS.find((option) => option.value === form.businessType)?.label ??
+    "Select business type";
   const marketSectionLabel =
     MARKET_SECTION_OPTIONS.find((option) => option.value === form.marketSectionId)?.label ??
     "Select your market section";
@@ -52,21 +52,21 @@ export default function Step2BusinessDetails({
       <div className={`${styles.grid} ${styles.twoColumns}`}>
         <div className={styles.gridField}>
           <label className={styles.fieldLabel}>
-            Vendor type <span className={styles.required}>*</span>
+            Business type <span className={styles.required}>*</span>
           </label>
           <Dropdown
-            ariaLabel="Vendor type"
+            ariaLabel="Business type"
             triggerLabel={vendorTypeLabel}
-            value={form.vendorType}
+            value={form.businessType}
             className={styles.formDropdown}
             fullWidth
             onChange={(value) => {
-              update("vendorType", value);
+              update("businessType", value);
               if (value === "Private") update("stallNumber", "");
             }}
             options={VENDOR_TYPE_OPTIONS}
           />
-          </div>
+        </div>
         <div className={styles.gridField}>
           <label className={styles.fieldLabel}>
             Market section <span className={styles.required}>*</span>
@@ -82,7 +82,7 @@ export default function Step2BusinessDetails({
           />
         </div>
       </div>
-      {form.vendorType === "Public" && (
+      {form.businessType === "Public" && (
         <div className={styles.stallField}>
           <TextInput
             label="Stall number"

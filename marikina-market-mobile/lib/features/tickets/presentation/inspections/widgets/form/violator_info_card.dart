@@ -60,7 +60,7 @@ class ViolatorInfoCard extends StatelessWidget {
             ),
       builder: (context) => BlocProvider(
         create: (_) => sl<InspectionBloc>(),
-        child: SearchByBusinessIdBottomSheet(),
+        child: SearchByBusinessAccountNumberBottomSheet(),
       ),
     );
 

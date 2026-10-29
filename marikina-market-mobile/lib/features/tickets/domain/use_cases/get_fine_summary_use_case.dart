@@ -7,12 +7,22 @@ class GetFineSummaryUseCase {
   final InspectionRepository _repository;
   GetFineSummaryUseCase(this._repository);
 
-  Future<Result<FineSummary>> call(List<int> ordinanceIds, int? vendorId) async {
-    if (vendorId == null) {
+  Future<Result<FineSummary>> call(
+    List<int> ordinanceIds,
+    int? vendorId, {
+    int? personId,
+  }) async {
+    if (vendorId == null || personId == null) {
       return Result.failure(
-        ValidationFailure("Vendor must not be empty.")
+        ValidationFailure(
+          "Confirm a person before calculating citation offenses.",
+        ),
       );
     }
-    return await _repository.getTicketFineSummary(ordinanceIds, vendorId);
+    return await _repository.getTicketFineSummary(
+      ordinanceIds,
+      vendorId,
+      personId: personId,
+    );
   }
 }

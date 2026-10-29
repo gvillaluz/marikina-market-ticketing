@@ -1,3 +1,7 @@
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/match_people_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/create_person_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_person_history_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/verify_inspection_use_case.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -43,8 +47,8 @@ const inspectionResponse = <String, Object?>{
   'market_section_id': 1,
   'market_section_name': 'Section A',
   'enforcer_id': 7,
-  'vendor_type': 'Public',
-  'business_id': 'BUS-12',
+  'business_type': 'Public',
+  'business_account_number': 'BUS-12',
   'stall_number': 'A-12',
   'status': 'Overdue',
   'severity': 'Moderate',
@@ -73,6 +77,10 @@ Future<InspectionBloc> listBloc(
     InspectionLocalDataSourceImpl(box),
   );
   final bloc = InspectionBloc(
+    matchPeopleUseCase: MatchPeopleUseCase(repository),
+    createPersonUseCase: CreatePersonUseCase(repository),
+    getPersonHistoryUseCase: GetPersonHistoryUseCase(repository),
+    verifyInspectionUseCase: VerifyInspectionUseCase(repository),
     loadInspectionListUseCase: LoadInspectionListUseCase(repository),
     loadOrdinancesUseCase: LoadOrdinancesUseCase(repository),
     searchVendorByCodeUseCase: SearchVendorByCodeUseCase(repository),

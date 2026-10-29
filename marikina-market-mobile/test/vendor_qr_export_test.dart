@@ -34,7 +34,11 @@ void main() {
           : 'saved.png';
     });
     final result = await useCase(
-      ExportQrParams(pngBytes: png, businessId: 'MM/70', share: false),
+      ExportQrParams(
+        pngBytes: png,
+        businessAccountNumber: 'MM/70',
+        share: false,
+      ),
     );
     expect(result, isA<Success<bool>>());
     expect((result as Success<bool>).data, isTrue);
@@ -50,7 +54,11 @@ void main() {
       (_) async => null,
     );
     final result = await useCase(
-      ExportQrParams(pngBytes: png, businessId: 'MM-70', share: false),
+      ExportQrParams(
+        pngBytes: png,
+        businessAccountNumber: 'MM-70',
+        share: false,
+      ),
     );
     expect((result as Success<bool>).data, isFalse);
   });
@@ -61,7 +69,11 @@ void main() {
       throw PlatformException(code: 'unavailable');
     });
     final result = await useCase(
-      ExportQrParams(pngBytes: png, businessId: 'MM-70', share: false),
+      ExportQrParams(
+        pngBytes: png,
+        businessAccountNumber: 'MM-70',
+        share: false,
+      ),
     );
     expect(
       (result as ResultFailure<bool>).failure.message,
@@ -93,7 +105,7 @@ void main() {
       final result = await useCase(
         ExportQrParams(
           pngBytes: png,
-          businessId: 'MM-70',
+          businessAccountNumber: 'MM-70',
           share: true,
           origin: (x: 10, y: 20, width: 100, height: 40),
         ),

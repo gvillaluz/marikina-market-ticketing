@@ -6,15 +6,18 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
 {
     public interface IVendorRepository
     {
-        public Task<VendorProfile?> GetVendorProfileByUserIdAsync(int userId);
+        Task<List<Business>> GetBusinessesAsync(int offset, int pageSize, AdminVendorSummaryFilter filters);
+        Task<bool> BusinessAccountNumberExistsAsync(string accountNumber, int? excludingId);
+        Task SaveBusinessChangesAsync();
+        public Task<Business?> GetVendorProfileByUserIdAsync(int userId);
         public Task<VendorTicketSummary?> GetByIdAsync(int id);
         public Task<int?> GetVendorIdByUserIdAsync(int userId);
         public Task<int?> GetVendorUserIdAsync(int vendorId);
-        public Task<VendorProfile> CreateVendorAsync(VendorProfile vendorProfile);
+        public Task<Business> CreateVendorAsync(Business vendorProfile);
         public Task<VendorRegistrationRequest> AddVendorRegistryAsync(VendorRegistrationRequest vendor);
         public Task<VendorRegistrationRequest?> GetRegistrationById(int registrationId);
         public Task<bool> RegistrationEmailExistsAsync(string email);
-        public Task<bool> RegistrationBusinessIdExistsAsync(string businessId);
+        public Task<bool> RegistrationBusinessAccountNumberExistsAsync(string businessAccountNumber);
         public Task<VendorRegistrationStatusCounts> GetVendorRegistrationStatusCountsAsync();
         public Task<DashboardVendorCounts> GetDashboardVendorCountsAsync();
         public Task<List<VendorRegistrationSummary>> GetVendorRegistrationSummariesAsync(
@@ -22,11 +25,11 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
             int pageSize,
             VendorRegistrationRequestFilters filters);
         public Task<int> GetVendorRegistrationSummaryCountAsync(VendorRegistrationRequestFilters filters);
-        public Task<List<VendorLookupResult>> GetVendorByBusinessId(string businessId);
+        public Task<List<VendorLookupResult>> GetVendorByBusinessAccountNumber(string businessAccountNumber);
         public Task<VendorLookupResult?> GetVendorByQrCode(string codeValue);
         public Task<VendorProfileDetails?> GetVendorProfileDetailsAsync(int vendorId);
-        public Task<List<VendorProfile>> GetVendorProfilesForComplianceUpdateAsync();
-        public Task<VendorProfile?> GetVendorProfileForUpdateAsync(int vendorId);
+        public Task<List<Business>> GetVendorProfilesForComplianceUpdateAsync();
+        public Task<Business?> GetVendorProfileForUpdateAsync(int vendorId);
         public Task<List<AdminVendorSummary>> GetAdminVendorSummariesAsync(
             int offset,
             int pageSize,

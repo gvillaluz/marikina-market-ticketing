@@ -59,11 +59,19 @@ namespace MarikinaMarket.API.Infrastructure.BackgroundServices
 
         private async Task RecordFailureAsync(string action, string details)
         {
-            using var scope = _serviceProvider.CreateScope();
-            await scope.ServiceProvider.GetRequiredService<IAuditLogService>().RecordAsync(new AuditLog
+            try
             {
-                Action = action, Module = Module.Backups, Result = LogResult.Failed, Details = details
-            });
+                using var scope = _serviceProvider.CreateScope();
+                await scope.ServiceProvider.GetRequiredService<IAuditLogService>().RecordAsync(new AuditLog
+                {
+                    Action = action, Module = Module.Backups, Result = LogResult.Failed, Details = details
+                });
+            }
+            catch (Exception ex)
+            {
+                // Failure reporting must not stop subsequent backup or cleanup checks.
+                _logger.LogWarning("Backup failure audit could not be recorded ({ExceptionType}).", ex.GetType().Name);
+            }
         }
     }
 }

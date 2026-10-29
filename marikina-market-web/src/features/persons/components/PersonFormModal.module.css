@@ -1,0 +1,12 @@
+.form, .field {
+  display: grid;
+  gap: var(--space-sm);
+}
+.form { gap: var(--space-lg); padding: var(--space-lg); }
+.field { font-size: var(--form-font-body); color: var(--text-heading); }
+.error { margin: 0; color: var(--danger); font-size: var(--form-font-body); }
+.note { margin: 0; color: var(--text-body); font-size: var(--form-font-caption); }
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-md); }
+.recovery { padding: var(--space-md); background: var(--form-error-surface); font-size: var(--form-font-body); }
+.field textarea { resize: vertical; }
+.form button { min-height: var(--form-control-height); }

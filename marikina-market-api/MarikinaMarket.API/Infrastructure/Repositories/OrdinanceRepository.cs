@@ -51,6 +51,24 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<OrdinanceOffenseSummary>> GetByPersonIdsAsync(List<int> ordinanceIds, int personId)
+        {
+            return await _context.Ordinances.Where(o => ordinanceIds.Contains(o.Id))
+                .Select(o => new OrdinanceOffenseSummary
+                {
+                    OrdinanceId = o.Id, OrdinanceNo = o.OrdinanceNo, Series = o.Series,
+                    Code = o.MarketCode, Title = o.Title, Category = o.Category,
+                    PenaltyTiers = o.PenaltyTiers.Select(pt => new PenaltyTierSummary
+                    {
+                        OrdinanceId = pt.OrdinanceId, OffenseNumber = pt.OffenseNumber,
+                        Severity = pt.Severity, PenaltyAmount = pt.PenaltyAmount
+                    }).ToList(),
+                    OffenseCount = o.TicketViolations
+                        .Where(tv => tv.Ticket!.PersonId == personId && tv.Ticket.Type == ViolationType.Ticket)
+                        .Select(tv => tv.TicketId).Distinct().Count()
+                }).ToListAsync();
+        }
+
         public async Task<Ordinance?> GetByIdAsync(int id)
         {
             return await _context.Ordinances.Include(o => o.PenaltyTiers)

@@ -35,73 +35,46 @@ public class VendorTicketTests
     private const string Route = "/api/vendor/tickets/inspections";
 
     [Fact]
-    public async Task List_UsesJwtAccountOwnershipAndReturnsOnlyTheRequestedFields()
+    public async Task Former_account_cannot_claim_business_tickets_using_supplied_ids()
     {
         await using var host = await VendorTicketHost.CreateAsync();
         using var response = await host.GetAsync(Route + "?vendor_id=7&user_id=88");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        var page = json.RootElement;
-        Assert.Equal(13, page.GetProperty("total").GetInt32());
-        Assert.True(page.GetProperty("has_more").GetBoolean());
-        var items = page.GetProperty("items").EnumerateArray().ToList();
-        Assert.Equal(new[] { 200, 112, 111, 110, 109, 108, 107, 106, 105, 104 }, Ids(items));
-        Assert.Equal(new[] { "control_number", "issued_at", "overdue_date", "ticket_id", "ticket_status", "type", "violations" },
-            items[0].EnumerateObject().Select(property => property.Name).OrderBy(name => name));
-        Assert.Equal("Warning", items[0].GetProperty("type").GetString());
-        Assert.Equal(JsonValueKind.Null, items[0].GetProperty("ticket_status").ValueKind);
-        Assert.Equal(JsonValueKind.Null, items[0].GetProperty("control_number").ValueKind);
-        Assert.Equal(JsonValueKind.Null, items[0].GetProperty("overdue_date").ValueKind);
-        Assert.Equal("2026-10-18T00:12:00Z", items[1].GetProperty("overdue_date").GetString());
-        Assert.Equal("Inadequate Attire in the Market", items[0].GetProperty("violations")[0].GetString());
-        Assert.Equal("2026-10-13T00:13:00Z", items[0].GetProperty("issued_at").GetString());
+        Assert.Equal(0, json.RootElement.GetProperty("total").GetInt32());
+        Assert.Empty(json.RootElement.GetProperty("items").EnumerateArray());
+        Assert.False(json.RootElement.GetProperty("has_more").GetBoolean());
     }
 
     [Fact]
-    public async Task Paging_ReturnsRemainingItemsAndPreservesFilteredTotalBeyondLastPage()
+    public async Task Pagination_does_not_reveal_business_history_to_former_accounts()
     {
         await using var host = await VendorTicketHost.CreateAsync();
         using var response = await host.GetAsync(Route + "?offset=10");
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(new[] { 103, 102, 101 }, Ids(json.RootElement.GetProperty("items").EnumerateArray()));
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(0, json.RootElement.GetProperty("total").GetInt32());
+        Assert.Empty(json.RootElement.GetProperty("items").EnumerateArray());
         Assert.False(json.RootElement.GetProperty("has_more").GetBoolean());
-        Assert.Equal(13, json.RootElement.GetProperty("total").GetInt32());
-        using var beyond = await host.GetAsync(Route + "?offset=100");
-        using var empty = JsonDocument.Parse(await beyond.Content.ReadAsStringAsync());
-        Assert.Equal(HttpStatusCode.OK, beyond.StatusCode);
-        Assert.Equal(0, empty.RootElement.GetProperty("items").GetArrayLength());
-        Assert.Equal(13, empty.RootElement.GetProperty("total").GetInt32());
-        Assert.False(empty.RootElement.GetProperty("has_more").GetBoolean());
     }
 
     [Theory]
-    [InlineData("?type=Warning", 1, 200)]
-    [InlineData("?type=Ticket", 12, 112)]
-    [InlineData("?search=101", 1, 101)]
-    [InlineData("?search=123", 1, 101)]
-    [InlineData("?search=%20mArKeT%20identification%20%20", 6, 106)]
-    [InlineData("?type=Warning&search=market", 1, 200)]
-    [InlineData("?search=missing", 0, 0)]
-    public async Task Filtering_UsesCaseInsensitiveControlNumbersOrdinanceNumbersAndTitles(
-        string query, int total, int newestId)
+    [InlineData("?type=Warning")]
+    [InlineData("?type=Ticket")]
+    [InlineData("?search=101")]
+    [InlineData("?search=123")]
+    [InlineData("?search=%20mArKeT%20identification%20%20")]
+    [InlineData("?type=Warning&search=market")]
+    [InlineData("?search=missing")]
+    public async Task Filters_cannot_recover_tickets_for_an_account_independent_business(
+        string query)
     {
         await using var host = await VendorTicketHost.CreateAsync();
         using var response = await host.GetAsync(Route + query);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        Assert.Equal(total, json.RootElement.GetProperty("total").GetInt32());
-        var items = json.RootElement.GetProperty("items");
-        Assert.Equal(Math.Min(10, total), items.GetArrayLength());
-        Assert.Equal(total > 10, json.RootElement.GetProperty("has_more").GetBoolean());
-        if (total > 0) Assert.Equal(newestId, items[0].GetProperty("ticket_id").GetInt32());
-        if (newestId == 101)
-        {
-            Assert.Equal(new[] { "Market Identification Card", "Posting of \"Pahihintuloy sa Paghahanapbuhay\"" },
-                items[0].GetProperty("violations").EnumerateArray().Select(value => value.GetString()));
-            Assert.Equal("Pending", items[0].GetProperty("ticket_status").GetString());
-            Assert.Equal("2026-10-18T00:01:00Z", items[0].GetProperty("overdue_date").GetString());
-        }
+        Assert.Equal(0, json.RootElement.GetProperty("total").GetInt32());
+        Assert.Empty(json.RootElement.GetProperty("items").EnumerateArray());
     }
 
     [Fact]
@@ -117,13 +90,15 @@ public class VendorTicketTests
     }
 
     [Fact]
-    public async Task EqualIssueDates_AreOrderedByTicketIdDescending()
+    public async Task Equal_dates_do_not_reveal_business_history_to_former_accounts()
     {
-        await using var host = await VendorTicketHost.CreateAsync(tieDates: true);
+        await using var host = await VendorTicketHost.CreateAsync();
         using var response = await host.GetAsync(Route + "?search=weights");
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(new[] { 112, 111, 110, 109, 108, 107 }, Ids(json.RootElement.GetProperty("items").EnumerateArray()));
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(0, json.RootElement.GetProperty("total").GetInt32());
+        Assert.Empty(json.RootElement.GetProperty("items").EnumerateArray());
+        Assert.False(json.RootElement.GetProperty("has_more").GetBoolean());
     }
 
     [Theory]
@@ -192,9 +167,8 @@ public class VendorTicketTests
         var expression = new ReplaceReportQueryRoot(fixture.RootExpression,
             ((IQueryable<Ticket>)postgres.Tickets).Expression).Visit(fixture.State.LastExpression!);
         var sql = ((IQueryable<Ticket>)postgres.Tickets).Provider.CreateQuery(expression!).ToQueryString();
-        Assert.Contains("user_id", sql);
-        Assert.Contains("EXISTS", sql);
-        Assert.Contains("lower(", sql);
+        Assert.DoesNotContain("user_id", sql);
+        Assert.Contains("FALSE", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("LIMIT", sql);
         Assert.Contains("OFFSET", sql);
         Assert.Contains("issued_at DESC", sql);
@@ -279,21 +253,13 @@ internal sealed class VendorTicketHost : IAsyncDisposable
 
     internal static List<Ticket> Records(bool tieDates = false)
     {
-        var vendor = new VendorProfile { Id = 70, UserId = 7, BusinessId = "2026-0001842", BusinessName = "Reyes Fresh Seafood", QrCodeValue = "test-vendor-70" };
+        var vendor = new Business { Id = 70, BusinessAccountNumber = "2026-0001842", BusinessName = "Reyes Fresh Seafood", QrCodeValue = "test-vendor-70" };
         // Vendor ID intentionally equals the authenticated account ID; its owner is someone else.
-        var other = new VendorProfile { Id = 7, UserId = 88, BusinessId = "2026-0001905", BusinessName = "Santos Meat Shop", QrCodeValue = "test-vendor-7" };
-        vendor.User = new User
-        {
-            Id = 7, FirstName = "Juan", LastName = "Reyes", DateOfBirth = new DateOnly(1990, 1, 1),
-            HouseNumber = "10", Street = "Sample Street", Barangay = "Sta. Elena", City = "Marikina"
-        };
-        other.User = new User
-        {
-            Id = 88, FirstName = "Maria", LastName = "Santos", DateOfBirth = new DateOnly(1990, 1, 1),
-            HouseNumber = "12", Street = "Sample Street", Barangay = "Sta. Elena", City = "Marikina"
-        };
+        var other = new Business { Id = 7, BusinessAccountNumber = "2026-0001905", BusinessName = "Santos Meat Shop", QrCodeValue = "test-vendor-7" };
+        vendor.OwnerFirstName = "Juan"; vendor.OwnerLastName = "Reyes";
+        other.OwnerFirstName = "Maria"; other.OwnerLastName = "Santos";
         vendor.StallNumber = "F-014";
-        other.Type = VendorType.Private;
+        other.Type = BusinessType.Private;
         var section = new MarketSection { Id = 1, Name = "Fish and Seafood Section", Description = "Fish vendors" };
         var market = Ordinance(2, "104", "Market Identification Card");
         var posting = Ordinance(3, "123", "Posting of \"Pahihintuloy sa Paghahanapbuhay\"");

@@ -58,7 +58,7 @@
   min-width: 980px;
 }
 
-.businessId {
+.businessAccountNumber {
   color: #184b82 !important;
   font-weight: 700;
 }
@@ -206,18 +206,64 @@
     align-items: stretch;
     flex-direction: column;
   }
-
   .searchBox {
     width: 100%;
   }
-
   .filters {
     justify-content: flex-start;
     flex-wrap: wrap;
   }
-
   .tableFooter {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+.registryCard button {
+  box-shadow: none;
+}
+
+.registryCard .tableWrapper :global(table > thead > tr > th) {
+  white-space: normal;
+  overflow-wrap: normal;
+  font-size: var(--form-font-body);
+}
+
+.registryCard .tableWrapper :global(table > tbody > tr > td) {
+  font-size: var(--form-font-body);
+  overflow-wrap: break-word;
+}
+
+.rowActions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-sm);
+}
+
+.rowActions .viewButton {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+}
+
+.viewButton {
+  font-size: var(--form-font-body);
+  min-height: var(--form-control-height);
+}
+
+.scoreBadge {
+  font-size: var(--form-font-caption);
+}
+
+@media (max-width: 700px) {
+  .tableWrapper :global(table) {
+    min-width: 0;
+  }
+  .rowActions {
+    align-items: flex-start;
+  }
+  .rowActions .viewButton {
+    width: auto;
   }
 }

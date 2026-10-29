@@ -1,16 +1,34 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/vendor_summary_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/warning_ordinance_model.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 
 void main() {
   group('VendorSummaryModel', () {
+    test('reads a business account number without a login username', () {
+      final business = VendorSummaryModel.fromJson({
+        'vendor_id': 42,
+        'type': 'Private',
+        'business_account_number': '0001842',
+        'stall_number': null,
+        'trade_name': 'Reyes Fish Store',
+        'last_name': 'Reyes',
+        'first_name': 'Juan',
+        'middle_name': null,
+        'address': 'Sta. Elena, Marikina',
+        'market_section_id': 1,
+        'market_section_name': 'Fish',
+      }).toEntity();
+      expect(business.businessAccountNumber, '0001842');
+      expect(business.username, isNull);
+      expect(business.type, BusinessType.private);
+    });
     test('parses the current vendor response DTO', () {
       final vendor = VendorSummaryModel.fromJson({
         'vendor_id': 42,
         'username': 'vendor42',
         'type': 'Public',
-        'business_id': 'BUS-42',
+        'business_account_number': 'BUS-42',
         'stall_number': 'A-12',
         'trade_name': 'Market Goods',
         'last_name': 'Vendor',
@@ -22,8 +40,8 @@ void main() {
       });
 
       expect(vendor.id, 42);
-      expect(vendor.type, VendorType.public);
-      expect(vendor.businessId, 'BUS-42');
+      expect(vendor.type, BusinessType.public);
+      expect(vendor.businessAccountNumber, 'BUS-42');
       expect(vendor.toEntity().stallNumber, 'A-12');
     });
 
@@ -32,7 +50,7 @@ void main() {
         'vendor_id': 42,
         'username': 'vendor42',
         'type': 0,
-        'business_id': 'BUS-42',
+        'business_account_number': 'BUS-42',
         'stall_number': null,
         'trade_name': 'Market Goods',
         'last_name': 'Vendor',
@@ -43,7 +61,7 @@ void main() {
         'market_section_name': 'Section A',
       });
 
-      expect(vendor.type, VendorType.public);
+      expect(vendor.type, BusinessType.public);
       expect(vendor.stallNumber, isNull);
       expect(vendor.middleName, isNull);
     });

@@ -8,7 +8,10 @@ namespace MarikinaMarket.API.Domain.Entities
         public string? ControlNumber { get; set; }
 
         public int VendorId { get; set; }
-        public VendorProfile? Vendor {  get; set; }
+        public Business? Vendor {  get; set; }
+        public int? PersonId { get; set; }
+        public Person? Person { get; set; }
+        public string? PaperViolatorName { get; set; }
 
         public int MarketSectionId { get; set; }
         public MarketSection? MarketSection { get; set; }

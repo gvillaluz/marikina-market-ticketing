@@ -1,7 +1,8 @@
 export interface AdminVendorSummary {
   vendorId: number;
-  businessId: string;
+  businessAccountNumber: string;
   vendorName: string;
+  businessName: string;
   marketSectionName: string;
   type: string | number;
   complianceScore: number;
@@ -9,12 +10,35 @@ export interface AdminVendorSummary {
   ticketCount: number;
 }
 
+export interface SaveBusinessRequest {
+  businessAccountNumber: string;
+  businessName: string;
+  ownerFirstName: string;
+  ownerLastName: string;
+  houseNumber: string;
+  street: string;
+  barangay: string;
+  city: string;
+  phoneNumber: string | null;
+  email: string | null;
+  marketSectionId: number;
+  businessType: "Public" | "Private" | "";
+  stallNumber: string | null;
+}
+
+export interface BusinessRecord extends SaveBusinessRequest {
+  id: number;
+  marketSectionName: string | null;
+  createdAt: string;
+  status: string;
+}
+
 export type ComplianceScoreRange = "85-100" | "70-84" | "50-69" | "Below 50";
 
 export interface AdminVendorActivity {
   ticketId: number;
   controlNumber: string | null;
-  businessId: string;
+  businessAccountNumber: string;
   activityTitle?: string | null;
   vendorName: string;
   type?: string | number | null;
@@ -30,7 +54,7 @@ export interface AdminVendorComplianceOverview {
 export interface AdminPendingTicketSettlement {
   ticketId: number;
   controlNumber: string | null;
-  businessId: string;
+  businessAccountNumber: string;
   vendorName: string;
   marketSectionName: string;
   status: string | number;
@@ -56,11 +80,11 @@ export interface AdminVendorSummaryFilters {
 
 export interface AdminVendorProfile {
   name: string;
-  username: string | null;
+  businessAccountNumber: string;
+  businessName: string;
   phoneNumber: string | null;
   email: string | null;
-  accountCreatedAt: string;
-  role: string | number;
+  createdAt: string;
   lastViolationIssuedAt: string | null;
 }
 
@@ -99,7 +123,7 @@ export interface AdminVendorInspectionFilters {
 export interface AdminCommunityServiceLog {
   ticketId: number;
   controlNumber: string | null;
-  businessId: string;
+  businessAccountNumber: string;
   vendorName: string;
   completedHours: number;
   totalHours: number;
@@ -115,7 +139,7 @@ export interface AdminCommunityServiceLogFilters {
 
 export interface AdminVendorInspectionNavigationState {
   vendorName: string;
-  businessId: string;
+  businessAccountNumber: string;
 }
 
 export interface VendorRegistrationStatusCounts {
@@ -128,10 +152,10 @@ export interface VendorRegistrationStatusCounts {
 export interface VendorRegistrationSummary {
   registrationId: number;
   version: number;
-  businessId: string;
+  businessAccountNumber: string;
   businessName: string;
   vendorName: string;
-  vendorType: string | number;
+  businessType: string | number;
   marketSectionName: string;
   stallNumber: string | null;
   requestedAt: string;
@@ -149,10 +173,10 @@ export interface VendorRegistrationDocument {
 export interface VendorRegistrationDetails {
   registrationId: number;
   version: number;
-  businessId: string;
+  businessAccountNumber: string;
   businessName: string;
   natureOfBusiness: string;
-  vendorType: string | number;
+  businessType: string | number;
   marketSectionName: string;
   stallNumber: string | null;
   firstName: string;
@@ -225,7 +249,7 @@ export interface RegistrationDeclinedResponse {
 export interface VendorRegistrationFilters {
   offset: number;
   status?: string;
-  vendorType?: string;
+  businessType?: string;
 }
 
 export interface AdminRegisterVendorRequest {
@@ -239,11 +263,11 @@ export interface AdminRegisterVendorRequest {
   barangay: string;
   city: string;
   businessName: string;
-  businessId: string;
+  businessAccountNumber: string;
   natureOfBusiness: string;
   marketSectionId: number;
   stallNumber: string;
-  vendorType: string;
+  businessType: string;
   username: string;
   email: string;
   password: string;

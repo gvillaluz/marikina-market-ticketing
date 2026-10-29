@@ -66,7 +66,7 @@ class VendorQrCard extends StatelessWidget {
           ),
           const SizedBox(height: AppTheme.profileSmallGap),
           Text(
-            'Business ID',
+            'Business Account Number',
             textAlign: TextAlign.center,
             style: AppTheme.captionTextStyle.copyWith(
               color: colors.onSurfaceVariant,
@@ -74,7 +74,7 @@ class VendorQrCard extends StatelessWidget {
           ),
           const SizedBox(height: AppTheme.profileCompactGap),
           Text(
-            vendor.businessId,
+            vendor.businessAccountNumber,
             textAlign: TextAlign.center,
             style: AppTheme.cardHeadingStyle.copyWith(color: colors.primary),
           ),

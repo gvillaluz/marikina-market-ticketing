@@ -210,7 +210,7 @@ namespace MarikinaMarket.API.Application.Services
             return vendors.Select((vendor, index) => new VendorRiskRankingResponse
                 {
                     Rank = index + 1,
-                    BusinessId = vendor.BusinessId,
+                    BusinessAccountNumber = vendor.BusinessAccountNumber,
                     BusinessName = vendor.BusinessName,
                     OffenseCount = vendor.OffenseCount,
                     HighestSeverity = vendor.HighestSeverity,

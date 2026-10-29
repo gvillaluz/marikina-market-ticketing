@@ -91,7 +91,6 @@ public class MobileLoginEmailFailureTests
 
     [Theory]
     [InlineData(Role.MarketEnforcer)]
-    [InlineData(Role.MarketVendor)]
     public async Task Retry_after_failure_sends_a_fresh_code_and_only_verification_issues_tokens(Role role)
     {
         var fixture = new LoginFixture(role);

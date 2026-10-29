@@ -1,10 +1,12 @@
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_ticket_summary.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class InspectionSummaryModel {
+  final int? personId;
+  final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
   final ViolationType ticketType;
   final String? controlNumber;
@@ -15,8 +17,8 @@ class InspectionSummaryModel {
   final int marketSectionId;
   final String marketSection;
   final int enforcerId;
-  final VendorType vendorType;
-  final String businessId;
+  final BusinessType businessType;
+  final String businessAccountNumber;
   final String? stallNumber;
   final TicketStatus? status;
   final Severity? severity;
@@ -26,6 +28,10 @@ class InspectionSummaryModel {
   final DateTime updatedAt;
 
   InspectionSummaryModel({
+    this.personId,
+    this.personFullName,
+    this.paperViolatorName,
+    this.registeredOwnerName,
     required this.ticketId,
     required this.ticketType,
     this.controlNumber,
@@ -36,8 +42,8 @@ class InspectionSummaryModel {
     required this.marketSectionId,
     required this.marketSection,
     required this.enforcerId,
-    required this.businessId,
-    required this.vendorType,
+    required this.businessAccountNumber,
+    required this.businessType,
     this.stallNumber,
     this.status,
     required this.severity,
@@ -55,14 +61,18 @@ class InspectionSummaryModel {
           ? json['control_number'] as String
           : null,
       vendorId: json['vendor_id'] as int,
+      personId: json['person_id'] as int?,
+      personFullName: json['person_full_name'] as String?,
+      paperViolatorName: json['paper_violator_name'] as String?,
+      registeredOwnerName: json['registered_owner_name'] as String?,
       vendorFirstName: json['first_name'] as String,
       vendorLastName: json['last_name'] as String,
       businessName: json['business_name'] as String,
       marketSectionId: json['market_section_id'] as int,
       marketSection: json['market_section_name'] as String,
       enforcerId: json['enforcer_id'] as int,
-      vendorType: VendorType.fromValue(json['vendor_type'] as String),
-      businessId: json['business_id'] as String,
+      businessType: BusinessType.fromValue(json['business_type'] as String),
+      businessAccountNumber: json['business_account_number'] as String,
       stallNumber: json['stall_number'] != null
           ? json['stall_number'] as String
           : null,
@@ -93,8 +103,8 @@ class InspectionSummaryModel {
       marketSectionId: entity.marketSectionId,
       marketSection: entity.marketSection,
       enforcerId: entity.enforcerId,
-      vendorType: entity.vendorType,
-      businessId: entity.businessId,
+      businessType: entity.businessType,
+      businessAccountNumber: entity.businessAccountNumber,
       stallNumber: entity.stallNumber,
       status: entity.status,
       severity: entity.severity,
@@ -111,14 +121,18 @@ class InspectionSummaryModel {
       ticketType: ticketType,
       controlNumber: controlNumber,
       vendorId: vendorId,
+      personId: personId,
+      personFullName: personFullName,
+      paperViolatorName: paperViolatorName,
+      registeredOwnerName: registeredOwnerName,
       vendorFirstName: vendorFirstName,
       vendorLastName: vendorLastName,
       businessName: businessName,
       marketSectionId: marketSectionId,
       marketSection: marketSection,
       enforcerId: enforcerId,
-      vendorType: vendorType,
-      businessId: businessId,
+      businessType: businessType,
+      businessAccountNumber: businessAccountNumber,
       stallNumber: stallNumber,
       status: status,
       severity: severity,

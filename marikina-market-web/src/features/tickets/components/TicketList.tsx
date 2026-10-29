@@ -44,11 +44,10 @@ export default function TicketList({
         },
         {
           key: "vendor",
-          header: "Vendor",
+          header: "Recorded violator",
           align: "left",
           render: (ticket) =>
-            `${ticket.vendorFirstName ?? ""} ${ticket.vendorLastName ?? ""}`.trim() ||
-            "\u2014",
+            ticket.paperViolatorName || "Unconfirmed (legacy record)",
         },
         {
           key: "section",

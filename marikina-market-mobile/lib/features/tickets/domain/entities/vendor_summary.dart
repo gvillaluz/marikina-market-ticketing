@@ -1,10 +1,10 @@
-import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 
 class VendorSummary {
   final int id;
-  final String username;
-  final VendorType type;
-  final String businessId;
+  final String? username;
+  final BusinessType type;
+  final String businessAccountNumber;
   final String? stallNumber;
   final String tradeName;
   final String lastName;
@@ -18,7 +18,7 @@ class VendorSummary {
     required this.id,
     required this.username,
     required this.type,
-    required this.businessId,
+    required this.businessAccountNumber,
     required this.stallNumber,
     required this.tradeName,
     required this.lastName,

@@ -55,6 +55,8 @@ function getTypeLabel(type: string | number | null | undefined): string {
 }
 
 interface AdminVendorRegistryProps {
+  onCreateBusiness: () => void;
+  onEditBusiness: (vendor: AdminVendorSummary) => void;
   search: string;
   setSearch: (search: string) => void;
   section: string;
@@ -77,6 +79,8 @@ interface AdminVendorRegistryProps {
 }
 
 export default function AdminVendorRegistry({
+  onCreateBusiness,
+  onEditBusiness,
   search,
   setSearch,
   section,
@@ -104,26 +108,27 @@ export default function AdminVendorRegistry({
       : Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const columns: Column<AdminVendorSummary>[] = [
+    { key: "businessName", header: "Business Name", width: "10%", render: vendor => vendor.businessName },
     {
-      key: "businessId",
-      header: "Business ID",
-      width: "11%",
+      key: "businessAccountNumber",
+      header: "Business Account Number",
+      width: "16%",
       render: (vendor) => (
-        <span className={styles.businessId}>{vendor.businessId}</span>
+        <span className={styles.businessAccountNumber}>{vendor.businessAccountNumber}</span>
       ),
     },
     {
       key: "vendorName",
-      header: "Vendor Name",
-      width: "19%",
+      header: "Registered Owner",
+      width: "12%",
       render: (vendor) => (
         <span className={styles.vendorName}>{vendor.vendorName}</span>
       ),
     },
-    { key: "marketSectionName", header: "Market Section", width: "17%" },
+    { key: "marketSectionName", header: "Market Section", width: "10%" },
     {
       key: "type",
-      header: "Type",
+      header: "Business Type",
       width: "9%",
       render: (vendor) => getTypeLabel(vendor.type),
     },
@@ -131,7 +136,7 @@ export default function AdminVendorRegistry({
       key: "complianceScore",
       header: "Compliance Score",
       align: "center",
-      width: "14%",
+      width: "11%",
       render: (vendor) => (
         <Badge
           className={styles.scoreBadge}
@@ -141,34 +146,38 @@ export default function AdminVendorRegistry({
         </Badge>
       ),
     },
-    { key: "warningCount", header: "Warnings", align: "center", width: "6%" },
-    { key: "ticketCount", header: "Tickets", align: "center", width: "5%" },
+    { key: "warningCount", header: "Warnings", align: "center", width: "9%" },
+    { key: "ticketCount", header: "Tickets", align: "center", width: "7%" },
     {
       key: "action",
       header: "Action",
       align: "center",
-      width: "20%",
+      width: "16%",
       render: (vendor) => (
-        <button
-          type="button"
-          className={styles.viewButton}
-          onClick={() => onViewInspections(vendor)}
-          aria-label={`View inspections for ${vendor.vendorName}`}
-        >
-          <Eye size={13} /> View Inspections
-        </button>
+        <div className={styles.rowActions}>
+          <button type="button" className={styles.viewButton} onClick={() => onEditBusiness(vendor)} aria-label={`Edit ${vendor.businessName}`}>Edit Business</button>
+          <button
+            type="button"
+            className={styles.viewButton}
+            onClick={() => onViewInspections(vendor)}
+            aria-label={`View inspections for ${vendor.vendorName}`}
+          >
+            <Eye size={13} /> View Inspections
+          </button>
+        </div>
       ),
     },
   ];
 
   return (
-    <Card className={styles.registryCard} aria-label="Vendor registry">
+    <Card className={styles.registryCard} aria-label="Business registry">
       <div className={styles.toolbar}>
+        <button type="button" className={styles.viewButton} onClick={onCreateBusiness}>Create Business</button>
         <label className={styles.searchBox}>
           <Search size={14} aria-hidden="true" />
           <input
-            aria-label="Search vendors"
-            placeholder="Search by name, stall, or ID..."
+            aria-label="Search businesses"
+            placeholder="Search by business, owner, account or stall"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -200,7 +209,7 @@ export default function AdminVendorRegistry({
       {isError ? (
         <div className={styles.errorState} role="alert">
           <AlertTriangle size={22} />
-          <strong>Unable to load vendors</strong>
+          <strong>Unable to load businesses</strong>
           <span>{errorMessage}</span>
           <button type="button" onClick={refetch} disabled={isFetching}>
             {isFetching ? (
@@ -215,13 +224,14 @@ export default function AdminVendorRegistry({
       ) : (
         <>
           <Table
+            responsive
             className={styles.tableWrapper}
             columns={columns}
             data={vendors}
             keyExtractor={(vendor) => String(vendor.vendorId)}
             loading={isLoading || isFetching}
-            loadingMessage="Loading vendor records..."
-            emptyMessage="No vendors match these filters."
+            loadingMessage="Loading business records..."
+            emptyMessage="No businesses match these filters."
           />
           <footer className={styles.tableFooter}>
             <span>
@@ -242,7 +252,7 @@ export default function AdminVendorRegistry({
               <button
                 type="button"
                 className={styles.iconButton}
-                aria-label="Print vendor list"
+                aria-label="Print business list"
                 onClick={print}
               >
                 <Printer size={14} />

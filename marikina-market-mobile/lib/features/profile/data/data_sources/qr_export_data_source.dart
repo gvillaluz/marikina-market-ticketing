@@ -6,7 +6,7 @@ import 'package:share_plus/share_plus.dart';
 class QrExportDataSource {
   Future<bool> exportQr(ExportQrParams params) async {
     final name =
-        'vendor-qr-${params.businessId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')}';
+        'vendor-qr-${params.businessAccountNumber.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')}';
     if (!params.share) {
       final path = await FileSaver.instance.saveAs(
         name: name,

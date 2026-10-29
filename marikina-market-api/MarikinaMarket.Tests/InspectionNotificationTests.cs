@@ -22,6 +22,71 @@ namespace MarikinaMarket.Tests;
 
 public class InspectionNotificationTests
 {
+    [Fact]
+    public async Task Noncash_high_severity_is_rejected_before_evidence_upload()
+    {
+        using var fixture = new Fixture { HighSeverity = true };
+        var request = fixture.Request(ViolationType.Ticket);
+        request.PenaltyType = PenaltyType.CommunityService;
+        request.CommunityServiceHours = 3;
+        request.ReviewedCalculation = request.ReviewedCalculation!.Replace("Minor", "High");
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => fixture.Service.CreateTicketAsync(request));
+        Assert.Equal(0, fixture.UploadCalls);
+        Assert.Null(fixture.CreatedTicket);
+    }
+    [Fact]
+    public async Task Stale_review_requires_verification_before_upload_or_save()
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        request.ReviewedCalculation = request.ReviewedCalculation!.Replace("\"offense_number\":1", "\"offense_number\":2");
+        await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.CreateTicketAsync(request));
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+    }
+
+    [Fact]
+    public async Task Concurrent_citation_collision_is_a_controlled_conflict()
+    {
+        using var fixture = new Fixture { FailConcurrentSave = true };
+        await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket)));
+        Assert.True(fixture.RolledBack);
+        Assert.False(fixture.Committed);
+    }
+    [Fact]
+    public async Task Verify_does_not_save_and_submission_preserves_paper_and_confirmed_identity()
+    {
+        using var fixture = new Fixture();
+        var verified = await fixture.Service.VerifyInspectionAsync(new()
+        {
+            VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
+            OrdinanceIds = [1], Description = "Market identification card not displayed",
+            PenaltyType = PenaltyType.CashFine, EvidenceCount = 1
+        });
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+        Assert.Equal(500m, verified.Calculation.TotalPaymentAmount);
+        Assert.Equal(1, Assert.Single(verified.Calculation.Breakdown).OffenseNumber);
+        var request = fixture.Request(ViolationType.Ticket);
+        request.ReviewedCalculation = verified.ReviewedCalculation;
+        var saved = await fixture.Service.CreateTicketAsync(request);
+        Assert.Equal(31, saved.PersonId);
+        Assert.Equal("Juan Dela Cruz", saved.PersonFullName);
+        Assert.Equal("Juan Cruz", saved.PaperViolatorName);
+        Assert.Equal(17, saved.VendorId);
+    }
+
+    [Fact]
+    public async Task Malformed_review_is_rejected_before_upload_or_save()
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        request.ReviewedCalculation = "{\"breakdown\":null}";
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(
+            () => fixture.Service.CreateTicketAsync(request));
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+    }
     [Theory]
     [InlineData(ViolationType.Warning)]
     [InlineData(ViolationType.Ticket)]
@@ -37,7 +102,7 @@ public class InspectionNotificationTests
     [InlineData(ViolationType.Ticket, false)]
     [InlineData(ViolationType.Warning, true)]
     [InlineData(ViolationType.Ticket, true)]
-    public async Task Inspection_saves_vendor_notification_before_commit_and_pushes_after_commit(ViolationType type, bool pushFails)
+    public async Task Inspection_keeps_staff_notification_without_pushing_to_a_business_account(ViolationType type, bool pushFails)
     {
         using var fixture = new Fixture { FailPush = pushFails };
         var response = await fixture.Service.CreateTicketAsync(fixture.Request(type));
@@ -48,17 +113,12 @@ public class InspectionNotificationTests
         Assert.False(record.IsRead);
         Assert.False(record.VendorIsRead);
         Assert.True(fixture.Committed);
-        Assert.Equal(1, fixture.PushCalls);
-        Assert.Equal("11", fixture.PushData!["ticketId"]);
-        Assert.Equal("17", fixture.PushData["vendorId"]);
-        Assert.Equal("inspection_submitted", fixture.PushData["type"]);
-        Assert.Equal(type.ToString(), fixture.PushData["inspection_type"]);
+        Assert.Equal(0, fixture.PushCalls);
+        Assert.Null(fixture.PushData);
         if (type == ViolationType.Warning)
         {
-            Assert.False(fixture.PushData.ContainsKey("status"));
             Assert.Null(fixture.CreatedTicket!.Status);
             Assert.Null(fixture.CreatedTicket.PenaltyType);
-            Assert.Null(fixture.CreatedTicket.TotalPaymentAmount);
         }
         Assert.False(fixture.RolledBack);
     }
@@ -77,7 +137,7 @@ public class InspectionNotificationTests
         Assert.True(fixture.Committed);
         Assert.False(fixture.RolledBack);
         Assert.Single(fixture.NotificationsSaved);
-        Assert.Equal(1, fixture.PushCalls);
+        Assert.Equal(0, fixture.PushCalls);
         Assert.Equal(1, fixture.EmailCalls);
     }
 
@@ -186,10 +246,10 @@ public class InspectionNotificationTests
     }
 
     [Theory]
-    [InlineData(false, TicketStatus.Contested, "ticket_updated")]
-    [InlineData(true, TicketStatus.Overdue, "ticket_overdue")]
-    public async Task Status_and_overdue_automation_save_vendor_ownership_and_send_vendor_push(
-        bool overdue, TicketStatus status, string eventType)
+    [InlineData(false, TicketStatus.Contested)]
+    [InlineData(true, TicketStatus.Overdue)]
+    public async Task Status_and_overdue_automation_keep_staff_notifications_without_business_login(
+        bool overdue, TicketStatus status)
     {
         using var fixture = new Fixture();
         await fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket));
@@ -203,9 +263,8 @@ public class InspectionNotificationTests
         Assert.Equal(2, fixture.NotificationsSaved.Count);
         Assert.All(fixture.NotificationsSaved, notification => Assert.Equal(17, notification.VendorId));
         Assert.Equal(status, fixture.NotificationsSaved.Last().Status);
-        Assert.Equal(2, fixture.PushCalls);
-        Assert.Equal(eventType, fixture.PushData!["type"]);
-        Assert.Equal(status.ToString(), fixture.PushData["status"]);
+        Assert.Equal(0, fixture.PushCalls);
+        Assert.Null(fixture.PushData);
     }
 
     private sealed class Fixture : AppDbContext
@@ -213,7 +272,8 @@ public class InspectionNotificationTests
         public List<Notification> NotificationsSaved { get; } = [];
         public TicketService Service { get; }
         public Ticket? CreatedTicket;
-        public bool Committed, RolledBack, FailPush, FailNotificationSave;
+        public bool Committed, RolledBack, FailPush, FailNotificationSave, FailConcurrentSave;
+        public bool HighSeverity;
         public int PushCalls;
         public int EmailCalls;
         public string EmailBody = "";
@@ -226,8 +286,9 @@ public class InspectionNotificationTests
             .UseNpgsql("Host=localhost;Database=unused;Username=unused").Options)
         {
             Notifications = new RegistrationDbSet<Notification>(NotificationsSaved);
-            VendorProfiles = new RegistrationDbSet<VendorProfile>(
-                [new() { Id = 17, UserId = 7, BusinessId = "MM-17", BusinessName = "Reyes Fresh Fish", QrCodeValue = "sample" }]);
+            Businesses = new RegistrationDbSet<Business>(
+                [new() { Id = 17, BusinessAccountNumber = "MM-17", BusinessName = "Reyes Fresh Fish", QrCodeValue = "sample" }]);
+            Persons = new AccountDatabaseSet<Person>([new() { Id = 31, FullName = "Juan Dela Cruz", Address = "12 Market Lane" }]);
             var vendor = new VendorRepository(this);
             var users = ReviewBoundaryProxy.Create<IUserRepository>((method, args) =>
             {
@@ -252,6 +313,7 @@ public class InspectionNotificationTests
             var tickets = ReviewBoundaryProxy.Create<ITicketRepository>((method, args) => method.Name switch
             {
                 "GetDuplicatedTickets" => Task.FromResult(new List<DuplicateOrdinance>()),
+                "GetPersonDuplicatesAsync" => Task.FromResult(new List<DuplicateOrdinance>()),
                 "GetWarningOrdinancesForVendor" => Task.FromResult(new List<WarningOrdinance>()),
                 "GetNewControlNumber" => Task.FromResult(11),
                 "AddTicketAsync" => AddTicket((Ticket)args[0]!),
@@ -263,13 +325,13 @@ public class InspectionNotificationTests
             });
             var vendorLookup = ReviewBoundaryProxy.Create<IVendorRepository>((method, args) => Task.FromResult<VendorTicketSummary?>(new()
             {
-                Id = 17, FirstName = "Juan", LastName = "Reyes", Email = VendorEmail, BusinessId = "MM-17",
+                Id = 17, FirstName = "Juan", LastName = "Reyes", Email = VendorEmail, BusinessAccountNumber = "MM-17",
                 BusinessName = "Reyes Fresh Fish", MarketSectionId = 1, MarketSectionName = "Fish and Seafood"
             }));
             var ordinances = ReviewBoundaryProxy.Create<IOrdinanceRepository>((method, args) => Task.FromResult(new List<OrdinanceOffenseSummary>
             {
                 new() { OrdinanceId = 1, OrdinanceNo = "011", Series = "2014", Code = "MKT-001", Title = "Market ID",
-                    Category = ViolationCategory.Licensing, PenaltyTiers = [new() { OffenseNumber = 1, Severity = Severity.Minor, PenaltyAmount = 500m }] }
+                    Category = ViolationCategory.Licensing, PenaltyTiers = [new() { OffenseNumber = 1, Severity = HighSeverity ? Severity.High : Severity.Minor, PenaltyAmount = 500m }] }
             }));
             var unit = ReviewBoundaryProxy.Create<IUnitOfWork>((method, args) =>
             {
@@ -289,15 +351,21 @@ public class InspectionNotificationTests
                 UploadCalls++;
                 return Task.FromResult(((Dictionary<IFormFile, string>)args[0]!).Values.ToList());
             });
-            Service = new TicketService(tickets, ordinances, vendorLookup, unit, storage, notifications, compliance);
+            Service = new TicketService(tickets, ordinances, vendorLookup, unit, storage, notifications, compliance,
+                personRepository: new PersonRepository(this));
         }
         private Task<Ticket> AddTicket(Ticket ticket) { ticket.Id = 11; ticket.Version = 7; CreatedTicket = ticket; return Task.FromResult(ticket); }
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-            => FailNotificationSave && NotificationsSaved.Count > 0
+            => FailConcurrentSave
+                ? Task.FromException<int>(new DbUpdateException("Synthetic concurrent collision", new Npgsql.PostgresException("Synthetic collision", "ERROR", "ERROR", "40001")))
+                : FailNotificationSave && NotificationsSaved.Count > 0
                 ? Task.FromException<int>(new InvalidOperationException("Notification save failed")) : Task.FromResult(1);
         public CreateTicketRequest Request(ViolationType type) => new()
         {
             VendorId = 17, EnforcerId = 8, MarketSectionId = 1, Type = type,
+            PersonId = type == ViolationType.Ticket ? 31 : null,
+            PaperViolatorName = type == ViolationType.Ticket ? "Juan Cruz" : null,
+            ReviewedCalculation = "{\"total_payment_amount\":500,\"highest_severity\":\"Minor\",\"breakdown\":[{\"ordinance_id\":1,\"ordinance_no\":\"011\",\"ordinance_code\":\"MKT-001\",\"offense_number\":1,\"payment_amount\":500,\"severity\":\"Minor\"}]}",
             Description = "Market identification card not displayed", PenaltyType = PenaltyType.CashFine,
             Ordinances = [1], TicketEvidenceFiles = type == ViolationType.Ticket
                 ? [new FormFile(new MemoryStream([0xff, 0xd8, 0xff, 0xd9]), 0, 4, "ticket_evidence_files", "stall.jpg")

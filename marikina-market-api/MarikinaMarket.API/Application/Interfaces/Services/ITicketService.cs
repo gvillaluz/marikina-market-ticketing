@@ -23,6 +23,9 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
         Task<TicketReceiptProofResponse> SubmitTicketReceiptProofAsync(int ticketId, int enforcerId, SubmitTicketReceiptProofRequest request);
         Task<CommunityServiceProgressResponse> LogCommunityServiceHoursAsync(int ticketId, int enforcerId, SubmitCommunityServiceLogRequest request);
         Task<InspectionSummaryResponse> CreateTicketAsync(CreateTicketRequest request);
+        Task<InspectionVerificationResponse> VerifyInspectionAsync(VerifyInspectionRequest request);
+        Task<FineSummaryResponse> GetPersonFineSummaryAsync(List<int> ordinanceIds, int personId);
+        Task<PageResponse<PersonTicketHistoryResponse>> GetPersonHistoryAsync(int personId, int offset);
         Task<PageResponse<VendorInspectionHistoryResponse>> GetVendorInspectionHistoryAsync(
             int vendorId,
             int offset,

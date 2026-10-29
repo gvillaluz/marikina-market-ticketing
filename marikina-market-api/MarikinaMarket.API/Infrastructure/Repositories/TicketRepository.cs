@@ -27,7 +27,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         public async Task<List<VendorDashboardTaskResponse>> GetVendorDashboardTasksAsync(int userId)
         {
             return await _context.Tickets.AsNoTracking()
-                .Where(ticket => ticket.Vendor!.UserId == userId && ticket.Type == ViolationType.Ticket &&
+                .Where(ticket => false && ticket.Type == ViolationType.Ticket &&
                     (ticket.Status == TicketStatus.Pending || ticket.Status == TicketStatus.Overdue ||
                      ticket.Status == TicketStatus.Contested || ticket.Status == TicketStatus.InProgress))
                 .OrderByDescending(ticket => ticket.IssuedAt).ThenByDescending(ticket => ticket.Id)
@@ -104,7 +104,6 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         public async Task<Ticket?> GetTicketByIdAsync(int ticketId)
         {
             return await _context.Tickets
-                .Include(t => t.Vendor!.User)
                 .Include(t => t.CommunityServiceLogs)
                 .FirstOrDefaultAsync(t => t.Id == ticketId);
         }
@@ -112,7 +111,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         public Task<Ticket?> GetVendorTicketByIdAsync(int ticketId, int userId)
             => _context.Tickets.AsTracking()
                 .Include(ticket => ticket.CommunityServiceLogs)
-                .Where(ticket => ticket.Id == ticketId && ticket.Vendor!.UserId == userId)
+                .Where(ticket => ticket.Id == ticketId && false)
                 .FirstOrDefaultAsync();
 
         public async Task<List<VendorComplianceTicket>> GetVendorComplianceTicketsAsync(
@@ -161,7 +160,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public Task<TicketDetailResponse?> GetVendorTicketDetailAsync(int ticketId, int userId)
             => ProjectTicketDetail(_context.Tickets.AsNoTracking()
-                .Where(ticket => ticket.Id == ticketId && ticket.Vendor!.UserId == userId)).FirstOrDefaultAsync();
+                .Where(ticket => ticket.Id == ticketId && false)).FirstOrDefaultAsync();
 
         private static IQueryable<TicketDetailResponse> ProjectTicketDetail(IQueryable<Ticket> tickets)
         {
@@ -169,15 +168,18 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     TicketId = t.Id,
                     VendorId = t.VendorId,
+                    PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
+                    PaperViolatorName = t.PaperViolatorName,
+                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
                     ControlNumber = t.ControlNumber ?? null,
                     Type = t.Type,
-                    VendorType = t.Vendor!.Type,
-                    BusinessId = t.Vendor!.BusinessId,
+                    BusinessType = t.Vendor!.Type,
+                    BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
                     StallNumber = t.Vendor!.StallNumber,
                     BusinessName = t.Vendor.BusinessName,
-                    LastName = t.Vendor.User!.LastName,
-                    FirstName = t.Vendor.User.FirstName,
+                    LastName = t.Vendor.OwnerLastName,
+                    FirstName = t.Vendor.OwnerFirstName,
                     Address = "",
                     Violations = t.TicketViolations.Select(tv => new TicketViolationSummary
                     {
@@ -259,6 +261,45 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return ticket;
         }
 
+        public async Task<List<DuplicateOrdinance>> GetPersonDuplicatesAsync(int personId, List<int> ordinanceIds, DateTime nowUtc)
+        {
+            var zone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            var localDate = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, zone).Date;
+            var start = TimeZoneInfo.ConvertTimeToUtc(localDate, zone);
+            var end = TimeZoneInfo.ConvertTimeToUtc(localDate.AddDays(1), zone);
+            return await _context.Tickets.AsNoTracking()
+                .Where(t => t.PersonId == personId && t.Type == ViolationType.Ticket
+                    && (t.Status == TicketStatus.Pending || t.Status == TicketStatus.InProgress)
+                    && t.IssuedAt >= start && t.IssuedAt < end)
+                .SelectMany(t => t.TicketViolations).Where(tv => ordinanceIds.Contains(tv.OrdinanceId))
+                .Select(tv => new DuplicateOrdinance
+                {
+                    OrdinanceId = tv.OrdinanceId, OrdinanceNo = tv.Ordinance!.OrdinanceNo,
+                    OrdinanceCode = tv.Ordinance.MarketCode
+                }).Distinct().ToListAsync();
+        }
+
+        public async Task<(List<PersonTicketHistoryResponse> Items, int Total)> GetPersonHistoryAsync(int personId, int offset, int limit)
+        {
+            var query = _context.Tickets.AsNoTracking().Where(t => t.PersonId == personId && t.Type == ViolationType.Ticket);
+            var total = await query.CountAsync();
+            var items = await query.OrderByDescending(t => t.IssuedAt).ThenByDescending(t => t.Id).Skip(offset).Take(limit)
+                .Select(t => new PersonTicketHistoryResponse
+                {
+                    TicketId = t.Id, ControlNumber = t.ControlNumber, PaperViolatorName = t.PaperViolatorName,
+                    BusinessName = t.Vendor!.BusinessName,
+                    RegisteredOwnerName = t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    EnforcerName = t.Enforcer!.FirstName + " " + t.Enforcer.LastName,
+                    IssuedAt = t.IssuedAt, Status = t.Status, PenaltyType = t.PenaltyType,
+                    AssessedCashFine = t.TotalPaymentAmount,
+                    OutstandingCashFine = t.PenaltyType == PenaltyType.CashFine
+                        && (t.Status == TicketStatus.Pending || t.Status == TicketStatus.InProgress)
+                        ? t.TotalPaymentAmount ?? 0 : 0,
+                    Ordinances = t.TicketViolations.Select(v => v.Ordinance!.OrdinanceNo).ToList()
+                }).ToListAsync();
+            return (items, total);
+        }
+
         public async Task<List<VendorInspectionSummary>> GetVendorInspectionsAsync(
             int userId, int offset, int limit, VendorInspectionFilters filters)
         {
@@ -286,7 +327,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         private static IQueryable<Ticket> ApplyVendorTicketFilters(
             IQueryable<Ticket> tickets, int userId, VendorInspectionFilters filters)
         {
-            var query = tickets.Where(ticket => ticket.Vendor!.UserId == userId);
+            var query = tickets.Where(ticket => false);
             if (filters.Type.HasValue)
                 query = query.Where(ticket => ticket.Type == filters.Type.Value);
             if (!string.IsNullOrWhiteSpace(filters.Search))
@@ -319,8 +360,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 query = query.Where(t =>
                     t.ControlNumber!.ToLower().Contains(search) ||
                     t.Vendor!.BusinessName.ToLower().Contains(search) ||
-                    t.Vendor.User!.FirstName.ToLower().Contains(search) ||
-                    t.Vendor.User.LastName.ToLower().Contains(search));
+                    t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
+                    t.Vendor.OwnerLastName.ToLower().Contains(search));
             }
 
             return await query
@@ -332,13 +373,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     Id = t.Id,
                     ControlNumber = t.ControlNumber!,
                     VendorId = t.VendorId,
-                    LastName = t.Vendor!.User!.LastName,
-                    FirstName = t.Vendor.User.FirstName,
-                    BusinessId = t.Vendor.BusinessId,
+                    PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
+                    PaperViolatorName = t.PaperViolatorName,
+                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    LastName = t.Vendor!.OwnerLastName,
+                    FirstName = t.Vendor.OwnerFirstName,
+                    BusinessAccountNumber = t.Vendor.BusinessAccountNumber,
                     BusinessName = t.Vendor.BusinessName,
                     MarketSectionId = t.MarketSectionId,
                     MarketSectionName = t.MarketSection!.Name,
-                    VendorType = t.Vendor.Type,
+                    BusinessType = t.Vendor.Type,
                     StallNumber = t.Vendor.StallNumber,
                     EnforcerId = t.EnforcerId,
                     Type = t.Type,
@@ -372,8 +416,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 query = query.Where(t =>
                     t.ControlNumber!.ToLower().Contains(search) ||
                     t.Vendor!.BusinessName.ToLower().Contains(search) ||
-                    t.Vendor.User!.FirstName.ToLower().Contains(search) ||
-                    t.Vendor.User.LastName.ToLower().Contains(search));
+                    t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
+                    t.Vendor.OwnerLastName.ToLower().Contains(search));
             }
 
             return await query
@@ -385,10 +429,13 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     Id = t.Id,
                     ControlNumber = t.ControlNumber!,
                     VendorId = t.VendorId,
+                    PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
+                    PaperViolatorName = t.PaperViolatorName,
+                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     BusinessName = t.Vendor!.BusinessName,
                     MarketSectionName = t.MarketSection!.Name,
-                    VendorType = t.Vendor.Type,
-                    BusinessId = t.Vendor.BusinessId,
+                    BusinessType = t.Vendor.Type,
+                    BusinessAccountNumber = t.Vendor.BusinessAccountNumber,
                     StallNumber = t.Vendor.StallNumber,
                     OrdinanceNames = t.TicketViolations.OrderBy(tv => tv.Id)
                         .Select(tv => "Ord No. " + tv.Ordinance!.OrdinanceNo + ", Series of " + tv.Ordinance.Series).ToList(),
@@ -414,8 +461,11 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     EnforcerLastName = t.Enforcer!.LastName,
                     EnforcerFirstName = t.Enforcer.FirstName,
                     VendorId = t.VendorId,
-                    VendorLastName = t.Vendor!.User!.LastName!,
-                    VendorFirstName = t.Vendor.User.FirstName!,
+                    PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
+                    PaperViolatorName = t.PaperViolatorName,
+                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    VendorLastName = t.Vendor!.OwnerLastName!,
+                    VendorFirstName = t.Vendor.OwnerFirstName!,
                     StallNumber = t.Vendor.StallNumber!,
                     BusinessName = t.Vendor.BusinessName,
                     MarketSectionId = t.MarketSectionId,
@@ -444,10 +494,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 var search = filters.Search.Trim();
                 query = query.Where(t =>
                     t.ControlNumber!.Contains(search) ||
-                    t.Vendor!.User!.LastName.Contains(search) ||
-                    t.Vendor.User.FirstName.Contains(search) ||
+                    t.Vendor!.OwnerLastName.Contains(search) ||
+                    t.Vendor.OwnerFirstName.Contains(search) ||
                     t.Vendor.BusinessName.Contains(search) ||
-                    t.Vendor.BusinessId.Contains(search));
+                    t.Vendor.BusinessAccountNumber.Contains(search));
             }
 
             return query;
@@ -469,10 +519,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 var search = filters.Search.Trim().ToLower();
                 query = query.Where(t =>
                     t.ControlNumber!.Contains(search) ||
-                    t.Vendor!.User!.LastName.ToLower().Contains(search) ||
-                    t.Vendor.User.FirstName.ToLower().Contains(search) ||
+                    t.Vendor!.OwnerLastName.ToLower().Contains(search) ||
+                    t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
                     t.Vendor.BusinessName.ToLower().Contains(search) ||
-                    t.Vendor.BusinessId.ToLower().Contains(search));
+                    t.Vendor.BusinessAccountNumber.ToLower().Contains(search));
             }
 
             return await query
@@ -487,9 +537,12 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     EnforcerFirstName = t.Enforcer!.FirstName,
                     EnforcerLastName = t.Enforcer.LastName,
                     VendorId = t.VendorId,
-                    VendorFirstName = t.Vendor!.User!.FirstName,
-                    VendorLastName = t.Vendor.User.LastName,
-                    BusinessId = t.Vendor.BusinessId,
+                    PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
+                    PaperViolatorName = t.PaperViolatorName,
+                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    VendorFirstName = t.Vendor!.OwnerFirstName,
+                    VendorLastName = t.Vendor.OwnerLastName,
+                    BusinessAccountNumber = t.Vendor.BusinessAccountNumber,
                     StallNumber = t.Vendor.StallNumber,
                     MarketSectionId = t.MarketSectionId,
                     MarketSectionName = t.MarketSection!.Name,
@@ -511,7 +564,6 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                             t.IssuedAt <= cutoff &&
                             t.Status == TicketStatus.Pending)
                 .Include(t => t.Vendor)
-                    .ThenInclude(v => v!.User)
                 .ToListAsync();
         }
 
@@ -548,15 +600,18 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     TicketId = t.Id,
                     VendorId = t.VendorId,
+                    PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
+                    PaperViolatorName = t.PaperViolatorName,
+                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
                     ControlNumber = t.ControlNumber ?? null,
                     Type = t.Type,
-                    VendorType = t.Vendor!.Type,
-                    BusinessId = t.Vendor!.BusinessId,
+                    BusinessType = t.Vendor!.Type,
+                    BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
                     StallNumber = t.Vendor!.StallNumber,
                     BusinessName = t.Vendor.BusinessName,
-                    LastName = t.Vendor.User!.LastName,
-                    FirstName = t.Vendor.User.FirstName,
+                    LastName = t.Vendor.OwnerLastName,
+                    FirstName = t.Vendor.OwnerFirstName,
                     Address = "",
                     Violations = t.TicketViolations.Select(tv => new TicketViolationSummary
                     {
@@ -735,12 +790,15 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     Id = t.Id,
                     ControlNumber = t.ControlNumber!,
                     VendorId = t.VendorId,
-                    LastName = t.Vendor!.User!.LastName,
-                    FirstName = t.Vendor.User.FirstName,
+                    PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
+                    PaperViolatorName = t.PaperViolatorName,
+                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    LastName = t.Vendor!.OwnerLastName,
+                    FirstName = t.Vendor.OwnerFirstName,
                     BusinessName = t.Vendor.BusinessName,
                     MarketSectionId = t.MarketSectionId,
                     MarketSectionName = t.MarketSection!.Name,
-                    BusinessId = t.Vendor.BusinessId,
+                    BusinessAccountNumber = t.Vendor.BusinessAccountNumber,
                     StallNumber = t.Vendor.StallNumber,
                     EnforcerId = t.EnforcerId,
                     Type = t.Type,
@@ -962,11 +1020,11 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             DateTime start,
             DateTime end)
         {
-            var vendors = _context.VendorProfiles
+            var vendors = _context.Businesses
                 .AsNoTracking()
                 .Select(v => new VendorRiskRankingItem
                 {
-                    BusinessId = v.BusinessId,
+                    BusinessAccountNumber = v.BusinessAccountNumber,
                     BusinessName = v.BusinessName,
                     OffenseCount = v.Tickets.Count(t =>
                         t.Type == ViolationType.Ticket &&
@@ -986,7 +1044,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return await vendors
                 .OrderBy(v => v.ComplianceScore)
                 .ThenByDescending(v => v.OffenseCount)
-                .ThenBy(v => v.BusinessId)
+                .ThenBy(v => v.BusinessAccountNumber)
                 .Take(10)
                 .ToListAsync();
         }
@@ -1007,8 +1065,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     TicketId = t.Id,
                     ControlNumber = t.ControlNumber,
-                    BusinessId = t.Vendor!.BusinessId,
-                    VendorName = t.Vendor.User!.LastName + ", " + t.Vendor.User.FirstName,
+                    BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
+                    VendorName = t.Vendor.OwnerLastName + ", " + t.Vendor.OwnerFirstName,
                     CompletedHours = t.CommunityServiceLogs.Sum(log => (decimal?)log.HoursWorked) ?? 0,
                     TotalHours = t.CommunityServiceHours ?? 0,
                     LastUpdated = t.CommunityServiceLogs

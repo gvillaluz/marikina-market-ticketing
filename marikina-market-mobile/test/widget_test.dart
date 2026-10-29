@@ -1,30 +1,54 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
+import 'package:marikina_market_mobile/core/di/dependency_injection.dart';
+import 'package:marikina_market_mobile/core/router/app_router.dart';
+import 'package:marikina_market_mobile/core/router/routes.dart';
+import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
+import 'package:marikina_market_mobile/features/auth/presentation/pages/login_page.dart';
 import 'package:marikina_market_mobile/main.dart';
 
+import 'features/auth/login_mobile_flow_test.dart' show loginBloc;
+import 'features/auth/login_test_network_info.dart';
+
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('signed-out app startup opens login without staff navigation', (
+    tester,
+  ) async {
+    FlutterSecureStorage.setMockInitialValues({});
+    late ConnectivityCubit connectivity;
+    late AuthBloc auth;
+    await tester.runAsync(() async {
+      connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+      auth = loginBloc(connectivity, (options) async {
+        fail('Signed-out startup must not send an authenticated HTTP request.');
+      });
+      await auth.stream
+          .firstWhere((state) => state is Unauthenticated)
+          .timeout(const Duration(seconds: 5));
+    });
+    addTearDown(connectivity.close);
+    addTearDown(auth.close);
+    final router = AppRouter(authBloc: auth);
+    addTearDown(router.dispose);
+    sl.registerSingleton<AuthBloc>(auth);
+    sl.registerFactory<ConnectivityCubit>(() => connectivity);
+    sl.registerSingleton<AppRouter>(router);
+    addTearDown(() async {
+      await sl.unregister<AppRouter>();
+      await sl.unregister<ConnectivityCubit>();
+      await sl.unregister<AuthBloc>();
+    });
     await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(router.router.routeInformationProvider.value.uri.path, Routes.login);
+    expect(find.byType(LoginPage), findsOneWidget);
+    expect(find.byType(TextField), findsNWidgets(2));
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    await tester.runAsync(auth.close);
   });
 }

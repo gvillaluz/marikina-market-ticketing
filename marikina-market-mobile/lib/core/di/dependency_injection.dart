@@ -1,3 +1,7 @@
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/match_people_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/create_person_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_person_history_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/verify_inspection_use_case.dart';
 import 'package:marikina_market_mobile/features/profile/data/data_sources/qr_export_data_source.dart';
 import 'package:marikina_market_mobile/features/profile/data/repositories/qr_export_repository_impl.dart';
 import 'package:marikina_market_mobile/features/profile/domain/repositories/qr_export_repository.dart';
@@ -227,11 +231,19 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   sl.registerLazySingleton(() => LoadOrdinancesUseCase(sl()));
   sl.registerLazySingleton(() => SearchVendorByCodeUseCase(sl()));
   sl.registerLazySingleton(() => SearchVendorByStallUseCase(sl()));
+  sl.registerLazySingleton(() => MatchPeopleUseCase(sl()));
+  sl.registerLazySingleton(() => CreatePersonUseCase(sl()));
+  sl.registerLazySingleton(() => GetPersonHistoryUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyInspectionUseCase(sl()));
   sl.registerLazySingleton(() => GetFineSummaryUseCase(sl()));
   sl.registerLazySingleton(() => CheckWarningOrdinancesUseCase(sl()));
   sl.registerLazySingleton(() => SaveInspectionTicketUseCase(sl()));
   sl.registerFactory(
     () => InspectionBloc(
+      matchPeopleUseCase: sl(),
+      createPersonUseCase: sl(),
+      getPersonHistoryUseCase: sl(),
+      verifyInspectionUseCase: sl(),
       loadInspectionListUseCase: sl(),
       loadOrdinancesUseCase: sl(),
       searchVendorByCodeUseCase: sl(),

@@ -56,7 +56,7 @@ export interface HotspotRanking {
 
 export interface VendorRiskRanking {
   rank: number;
-  businessId: string;
+  businessAccountNumber: string;
   businessName: string;
   offenseCount: number;
   highestSeverity: string | number | null;

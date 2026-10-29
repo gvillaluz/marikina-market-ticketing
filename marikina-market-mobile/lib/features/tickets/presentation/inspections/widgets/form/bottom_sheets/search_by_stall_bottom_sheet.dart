@@ -11,15 +11,15 @@ import 'inspection_selection_sheet.dart';
 import 'selection_sheet_message.dart';
 import 'selection_sheet_tile.dart';
 
-class SearchByBusinessIdBottomSheet extends StatefulWidget {
-  const SearchByBusinessIdBottomSheet({super.key});
+class SearchByBusinessAccountNumberBottomSheet extends StatefulWidget {
+  const SearchByBusinessAccountNumberBottomSheet({super.key});
   @override
-  State<SearchByBusinessIdBottomSheet> createState() =>
-      _SearchByBusinessIdBottomSheetState();
+  State<SearchByBusinessAccountNumberBottomSheet> createState() =>
+      _SearchByBusinessAccountNumberBottomSheetState();
 }
 
-class _SearchByBusinessIdBottomSheetState
-    extends State<SearchByBusinessIdBottomSheet> {
+class _SearchByBusinessAccountNumberBottomSheetState
+    extends State<SearchByBusinessAccountNumberBottomSheet> {
   final _searchController = TextEditingController();
   Timer? _debouncer;
   VendorSummary? _selectedVendor;
@@ -71,7 +71,7 @@ class _SearchByBusinessIdBottomSheetState
       Widget? message;
       if (_query.isEmpty) {
         message = const SelectionSheetMessage(
-          message: 'Enter a Business ID to find matching vendors.',
+          message: 'Enter a Business Account Number to find matching vendors.',
           icon: Icons.storefront_outlined,
         );
       } else if (loading) {
@@ -87,14 +87,15 @@ class _SearchByBusinessIdBottomSheetState
         );
       } else if (vendors.isEmpty) {
         message = const SelectionSheetMessage(
-          message: 'No vendors found. Check the Business ID and try again.',
+          message:
+              'No vendors found. Check the Business Account Number and try again.',
           icon: Icons.search_off,
         );
       }
       return InspectionSelectionSheet(
-        title: 'Search by Business ID',
+        title: 'Search by Business Account Number',
         description:
-            'Find the Business ID on the business permit, then choose a vendor.',
+            'Find the Business Account Number on the business permit, then choose a vendor.',
         slivers: [
           SliverPadding(
             padding: AppTheme.selectionSheetPadding,
@@ -106,7 +107,7 @@ class _SearchByBusinessIdBottomSheetState
                 textInputAction: TextInputAction.search,
                 onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
-                  labelText: 'Business ID',
+                  labelText: 'Business Account Number',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _query.isEmpty
                       ? null

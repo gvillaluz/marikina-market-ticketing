@@ -173,13 +173,12 @@ namespace MarikinaMarket.API.Application.Services
             return anySucceeded;
         }
 
-        public async Task<bool> SendPushNotificationToVendorAsync(int vendorId, string title, string body, Dictionary<string, string>? data = null)
+        public Task<bool> SendPushNotificationToVendorAsync(int vendorId, string title, string body, Dictionary<string, string>? data = null)
         {
             if (vendorId <= 0)
                 throw new ValidationException("Vendor ID must be greater than zero.");
-            var userId = await _vendorRepository.GetVendorUserIdAsync(vendorId)
-                ?? throw new RecordNotFoundException("Vendor record not found.");
-            return await SendPushNotificationAsync(userId, title, body, data);
+            // Businesses have no login account or registered push devices.
+            return Task.FromResult(false);
         }
 
         public async Task MarkVendorNotificationAsReadAsync(int notificationId, int userId)

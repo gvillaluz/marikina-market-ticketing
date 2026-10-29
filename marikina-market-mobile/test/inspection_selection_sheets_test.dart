@@ -236,7 +236,7 @@ void main() {
               ),
               child: const Scaffold(
                 resizeToAvoidBottomInset: false,
-                body: SearchByBusinessIdBottomSheet(),
+                body: SearchByBusinessAccountNumberBottomSheet(),
               ),
             ),
           ),

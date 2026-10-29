@@ -42,10 +42,11 @@ export function InspectionTable({
           columns={[
             {
               key: "vendor",
-              header: "Vendor",
+              header: "Person",
               render: (row) =>
-                `${row.vendorFirstName ?? ""} ${row.vendorLastName ?? ""}`.trim() ||
-                "\u2014",
+                row.type === "Ticket"
+                  ? `Recorded violator: ${row.paperViolatorName || "Unconfirmed (legacy record)"}`
+                  : `Registered owner: ${row.registeredOwnerName || `${row.vendorFirstName ?? ""} ${row.vendorLastName ?? ""}`.trim() || "—"}`,
             },
             {
               key: "enforcer",

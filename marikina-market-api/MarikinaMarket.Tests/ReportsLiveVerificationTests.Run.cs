@@ -55,7 +55,7 @@ public partial class ReportsLiveVerificationTests
         var mailbox = new Mailbox();
         Microsoft.AspNetCore.Builder.WebApplication? app = null;
         Process? browser = null;
-        VendorProfile? vendor = null;
+        Business? vendor = null;
         var ticketIds = new List<int>();
         try
         {
@@ -66,9 +66,9 @@ public partial class ReportsLiveVerificationTests
                 db.UserRoles.Add(new IdentityUserRole<int> { UserId = users[i].Id, RoleId = roleId });
             }
             var sectionId = await db.MarketSections.Select(x => x.Id).FirstAsync();
-            vendor = new VendorProfile { UserId = users[2].Id, MarketSectionId = sectionId, BusinessId = marker,
-                BusinessName = "Synthetic report fixture", QrCodeValue = marker, RegisteredAt = DateTime.UtcNow, ScoreUpdatedAt = DateTime.UtcNow };
-            db.VendorProfiles.Add(vendor); await db.SaveChangesAsync();
+            vendor = new Business { MarketSectionId = sectionId, BusinessAccountNumber = marker,
+                BusinessName = "Synthetic report fixture", QrCodeValue = marker, CreatedAt = DateTime.UtcNow, ScoreUpdatedAt = DateTime.UtcNow };
+            db.Businesses.Add(vendor); await db.SaveChangesAsync();
             var start = new DateTime(2026, 9, 30, 16, 0, 0, DateTimeKind.Utc);
             var end = new DateTime(2026, 10, 2, 16, 0, 0, DateTimeKind.Utc);
             Ticket Add(ViolationType type, TicketStatus? status, decimal? amount, DateTime time) {
@@ -143,7 +143,7 @@ public partial class ReportsLiveVerificationTests
             var ids = users.Select(x => x.Id).Where(x => x > 0).ToArray();
             await db.Reports.Where(x => ids.Contains(x.GeneratedById)).ExecuteDeleteAsync();
             await db.Tickets.Where(x => x.Description == marker).ExecuteDeleteAsync();
-            if (vendor is { Id: > 0 }) await db.VendorProfiles.Where(x => x.Id == vendor.Id).ExecuteDeleteAsync();
+            if (vendor is { Id: > 0 }) await db.Businesses.Where(x => x.Id == vendor.Id).ExecuteDeleteAsync();
             await db.OtpVerifications.Where(x => ids.Contains(x.UserId)).ExecuteDeleteAsync();
             await db.RefreshTokens.Where(x => ids.Contains(x.UserId)).ExecuteDeleteAsync();
             await db.UserDeviceTokens.Where(x => ids.Contains(x.UserId)).ExecuteDeleteAsync();

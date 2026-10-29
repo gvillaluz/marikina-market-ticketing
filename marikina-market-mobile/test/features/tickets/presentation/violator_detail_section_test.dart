@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/violation_summary.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/violator_detail_section.dart';
 
@@ -33,8 +33,8 @@ TicketDetail _ticket({required String? address}) => TicketDetail(
   enforcerId: 2,
   vendorId: 3,
   violationType: ViolationType.ticket,
-  vendorType: VendorType.public,
-  businessId: 'BUS-123',
+  businessType: BusinessType.public,
+  businessAccountNumber: 'BUS-123',
   tradeName: 'Market Store',
   lastName: 'Doe',
   firstName: 'Jane',

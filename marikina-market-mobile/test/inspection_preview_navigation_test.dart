@@ -23,7 +23,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_s
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/fine_summary_section.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/pages/add_new_inspection_page.dart';
@@ -44,8 +44,8 @@ import 'inspection_list_ui_test.dart' show listBloc;
 const vendor = VendorSummary(
   id: 12,
   username: 'synthetic-vendor',
-  type: VendorType.public,
-  businessId: 'TEST-12',
+  type: BusinessType.public,
+  businessAccountNumber: 'TEST-12',
   stallNumber: 'A-12',
   tradeName: 'Synthetic Market Goods',
   lastName: 'Vendor',
@@ -188,6 +188,40 @@ void main() {
           final template = await tester.runAsync(
             () => listBloc((options) async {
               switch (options.path) {
+                case '/persons/matches':
+                  return reply(options, {
+                    'items': [
+                      {
+                        'id': 31,
+                        'full_name': 'Juan Dela Cruz',
+                        'address': '31 Synthetic Market Lane',
+                        'phone_number': null,
+                        'matched_fields': ['name'],
+                      },
+                    ],
+                    'has_more': false,
+                  });
+                case '/persons/31/tickets':
+                  return reply(options, {'items': [], 'has_more': false});
+                case '/enforcer/tickets/verify':
+                  return reply(options, {
+                    'reviewed_calculation': 'reviewed-calculation',
+                    'calculation': {
+                      'total_payment_amount': 100,
+                      'highest_severity': 'Minor',
+                      'breakdown': [
+                        {
+                          'ordinance_id': 1,
+                          'ordinance_no': ordinanceResponse['ordinance_no'],
+                          'ordinance_code': 'MKT-001',
+                          'payment_amount': 100,
+                          'severity': 'Minor',
+                          'offense_number': 1,
+                          'is_duplicate': false,
+                        },
+                      ],
+                    },
+                  });
                 case '/ordinance':
                   return reply(options, [ordinanceResponse]);
                 case '/enforcer/tickets/warning-check':
@@ -238,16 +272,23 @@ void main() {
             await authenticated;
           });
           sl.registerSingleton<AuthBloc>(auth);
+          final templateBloc = template!;
           sl.registerFactory<InspectionBloc>(
             () => InspectionBloc(
-              loadInspectionListUseCase: template!.loadInspectionListUseCase,
-              loadOrdinancesUseCase: template.loadOrdinancesUseCase,
-              searchVendorByCodeUseCase: template.searchVendorByCodeUseCase,
-              searchVendorByStallUseCase: template.searchVendorByStallUseCase,
-              getFineSummaryUseCase: template.getFineSummaryUseCase,
+              matchPeopleUseCase: templateBloc.matchPeopleUseCase,
+              createPersonUseCase: templateBloc.createPersonUseCase,
+              getPersonHistoryUseCase: templateBloc.getPersonHistoryUseCase,
+              verifyInspectionUseCase: templateBloc.verifyInspectionUseCase,
+              loadInspectionListUseCase: templateBloc.loadInspectionListUseCase,
+              loadOrdinancesUseCase: templateBloc.loadOrdinancesUseCase,
+              searchVendorByCodeUseCase: templateBloc.searchVendorByCodeUseCase,
+              searchVendorByStallUseCase:
+                  templateBloc.searchVendorByStallUseCase,
+              getFineSummaryUseCase: templateBloc.getFineSummaryUseCase,
               checkWarningOrdinancesUseCase:
-                  template.checkWarningOrdinancesUseCase,
-              saveInspectionTicketUseCase: template.saveInspectionTicketUseCase,
+                  templateBloc.checkWarningOrdinancesUseCase,
+              saveInspectionTicketUseCase:
+                  templateBloc.saveInspectionTicketUseCase,
             ),
           );
           final router = GoRouter(
@@ -283,6 +324,20 @@ void main() {
               .widget<InspectionTypeToggle>(find.byType(InspectionTypeToggle))
               .onChange(type);
           await tester.pump();
+          if (type == ViolationType.ticket) {
+            final name = find.byWidgetPredicate(
+              (widget) =>
+                  widget is TextField &&
+                  widget.decoration?.labelText == 'Paper violator name',
+            );
+            await tester.enterText(name, 'Juan Cruz');
+            await tester.ensureVisible(find.text('Check possible matches'));
+            await tester.tap(find.text('Check possible matches'));
+            await flush(tester);
+            await tester.ensureVisible(find.text('Confirm'));
+            await tester.tap(find.text('Confirm'));
+            await tester.pump();
+          }
           await tester.ensureVisible(find.text('Select Ordinance'));
           await tester.tap(find.text('Select Ordinance'));
           await flush(tester);
@@ -362,6 +417,20 @@ void main() {
           await tester.ensureVisible(formAction());
           await tester.tap(formAction());
           await flush(tester);
+          if (type == ViolationType.ticket) {
+            final submit = find.byWidgetPredicate(
+              (widget) =>
+                  widget is AppPrimaryButton && widget.label == 'Submit Ticket',
+            );
+            expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
+            await tester.ensureVisible(find.text('Verify ticket'));
+            await tester.tap(find.text('Verify ticket'));
+            await flush(tester);
+            expect(
+              tester.widget<AppPrimaryButton>(submit).onPressed,
+              isNotNull,
+            );
+          }
           await tester.ensureVisible(find.text('Submit ${type.value}'));
           await tester.tap(find.text('Submit ${type.value}'));
           await flush(tester);

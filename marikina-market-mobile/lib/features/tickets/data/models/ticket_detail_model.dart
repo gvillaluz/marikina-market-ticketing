@@ -4,17 +4,19 @@ import 'package:marikina_market_mobile/features/tickets/data/models/violation_su
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/ordinance_category.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/enums/vendor_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class TicketDetailModel {
+  final int? personId;
+  final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
   final String? controlNumber;
   final int enforcerId;
   final int vendorId;
   final ViolationType violationType;
-  final VendorType vendorType;
-  final String businessId;
+  final BusinessType businessType;
+  final String businessAccountNumber;
   final String? stallNumber;
   final String tradeName;
   final String lastName;
@@ -34,13 +36,17 @@ class TicketDetailModel {
   final List<String>? evidenceUrls;
 
   const TicketDetailModel({
+    this.personId,
+    this.personFullName,
+    this.paperViolatorName,
+    this.registeredOwnerName,
     required this.ticketId,
     this.controlNumber,
     required this.enforcerId,
     required this.vendorId,
     required this.violationType,
-    required this.vendorType,
-    required this.businessId,
+    required this.businessType,
+    required this.businessAccountNumber,
     this.stallNumber,
     required this.tradeName,
     required this.lastName,
@@ -66,9 +72,13 @@ class TicketDetailModel {
       controlNumber: json['control_number'] as String?,
       enforcerId: json['enforcer_id'] as int,
       vendorId: json['vendor_id'] as int,
+      personId: json['person_id'] as int?,
+      personFullName: json['person_full_name'] as String?,
+      paperViolatorName: json['paper_violator_name'] as String?,
+      registeredOwnerName: json['registered_owner_name'] as String?,
       violationType: ViolationType.fromValue(json['type'] as String),
-      vendorType: VendorType.fromValue(json['vendor_type'] as String),
-      businessId: json['business_id'] as String,
+      businessType: BusinessType.fromValue(json['business_type'] as String),
+      businessAccountNumber: json['business_account_number'] as String,
       stallNumber: json['stall_number'] != null
           ? json['stall_number'] as String
           : null,
@@ -116,9 +126,13 @@ class TicketDetailModel {
       controlNumber: controlNumber,
       enforcerId: enforcerId,
       vendorId: vendorId,
+      personId: personId,
+      personFullName: personFullName,
+      paperViolatorName: paperViolatorName,
+      registeredOwnerName: registeredOwnerName,
       violationType: violationType,
-      vendorType: vendorType,
-      businessId: businessId,
+      businessType: businessType,
+      businessAccountNumber: businessAccountNumber,
       stallNumber: stallNumber,
       tradeName: tradeName,
       lastName: lastName,

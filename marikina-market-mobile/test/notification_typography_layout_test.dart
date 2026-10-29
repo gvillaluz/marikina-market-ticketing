@@ -51,7 +51,9 @@ void main() {
       );
       expect(
         tester.widget<Text>(title).style?.fontSize,
-        heading is EditProfileHeading ? 22 : 24,
+        heading is EditProfileHeading
+            ? 22
+            : AppTheme.authPageTitleStyle.fontSize,
       );
       expect(tester.takeException(), isNull);
     }

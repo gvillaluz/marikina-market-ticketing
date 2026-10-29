@@ -69,23 +69,23 @@ export default function AdminCommunityServiceLogs({
     {
       key: "controlNumber",
       header: "CTRL #",
-      width: "7%",
+      width: "10%",
       render: (log) => (
         <span className={styles.controlNumber}>#{log.controlNumber}</span>
       ),
     },
     {
-      key: "businessId",
-      header: "Business ID",
-      width: "8%",
+      key: "businessAccountNumber",
+      header: "Business Account Number",
+      width: "20%",
       render: (log) => (
-        <span className={styles.businessId}>{log.businessId}</span>
+        <span className={styles.businessAccountNumber}>{log.businessAccountNumber}</span>
       ),
     },
     {
       key: "vendorName",
       header: "Vendor Name",
-      width: "14%",
+      width: "18%",
       render: (log) => (
         <strong className={styles.vendorName}>{log.vendorName}</strong>
       ),
@@ -128,7 +128,7 @@ export default function AdminCommunityServiceLogs({
     {
       key: "lastUpdated",
       header: "Last Updated",
-      width: "12%",
+      width: "16%",
       render: (log) => (
         <span className={styles.lastUpdated}>
           {formatDate(log.lastUpdated)}
@@ -138,7 +138,7 @@ export default function AdminCommunityServiceLogs({
     {
       key: "proofDocumentCount",
       header: "Proof Documents",
-      width: "17%",
+      width: "16%",
       render: (log) => (
         <div className={styles.documentActions}>
           <span className={styles.documentCount}>

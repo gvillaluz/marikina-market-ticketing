@@ -59,12 +59,12 @@ export default function Step3RequiredDocuments({
         <section className={styles.documentGroup}>
           <h4 className={styles.groupTitle}>Business document</h4>
           <TextInput
-            label="Business ID number"
+            label="Business Account Number number"
             required
-            value={form.businessId}
-            onChange={(event) => update("businessId", event.target.value)}
+            value={form.businessAccountNumber}
+            onChange={(event) => update("businessAccountNumber", event.target.value)}
             placeholder="Enter ID number"
-            error={errors.businessId}
+            error={errors.businessAccountNumber}
             maxLength={20}
           />
           <FileUpload

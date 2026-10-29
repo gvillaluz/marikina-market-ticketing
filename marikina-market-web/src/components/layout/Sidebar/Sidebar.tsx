@@ -153,14 +153,14 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     to: "/admin/vendors",
-    label: "Vendors",
+    label: "Businesses",
     icon: VendorIcon,
     allowedRoles: ADMIN_ROLES,
   },
   {
-    to: "/admin/vendor-registrations",
-    label: "Registrants",
-    icon: DocumentIcon,
+    to: "/admin/persons",
+    label: "Persons",
+    icon: <UsersRound size={18} strokeWidth={2} />,
     allowedRoles: ADMIN_ROLES,
   },
   {
@@ -177,7 +177,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     to: "/vendors",
-    label: "Vendors",
+    label: "Businesses",
     icon: VendorIcon,
     allowedRoles: ["MarketEnforcer", "MarketVendor"],
   },

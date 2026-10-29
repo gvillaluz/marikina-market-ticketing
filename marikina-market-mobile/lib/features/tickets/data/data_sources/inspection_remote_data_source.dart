@@ -1,3 +1,7 @@
+import 'package:marikina_market_mobile/features/tickets/data/models/person_candidate_model.dart';
+import 'package:marikina_market_mobile/features/tickets/data/models/person_ticket_history_model.dart';
+import 'package:marikina_market_mobile/features/tickets/data/models/inspection_verification_model.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -16,6 +20,25 @@ import 'package:marikina_market_mobile/features/tickets/data/models/warning_ordi
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 abstract class InspectionRemoteDataSource {
+  Future<PageResultModel<PersonCandidateModel>> matchPeople(
+    String name,
+    String? address,
+    String? phone,
+    int offset,
+  );
+  Future<PersonCandidateModel> createPerson(
+    String name,
+    String address,
+    String? phone,
+  );
+  Future<PageResultModel<PersonTicketHistoryModel>> getPersonHistory(
+    int personId,
+    int offset,
+  );
+  Future<InspectionVerificationModel> verifyInspection(
+    VerifyInspectionInput input,
+  );
+
   Future<PageResultModel<InspectionSummaryModel>> loadInspections(
     String search,
     int offset,
@@ -24,7 +47,11 @@ abstract class InspectionRemoteDataSource {
   Future<List<OrdinanceModel>> getOrdinances();
   Future<VendorSummaryModel> getVendorByCode(String codeValue);
   Future<List<VendorSummaryModel>> getVendorByStall(String stallNumber);
-  Future<FineSummaryModel> getFineSummary(List<int> ordinanceIds, int vendorId);
+  Future<FineSummaryModel> getFineSummary(
+    List<int> ordinanceIds,
+    int vendorId, {
+    int? personId,
+  });
   Future<List<WarningOrdinanceModel>> checkWarningOrdinances(
     List<int> ordinanceIds,
     int vendorId,
@@ -164,12 +191,17 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
   @override
   Future<FineSummaryModel> getFineSummary(
     List<int> ordinanceIds,
-    int vendorId,
-  ) async {
+    int vendorId, {
+    int? personId,
+  }) async {
     try {
       final response = await apiClient.post(
         '/enforcer/tickets/fine-summary',
-        data: {"ordinance_ids": ordinanceIds, "vendor_id": vendorId},
+        data: {
+          "ordinance_ids": ordinanceIds,
+          "vendor_id": vendorId,
+          "person_id": personId,
+        },
       );
 
       return FineSummaryModel.fromJson(response.data);
@@ -242,6 +274,9 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
 
       final formData = FormData.fromMap({
         "vendor_id": params.vendorId,
+        "person_id": params.personId,
+        "paper_violator_name": params.paperViolatorName,
+        "reviewed_calculation": params.reviewedCalculation,
         "market_section_id": params.marketSectionId,
         "enforcer_id": params.enforcerId,
         "type": params.ticketType.value,
@@ -299,13 +334,106 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
         }
       }
 
+      if (e.response?.statusCode == 409) {
+        throw ValidationException(_personError(e));
+      }
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.receiveTimeout) {
-        throw NetworkException('No internet connection. Please try again.');
+        throw NetworkException(
+          'Submission could not be confirmed. Check this person’s history before trying again.',
+        );
       }
-
-      throw ServerException('Something went wrong. Please try again later');
+      throw ServerException(
+        'Submission could not be confirmed. Check this person’s history before trying again.',
+      );
     }
   }
+
+  String _personError(DioException e) {
+    final data = e.response?.data;
+    if (data is Map<String, Object?>) {
+      final message = data['message'] ?? data['detail'];
+      if (message is String && message.isNotEmpty) return message;
+    }
+    return 'Unable to complete this request. Review the details and try again.';
+  }
+
+  Future<T> _personRequest<T>(Future<T> Function() request) async {
+    try {
+      return await request();
+    } on DioException catch (e) {
+      if (e.response != null) throw ValidationException(_personError(e));
+      throw NetworkException(
+        'Request could not be confirmed. Check records before trying again.',
+      );
+    }
+  }
+
+  @override
+  Future<PageResultModel<PersonCandidateModel>> matchPeople(
+    String name,
+    String? address,
+    String? phone,
+    int offset,
+  ) => _personRequest(() async {
+    final response = await apiClient.post(
+      '/persons/matches',
+      data: {
+        'name': name,
+        'address': address,
+        'phone_number': phone,
+        'offset': offset,
+      },
+    );
+    return PageResultModel.fromJson(
+      response.data,
+      PersonCandidateModel.fromJson,
+    );
+  });
+  @override
+  Future<PersonCandidateModel> createPerson(
+    String name,
+    String address,
+    String? phone,
+  ) => _personRequest(() async {
+    final response = await apiClient.post(
+      '/persons',
+      data: {'full_name': name, 'address': address, 'phone_number': phone},
+    );
+    return PersonCandidateModel.fromJson(response.data);
+  });
+  @override
+  Future<PageResultModel<PersonTicketHistoryModel>> getPersonHistory(
+    int personId,
+    int offset,
+  ) => _personRequest(() async {
+    final response = await apiClient.get(
+      '/persons/$personId/tickets',
+      queryParameters: {'offset': offset},
+    );
+    return PageResultModel.fromJson(
+      response.data,
+      PersonTicketHistoryModel.fromJson,
+    );
+  });
+  @override
+  Future<InspectionVerificationModel> verifyInspection(
+    VerifyInspectionInput input,
+  ) => _personRequest(() async {
+    final response = await apiClient.post(
+      '/enforcer/tickets/verify',
+      data: {
+        'vendor_id': input.vendorId,
+        'person_id': input.personId,
+        'paper_violator_name': input.paperViolatorName,
+        'ordinance_ids': input.ordinanceIds,
+        'description': input.description,
+        'penalty_type': input.penaltyType.value,
+        'community_service_hours': input.communityServiceHours,
+        'evidence_count': input.evidenceCount,
+      },
+    );
+    return InspectionVerificationModel.fromJson(response.data);
+  });
 }

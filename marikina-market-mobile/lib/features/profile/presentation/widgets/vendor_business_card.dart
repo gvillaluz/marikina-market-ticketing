@@ -23,7 +23,10 @@ class VendorBusinessCard extends StatelessWidget {
                 label: 'Business name',
                 value: vendor.businessName,
               ),
-              ProfileDetailRow(label: 'Business ID', value: vendor.businessId),
+              ProfileDetailRow(
+                label: 'Business Account Number',
+                value: vendor.businessAccountNumber,
+              ),
               ProfileDetailRow(
                 label: 'Stall Number',
                 value: vendor.stallNumber,

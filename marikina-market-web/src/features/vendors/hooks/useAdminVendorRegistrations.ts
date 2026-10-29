@@ -9,16 +9,16 @@ const PAGE_SIZE = 10;
 export function useAdminVendorRegistrations() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
-  const [vendorType, setVendorType] = useState("all");
+  const [businessType, setBusinessType] = useState("all");
 
   const countsQuery = useRegistrationStatusCounts();
   const requestsQuery = useQuery({
-    queryKey: ["admin-vendor-registrations", page, status, vendorType],
+    queryKey: ["admin-vendor-registrations", page, status, businessType],
     queryFn: () =>
       adminVendorsApi.getRegistrationRequests({
         offset: (page - 1) * PAGE_SIZE,
         status: status === "all" ? undefined : status,
-        vendorType: vendorType === "all" ? undefined : vendorType,
+        businessType: businessType === "all" ? undefined : businessType,
       }),
   });
 
@@ -36,9 +36,9 @@ export function useAdminVendorRegistrations() {
       setStatus(value);
       setPage(1);
     },
-    vendorType,
-    setVendorType: (value: string) => {
-      setVendorType(value);
+    businessType,
+    setBusinessType: (value: string) => {
+      setBusinessType(value);
       setPage(1);
     },
     total,

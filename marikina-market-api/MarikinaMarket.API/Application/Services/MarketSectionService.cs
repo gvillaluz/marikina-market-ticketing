@@ -18,7 +18,7 @@ namespace MarikinaMarket.API.Application.Services
         {
             var sections = await _repository.GetAllAsync();
 
-            return sections.Select(section => MapResponse(section, section.VendorProfiles.Count)).ToList();
+            return sections.Select(section => MapResponse(section, section.Businesses.Count)).ToList();
         }
 
         public async Task<MarketSectionResponse> CreateAsync(SaveMarketSectionRequest request)

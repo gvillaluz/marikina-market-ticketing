@@ -66,6 +66,10 @@ interface BaseRecordDetail {
 }
 
 export interface InspectionSummary {
+  personId?: number | null;
+  personFullName?: string | null;
+  paperViolatorName?: string | null;
+  registeredOwnerName?: string | null;
   ticketId: number;
   enforcerId: number;
   enforcerFirstName: string;
@@ -140,6 +144,10 @@ export interface TicketHistoryEntry {
 export type PenaltyType = "CashFine" | "BloodDonation" | "CommunityService";
 
 export interface TicketSummary {
+  personId?: number | null;
+  personFullName?: string | null;
+  paperViolatorName?: string | null;
+  registeredOwnerName?: string | null;
   id: number;
   controlNumber: string;
   enforcerId: number;
@@ -194,6 +202,10 @@ export interface TicketStatusUpdateResponse {
 }
 
 export interface TicketDetail {
+  personId?: number | null;
+  personFullName?: string | null;
+  paperViolatorName?: string | null;
+  registeredOwnerName?: string | null;
   ticketId: number;
   enforderId: number;
   enforcerLastName: string;
@@ -201,8 +213,8 @@ export interface TicketDetail {
   vendorId: number;
   controlNumber?: string;
   type: "Warning" | "Ticket";
-  businessId: string;
-  vendorType: "Public" | "Private" | 0 | 1;
+  businessAccountNumber: string;
+  businessType: "Public" | "Private" | 0 | 1;
   stallNumber: string | null;
   businessName: string;
   lastName: string;
@@ -228,4 +240,19 @@ export interface TicketDetail {
   communityServiceLogs: TicketCommunityServiceLog[];
   hoursCompleted: number;
   version: number;
+}
+
+export interface PersonTicketHistoryItem {
+  ticketId: number;
+  controlNumber: string | null;
+  paperViolatorName: string | null;
+  businessName: string;
+  registeredOwnerName: string;
+  enforcerName: string;
+  issuedAt: string;
+  status: RecordStatus | null;
+  penaltyType: PenaltyType | null;
+  assessedCashFine: number | null;
+  outstandingCashFine: number;
+  ordinances: string[];
 }

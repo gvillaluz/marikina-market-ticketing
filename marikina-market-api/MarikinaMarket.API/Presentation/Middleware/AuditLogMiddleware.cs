@@ -46,6 +46,7 @@ namespace MarikinaMarket.API.Presentation.Middleware
                 (action.ControllerName == "User" && action.ActionName == "EditUserInformation" ||
                  action.ControllerName == "Ordinance" && action.ActionName is "Create" or "Update" ||
                  action.ControllerName == "AdminUser" && action.ActionName == "CreateUser" ||
+                 action.ControllerName == "AdminBusiness" && action.ActionName is "Create" or "Update" ||
                  action.ControllerName == "Vendor" && action.ActionName is "ApproveRegistration" or "DeclineRegistration" or "RequestMoreInformation" ||
                  action.ControllerName == "EnforcerTicket" && action.ActionName is "SaveNewInspection" or "SubmitTicketReceiptProof" or "LogCommunityServiceHours" ||
                  action.ControllerName == "AdminTicket" && action.ActionName == "UpdateTicketStatus" ||
@@ -149,7 +150,7 @@ namespace MarikinaMarket.API.Presentation.Middleware
         {
             "Auth" => Module.Security,
             "User" or "AdminUser" or "AdminAccount" or "AdminEnforcer" => Module.Users,
-            "Vendor" or "AdminVendor" => Module.Vendors,
+            "Vendor" or "AdminVendor" or "AdminBusiness" => Module.Vendors,
             "Ticket" or "AdminTicket" or "EnforcerTicket" => Module.Tickets,
             "Ordinance" => Module.Ordinances,
             "MarketSection" => Module.MarketSections,
@@ -174,6 +175,8 @@ namespace MarikinaMarket.API.Presentation.Middleware
                 "Auth.ResetPassword" => "Password reset",
                 "Auth.Register" or "AdminUser.CreateUser" => "User account creation",
                 "Vendor.RegisterVendor" or "AdminVendor.RegisterVendor" => "Vendor registration",
+                "AdminBusiness.Create" => "Business record creation",
+                "AdminBusiness.Update" => "Business record update",
                 "Vendor.ApproveRegistration" => "Vendor registration approval",
                 "Vendor.DeclineRegistration" => "Vendor registration rejection",
                 "Vendor.RequestMoreInformation" => "Additional vendor information request",

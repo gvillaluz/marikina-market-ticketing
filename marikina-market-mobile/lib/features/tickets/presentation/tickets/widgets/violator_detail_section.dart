@@ -24,7 +24,10 @@ class ViolatorDetailSection extends StatelessWidget {
           title: 'VIOLATOR DETAILS',
         ),
         const SizedBox(height: AppTheme.ticketSmallGap),
-        TicketPaperField(label: "BUSINESS ID:", value: ticket.businessId),
+        TicketPaperField(
+          label: "BUSINESS ID:",
+          value: ticket.businessAccountNumber,
+        ),
         const SizedBox(height: AppTheme.ticketSmallGap),
         TicketPaperField(
           label: "STALL/UNIT NO:",
@@ -34,10 +37,20 @@ class ViolatorDetailSection extends StatelessWidget {
         TicketPaperField(label: "TRADE NAME:", value: ticket.tradeName),
         const SizedBox(height: AppTheme.ticketSmallGap),
         TicketPaperField(
-          label: "NAME:",
+          label: "REGISTERED OWNER:",
           value: '${ticket.lastName}, ${ticket.firstName}',
         ),
         if (isTicket) ...[
+          TicketPaperField(
+            label: 'RECORDED VIOLATOR:',
+            value: ticket.paperViolatorName ?? 'Unconfirmed (legacy record)',
+          ),
+          TicketPaperField(
+            label: 'CONFIRMED PERSON:',
+            value: ticket.personId == null
+                ? 'Unconfirmed (legacy record)'
+                : '${ticket.personFullName ?? 'Person'} · Person ${ticket.personId}',
+          ),
           const SizedBox(height: AppTheme.ticketSmallGap),
           TicketPaperField(
             label: "ADDRESS:",

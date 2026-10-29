@@ -1,3 +1,8 @@
+export './inspection_verification_requested.dart';
+export './person_history_requested.dart';
+export './person_creation_requested.dart';
+export './person_matches_requested.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/ordinance_category.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
@@ -29,7 +34,8 @@ class SearchByStallNumberRequested extends InspectionEvent {
 class FineSummaryRequested extends InspectionEvent {
   final List<int> ordinanceIds;
   final int? vendorId;
-  FineSummaryRequested(this.ordinanceIds, this.vendorId);
+  final int? personId;
+  FineSummaryRequested(this.ordinanceIds, this.vendorId, {this.personId});
 }
 
 class WarningOrdinanceCheckRequested extends InspectionEvent {
@@ -78,6 +84,8 @@ class NewWarningSubmitted extends InspectionEvent {
 }
 
 class NewInspectionSubmitted extends InspectionEvent {
+  final int? personId;
+  final String? paperViolatorName, reviewedCalculation;
   final int vendorId;
   final int enforcerId;
   final int marketSectionId;
@@ -90,6 +98,9 @@ class NewInspectionSubmitted extends InspectionEvent {
   final List<XFile>? evidences;
 
   NewInspectionSubmitted({
+    this.personId,
+    this.paperViolatorName,
+    this.reviewedCalculation,
     required this.vendorId,
     required this.enforcerId,
     required this.marketSectionId,

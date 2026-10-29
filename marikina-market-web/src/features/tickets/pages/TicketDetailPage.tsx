@@ -40,6 +40,7 @@ import Modal from "@/components/ui/Modal";
 import { useTicketStatusSelection } from "../hooks/useTicketStatusSelection";
 import { useDisclosure } from "../hooks/useDisclosure";
 import { getApiErrorMessage } from "@/utils/apiErrors";
+import PersonTicketHistory from "../components/PersonTicketHistory";
 
 const STATUS_OPTIONS = [
   {
@@ -134,6 +135,7 @@ const TicketDetailPage: FC = () => {
         lastUpdated={formatDateTime(ticket?.updatedAt || "")}
       />
 
+      {ticket.personId && <PersonTicketHistory personId={ticket.personId} />}
       <div className={styles.grid}>
         <DetailCard title="ENFORCER & VENDOR DETAILS" icon={User}>
           <div className={styles.fieldGrid}>
@@ -142,9 +144,11 @@ const TicketDetailPage: FC = () => {
               value={`${ticket?.enforcerLastName}, ${ticket?.enforcerFirstName}`}
             />
             <InfoField
-              label="VENDOR NAME"
-              value={`${ticket?.lastName}, ${ticket?.firstName}`}
+              label="REGISTERED OWNER"
+              value={ticket.registeredOwnerName || `${ticket.lastName}, ${ticket.firstName}`}
             />
+            <InfoField label="RECORDED VIOLATOR" value={ticket.paperViolatorName || "Unconfirmed (legacy record)"} />
+            <InfoField label="CONFIRMED PERSON" value={ticket.personId ? `${ticket.personFullName || "Person"} · Person ${ticket.personId}` : "Unconfirmed (legacy record)"} />
             <InfoField
               label="STALL LOCATION"
               value={`${ticket?.marketSectionName}, ${ticket?.stallNumber}`}

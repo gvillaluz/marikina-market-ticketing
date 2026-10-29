@@ -116,14 +116,14 @@ namespace MarikinaMarket.API.Presentation.Controllers
             return Ok(await _service.RequestMoreInformation(request.VendorRegistrationId, action));
         }
 
-        [HttpGet("stall/{businessId}")]
+        [HttpGet("stall/{businessAccountNumber}")]
         [Authorize(Roles = nameof(Role.MarketEnforcer))]
-        public async Task<ActionResult<List<GetVendorResponse>>> GetVendorByStallNumber([FromRoute] string businessId)
+        public async Task<ActionResult<List<GetVendorResponse>>> GetVendorByStallNumber([FromRoute] string businessAccountNumber)
         {
-            if (string.IsNullOrWhiteSpace(businessId))
+            if (string.IsNullOrWhiteSpace(businessAccountNumber))
                 return BadRequest("Stall number must not be empty.");
 
-            return Ok(await _service.GetVendorByBusinessIdAsync(businessId));
+            return Ok(await _service.GetVendorByBusinessAccountNumberAsync(businessAccountNumber));
         }
 
         [HttpGet("code/{code}")]

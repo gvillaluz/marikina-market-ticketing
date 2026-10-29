@@ -11,5 +11,6 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
         [Required(ErrorMessage = "Vendor ID is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "Vendor ID must be a valid positive number.")]
         public required int VendorId { get; set; }
+        [Range(1, int.MaxValue)] public int? PersonId { get; set; }
     }
 }

@@ -1,3 +1,5 @@
+using MarikinaMarket.API.Application;
+using Npgsql;
 using MarikinaMarket.API.Application.DTOs.Vendor.Internal;
 using MarikinaMarket.API.Application.DTOs.Vendor.Request;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
@@ -14,42 +16,35 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public VendorRepository(AppDbContext context) => _context = context;
 
-        public async Task<VendorProfile?> GetVendorProfileByUserIdAsync(int userId)
-            => await _context.VendorProfiles.AsNoTracking()
-                .Include(vendor => vendor.MarketSection)
-                .FirstOrDefaultAsync(vendor => vendor.UserId == userId);
+        public Task<Business?> GetVendorProfileByUserIdAsync(int userId) => Task.FromResult<Business?>(null);
 
-        public async Task<int?> GetVendorIdByUserIdAsync(int userId)
-            => await _context.VendorProfiles.AsNoTracking().Where(vendor => vendor.UserId == userId)
-                .Select(vendor => (int?)vendor.Id).FirstOrDefaultAsync();
+        public Task<int?> GetVendorIdByUserIdAsync(int userId) => Task.FromResult<int?>(null);
 
-        public async Task<int?> GetVendorUserIdAsync(int vendorId)
-            => await _context.VendorProfiles.AsNoTracking().Where(vendor => vendor.Id == vendorId)
-                .Select(vendor => (int?)vendor.UserId).FirstOrDefaultAsync();
+        public Task<int?> GetVendorUserIdAsync(int vendorId) => Task.FromResult<int?>(null);
 
         public async Task<VendorTicketSummary?> GetByIdAsync(int id)
         {
-            return await _context.VendorProfiles
+            return await _context.Businesses
                 .Where(u => u.Id == id)
                 .Select(v => new VendorTicketSummary
                 {
                     Id = v.Id,
-                    LastName = v.User!.LastName,
-                    FirstName = v.User.FirstName,
-                    Email = v.User!.Email!,
+                    LastName = v.OwnerLastName,
+                    FirstName = v.OwnerFirstName,
+                    Email = v.Email ?? "",
                     MarketSectionId = v.MarketSectionId,
                     MarketSectionName = v.MarketSection!.Name,
                     BusinessName = v.BusinessName,
-                    BusinessId = v.BusinessId,
+                    BusinessAccountNumber = v.BusinessAccountNumber,
                     StallNumber = v.StallNumber,
                     Type = v.Type
                 })
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<VendorProfile> CreateVendorAsync(VendorProfile vendorProfile)
+        public async Task<Business> CreateVendorAsync(Business vendorProfile)
         {
-            await _context.VendorProfiles.AddAsync(vendorProfile);
+            await _context.Businesses.AddAsync(vendorProfile);
             return vendorProfile;
         }
 
@@ -74,13 +69,13 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 request.Email.Trim().ToLower() == normalizedEmail);
         }
 
-        public async Task<bool> RegistrationBusinessIdExistsAsync(string businessId)
+        public async Task<bool> RegistrationBusinessAccountNumberExistsAsync(string businessAccountNumber)
         {
-            var normalizedBusinessId = businessId.Trim().ToLowerInvariant();
+            var normalizedAccountNumber = businessAccountNumber.Trim().ToLowerInvariant();
             return await _context.VendorRegistrationRequests.AnyAsync(request =>
-                    request.BusinessId.Trim().ToLower() == normalizedBusinessId)
-                || await _context.VendorProfiles.AnyAsync(vendor =>
-                    vendor.BusinessId.Trim().ToLower() == normalizedBusinessId);
+                    request.BusinessAccountNumber.Trim().ToLower() == normalizedAccountNumber)
+                || await _context.Businesses.AnyAsync(vendor =>
+                    vendor.BusinessAccountNumber.Trim().ToLower() == normalizedAccountNumber);
         }
 
         public async Task<VendorRegistrationStatusCounts> GetVendorRegistrationStatusCountsAsync()
@@ -102,7 +97,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public async Task<DashboardVendorCounts> GetDashboardVendorCountsAsync()
         {
-            var activeVendors = await _context.VendorProfiles
+            var activeVendors = await _context.Businesses
                 .AsNoTracking()
                 .CountAsync(vendor => vendor.Status == VendorStatus.Active);
             var pendingRegistrations = await _context.VendorRegistrationRequests
@@ -133,10 +128,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(request => new VendorRegistrationSummary
                 {
                     RegistrationId = request.Id,
-                    BusinessId = request.BusinessId,
+                    BusinessAccountNumber = request.BusinessAccountNumber,
                     BusinessName = request.BusinessName,
                     VendorName = request.LastName + ", " + request.FirstName,
-                    VendorType = request.Type,
+                    BusinessType = request.Type,
                     MarketSectionName = request.MarketSection!.Name,
                     StallNumber = request.StallNumber,
                     RequestedAt = request.RequestedAt,
@@ -168,22 +163,22 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             }
         }
 
-        public async Task<List<VendorLookupResult>> GetVendorByBusinessId(string businessId)
+        public async Task<List<VendorLookupResult>> GetVendorByBusinessAccountNumber(string businessAccountNumber)
         {
-            return await _context.VendorProfiles
-                .Where(v => v.BusinessId.ToLower().Contains(businessId.ToLower()) && v.Status == VendorStatus.Active)
+            return await _context.Businesses
+                .Where(v => v.BusinessAccountNumber.ToLower().Contains(businessAccountNumber.ToLower()) && v.Status == VendorStatus.Active)
                 .Select(v => new VendorLookupResult
                 {
                     VendorId = v.Id,
-                    Username = v.User!.UserName!,
+                    Username = null,
                     Type = v.Type,
-                    BusinessId = v.BusinessId,
+                    BusinessAccountNumber = v.BusinessAccountNumber,
                     StallNumber = v.StallNumber,
                     TradeName = v.BusinessName,
-                    LastName = v.User.LastName,
-                    FirstName = v.User.FirstName,
-                    MiddleName = v.User.MiddleName,
-                    Address = "",
+                    LastName = v.OwnerLastName,
+                    FirstName = v.OwnerFirstName,
+                    MiddleName = null,
+                    Address = v.HouseNumber + ", " + v.Street + ", " + v.Barangay + ", " + v.City,
                     MarketSectionId = v.MarketSectionId,
                     MarketSectionName = v.MarketSection!.Name
                 })
@@ -192,20 +187,20 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public async Task<VendorLookupResult?> GetVendorByQrCode(string codeValue)
         {
-            return await _context.VendorProfiles
+            return await _context.Businesses
                 .Where(v => v.QrCodeValue == codeValue && v.Status == VendorStatus.Active)
                 .Select(v => new VendorLookupResult
                 {
                     VendorId = v.Id,
-                    Username = v.User!.UserName!,
+                    Username = null,
                     Type = v.Type,
-                    BusinessId = v.BusinessId,
+                    BusinessAccountNumber = v.BusinessAccountNumber,
                     StallNumber = v.StallNumber,
                     TradeName = v.BusinessName,
-                    LastName = v.User.LastName,
-                    FirstName = v.User.FirstName,
-                    MiddleName = v.User.MiddleName,
-                    Address = "",
+                    LastName = v.OwnerLastName,
+                    FirstName = v.OwnerFirstName,
+                    MiddleName = null,
+                    Address = v.HouseNumber + ", " + v.Street + ", " + v.Barangay + ", " + v.City,
                     MarketSectionId = v.MarketSectionId,
                     MarketSectionName = v.MarketSection!.Name
                 })
@@ -214,18 +209,19 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public async Task<VendorProfileDetails?> GetVendorProfileDetailsAsync(int vendorId)
         {
-            return await _context.VendorProfiles
+            return await _context.Businesses
                 .AsNoTracking()
                 .Where(v => v.Id == vendorId)
                 .Select(v => new VendorProfileDetails
                 {
-                    FirstName = v.User!.FirstName,
-                    MiddleName = v.User.MiddleName,
-                    LastName = v.User.LastName,
-                    Username = v.User.UserName,
-                    PhoneNumber = v.User.PhoneNumber,
-                    Email = v.User.Email,
-                    AccountCreatedAt = v.User.CreatedAt,
+                    FirstName = v.OwnerFirstName,
+                    MiddleName = null,
+                    LastName = v.OwnerLastName,
+                    BusinessAccountNumber = v.BusinessAccountNumber,
+                    BusinessName = v.BusinessName,
+                    PhoneNumber = v.PhoneNumber,
+                    Email = v.Email,
+                    CreatedAt = v.CreatedAt,
                     LastViolationIssuedAt = v.Tickets
                         .Where(t => t.Type == ViolationType.Ticket)
                         .OrderByDescending(t => t.IssuedAt)
@@ -235,12 +231,13 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<VendorProfile>> GetVendorProfilesForComplianceUpdateAsync()
-            => await _context.VendorProfiles.OrderBy(v => v.Id).ToListAsync();
+        public async Task<List<Business>> GetVendorProfilesForComplianceUpdateAsync()
+            => await _context.Businesses.OrderBy(v => v.Id).ToListAsync();
 
-        public async Task<VendorProfile?> GetVendorProfileForUpdateAsync(int vendorId)
+        public async Task<Business?> GetVendorProfileForUpdateAsync(int vendorId)
         {
-            return await _context.VendorProfiles
+            return await _context.Businesses
+                .Include(business => business.MarketSection)
                 .FirstOrDefaultAsync(v => v.Id == vendorId);
         }
 
@@ -249,18 +246,19 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             int pageSize,
             AdminVendorSummaryFilter filters)
         {
-            var vendors = ApplyAdminVendorFilters(_context.VendorProfiles.AsNoTracking(), filters);
+            var vendors = ApplyAdminVendorFilters(_context.Businesses.AsNoTracking(), filters);
 
             return await vendors
-                .OrderBy(v => v.BusinessId)
+                .OrderBy(v => v.BusinessAccountNumber)
                 .Skip(offset)
                 .Take(pageSize)
                 .Select(v => new AdminVendorSummary
                 {
                     VendorId = v.Id,
-                    BusinessId = v.BusinessId,
-                    VendorName = v.User!.LastName + ", " + v.User.FirstName,
-                    VendorType = v.Type,
+                    BusinessAccountNumber = v.BusinessAccountNumber,
+                    VendorName = v.OwnerLastName + ", " + v.OwnerFirstName,
+                    BusinessName = v.BusinessName,
+                    BusinessType = v.Type,
                     MarketSectionName = v.MarketSection!.Name,
                     ComplianceScore = v.ComplianceScore,
                     WarningCount = v.Tickets.Count(t => t.Type == ViolationType.Warning),
@@ -271,7 +269,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public async Task<int> GetAdminVendorSummaryCountAsync(AdminVendorSummaryFilter filters)
         {
-            return await ApplyAdminVendorFilters(_context.VendorProfiles.AsNoTracking(), filters)
+            return await ApplyAdminVendorFilters(_context.Businesses.AsNoTracking(), filters)
                 .CountAsync();
         }
 
@@ -303,10 +301,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     TicketId = t.Id,
                     ControlNumber = t.ControlNumber,
-                    BusinessId = t.Vendor!.BusinessId,
-                    FirstName = t.Vendor.User!.FirstName,
-                    MiddleName = t.Vendor.User.MiddleName,
-                    LastName = t.Vendor.User.LastName,
+                    BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
+                    FirstName = t.Vendor.OwnerFirstName,
+                    MiddleName = null,
+                    LastName = t.Vendor.OwnerLastName,
                     Type = t.Type,
                     IssuedAt = t.IssuedAt
                 })
@@ -328,8 +326,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     TicketId = t.Id,
                     ControlNumber = t.ControlNumber,
-                    BusinessId = t.Vendor!.BusinessId,
-                    VendorName = t.Vendor.User!.LastName + ", " + t.Vendor.User.FirstName,
+                    BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
+                    VendorName = t.Vendor.OwnerLastName + ", " + t.Vendor.OwnerFirstName,
                     MarketSectionName = t.MarketSection!.Name,
                     Status = t.Status ?? TicketStatus.Pending,
                     PenaltyType = t.PenaltyType,
@@ -348,8 +346,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     (t.Status == TicketStatus.Pending || t.Status == TicketStatus.Overdue));
         }
 
-        private static IQueryable<VendorProfile> ApplyAdminVendorFilters(
-            IQueryable<VendorProfile> vendors,
+        private static IQueryable<Business> ApplyAdminVendorFilters(
+            IQueryable<Business> vendors,
             AdminVendorSummaryFilter filters)
         {
             if (filters.MarketSectionId.HasValue)
@@ -371,10 +369,11 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             {
                 var search = filters.Search.Trim().ToLower();
                 vendors = vendors.Where(v =>
-                    v.BusinessId.ToLower().Contains(search) ||
+                    v.BusinessAccountNumber.ToLower().Contains(search) ||
                     v.BusinessName.ToLower().Contains(search) ||
-                    v.User!.FirstName.ToLower().Contains(search) ||
-                    v.User.LastName.ToLower().Contains(search));
+                    (v.StallNumber != null && v.StallNumber.ToLower().Contains(search)) ||
+                    v.OwnerFirstName.ToLower().Contains(search) ||
+                    v.OwnerLastName.ToLower().Contains(search));
             }
 
             return vendors;
@@ -387,8 +386,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             if (filters.Status.HasValue)
                 requests = requests.Where(request => request.Status == filters.Status.Value);
 
-            if (filters.VendorType.HasValue)
-                requests = requests.Where(request => request.Type == filters.VendorType.Value);
+            if (filters.BusinessType.HasValue)
+                requests = requests.Where(request => request.Type == filters.BusinessType.Value);
 
             return requests;
         }
@@ -398,6 +397,35 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             _context.Entry(registration)
                 .Property(r => r.Version)
                 .OriginalValue = version;
+        }
+
+        public Task<List<Business>> GetBusinessesAsync(int offset, int pageSize, AdminVendorSummaryFilter filters)
+            => ApplyAdminVendorFilters(_context.Businesses.AsNoTracking(), filters)
+                .Include(business => business.MarketSection)
+                .OrderBy(business => business.BusinessAccountNumber).ThenBy(business => business.Id)
+                .Skip(offset).Take(pageSize).ToListAsync();
+
+        public Task<bool> BusinessAccountNumberExistsAsync(string accountNumber, int? excludingId)
+        {
+            var normalized = accountNumber.Trim().ToLowerInvariant();
+            return _context.Businesses.AnyAsync(business => business.Id != excludingId &&
+                business.BusinessAccountNumber.Trim().ToLower() == normalized);
+        }
+
+        public async Task SaveBusinessChangesAsync()
+        {
+            try { await _context.SaveChangesAsync(); }
+            catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+                { SqlState: PostgresErrorCodes.UniqueViolation,
+                    ConstraintName: "ix_businesses_account_number_key" or "ix_businesses_business_account_number" })
+            {
+                throw new InvalidRequestException("Business account number is already in use.");
+            }
+            catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+                { SqlState: PostgresErrorCodes.SerializationFailure })
+            {
+                throw new ConcurrencyConflictException("Business records changed during saving. Refresh and try again.");
+            }
         }
     }
 }

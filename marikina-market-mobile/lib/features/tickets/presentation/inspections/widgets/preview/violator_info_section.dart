@@ -7,9 +7,14 @@ import 'package:marikina_market_mobile/features/tickets/presentation/widgets/tic
 class ViolatorInfoSection extends StatelessWidget {
   final VendorSummary vendor;
   final bool isTicket;
+  final String? paperViolatorName, personFullName;
+  final int? personId;
 
   const ViolatorInfoSection({
     required this.vendor,
+    this.paperViolatorName,
+    this.personFullName,
+    this.personId,
     required this.isTicket,
     super.key,
   });
@@ -32,10 +37,20 @@ class ViolatorInfoSection extends StatelessWidget {
         TicketPaperField(label: "TRADE NAME:", value: vendor.tradeName),
         const SizedBox(height: AppTheme.inspectionSmallGap),
         TicketPaperField(
-          label: "NAME:",
+          label: "REGISTERED OWNER:",
           value: '${vendor.lastName}, ${vendor.firstName}',
         ),
         if (isTicket) ...[
+          TicketPaperField(
+            label: 'RECORDED VIOLATOR:',
+            value: paperViolatorName ?? 'Unconfirmed',
+          ),
+          TicketPaperField(
+            label: 'CONFIRMED PERSON:',
+            value: personId == null
+                ? 'Unconfirmed'
+                : '${personFullName ?? 'Person'} · Person $personId',
+          ),
           const SizedBox(height: AppTheme.inspectionSmallGap),
           TicketPaperField(label: "ADDRESS:", value: vendor.address),
         ],

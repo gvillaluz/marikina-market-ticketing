@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./LandingPage.module.css";
+import { useLandingMotion } from "../hooks/useLandingMotion";
 
 /* ------------------------------------------------------------------ */
 /* Shared building blocks                                              */
@@ -306,7 +307,7 @@ function AnalyticsPreview() {
         />
 
         {/* Mock dashboard card */}
-        <div className={styles.analyticsCard}>
+        <div className={styles.analyticsCard} data-landing-chart>
           {/* header bar */}
           <div className={styles.analyticsHeader}>
             <span className={styles.analyticsDot} />
@@ -329,6 +330,7 @@ function AnalyticsPreview() {
                     <div className={styles.barTrack}>
                       <div
                         className={styles.barFill}
+                        data-landing-bar
                         style={{ width: b.width }}
                       />
                     </div>
@@ -451,8 +453,9 @@ function ClosingCta() {
 }
 
 export default function LandingPage() {
+  const landingRef = useLandingMotion();
   return (
-    <div className={`route-motion ${styles.landing}`}>
+    <div className={`route-motion ${styles.landing}`} ref={landingRef}>
       <Navbar />
       <Hero />
       <Features />

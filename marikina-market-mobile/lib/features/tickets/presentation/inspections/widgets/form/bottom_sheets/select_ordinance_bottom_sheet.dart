@@ -16,11 +16,13 @@ class SelectOrdinanceBottomSheet extends StatefulWidget {
   final List<Ordinance> ordinances;
   final ValueChanged<List<Ordinance>> onChanged;
   final int? vendorId;
+  final int? personId;
   const SelectOrdinanceBottomSheet({
     required this.isWarningTicket,
     required this.ordinances,
     required this.onChanged,
     required this.vendorId,
+    this.personId,
     super.key,
   });
   @override
@@ -62,7 +64,11 @@ class _SelectOrdinanceBottomSheetState
     context.read<InspectionBloc>().add(
       widget.isWarningTicket
           ? WarningOrdinanceCheckRequested(ids, widget.vendorId!)
-          : FineSummaryRequested(ids, widget.vendorId),
+          : FineSummaryRequested(
+              ids,
+              widget.vendorId,
+              personId: widget.personId,
+            ),
     );
   }
 
@@ -88,6 +94,14 @@ class _SelectOrdinanceBottomSheetState
   ) => BlocConsumer<InspectionBloc, InspectionState>(
     listener: (context, state) {
       if (state is FineSummaryLoaded) {
+        if (state.summary.breakdownItems.any((item) => item.isDuplicate)) {
+          setState(() {
+            _confirming = false;
+            _conflictMessage =
+                'This person already has an active citation for a selected ordinance today. Change the selection and verify again.';
+          });
+          return;
+        }
         widget.onChanged(List.of(_selectedOrdinances));
         Navigator.pop(context, state.summary);
       } else if (state is WarningOrdinanceCheckLoaded) {

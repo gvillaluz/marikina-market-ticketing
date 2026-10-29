@@ -1,3 +1,5 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/person_candidate.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/person_identity_review.dart';
 // ignore_for_file: curly_braces_in_flow_control_structures
 
 import 'package:flutter/material.dart';
@@ -56,6 +58,21 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   ViolationType _selectedType = ViolationType.warning;
 
   VendorSummary? _vendorSummary;
+  PersonCandidate? _confirmedPerson;
+  String _paperName = '';
+  bool _hasOpenedReview = false;
+  int? _reviewInformation;
+  int get _currentInformation => Object.hashAll([
+    _vendorSummary?.id,
+    _confirmedPerson?.id,
+    _paperName,
+    _selectedType,
+    _ticketDescriptionController.text,
+    _communityHrsController.text,
+    _selectedPenaltyType,
+    ..._selectedOrdinances.map((item) => item.id),
+    ..._capturedEvidences.map((file) => file.path),
+  ]);
   FineSummary? _fineSummary;
 
   List<Ordinance> _selectedOrdinances = [];
@@ -136,7 +153,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     final hasText =
         _ticketDescriptionController.text.trim().isNotEmpty ||
         _communityHrsController.text.trim().isNotEmpty;
-    if (hasText != _hasTextDraft) setState(() => _hasTextDraft = hasText);
+    setState(() => _hasTextDraft = hasText);
   }
 
   Future<bool> _confirmDiscard(BuildContext context) async {
@@ -199,6 +216,14 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
       return;
     }
 
+    if (_selectedType == ViolationType.ticket && _confirmedPerson == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Confirm the violator’s person record first.'),
+        ),
+      );
+      return;
+    }
     final selectionResult = await showModalBottomSheet<Object>(
       context: context,
       enableDrag: true,
@@ -217,9 +242,10 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
           isWarningTicket: _selectedType == ViolationType.warning
               ? true
               : false,
-          ordinances: _selectedOrdinances,
+          ordinances: List.unmodifiable(_selectedOrdinances),
           onChanged: _onChangeOrdinance,
           vendorId: _vendorSummary?.id,
+          personId: _confirmedPerson?.id,
         ),
       ),
     );
@@ -271,11 +297,6 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                 ),
               )
               .toList();
-
-          _selectedOrdinances.removeWhere(
-            (o) => duplicatedSummaryIds.contains(o.id),
-          );
-          _fineSummary!.breakdownItems.removeWhere((o) => o.isDuplicate);
         }
       });
 
@@ -283,7 +304,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
         _showOrdinanceConflictBanner(
           title: 'Existing ticket ordinances',
           message:
-              'The vendor already has an open ticket for these ordinances. They were removed from this inspection.',
+              'This person already has an active citation for these ordinances today. Review the selection before verifying.',
           ordinances: duplicateOrdinances,
         );
       }
@@ -426,6 +447,17 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
   Future<void> _submit() async {
     if (_isOpeningPreview || !_validateForm()) return;
+    if (_selectedType == ViolationType.ticket &&
+        (_confirmedPerson == null || _paperName.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Review possible matches and confirm a person before continuing.',
+          ),
+        ),
+      );
+      return;
+    }
 
     final isTicket = _selectedType == ViolationType.ticket;
     int? communityHrs;
@@ -433,16 +465,23 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
       communityHrs = int.tryParse(_communityHrsController.text.trim());
     }
 
-    setState(() => _isOpeningPreview = true);
+    setState(() {
+      _isOpeningPreview = true;
+      _hasOpenedReview = true;
+      _reviewInformation = _currentInformation;
+    });
     try {
       await context.pushNamed<void>(
         Routes.newInspectionPreviewName,
         extra: InspectionFormData(
+          personId: _confirmedPerson?.id,
+          personFullName: _confirmedPerson?.fullName,
+          paperViolatorName: _paperName,
           enforcerId: widget.user.userId,
           vendorSummary: _vendorSummary!,
           fineSummary: _fineSummary,
-          ordinances: _selectedOrdinances,
-          evidences: _capturedEvidences,
+          ordinances: List.unmodifiable(_selectedOrdinances),
+          evidences: List.unmodifiable(_capturedEvidences),
           description: _ticketDescriptionController.text.trim(),
           ticketType: _selectedType,
           penaltyType: _selectedPenaltyType,
@@ -530,6 +569,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           selected: _selectedType,
                           onChange: (type) => setState(() {
                             _selectedType = type;
+                            _confirmedPerson = null;
+                            _paperName = '';
                             _selectedOrdinances = [];
                             _fineSummary = null;
                             _photoError = null;
@@ -541,6 +582,21 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
                         const SizedBox(height: 20),
 
+                        if (isTicket)
+                          PersonIdentityReview(
+                            onChanged: (person, paperName) => setState(() {
+                              _confirmedPerson = person;
+                              _paperName = paperName;
+                              _fineSummary = null;
+                              _selectedOrdinances = [];
+                            }),
+                          ),
+                        if (isTicket &&
+                            _hasOpenedReview &&
+                            _reviewInformation != _currentInformation)
+                          const Text(
+                            'Information changed. Verify again before submitting.',
+                          ),
                         TicketViolationCard(
                           onPressed: _handleOrdinanceSelect,
                           onDelete: _onDeleteFineSummary,

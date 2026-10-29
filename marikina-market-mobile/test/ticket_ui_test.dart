@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'package:marikina_market_mobile/core/network/client.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/tickets/bloc/ticket_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/violation_summary_model.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_violation_section.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -178,8 +181,8 @@ void main() {
               'status': null,
               'penalty_type': null,
               'control_number': null,
-              'vendor_type': 'Public',
-              'business_id': 'BUS-12',
+              'business_type': 'Public',
+              'business_account_number': 'BUS-12',
               'business_name': 'Market Goods',
               'first_name': 'Maria Isabel',
               'last_name': 'Dela Cruz Santos',
@@ -294,10 +297,14 @@ void main() {
   testWidgets('changing ticket status cancels pending search debounce', (
     tester,
   ) async {
-    var calls = 0;
+    tester.view.physicalSize = const Size(800, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final requests = <RequestOptions>[];
     final client = contractClient((options) async {
-      calls++;
-      return reply(options, {'items': [], 'has_more': false});
+      requests.add(options);
+      return reply(options, {'items': [], 'has_more': false, 'total': 0});
     });
     addTearDown(client.dio.close);
     final bloc = refreshBloc(client);
@@ -312,30 +319,42 @@ void main() {
       ),
     );
     await tester.enterText(find.byType(TextField), 'Market');
-    await tester.tap(find.widgetWithText(ChoiceChip, TicketStatus.paid.value));
-    await tester.pump(const Duration(milliseconds: 450));
+    await tester.tap(find.byTooltip('Filter by ticket status'));
+    await tester.pump();
+    Focus.of(
+      tester.element(find.text(TicketStatus.paid.label).last),
+    ).requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump(const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
-    expect(calls, 1);
+    expect(requests, hasLength(1));
+    expect(requests.single.queryParameters['status'], 'Paid');
+    expect(requests.single.queryParameters['search'], 'Market');
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });
   testWidgets('detail load failure stays on screen with retry', (tester) async {
     var calls = 0;
-    final client = contractClient((options) async {
-      calls++;
-      throw DioException(
-        requestOptions: options,
-        type: DioExceptionType.connectionError,
-      );
-    });
-    addTearDown(client.dio.close);
-    final bloc = refreshBloc(client);
-    addTearDown(bloc.close);
+    late ApiClient client;
+    late TicketBloc bloc;
     await tester.runAsync(() async {
-      final failed = bloc.stream.firstWhere((state) => state is TicketError);
+      client = contractClient((options) async {
+        calls++;
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+        );
+      });
+      bloc = refreshBloc(client);
+      final failed = bloc.stream
+          .firstWhere((state) => state is TicketError)
+          .timeout(const Duration(seconds: 5));
       bloc.add(LoadTicketDetail(42));
       await failed;
     });
+    addTearDown(client.dio.close);
+    addTearDown(bloc.close);
     await tester.pumpWidget(
       BlocProvider.value(
         value: bloc,
@@ -347,6 +366,8 @@ void main() {
     );
     expect(find.text('Unable to load ticket details'), findsOneWidget);
     await tester.tap(find.text('Try again'));
+    await tester.pump();
+    await tester.runAsync(() => pumpEventQueue());
     await tester.pumpAndSettle();
     expect(calls, 2);
     expect(find.text('Unable to load ticket details'), findsOneWidget);
@@ -358,20 +379,27 @@ void main() {
     () async {
       var calls = 0;
       final started = Completer<RequestOptions>();
-      final pending = Completer<Response<Object?>>();
+      final pending = Completer<void>();
       final client = contractClient((options) async {
         if (++calls == 1) {
           return reply(options, {'items': [], 'has_more': false});
         }
         started.complete(options);
-        return pending.future;
+        await pending.future;
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+        );
       });
       addTearDown(client.dio.close);
       final bloc = refreshBloc(client);
       addTearDown(bloc.close);
+      addTearDown(() {
+        if (!pending.isCompleted) pending.complete();
+      });
       await loadFirstPage(bloc);
       bloc.add(LoadTicketSummary());
-      final options = await started.future;
+      await started.future.timeout(const Duration(seconds: 5));
       bloc.add(LoadTicketSummary());
       await Future<void>.delayed(Duration.zero);
       expect(calls, 2);
@@ -381,13 +409,8 @@ void main() {
             !state.isRefreshing &&
             state.errorMessage != null,
       );
-      pending.completeError(
-        DioException(
-          requestOptions: options,
-          type: DioExceptionType.connectionError,
-        ),
-      );
-      await finished;
+      pending.complete();
+      await finished.timeout(const Duration(seconds: 5));
       expect((bloc.state as TicketsLoaded).ticketSummary, isEmpty);
     },
   );

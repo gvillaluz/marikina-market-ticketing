@@ -12,6 +12,10 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
                 .HasConversion<string>();
 
             builder.HasIndex(x => new { x.VendorId, x.Categories, x.IssuedAt });
+            builder.Property(x => x.PaperViolatorName).HasMaxLength(200);
+            builder.HasIndex(x => new { x.PersonId, x.IssuedAt });
+            builder.HasOne(x => x.Person).WithMany().HasForeignKey(x => x.PersonId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(x => x.ControlNumber)
                 .IsUnique();

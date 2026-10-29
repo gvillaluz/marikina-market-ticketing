@@ -1,0 +1,37 @@
+.registry {
+  min-width: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+.toolbar, .footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+}
+.search {
+  display: grid;
+  flex: 1 1 100%;
+  gap: var(--space-sm);
+  font-size: var(--form-font-body);
+  color: var(--text-heading);
+}
+.message {
+  padding: var(--space-lg);
+  color: var(--danger);
+}
+.footer {
+  font-size: var(--form-font-body);
+  color: var(--text-body);
+}
+.registry td {
+  overflow-wrap: anywhere;
+}
+.registry button { min-height: var(--form-control-height); box-shadow: none; }
+.registry table.table { min-width: 0; }
+@media (min-width: 640px) {
+  .search { flex: 0 1 24rem; }
+}
