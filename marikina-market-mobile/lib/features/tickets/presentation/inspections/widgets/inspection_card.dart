@@ -31,7 +31,7 @@ class InspectionCard extends StatelessWidget {
       if (stall != null && stall.trim().isNotEmpty) stall,
       ticketSummary.ticketType == ViolationType.ticket
           ? (ticketSummary.paperViolatorName ?? 'Unconfirmed (legacy record)')
-          : 'Registered owner: ${ticketSummary.vendorLastName}, ${ticketSummary.vendorFirstName}',
+          : 'Confirmed person: ${ticketSummary.personFullName ?? 'Unconfirmed (legacy record)'}',
     ].join(' • ');
     return Material(
       color: colors.surface,

@@ -177,13 +177,14 @@ class ViolationDetailsSection extends StatelessWidget {
           children: [
             TicketPaperField(
               label: 'DATE & TIME:',
-              value: DateTimeFormatter.getDateTime(DateTime.now()),
+              value: isTicket
+                  ? DateTimeFormatter.getDateTime(DateTime.now())
+                  : 'Assigned when saved',
             ),
-            if (isTicket)
-              TicketPaperField(
-                label: 'ISSUE PLACE:',
-                value: issuePlace ?? 'Unavailable (legacy record)',
-              ),
+            TicketPaperField(
+              label: 'ISSUE PLACE:',
+              value: issuePlace ?? 'Unavailable (legacy record)',
+            ),
             TicketPaperField(
               label: isTicket ? 'MARKET SECTION:' : 'LOCATION:',
               value: marketSection,

@@ -31,6 +31,36 @@ class SaveInspectionTicketUseCase
       return Result.failure(ValidationFailure('Description is required.'));
     }
 
+    if (params.ticketType == ViolationType.warning) {
+      if (params.personId == null ||
+          params.personId! <= 0 ||
+          params.vendorId <= 0) {
+        return Result.failure(
+          ValidationFailure(
+            'Confirm the person and business for this warning.',
+          ),
+        );
+      }
+      if (params.issuePlace == null ||
+          params.issuePlace!.trim().isEmpty ||
+          params.issuePlace!.trim().length > 500 ||
+          params.description.length > 1000) {
+        return Result.failure(
+          ValidationFailure(
+            'Enter the warning description and actual issue place.',
+          ),
+        );
+      }
+      if (params.paperTicketPhoto == null ||
+          (params.evidences?.isNotEmpty ?? false)) {
+        return Result.failure(
+          ValidationFailure(
+            'Warnings require one paper photo and no supporting evidence.',
+          ),
+        );
+      }
+    }
+
     if (params.ticketType == ViolationType.ticket) {
       if (params.paperReference == null ||
           params.paperReference!.trim().isEmpty ||

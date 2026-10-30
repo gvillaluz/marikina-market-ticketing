@@ -342,6 +342,7 @@ void main() {
                   ],
                   onChanged: (_) => fail('Failed confirmation must not commit'),
                   vendorId: 42,
+                  personId: 31,
                 ),
               ),
             ),
@@ -360,6 +361,7 @@ void main() {
       expect(request.isCompleted, isTrue);
       final options = await request.future;
       expect(options.path, '/enforcer/tickets/warning-check');
+      expect(options.data['person_id'], 31);
       expect(checks, 1);
       expect(
         tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,

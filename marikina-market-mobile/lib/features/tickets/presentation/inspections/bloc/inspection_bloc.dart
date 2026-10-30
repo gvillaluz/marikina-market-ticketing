@@ -381,6 +381,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     final result = await checkWarningOrdinancesUseCase(
       event.ordinanceIds,
       event.vendorId,
+      personId: event.personId,
     );
 
     if (emit.isDone) return;

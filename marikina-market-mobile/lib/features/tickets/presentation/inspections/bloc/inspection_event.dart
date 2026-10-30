@@ -42,7 +42,12 @@ class WarningOrdinanceCheckRequested extends InspectionEvent {
   final List<int> ordinanceIds;
   final int vendorId;
 
-  WarningOrdinanceCheckRequested(this.ordinanceIds, this.vendorId);
+  final int? personId;
+  WarningOrdinanceCheckRequested(
+    this.ordinanceIds,
+    this.vendorId, {
+    this.personId,
+  });
 }
 
 class NewTicketSubmitted extends InspectionEvent {

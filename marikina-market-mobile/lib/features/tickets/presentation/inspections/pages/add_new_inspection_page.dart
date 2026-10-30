@@ -154,12 +154,10 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   }
 
   bool get _isFormEmpty {
-    final isTicket = _selectedType == ViolationType.ticket;
     final hasVendorOrOrdinances =
         _vendorSummary != null || _selectedOrdinances.isNotEmpty;
     final hasEvidences =
-        isTicket &&
-        (_paperTicketPhoto != null || _capturedEvidences.isNotEmpty);
+        _paperTicketPhoto != null || _capturedEvidences.isNotEmpty;
     return !hasVendorOrOrdinances && !hasEvidences && !_hasTextDraft;
   }
 
@@ -232,7 +230,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
       return;
     }
 
-    if (_selectedType == ViolationType.ticket && _confirmedPerson == null) {
+    if (_confirmedPerson == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Confirm the violator’s person record first.'),
@@ -440,9 +438,10 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
           : null;
 
       _photoError =
-          (isTicket &&
-              (_paperTicketPhoto == null || _capturedEvidences.isEmpty))
-          ? 'One paper ticket photo and at least one supporting photo are required for tickets.'
+          _paperTicketPhoto == null || (isTicket && _capturedEvidences.isEmpty)
+          ? (isTicket
+                ? 'One paper ticket photo and at least one supporting photo are required for tickets.'
+                : 'One paper warning photo is required.')
           : null;
 
       if (isTicket && _selectedPenaltyType == PenaltyType.communityService) {
@@ -465,8 +464,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
   Future<void> _submit() async {
     if (_isOpeningPreview || !_validateForm()) return;
-    if (_selectedType == ViolationType.ticket &&
-        (_confirmedPerson == null || _paperName.isEmpty)) {
+    if (_confirmedPerson == null ||
+        (_selectedType == ViolationType.ticket && _paperName.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -498,14 +497,14 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
           paperReference: _selectedType == ViolationType.ticket
               ? _paperReferenceController.text.trim()
               : null,
-          issuePlace: _selectedType == ViolationType.ticket
-              ? _issuePlaceController.text.trim()
-              : null,
+          issuePlace: _issuePlaceController.text.trim(),
           enforcerId: widget.user.userId,
           vendorSummary: _vendorSummary!,
           fineSummary: _fineSummary,
           ordinances: List.unmodifiable(_selectedOrdinances),
-          evidences: List.unmodifiable(_capturedEvidences),
+          evidences: isTicket
+              ? List.unmodifiable(_capturedEvidences)
+              : const [],
           paperTicketPhoto: _paperTicketPhoto,
           description: _ticketDescriptionController.text.trim(),
           ticketType: _selectedType,
@@ -612,15 +611,30 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                             referenceController: _paperReferenceController,
                             placeController: _issuePlaceController,
                           ),
-                        if (isTicket)
-                          PersonIdentityReview(
-                            onChanged: (person, paperName) => setState(() {
-                              _confirmedPerson = person;
-                              _paperName = paperName;
-                              _fineSummary = null;
-                              _selectedOrdinances = [];
-                            }),
+                        if (!isTicket) ...[
+                          const Text('ISSUE PLACE'),
+                          TextFormField(
+                            key: const ValueKey('warning-issue-place'),
+                            controller: _issuePlaceController,
+                            maxLength: 500,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) =>
+                                value == null || value.trim().isEmpty
+                                ? 'Enter where the warning was issued.'
+                                : null,
                           ),
+                          const SizedBox(height: AppTheme.inspectionSmallGap),
+                        ],
+                        PersonIdentityReview(
+                          onChanged: (person, paperName) => setState(() {
+                            _confirmedPerson = person;
+                            _paperName = paperName;
+                            _fineSummary = null;
+                            _selectedOrdinances = [];
+                          }),
+                        ),
                         if (isTicket &&
                             _hasOpenedReview &&
                             _reviewInformation != _currentInformation)
@@ -677,9 +691,13 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           ),
                         ),
 
-                        if (isTicket) ...[
+                        ...[
                           const SizedBox(height: 20),
-                          const Text('Paper ticket photo'),
+                          Text(
+                            isTicket
+                                ? 'Paper ticket photo'
+                                : 'Paper warning photo',
+                          ),
                           const SizedBox(height: 5),
 
                           AddPhotoEvidenceBtn(
@@ -694,18 +712,24 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                                 setState(() => _paperTicketPhoto = null),
                             isInvalid: _photoError != null,
                             buttonLabel: _paperTicketPhoto == null
-                                ? 'Take paper ticket photo'
-                                : 'Replace paper ticket photo',
+                                ? (isTicket
+                                      ? 'Take paper ticket photo'
+                                      : 'Take paper warning photo')
+                                : (isTicket
+                                      ? 'Replace paper ticket photo'
+                                      : 'Replace paper warning photo'),
                           ),
-                          const SizedBox(height: AppTheme.inspectionSmallGap),
-                          const Text('Supporting evidence'),
-                          AddPhotoEvidenceBtn(
-                            buttonLabel: 'Add supporting photo',
-                            photos: _capturedEvidences,
-                            onPhotoAdded: (photo) => addEvidence(photo),
-                            onPhotoRemoved: (index) => removeEvidence(index),
-                            isInvalid: _photoError != null,
-                          ),
+                          if (isTicket) ...[
+                            const SizedBox(height: AppTheme.inspectionSmallGap),
+                            const Text('Supporting evidence'),
+                            AddPhotoEvidenceBtn(
+                              buttonLabel: 'Add supporting photo',
+                              photos: _capturedEvidences,
+                              onPhotoAdded: (photo) => addEvidence(photo),
+                              onPhotoRemoved: (index) => removeEvidence(index),
+                              isInvalid: _photoError != null,
+                            ),
+                          ],
 
                           if (_photoError != null) ...[
                             const SizedBox(height: 4),

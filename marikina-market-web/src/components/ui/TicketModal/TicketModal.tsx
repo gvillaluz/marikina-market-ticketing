@@ -116,13 +116,13 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
 
                 <TicketSignatureSection
                   enforcerName={`${ticket?.enforcerLastName}, ${ticket?.enforcerFirstName}`}
-                  vendorName={`${ticket?.lastName}, ${ticket?.firstName}`}
+                  vendorName={isTicket ? `${ticket?.lastName}, ${ticket?.firstName}` : (ticket?.personFullName || "Unconfirmed (legacy record)")}
                 />
               </>
             )}
           </div>
 
-          {!isLoading && !isError && isTicket && (
+          {!isLoading && !isError && ticket && (isTicket || (ticket.ticketEvidences?.length ?? 0) > 0) && (
             <TicketPhotoEvidenceSection
               evidenceItems={ticket?.evidenceItems}
               isTicket={ticket?.type === "Ticket"}

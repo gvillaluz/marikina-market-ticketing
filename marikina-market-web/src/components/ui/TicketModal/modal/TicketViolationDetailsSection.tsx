@@ -20,19 +20,26 @@ function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail }) {
           <TicketInfoRow label="PAPER REFERENCE" value={detail.paperReference || "Unavailable (legacy record)"} />
           <TicketInfoRow label="ISSUE PLACE" value={detail.issuePlace || "Unavailable (legacy record)"} />
         </>}
+        {detail?.type === "Warning" && <>
+          <TicketInfoRow label="WARNING REFERENCE" value={detail.controlNumber || "Unavailable (legacy record)"} />
+          <TicketInfoRow label="ISSUE PLACE" value={detail.issuePlace || "Unavailable (legacy record)"} />
+        </>}
         <div className={styles.ordinanceList}>
           {detail?.violations.map((violation, i) => (
-            <OrdinanceCard
-              key={i}
-              title={`Ord No. ${violation.ordinanceNo}, Series of ${violation.series}`}
-              subtitle={violation.ordinanceCode}
-              offense={formatOrdinal(violation.offenseCount)}
-              price={
-                violation.penaltyAmount
-                  ? formatCurrency(violation.penaltyAmount)
-                  : undefined
-              }
-            />
+            detail.type === "Warning" ? <TicketInfoRow key={i}
+              label={`Ord No. ${violation.ordinanceNo}, Series of ${violation.series}`}
+              value={violation.ordinanceCode} /> :
+              <OrdinanceCard
+                key={i}
+                title={`Ord No. ${violation.ordinanceNo}, Series of ${violation.series}`}
+                subtitle={violation.ordinanceCode}
+                offense={formatOrdinal(violation.offenseCount)}
+                price={
+                  detail.type === "Ticket" && violation.penaltyAmount
+                    ? formatCurrency(violation.penaltyAmount)
+                    : undefined
+                }
+              />
           ))}
         </div>
 

@@ -305,11 +305,38 @@ namespace MarikinaMarket.API.Application.Services
             return BuildFineSummary(ordinanceWithTiers, false, duplicateOrdinances);
         }
 
-        public async Task<List<WarningOrdinance>> GetWarningOrdinancesForVendorAsync(
+        public async Task<List<WarningOrdinance>> GetWarningOrdinancesForPersonAsync(
             List<int> ordinanceIds,
-            int vendorId)
+            int vendorId, int personId)
         {
-            return await _ticketRepository.GetWarningOrdinancesForVendor(vendorId, ordinanceIds);
+            await RequirePersonAsync(personId);
+            if (await _vendorRepository.GetByIdAsync(vendorId) is null)
+                throw new RecordNotFoundException("Business not found.");
+            await GetWarningOrdinanceAsync(ordinanceIds, personId);
+            await CheckWarningCitationConflictAsync(personId, ordinanceIds);
+            return await _ticketRepository.GetWarningOrdinancesForPerson(personId, ordinanceIds);
+        }
+
+        private async Task<List<OrdinanceOffenseSummary>> GetWarningOrdinanceAsync(List<int> ordinanceIds, int personId)
+        {
+            ValidateOrdinanceIds(ordinanceIds);
+            if (ordinanceIds.Count != 1)
+                throw new ValidationException("Select exactly one minor ordinance for a warning.");
+            var ordinances = await _ordinanceRepository.GetByPersonIdsAsync(ordinanceIds, personId);
+            ValidateOrdinanceConfiguration(ordinances, ordinanceIds);
+            var tiers = ordinances[0].PenaltyTiers;
+            var baseTier = tiers.FirstOrDefault(t => t.OffenseNumber == 1)
+                ?? tiers.OrderBy(t => t.OffenseNumber).First();
+            if (baseTier.Severity != Severity.Minor)
+                throw new ValidationException("Warnings require a minor ordinance.");
+            return ordinances;
+        }
+
+        private async Task CheckWarningCitationConflictAsync(int personId, List<int> ordinanceIds)
+        {
+            var conflicts = await _ticketRepository.GetPersonPendingWarningConflictsAsync(personId, ordinanceIds, DateTime.UtcNow);
+            if (conflicts.Any())
+                throw new DuplicateOrdinanceException("This person has a pending citation for this ordinance on the same Manila calendar day.", conflicts);
         }
 
         private static FineSummaryResponse BuildFineSummary(
@@ -381,6 +408,20 @@ namespace MarikinaMarket.API.Application.Services
             Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
             if (request.EnforcerId <= 0 || !Enum.IsDefined(request.Type) || !Enum.IsDefined(request.PenaltyType))
                 throw new ValidationException("A valid enforcer, inspection type and penalty type are required.");
+            if (request.Type == ViolationType.Warning)
+            {
+                request.IssuePlace = request.IssuePlace?.Trim();
+                if (string.IsNullOrWhiteSpace(request.IssuePlace) || request.IssuePlace.Length > 500
+                    || string.IsNullOrWhiteSpace(request.Description) || request.Description.Length > 1000)
+                    throw new ValidationException("Enter the warning description (up to 1000 characters) and issue place (up to 500 characters).");
+                if (request.PaperTicketPhoto is null || request.PaperTicketPhoto.Count != 1
+                    || request.SupportingEvidenceFiles?.Count > 0 || request.TicketEvidenceFiles?.Count > 0)
+                    throw new InvalidRequestException("Warnings require exactly one paper photo and no supporting evidence.");
+                await ValidateTicketEvidenceAsync(request.PaperTicketPhoto[0]);
+                ValidateOrdinanceIds(request.Ordinances);
+                if (request.Ordinances.Count != 1)
+                    throw new ValidationException("Select exactly one minor ordinance for a warning.");
+            }
             if (request.Type == ViolationType.Ticket)
             {
                 await ValidatePaperMetadataAsync(request.PaperReference, request.IssuePlace);
@@ -405,6 +446,12 @@ namespace MarikinaMarket.API.Application.Services
                     throw new ValidationException("Confirm a person and enter the reviewed paper violator name.");
                 person = await RequirePersonAsync(request.PersonId.Value);
             }
+            else
+            {
+                if (request.PersonId is null or <= 0)
+                    throw new ValidationException("Confirm the person receiving the warning.");
+                person = await RequirePersonAsync(request.PersonId.Value);
+            }
             await _unitOfWork.BeginTransactionAsync();
             var transactionCommitted = false;
 
@@ -417,7 +464,7 @@ namespace MarikinaMarket.API.Application.Services
 
                 var duplicateOrdinances = request.Type == ViolationType.Ticket
                     ? await _ticketRepository.GetPersonDuplicatesAsync(person!.Id, request.Ordinances, DateTime.UtcNow)
-                    : await _ticketRepository.GetDuplicatedTickets(vendor.Id, request.Ordinances);
+                    : new List<DuplicateOrdinance>();
                 if (request.Type == ViolationType.Ticket && duplicateOrdinances.Any())
                     throw new DuplicateOrdinanceException("This person already has an active citation for a selected ordinance today. Review and verify again.", duplicateOrdinances);
 
@@ -438,7 +485,7 @@ namespace MarikinaMarket.API.Application.Services
                 ValidateOrdinanceIds(request.Ordinances);
                 var ordinanceWithTiers = request.Type == ViolationType.Ticket
                     ? await _ordinanceRepository.GetByPersonIdsAsync(request.Ordinances, person!.Id)
-                    : await _ordinanceRepository.GetByIdsAsync(request.Ordinances, request.VendorId);
+                    : await GetWarningOrdinanceAsync(request.Ordinances, person!.Id);
                 if (request.Type == ViolationType.Ticket) ValidateOrdinanceConfiguration(ordinanceWithTiers, request.Ordinances);
 
                 var ordinanceFineSummary = BuildFineSummary(
@@ -448,17 +495,24 @@ namespace MarikinaMarket.API.Application.Services
 
                 if (request.Type == ViolationType.Warning)
                 {
-                    var warnedOrdinances = await GetWarningOrdinancesForVendorAsync(request.Ordinances, vendor.Id);
+                    await CheckWarningCitationConflictAsync(person!.Id, request.Ordinances);
+                    var warnedOrdinances = await _ticketRepository.GetWarningOrdinancesForPerson(person.Id, request.Ordinances);
 
                     if (warnedOrdinances.Any())
                     {
-                        throw new DuplicateWarningException("A warning has already been issued for one or more selected ordinances. Only one warning per ordinance is allowed.");
+                        throw new DuplicateWarningException("This person has already received a warning for this ordinance. Only one lifetime warning per person and ordinance is allowed.");
                     }
+
+                    var paper = request.PaperTicketPhoto[0];
+                    var paperKey = GenerateFileKey(paper);
+                    await _storageService.UploadEvidencesAsync(new Dictionary<IFormFile, string> { [paper] = paperKey });
 
                     var warningTicket = new Ticket
                     {
                         ControlNumber = null,
                         VendorId = vendor.Id,
+                        PersonId = person.Id,
+                        IssuePlace = request.IssuePlace,
                         MarketSectionId = vendor.MarketSectionId,
                         EnforcerId = request.EnforcerId,
                         Type = request.Type,
@@ -479,7 +533,7 @@ namespace MarikinaMarket.API.Application.Services
                                                 OffenseCount = o.OffenseNumber,
                                                 PenaltyAmount = null
                                             }).ToList(),
-                        TicketEvidences = []
+                        TicketEvidences = [new TicketEvidence { FileKey = paperKey, Role = TicketEvidenceRole.PaperTicket, SortOrder = 0 }]
                     };
 
                     var newWarningTicket = await _ticketRepository.AddTicketAsync(warningTicket);
@@ -539,6 +593,9 @@ namespace MarikinaMarket.API.Application.Services
                         Id = newWarningTicket.Id,
                         ControlNumber = newWarningTicket!.ControlNumber!,
                         VendorId = newWarningTicket.VendorId,
+                        PersonId = person.Id, PersonFullName = person.FullName,
+                        IssuePlace = newWarningTicket.IssuePlace,
+                        RegisteredOwnerName = $"{vendor.FirstName} {vendor.LastName}".Trim(),
                         LastName = vendor.LastName,
                         FirstName = vendor.FirstName,
                         MarketSectionId = newWarningTicket.MarketSectionId,
@@ -704,6 +761,14 @@ namespace MarikinaMarket.API.Application.Services
                     DuplicateOrdinances = duplicateOrdinances,
                     WarningMessageForDuplicates = $"{duplicateOrdinances.Count} ordinance(s) were excluded as active tickets already exist."
                 };
+            }
+            catch (Exception exception) when (request.Type == ViolationType.Warning &&
+                (exception is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure }
+                or DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.SerializationFailure } }
+                or InvalidOperationException { InnerException: DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.SerializationFailure } } }))
+            {
+                if (!transactionCommitted) await _unitOfWork.RollbackAsync();
+                throw new ConcurrencyConflictException("Another request changed this person's warning history. Check saved warnings before submitting again.");
             }
             catch (Exception exception) when (request.Type == ViolationType.Ticket &&
                 (exception is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_tickets_paper_reference" }

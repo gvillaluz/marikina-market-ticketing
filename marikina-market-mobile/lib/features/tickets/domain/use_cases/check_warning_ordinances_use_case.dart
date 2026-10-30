@@ -10,11 +10,14 @@ class CheckWarningOrdinancesUseCase {
 
   Future<Result<List<WarningOrdinance>>> call(
     List<int> ordinanceIds,
-    int vendorId,
-  ) {
-    if (ordinanceIds.isEmpty || ordinanceIds.any((id) => id <= 0)) {
+    int vendorId, {
+    int? personId,
+  }) {
+    if (ordinanceIds.length != 1 || ordinanceIds.any((id) => id <= 0)) {
       return Future.value(
-        Result.failure(ValidationFailure('Select at least one ordinance.')),
+        Result.failure(
+          ValidationFailure('Select exactly one minor ordinance.'),
+        ),
       );
     }
     if (vendorId <= 0) {
@@ -22,6 +25,17 @@ class CheckWarningOrdinancesUseCase {
         Result.failure(ValidationFailure('Vendor must be valid.')),
       );
     }
-    return _repository.checkWarningOrdinances(ordinanceIds, vendorId);
+    if (personId == null || personId <= 0) {
+      return Future.value(
+        Result.failure(
+          ValidationFailure('Confirm the person receiving the warning.'),
+        ),
+      );
+    }
+    return _repository.checkWarningOrdinances(
+      ordinanceIds,
+      vendorId,
+      personId: personId,
+    );
   }
 }

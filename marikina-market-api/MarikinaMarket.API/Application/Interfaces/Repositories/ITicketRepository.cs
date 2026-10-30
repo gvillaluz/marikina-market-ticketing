@@ -31,7 +31,8 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task<TicketDetailResponse?> GetVendorTicketDetailAsync(int ticketId, int userId);
         Task<int> GetNewControlNumber();
         Task<bool> PaperReferenceExistsAsync(string paperReference);
-        Task<List<WarningOrdinance>> GetWarningOrdinancesForVendor(int vendorId, List<int> ordinanceIds);
+        Task<List<WarningOrdinance>> GetWarningOrdinancesForPerson(int personId, List<int> ordinanceIds);
+        Task<List<DuplicateOrdinance>> GetPersonPendingWarningConflictsAsync(int personId, List<int> ordinanceIds, DateTime nowUtc);
         Task<List<DuplicateOrdinance>> GetDuplicatedTickets(int vendorId, List<int> ordinanceIds);
         Task<List<DuplicateOrdinance>> GetPersonDuplicatesAsync(int personId, List<int> ordinanceIds, DateTime nowUtc);
         Task<(List<PersonTicketHistoryResponse> Items, int Total)> GetPersonHistoryAsync(int personId, int offset, int limit);

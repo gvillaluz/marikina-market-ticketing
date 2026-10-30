@@ -166,6 +166,10 @@ class TicketDetailContent extends StatelessWidget {
             color: AppColors.mediumGrey,
           ),
         ),
+        if (!isTicket)
+          Text(
+            'WARNING REFERENCE: ${ticket.controlNumber ?? 'Unavailable (legacy record)'}',
+          ),
         if (isTicket && ticket.ticketStatus != null) ...[
           const SizedBox(height: AppTheme.ticketSmallGap),
           TicketStatusBadge(status: ticket.ticketStatus!),
@@ -214,6 +218,7 @@ class TicketDetailContent extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 20, right: 20),
                 child: TicketViolationSection(
                   issuePlace: ticket.issuePlace,
+                  issuedAt: ticket.issuedAt,
                   penaltyType: ticket.penaltyType,
                   violations: ticket.violations,
                   description: ticket.description,
@@ -293,11 +298,11 @@ class TicketDetailContent extends StatelessWidget {
           ),
         ),
 
-        if (isTicket) ...[
+        if (isTicket || (ticket.evidenceUrls?.isNotEmpty ?? false)) ...[
           const SizedBox(height: AppTheme.ticketSmallGap),
 
-          const Text(
-            'Photo Evidence Record',
+          Text(
+            isTicket ? 'Photo Evidence Record' : 'Paper warning photo',
             style: TextStyle(
               color: AppColors.primary,
               fontSize: AppTheme.sectionHeadingFontSize,

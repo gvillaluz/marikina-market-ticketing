@@ -170,12 +170,12 @@ namespace MarikinaMarket.API.Presentation.Controllers
             if (request.OrdinanceIds is null
                 || !request.OrdinanceIds.Any()
                 || request.OrdinanceIds.Any(id => id <= 0)
-                || request.VendorId <= 0)
-                return BadRequest("Ordinance and vendor must not be empty.");
+                || request.VendorId <= 0 || request.PersonId is null or <= 0)
+                return BadRequest("Confirm a person, business and ordinance for the warning.");
 
-            return Ok(await _service.GetWarningOrdinancesForVendorAsync(
+            return Ok(await _service.GetWarningOrdinancesForPersonAsync(
                 request.OrdinanceIds,
-                request.VendorId));
+                request.VendorId, request.PersonId.Value));
         }
     }
 }

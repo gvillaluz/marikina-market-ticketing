@@ -80,11 +80,12 @@ class ViolatorInfoSection extends StatelessWidget {
             value: '${vendor.lastName}, ${vendor.firstName}',
           ),
         ],
-        if (isTicket) ...[
-          TicketPaperField(
-            label: 'RECORDED VIOLATOR:',
-            value: paperViolatorName ?? 'Unconfirmed',
-          ),
+        ...[
+          if (isTicket)
+            TicketPaperField(
+              label: 'RECORDED VIOLATOR:',
+              value: paperViolatorName ?? 'Unconfirmed',
+            ),
           TicketPaperField(
             label: 'CONFIRMED PERSON:',
             value: personId == null
@@ -92,7 +93,7 @@ class ViolatorInfoSection extends StatelessWidget {
                 : '${personFullName ?? 'Person'} · Person $personId',
           ),
           const SizedBox(height: AppTheme.inspectionSmallGap),
-          if (businessSnapshot == null)
+          if (isTicket && businessSnapshot == null)
             TicketPaperField(label: "ADDRESS:", value: vendor.address),
         ],
       ],

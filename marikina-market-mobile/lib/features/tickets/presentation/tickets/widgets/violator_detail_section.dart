@@ -80,11 +80,12 @@ class ViolatorDetailSection extends StatelessWidget {
             value: '${ticket.lastName}, ${ticket.firstName}',
           ),
         ],
-        if (isTicket) ...[
-          TicketPaperField(
-            label: 'RECORDED VIOLATOR:',
-            value: ticket.paperViolatorName ?? 'Unconfirmed (legacy record)',
-          ),
+        ...[
+          if (isTicket)
+            TicketPaperField(
+              label: 'RECORDED VIOLATOR:',
+              value: ticket.paperViolatorName ?? 'Unconfirmed (legacy record)',
+            ),
           TicketPaperField(
             label: 'CONFIRMED PERSON:',
             value: ticket.personId == null

@@ -3,7 +3,9 @@ import styles from "./TicketPhotoEvidenceSection.module.css";
 import type { TicketEvidenceItem } from "@/api/types/ticket.types";
 
 function TicketPhotoEvidenceSection({ images, evidenceItems = [], isTicket = true }: { images: string[]; evidenceItems?: TicketEvidenceItem[]; isTicket?: boolean }) {
-  const groups = !isTicket ? [{ label: "Photo evidence", images }]
+  const groups = !isTicket ? evidenceItems.length === 0
+    ? [{ label: "Unclassified evidence", images }]
+    : [{ label: "Paper warning photo", images: evidenceItems.filter(item => item.role === "PaperTicket").map(item => item.url) }]
     : evidenceItems.length === 0 ? [{ label: "Unclassified evidence", images }]
       : (["PaperTicket", "Supporting", null] as const).map(role => ({
         label: role === "PaperTicket" ? "Paper ticket photo" : role === "Supporting" ? "Supporting evidence" : "Unclassified evidence",

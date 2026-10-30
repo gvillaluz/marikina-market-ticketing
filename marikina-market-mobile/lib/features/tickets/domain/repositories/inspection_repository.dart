@@ -49,8 +49,9 @@ abstract class InspectionRepository {
   });
   Future<Result<List<WarningOrdinance>>> checkWarningOrdinances(
     List<int> ordinanceIds,
-    int vendorId,
-  );
+    int vendorId, {
+    int? personId,
+  });
   Future<Result<SaveInspectionResult>> saveNewInspection(
     SaveInspectionParams params,
   );

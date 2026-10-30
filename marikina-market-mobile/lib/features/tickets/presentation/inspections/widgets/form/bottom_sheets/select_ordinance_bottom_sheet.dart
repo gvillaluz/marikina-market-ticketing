@@ -63,7 +63,11 @@ class _SelectOrdinanceBottomSheetState
     final ids = _selectedOrdinances.map((ordinance) => ordinance.id).toList();
     context.read<InspectionBloc>().add(
       widget.isWarningTicket
-          ? WarningOrdinanceCheckRequested(ids, widget.vendorId!)
+          ? WarningOrdinanceCheckRequested(
+              ids,
+              widget.vendorId!,
+              personId: widget.personId,
+            )
           : FineSummaryRequested(
               ids,
               widget.vendorId,
@@ -105,14 +109,16 @@ class _SelectOrdinanceBottomSheetState
         widget.onChanged(List.of(_selectedOrdinances));
         Navigator.pop(context, state.summary);
       } else if (state is WarningOrdinanceCheckLoaded) {
-        final warningIds = state.ordinances
-            .map((ordinance) => ordinance.ordinanceId)
-            .toSet();
-        _selectedOrdinances.removeWhere(
-          (ordinance) => warningIds.contains(ordinance.id),
-        );
+        if (state.ordinances.isNotEmpty) {
+          setState(() {
+            _confirming = false;
+            _conflictMessage =
+                'This person has already received a lifetime warning for this ordinance. Change the selection.';
+          });
+          return;
+        }
         widget.onChanged(List.of(_selectedOrdinances));
-        Navigator.pop(context, state.ordinances);
+        Navigator.pop(context);
       } else if (state is FineSummaryError ||
           state is FineSummaryNetworkError ||
           state is WarningOrdinanceCheckError) {

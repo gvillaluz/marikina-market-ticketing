@@ -54,8 +54,9 @@ abstract class InspectionRemoteDataSource {
   });
   Future<List<WarningOrdinanceModel>> checkWarningOrdinances(
     List<int> ordinanceIds,
-    int vendorId,
-  );
+    int vendorId, {
+    int? personId,
+  });
   Future<SaveInspectionResultModel> saveInspection(SaveInspectionParams params);
 }
 
@@ -224,12 +225,17 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
   @override
   Future<List<WarningOrdinanceModel>> checkWarningOrdinances(
     List<int> ordinanceIds,
-    int vendorId,
-  ) async {
+    int vendorId, {
+    int? personId,
+  }) async {
     try {
       final response = await apiClient.post(
         '/enforcer/tickets/warning-check',
-        data: {'ordinance_ids': ordinanceIds, 'vendor_id': vendorId},
+        data: {
+          'ordinance_ids': ordinanceIds,
+          'vendor_id': vendorId,
+          'person_id': personId,
+        },
       );
       final data = response.data as List<dynamic>;
       return data
@@ -239,7 +245,9 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
           )
           .toList();
     } on DioException catch (e) {
-      if (e.response?.statusCode == 400) {
+      if (e.response?.statusCode == 400 ||
+          e.response?.statusCode == 409 ||
+          e.response?.statusCode == 404) {
         throw ValidationException(
           e.response?.data['message'] ?? 'Unable to check warning ordinances.',
         );
@@ -274,8 +282,7 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
       }
 
       MultipartFile? paperPhoto;
-      if (params.ticketType == ViolationType.ticket &&
-          params.paperTicketPhoto != null) {
+      if (params.paperTicketPhoto != null) {
         final compressed = await compressImage(
           File(params.paperTicketPhoto!.path),
         );

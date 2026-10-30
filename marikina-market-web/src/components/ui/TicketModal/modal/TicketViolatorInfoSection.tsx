@@ -51,8 +51,8 @@ function TicketViolationInfoSection({ detail }: { detail?: TicketDetail }) {
           )}
           <TicketInfoRow label="REGISTERED OWNER:" value={detail?.registeredOwnerName || vendorName} />
         </>}
-        {detail?.type === "Ticket" && <>
-          <TicketInfoRow label="RECORDED VIOLATOR:" value={detail.paperViolatorName || "Unconfirmed (legacy record)"} />
+        {detail && <>
+          {isCitation && <TicketInfoRow label="RECORDED VIOLATOR:" value={detail.paperViolatorName || "Unconfirmed (legacy record)"} />}
           <TicketInfoRow label="CONFIRMED PERSON:" value={detail.personId ? `${detail.personFullName || "Person"} · Person ${detail.personId}` : "Unconfirmed (legacy record)"} />
         </>}
         {!isCitation && <TicketInfoRow label="ADDRESS:" value={detail?.address || "\u2014"} />}

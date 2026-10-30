@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'features/tickets/presentation/person_verification_flow_test.dart'
+    show BoundaryImageCompressor;
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
@@ -150,6 +152,14 @@ void main() {
   });
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
   test('duplicate submission makes only one request while pending', () async {
+    final compressor = FlutterImageCompressPlatform.instance;
+    FlutterImageCompressPlatform.instance = BoundaryImageCompressor();
+    addTearDown(() => FlutterImageCompressPlatform.instance = compressor);
+    final folder = await Directory.systemTemp.createTemp('warning-duplicate-');
+    addTearDown(() => folder.delete(recursive: true));
+    final paper = await File(
+      'assets/logo/org_logo.png',
+    ).copy('${folder.path}/paper.png');
     final started = Completer<RequestOptions>();
     final release = Completer<void>();
     var calls = 0;
@@ -163,6 +173,8 @@ void main() {
       );
     });
     NewInspectionSubmitted submission() => NewInspectionSubmitted(
+      personId: 31,
+      paperTicketPhoto: XFile(paper.path),
       paperReference: '000456',
       issuePlace: 'Fish aisle near F-014',
       vendorId: 12,
@@ -178,7 +190,7 @@ void main() {
     );
     try {
       bloc.add(submission());
-      final options = await started.future;
+      final options = await started.future.timeout(const Duration(seconds: 5));
       expect(options.method, 'POST');
       expect(options.path, '/enforcer/tickets/new-inspection');
       expect(bloc.state, isA<SubmitNewTicketLoading>());

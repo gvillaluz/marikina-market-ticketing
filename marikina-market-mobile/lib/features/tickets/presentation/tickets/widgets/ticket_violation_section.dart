@@ -13,6 +13,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/widgets/tic
 
 class TicketViolationSection extends StatelessWidget {
   final String? issuePlace;
+  final DateTime? issuedAt;
   final List<ViolationSummary> violations;
   final String description;
   final String marketSection;
@@ -22,6 +23,7 @@ class TicketViolationSection extends StatelessWidget {
 
   const TicketViolationSection({
     this.issuePlace,
+    this.issuedAt,
     required this.violations,
     required this.description,
     required this.marketSection,
@@ -168,13 +170,16 @@ class TicketViolationSection extends StatelessWidget {
           children: [
             TicketPaperField(
               label: 'DATE & TIME:',
-              value: DateTimeFormatter.getDateTime(DateTime.now()),
+              value: isTicket
+                  ? DateTimeFormatter.getDateTime(DateTime.now())
+                  : (issuedAt == null
+                        ? 'Unavailable (legacy record)'
+                        : DateTimeFormatter.getDateTime(issuedAt!)),
             ),
-            if (isTicket)
-              TicketPaperField(
-                label: 'ISSUE PLACE:',
-                value: issuePlace ?? 'Unavailable (legacy record)',
-              ),
+            TicketPaperField(
+              label: 'ISSUE PLACE:',
+              value: issuePlace ?? 'Unavailable (legacy record)',
+            ),
             TicketPaperField(
               label: isTicket ? 'MARKET SECTION:' : 'LOCATION:',
               value: marketSection,

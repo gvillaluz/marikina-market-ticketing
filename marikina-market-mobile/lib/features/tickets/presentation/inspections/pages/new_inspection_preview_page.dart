@@ -109,9 +109,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
         issuePlace: widget.formData.issuePlace,
         reviewedCalculation: _verification?.reviewedCalculation,
         reviewedBusinessSnapshot: _verification?.reviewedBusinessSnapshot,
-        paperTicketPhoto: widget.formData.ticketType == ViolationType.ticket
-            ? widget.formData.paperTicketPhoto
-            : null,
+        paperTicketPhoto: widget.formData.paperTicketPhoto,
         vendorId: widget.formData.vendorSummary.id,
         enforcerId: widget.formData.enforcerId,
         marketSectionId: widget.formData.vendorSummary.marketSectionId,
@@ -437,7 +435,9 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                                         ),
                                       ),
                                       Text(
-                                        'Date: ${DateTimeFormatter.getDate(DateTime.now())}',
+                                        isTicket
+                                            ? 'Date: ${DateTimeFormatter.getDate(DateTime.now())}'
+                                            : 'Date assigned when saved',
                                       ),
                                     ],
                                   ),
@@ -449,7 +449,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                       ),
                     ),
 
-                    if (isTicket) ...[
+                    if (isTicket ||
+                        widget.formData.paperTicketPhoto != null) ...[
                       const SizedBox(height: AppTheme.ticketSmallGap),
 
                       const Text(
@@ -460,77 +461,87 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Text(
-                        'Review the paper ticket and supporting evidence separately.',
+                      Text(
+                        isTicket
+                            ? 'Review the paper ticket and supporting evidence separately.'
+                            : 'Review the paper warning photo.',
                       ),
 
                       const SizedBox(height: 10),
 
                       if (widget.formData.paperTicketPhoto != null) ...[
-                        const Text('Paper ticket photo'),
+                        Text(
+                          isTicket
+                              ? 'Paper ticket photo'
+                              : 'Paper warning photo',
+                        ),
                         PhotoEvidencePreviewSection(
                           evidences: [widget.formData.paperTicketPhoto!],
                         ),
                         const SizedBox(height: AppTheme.inspectionSmallGap),
                       ],
-                      const Text('Supporting evidence'),
-                      if (widget.formData.evidences?.isEmpty ?? true) ...[
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 32,
-                            horizontal: 24,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryLight,
-                            border: Border.all(
-                              color: AppColors.lightGrey.withValues(alpha: 0.5),
-                              width: 1,
+                      if (isTicket) ...[
+                        const Text('Supporting evidence'),
+                        if (widget.formData.evidences?.isEmpty ?? true) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 32,
+                              horizontal: 24,
                             ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(
-                                    alpha: .10,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              border: Border.all(
+                                color: AppColors.lightGrey.withValues(
+                                  alpha: 0.5,
+                                ),
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(
+                                      alpha: .10,
+                                    ),
+                                    shape: BoxShape.circle,
                                   ),
-                                  shape: BoxShape.circle,
+                                  child: const Icon(
+                                    Icons.assignment_turned_in_outlined,
+                                    size: 32,
+                                    color: AppColors.primary,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.assignment_turned_in_outlined,
-                                  size: 32,
-                                  color: AppColors.primary,
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'No photo evidence',
+                                  style: TextStyle(
+                                    fontSize: AppTheme.sectionHeadingFontSize,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'No photo evidence',
-                                style: TextStyle(
-                                  fontSize: AppTheme.sectionHeadingFontSize,
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(height: 6),
+                                const Text(
+                                  'No photos are attached to this record.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: AppTheme.captionFontSize,
+                                    color: AppColors.mediumGrey,
+                                    height: 1.4,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              const Text(
-                                'No photos are attached to this record.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: AppTheme.captionFontSize,
-                                  color: AppColors.mediumGrey,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ] else ...[
-                        PhotoEvidencePreviewSection(
-                          evidences: widget.formData.evidences!,
-                        ),
+                        ] else ...[
+                          PhotoEvidencePreviewSection(
+                            evidences: widget.formData.evidences!,
+                          ),
+                        ],
                       ],
                     ],
 
@@ -562,17 +573,32 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                         onPressed: _submissionUncertain ? null : _verify,
                       ),
                     ],
+                    if (!isTicket)
+                      const Text(
+                        'Internal warning reference is assigned when saved.',
+                      ),
+                    if (!isTicket && _submissionUncertain) ...[
+                      const Text(
+                        'The warning may have been saved. Check saved warnings before trying again.',
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            context.goNamed(Routes.inspectionsName),
+                        child: const Text('Check saved warnings'),
+                      ),
+                    ],
                     AppPrimaryButton(
                       label: 'Submit ${isTicket ? 'Ticket' : 'Warning'}',
                       iconData: Icons.gavel,
                       onPressed:
-                          isTicket &&
-                              (_verification == null ||
-                                  _verification?.businessSnapshot == null ||
-                                  _verification?.reviewedBusinessSnapshot ==
-                                      null ||
-                                  _verifying ||
-                                  _submissionUncertain)
+                          _submissionUncertain ||
+                              (isTicket &&
+                                  (_verification == null ||
+                                      _verification?.businessSnapshot == null ||
+                                      _verification?.reviewedBusinessSnapshot ==
+                                          null ||
+                                      _verifying ||
+                                      _submissionUncertain))
                           ? null
                           : () async {
                               if (_isConfirmationOpen ||

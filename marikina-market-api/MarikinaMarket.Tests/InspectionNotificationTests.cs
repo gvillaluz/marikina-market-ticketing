@@ -509,6 +509,108 @@ public class InspectionNotificationTests
         Assert.False(fixture.Committed);
     }
 
+    [Fact]
+    public async Task Warning_saves_confirmed_person_place_and_exactly_one_paper_photo()
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Warning);
+        request.IssuePlace = "  Fish aisle near F-014  ";
+        var before = DateTime.UtcNow;
+        var response = await fixture.Service.CreateTicketAsync(request);
+        var warning = fixture.CreatedTicket!;
+        Assert.Equal(31, warning.PersonId);
+        Assert.Equal("Fish aisle near F-014", warning.IssuePlace);
+        Assert.InRange(warning.IssuedAt, before, DateTime.UtcNow);
+        var paper = Assert.Single(warning.TicketEvidences!);
+        Assert.Equal(TicketEvidenceRole.PaperTicket, paper.Role);
+        Assert.Equal(0, paper.SortOrder);
+        Assert.Equal(fixture.UploadedFiles["paper.jpg"], paper.FileKey);
+        Assert.Equal(31, response.PersonId);
+        Assert.Equal("Juan Dela Cruz", response.PersonFullName);
+        Assert.Equal(warning.IssuePlace, response.IssuePlace);
+        Assert.Null(warning.PenaltyType);
+        Assert.Null(warning.TotalPaymentAmount);
+        Assert.Null(warning.Status);
+        Assert.Null(Assert.Single(warning.TicketViolations).PenaltyAmount);
+        Assert.Equal("WRN-0011", response.ControlNumber);
+    }
+
+    [Theory]
+    [InlineData("person")]
+    [InlineData("place")]
+    [InlineData("photo")]
+    [InlineData("two-photos")]
+    [InlineData("supporting")]
+    [InlineData("legacy-evidence")]
+    [InlineData("two-ordinances")]
+    [InlineData("description")]
+    public async Task Warning_rejects_invalid_required_fields_without_upload_or_record(string invalid)
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Warning);
+        switch (invalid)
+        {
+            case "person": request.PersonId = null; break;
+            case "place": request.IssuePlace = " "; break;
+            case "photo": request.PaperTicketPhoto = []; break;
+            case "two-photos": request.PaperTicketPhoto.Add(Photo("second.jpg")); break;
+            case "supporting": request.SupportingEvidenceFiles = [Photo("stall.jpg")]; break;
+            case "legacy-evidence": request.TicketEvidenceFiles = [Photo("legacy.jpg")]; break;
+            case "two-ordinances": request.Ordinances = [1, 2]; break;
+            case "description": request.Description = new string('x', 1001); break;
+        }
+        var error = await Record.ExceptionAsync(() => fixture.Service.CreateTicketAsync(request));
+        Assert.True(error is System.ComponentModel.DataAnnotations.ValidationException or InvalidRequestException,
+            $"Expected validation error for {invalid}, got {error?.GetType().Name ?? "success"}.");
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+    }
+
+    [Fact]
+    public async Task Warning_rejects_nonminor_ordinance_without_upload_or_record()
+    {
+        using var fixture = new Fixture { HighSeverity = true };
+        var error = await Record.ExceptionAsync(() => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Warning)));
+        Assert.True(error is System.ComponentModel.DataAnnotations.ValidationException or InvalidRequestException);
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Warning_denies_person_history_conflict_before_upload(bool citation)
+    {
+        using var fixture = new Fixture { PreviousWarning = !citation, PendingWarningCitation = citation };
+        var request = fixture.Request(ViolationType.Warning);
+        var error = await Record.ExceptionAsync(() => fixture.Service.CreateTicketAsync(request));
+        if (citation) Assert.IsType<DuplicateOrdinanceException>(error);
+        else Assert.IsType<DuplicateWarningException>(error);
+        Assert.Equal(31, fixture.WarningLookupPersonId);
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+        Assert.True(fixture.RolledBack);
+    }
+
+    [Fact]
+    public async Task Warning_serialization_failure_returns_conflict_and_rolls_back()
+    {
+        using var fixture = new Fixture { FailConcurrentSave = true };
+        await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Warning)));
+        Assert.True(fixture.RolledBack);
+        Assert.False(fixture.Committed);
+    }
+
+    [Fact]
+    public async Task Warning_upload_failure_rolls_back_without_creating_record()
+    {
+        using var fixture = new Fixture { FailUpload = true };
+        await Assert.ThrowsAsync<IOException>(() => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Warning)));
+        Assert.Null(fixture.CreatedTicket);
+        Assert.True(fixture.RolledBack);
+        Assert.False(fixture.Committed);
+    }
+
     private static IFormFile Photo(string name) => new FormFile(new MemoryStream([0xff, 0xd8, 0xff, 0xd9]), 0, 4, "photo", name)
         { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
 
@@ -519,6 +621,8 @@ public class InspectionNotificationTests
         public Ticket? CreatedTicket;
         public bool Committed, RolledBack, FailPush, FailNotificationSave, FailConcurrentSave;
         public bool HighSeverity;
+        public bool PreviousWarning, PendingWarningCitation;
+        public int? WarningLookupPersonId;
         public BusinessSnapshotResponse Snapshot { get; set; } = new()
         {
             BusinessAccountNumber = "MM-17", BusinessName = "Reyes Fresh Fish", RegisteredOwnerName = "Juan Reyes",
@@ -569,7 +673,8 @@ public class InspectionNotificationTests
             {
                 "GetDuplicatedTickets" => Task.FromResult(new List<DuplicateOrdinance>()),
                 "GetPersonDuplicatesAsync" => Task.FromResult(new List<DuplicateOrdinance>()),
-                "GetWarningOrdinancesForVendor" => Task.FromResult(new List<WarningOrdinance>()),
+                "GetWarningOrdinancesForPerson" => WarningLookup((int)args[0]!),
+                "GetPersonPendingWarningConflictsAsync" => WarningCitationLookup((int)args[0]!),
                 "GetNewControlNumber" => Task.FromResult(11),
                 "PaperReferenceExistsAsync" => Task.FromResult(ExistingPaperReference),
                 "AddTicketAsync" => AddTicket((Ticket)args[0]!),
@@ -618,6 +723,16 @@ public class InspectionNotificationTests
                 personRepository: new PersonRepository(this));
         }
         private Task<Ticket> AddTicket(Ticket ticket) { ticket.Id = 11; ticket.Version = 7; CreatedTicket = ticket; return Task.FromResult(ticket); }
+        private Task<List<WarningOrdinance>> WarningLookup(int personId)
+        {
+            WarningLookupPersonId = personId;
+            return Task.FromResult(PreviousWarning ? new List<WarningOrdinance> { new() { OrdinanceId = 1, OrdinanceNo = "011", OrdinanceCode = "MKT-001" } } : []);
+        }
+        private Task<List<DuplicateOrdinance>> WarningCitationLookup(int personId)
+        {
+            WarningLookupPersonId = personId;
+            return Task.FromResult(PendingWarningCitation ? new List<DuplicateOrdinance> { new() { OrdinanceId = 1, OrdinanceNo = "011", OrdinanceCode = "MKT-001" } } : []);
+        }
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
             => UniqueConstraint is not null
                 ? Task.FromException<int>(new DbUpdateException("Synthetic collision", new Npgsql.PostgresException("Synthetic collision", "ERROR", "ERROR", "23505", constraintName: UniqueConstraint)))
@@ -628,15 +743,15 @@ public class InspectionNotificationTests
         public CreateTicketRequest Request(ViolationType type) => new()
         {
             VendorId = 17, EnforcerId = 8, MarketSectionId = 1, Type = type,
-            PersonId = type == ViolationType.Ticket ? 31 : null,
+            PersonId = 31,
             PaperViolatorName = type == ViolationType.Ticket ? "Juan Cruz" : null,
             PaperReference = type == ViolationType.Ticket ? "000456" : null,
-            IssuePlace = type == ViolationType.Ticket ? "Fish aisle near F-014" : null,
+            IssuePlace = "Fish aisle near F-014",
             ReviewedBusinessSnapshot = JsonSerializer.Serialize(Snapshot,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }),
             ReviewedCalculation = "{\"total_payment_amount\":500,\"highest_severity\":\"Minor\",\"breakdown\":[{\"ordinance_id\":1,\"ordinance_no\":\"011\",\"ordinance_code\":\"MKT-001\",\"offense_number\":1,\"payment_amount\":500,\"severity\":\"Minor\"}]}",
             Description = "Market identification card not displayed", PenaltyType = PenaltyType.CashFine,
-            Ordinances = [1], PaperTicketPhoto = type == ViolationType.Ticket ? [Photo("paper.jpg")] : [],
+            Ordinances = [1], PaperTicketPhoto = [Photo("paper.jpg")],
             SupportingEvidenceFiles = type == ViolationType.Ticket ? [Photo("stall.jpg")] : []
         };
     }

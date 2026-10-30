@@ -235,6 +235,7 @@ void main() {
                 case '/ordinance':
                   return reply(options, [ordinanceResponse]);
                 case '/enforcer/tickets/warning-check':
+                  expect(options.data['person_id'], 31);
                   return reply(options, []);
                 case '/enforcer/tickets/fine-summary':
                   return reply(options, {
@@ -351,19 +352,27 @@ void main() {
               find.byKey(const ValueKey('issue-place')),
               'Fish aisle near F-014',
             );
-            final name = find.byWidgetPredicate(
-              (widget) =>
-                  widget is TextField &&
-                  widget.decoration?.labelText == 'Paper violator name',
+          } else {
+            await tester.ensureVisible(
+              find.byKey(const ValueKey('warning-issue-place')),
             );
-            await tester.enterText(name, 'Juan Cruz');
-            await tester.ensureVisible(find.text('Check possible matches'));
-            await tester.tap(find.text('Check possible matches'));
-            await flush(tester);
-            await tester.ensureVisible(find.text('Confirm'));
-            await tester.tap(find.text('Confirm'));
-            await tester.pump();
+            await tester.enterText(
+              find.byKey(const ValueKey('warning-issue-place')),
+              'Fish aisle near F-014',
+            );
           }
+          final name = find.byWidgetPredicate(
+            (widget) =>
+                widget is TextField &&
+                widget.decoration?.labelText == 'Paper violator name',
+          );
+          await tester.enterText(name, 'Juan Cruz');
+          await tester.ensureVisible(find.text('Check possible matches'));
+          await tester.tap(find.text('Check possible matches'));
+          await flush(tester);
+          await tester.ensureVisible(find.text('Confirm'));
+          await tester.tap(find.text('Confirm'));
+          await tester.pump();
           await tester.ensureVisible(find.text('Select Ordinance'));
           await tester.tap(find.text('Select Ordinance'));
           await flush(tester);
@@ -375,8 +384,8 @@ void main() {
           await tester.pump();
           await tester.tap(find.text('Confirm selection'));
           await flush(tester);
-          XFile? evidence;
-          if (type == ViolationType.ticket) {
+          late XFile evidence;
+          {
             final folder = await tester.runAsync(
               () => Directory.systemTemp.createTemp('preview-photo-'),
             );
@@ -432,9 +441,11 @@ void main() {
           expect(data.vendorSummary.id, 12);
           expect(data.ordinances.single.id, 1);
           expect(data.ticketType, type);
+          expect(data.personId, 31);
+          expect(data.issuePlace, 'Fish aisle near F-014');
           expect(data.evidences?.length, type == ViolationType.ticket ? 1 : 0);
-          if (evidence != null) {
-            expect(data.paperTicketPhoto, isNotNull);
+          expect(data.paperTicketPhoto, isNotNull);
+          if (type == ViolationType.ticket) {
             expect(data.evidences!.single.path, evidence.path);
           }
           expect(saveRequests, 0);

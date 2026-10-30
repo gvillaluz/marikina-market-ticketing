@@ -234,11 +234,11 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return int.Parse(lastTicket!.ControlNumber!) + 1;
         }
 
-        public async Task<List<WarningOrdinance>> GetWarningOrdinancesForVendor(int vendorId, List<int> ordinanceIds)
+        public async Task<List<WarningOrdinance>> GetWarningOrdinancesForPerson(int personId, List<int> ordinanceIds)
         {
             return await _context.Tickets
                 .AsNoTracking()
-                .Where(t => t.VendorId == vendorId && t.Type == ViolationType.Warning)
+                .Where(t => t.PersonId == personId && t.Type == ViolationType.Warning)
                 .SelectMany(t => t.TicketViolations)
                 .Where(tv => ordinanceIds.Contains(tv.OrdinanceId))
                 .Select(tv => new WarningOrdinance
@@ -269,6 +269,23 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 })
                 .Distinct()
                 .ToListAsync();
+        }
+
+        public async Task<List<DuplicateOrdinance>> GetPersonPendingWarningConflictsAsync(int personId, List<int> ordinanceIds, DateTime nowUtc)
+        {
+            var zone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            var localDate = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, zone).Date;
+            var start = TimeZoneInfo.ConvertTimeToUtc(localDate, zone);
+            var end = TimeZoneInfo.ConvertTimeToUtc(localDate.AddDays(1), zone);
+            return await _context.Tickets.AsNoTracking()
+                .Where(t => t.PersonId == personId && t.Type == ViolationType.Ticket
+                    && t.Status == TicketStatus.Pending && t.IssuedAt >= start && t.IssuedAt < end)
+                .SelectMany(t => t.TicketViolations).Where(tv => ordinanceIds.Contains(tv.OrdinanceId))
+                .Select(tv => new DuplicateOrdinance
+                {
+                    OrdinanceId = tv.OrdinanceId, OrdinanceNo = tv.Ordinance!.OrdinanceNo,
+                    OrdinanceCode = tv.Ordinance.MarketCode
+                }).Distinct().ToListAsync();
         }
 
         public async Task<Ticket> AddTicketAsync(Ticket ticket)

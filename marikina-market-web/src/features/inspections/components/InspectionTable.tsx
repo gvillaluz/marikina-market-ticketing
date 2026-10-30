@@ -47,7 +47,7 @@ export function InspectionTable({
               render: (row) =>
                 row.type === "Ticket"
                   ? `Recorded violator: ${row.paperViolatorName || "Unconfirmed (legacy record)"}`
-                  : `Registered owner: ${row.registeredOwnerName || `${row.vendorFirstName ?? ""} ${row.vendorLastName ?? ""}`.trim() || "—"}`,
+                  : `Confirmed person: ${row.personFullName || "Unconfirmed (legacy record)"}`,
             },
             {
               key: "enforcer",

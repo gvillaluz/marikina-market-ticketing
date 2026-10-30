@@ -147,12 +147,14 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<Result<List<WarningOrdinance>>> checkWarningOrdinances(
     List<int> ordinanceIds,
-    int vendorId,
-  ) async {
+    int vendorId, {
+    int? personId,
+  }) async {
     try {
       final warningModels = await remoteDataSource.checkWarningOrdinances(
         ordinanceIds,
         vendorId,
+        personId: personId,
       );
       return Result.success(
         warningModels.map((model) => model.toEntity()).toList(),
