@@ -1,9 +1,11 @@
+using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using MarikinaMarket.API.Domain.Enums;
 
 namespace MarikinaMarket.API.Application.DTOs.Enforcers.Response 
 {
     public class InspectionResponse 
     {
+        public BusinessSnapshotResponse? BusinessSnapshot { get; set; }
         public int TicketId { get; set; }
         public string? ControlNumber { get; set; }
         public DateTime IssuedAt { get; set; }

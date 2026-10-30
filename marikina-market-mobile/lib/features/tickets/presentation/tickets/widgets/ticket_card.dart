@@ -63,15 +63,19 @@ class TicketCard extends StatelessWidget {
             ),
             const SizedBox(height: AppTheme.ticketSmallGap),
             Text(
-              ticketSummary.businessName,
+              (ticketSummary.businessSnapshot?.businessName ??
+                  'Historical business details unavailable.'),
               style: AppTheme.ticketHeadingStyle,
             ),
             Text(
               [
-                ticketSummary.marketSection,
-                if (ticketSummary.stallNumber != null &&
-                    ticketSummary.stallNumber!.trim().isNotEmpty)
-                  ticketSummary.stallNumber!,
+                (ticketSummary.businessSnapshot?.marketSectionName ??
+                    'Unavailable'),
+                if (ticketSummary.businessSnapshot?.stallNumber
+                        ?.trim()
+                        .isNotEmpty ==
+                    true)
+                  ticketSummary.businessSnapshot!.stallNumber!,
               ].join(' • '),
               style: AppTheme.ticketBodyStyle.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

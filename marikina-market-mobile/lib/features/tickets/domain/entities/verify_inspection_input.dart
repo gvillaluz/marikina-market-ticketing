@@ -3,6 +3,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dar
 class VerifyInspectionInput {
   final String? paperReference, issuePlace;
   final int vendorId, personId, evidenceCount;
+  final int paperTicketPhotoCount, supportingEvidenceCount;
   final String paperViolatorName, description;
   final List<int> ordinanceIds;
   final PenaltyType penaltyType;
@@ -18,5 +19,7 @@ class VerifyInspectionInput {
     required this.penaltyType,
     this.communityServiceHours,
     required this.evidenceCount,
+    this.paperTicketPhotoCount = 0,
+    this.supportingEvidenceCount = 0,
   });
 }

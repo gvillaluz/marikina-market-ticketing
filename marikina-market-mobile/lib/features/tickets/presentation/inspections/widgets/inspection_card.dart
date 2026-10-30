@@ -21,9 +21,13 @@ class InspectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final overdue = ticketSummary.status == TicketStatus.overdue;
-    final stall = ticketSummary.stallNumber;
+    final stall = (ticketSummary.ticketType == ViolationType.ticket
+        ? (ticketSummary.businessSnapshot?.stallNumber ?? 'Unavailable')
+        : ticketSummary.stallNumber);
     final location = [
-      ticketSummary.marketSection,
+      (ticketSummary.ticketType == ViolationType.ticket
+          ? (ticketSummary.businessSnapshot?.marketSectionName ?? 'Unavailable')
+          : ticketSummary.marketSection),
       if (stall != null && stall.trim().isNotEmpty) stall,
       ticketSummary.ticketType == ViolationType.ticket
           ? (ticketSummary.paperViolatorName ?? 'Unconfirmed (legacy record)')
@@ -60,7 +64,10 @@ class InspectionCard extends StatelessWidget {
               ),
               const SizedBox(height: AppTheme.inspectionSmallGap),
               Text(
-                ticketSummary.businessName,
+                (ticketSummary.ticketType == ViolationType.ticket
+                    ? (ticketSummary.businessSnapshot?.businessName ??
+                          'Historical business details unavailable.')
+                    : ticketSummary.businessName),
                 style: AppTheme.inspectionHeadingStyle.copyWith(
                   color: colors.onSurface,
                 ),

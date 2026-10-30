@@ -36,6 +36,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     MarketSectionName = v.MarketSection!.Name,
                     BusinessName = v.BusinessName,
                     BusinessAccountNumber = v.BusinessAccountNumber,
+                    BusinessAddress = (v.HouseNumber + " " + v.Street + " " + v.Barangay + " " + v.City).Trim(),
                     StallNumber = v.StallNumber,
                     Type = v.Type
                 })

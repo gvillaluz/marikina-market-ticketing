@@ -1,3 +1,5 @@
+import 'package:marikina_market_mobile/features/tickets/data/models/ticket_evidence_model.dart';
+import 'package:marikina_market_mobile/features/tickets/data/models/business_snapshot_model.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/violation_summary_model.dart';
@@ -8,6 +10,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/business_ty
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class TicketDetailModel {
+  final BusinessSnapshotModel? businessSnapshot;
   final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
@@ -35,8 +38,10 @@ class TicketDetailModel {
   final int? communityServiceHours;
   final TicketStatus? ticketStatus;
   final List<String>? evidenceUrls;
+  final List<TicketEvidenceModel> evidenceItems;
 
   const TicketDetailModel({
+    this.businessSnapshot,
     this.paperReference,
     this.issuePlace,
     this.personId,
@@ -67,10 +72,17 @@ class TicketDetailModel {
     this.communityServiceHours,
     this.ticketStatus,
     this.evidenceUrls,
+    this.evidenceItems = const [],
   });
 
   factory TicketDetailModel.fromJson(Map<String, dynamic> json) {
     return TicketDetailModel(
+      businessSnapshot: json['business_snapshot'] == null
+          ? null
+          : BusinessSnapshotModel.fromJson(
+              json['business_snapshot'] as Map<String, Object?>,
+            ),
+
       ticketId: json['ticket_id'] as int,
       controlNumber: json['control_number'] as String?,
       enforcerId: json['enforcer_id'] as int,
@@ -119,6 +131,12 @@ class TicketDetailModel {
       ticketStatus: json['status'] != null
           ? TicketStatus.fromValue(json['status'] as String)
           : null,
+      evidenceItems: (json['evidence_items'] as List<Object?>? ?? [])
+          .map(
+            (item) =>
+                TicketEvidenceModel.fromJson(item as Map<String, Object?>),
+          )
+          .toList(),
       evidenceUrls: json['ticket_evidences'] == null
           ? null
           : List<String>.from(json['ticket_evidences'] as List),
@@ -134,6 +152,7 @@ class TicketDetailModel {
       personId: personId,
       personFullName: personFullName,
       paperViolatorName: paperViolatorName,
+      businessSnapshot: businessSnapshot?.toEntity(),
       paperReference: paperReference,
       issuePlace: issuePlace,
       registeredOwnerName: registeredOwnerName,
@@ -157,6 +176,7 @@ class TicketDetailModel {
       communityServiceHours: communityServiceHours,
       ticketStatus: ticketStatus,
       evidenceUrls: evidenceUrls,
+      evidenceItems: evidenceItems.map((item) => item.toEntity()).toList(),
     );
   }
 }

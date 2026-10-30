@@ -1,7 +1,9 @@
+import 'package:marikina_market_mobile/features/tickets/data/models/business_snapshot_model.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_summary.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 
 class TicketSummaryModel {
+  final BusinessSnapshotModel? businessSnapshot;
   final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
@@ -19,6 +21,7 @@ class TicketSummaryModel {
   final DateTime? overDueDate;
 
   const TicketSummaryModel({
+    this.businessSnapshot,
     this.paperReference,
     this.issuePlace,
     this.personId,
@@ -41,6 +44,12 @@ class TicketSummaryModel {
 
   factory TicketSummaryModel.fromJson(Map<String, dynamic> json) {
     return TicketSummaryModel(
+      businessSnapshot: json['business_snapshot'] == null
+          ? null
+          : BusinessSnapshotModel.fromJson(
+              json['business_snapshot'] as Map<String, Object?>,
+            ),
+
       ticketId: json['id'] as int,
       enforcerId: json['enforcer_id'] as int,
       vendorId: json['vendor_id'] as int,
@@ -74,6 +83,7 @@ class TicketSummaryModel {
       personId: personId,
       personFullName: personFullName,
       paperViolatorName: paperViolatorName,
+      businessSnapshot: businessSnapshot?.toEntity(),
       paperReference: paperReference,
       issuePlace: issuePlace,
       registeredOwnerName: registeredOwnerName,

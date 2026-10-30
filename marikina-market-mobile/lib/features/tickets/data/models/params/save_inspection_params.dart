@@ -4,6 +4,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_t
 
 class SaveInspectionParams {
   final String? paperReference, issuePlace;
+  final String? reviewedBusinessSnapshot;
   final int? personId;
   final String? paperViolatorName, personFullName, reviewedCalculation;
   final int vendorId;
@@ -15,6 +16,7 @@ class SaveInspectionParams {
   final int? communityServiceHours;
   final List<int> ordinanceIds;
   final List<XFile>? evidences;
+  final XFile? paperTicketPhoto;
 
   SaveInspectionParams({
     this.paperReference,
@@ -23,6 +25,7 @@ class SaveInspectionParams {
     this.paperViolatorName,
     this.personFullName,
     this.reviewedCalculation,
+    this.reviewedBusinessSnapshot,
     required this.vendorId,
     required this.marketSectionId,
     required this.enforcerId,
@@ -32,5 +35,6 @@ class SaveInspectionParams {
     required this.communityServiceHours,
     required this.ordinanceIds,
     required this.evidences,
+    this.paperTicketPhoto,
   });
 }

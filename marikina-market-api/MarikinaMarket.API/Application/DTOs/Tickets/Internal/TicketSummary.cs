@@ -1,9 +1,11 @@
+using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using MarikinaMarket.API.Domain.Enums;
 
 namespace MarikinaMarket.API.Application.DTOs.Tickets.Internal
 {
     public class TicketSummary
     {
+        public BusinessSnapshotResponse? BusinessSnapshot { get; set; }
         public string? PaperReference { get; set; }
         public string? IssuePlace { get; set; }
         public required int Id { get; init; }

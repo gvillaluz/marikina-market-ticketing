@@ -1,3 +1,6 @@
+using MarikinaMarket.API.Application.DTOs.Tickets.Response;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Security.Claims;
 using MarikinaMarket.API.Application;
 using MarikinaMarket.API.Application.DTOs.Ordinance.Internal;
@@ -22,6 +25,68 @@ namespace MarikinaMarket.Tests;
 
 public class InspectionNotificationTests
 {
+    [Theory]
+    [InlineData("BusinessAccountNumber")]
+    [InlineData("BusinessName")]
+    [InlineData("RegisteredOwnerName")]
+    [InlineData("BusinessType")]
+    [InlineData("StallNumber")]
+    [InlineData("MarketSectionName")]
+    [InlineData("BusinessAddress")]
+    public async Task Registry_change_requires_review_without_upload_or_save(string field)
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        typeof(BusinessSnapshotResponse).GetProperty(field)!.SetValue(fixture.Snapshot, field == "BusinessType" ? "Private" : "Changed synthetic value");
+        await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.CreateTicketAsync(request));
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+        Assert.True(fixture.RolledBack);
+    }
+
+    [Theory]
+    [InlineData("{")]
+    [InlineData("{}")]
+    [InlineData("null")]
+    public async Task Malformed_snapshot_review_is_rejected_without_upload(string review)
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        request.ReviewedBusinessSnapshot = review;
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => fixture.Service.CreateTicketAsync(request));
+        Assert.Null(fixture.CreatedTicket);
+        Assert.Equal(0, fixture.UploadCalls);
+    }
+
+    [Fact]
+    public async Task Saved_snapshot_is_independent_of_later_registry_values()
+    {
+        using var fixture = new Fixture();
+        var saved = await fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket));
+        fixture.Snapshot.BusinessName = "New synthetic business";
+        fixture.Snapshot.RegisteredOwnerName = "New Owner";
+        Assert.Equal("Reyes Fresh Fish", fixture.CreatedTicket!.SnapshotBusinessName);
+        Assert.Equal("Juan Reyes", fixture.CreatedTicket.SnapshotRegisteredOwnerName);
+        Assert.Equal("MM-17", fixture.CreatedTicket.SnapshotBusinessAccountNumber);
+        Assert.Equal("F-014", fixture.CreatedTicket.SnapshotStallNumber);
+        Assert.Equal("Fish and Seafood", fixture.CreatedTicket.SnapshotMarketSectionName);
+        Assert.Equal("14 Market Street Santo Nino Marikina", fixture.CreatedTicket.SnapshotBusinessAddress);
+        Assert.Equal("Public", fixture.CreatedTicket.SnapshotBusinessType);
+        Assert.Equal("Reyes Fresh Fish", saved.BusinessSnapshot!.BusinessName);
+    }
+
+    [Fact]
+    public async Task Snapshot_review_is_required_before_any_upload_or_save()
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        request.ReviewedBusinessSnapshot = null;
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(
+            () => fixture.Service.CreateTicketAsync(request));
+        Assert.Equal(0, fixture.UploadCalls);
+        Assert.Null(fixture.CreatedTicket);
+    }
+
     [Fact]
     public async Task Paper_metadata_is_required_before_any_upload_or_save()
     {
@@ -44,7 +109,7 @@ public class InspectionNotificationTests
             {
                 VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
                 OrdinanceIds = [1], Description = "Market identification card not displayed",
-                PenaltyType = PenaltyType.CashFine, EvidenceCount = 1
+                PenaltyType = PenaltyType.CashFine, EvidenceCount = 2, PaperTicketPhotoCount = 1, SupportingEvidenceCount = 1
             }));
         Assert.Null(fixture.CreatedTicket);
         Assert.Equal(0, fixture.UploadCalls);
@@ -90,7 +155,7 @@ public class InspectionNotificationTests
             VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
             PaperReference = "000456", IssuePlace = "Fish aisle near F-014",
             OrdinanceIds = [1], Description = "Market identification card not displayed",
-            PenaltyType = PenaltyType.CashFine, EvidenceCount = 1
+            PenaltyType = PenaltyType.CashFine, EvidenceCount = 2, PaperTicketPhotoCount = 1, SupportingEvidenceCount = 1
         });
         Assert.Null(fixture.CreatedTicket);
         Assert.Equal(0, fixture.UploadCalls);
@@ -98,6 +163,7 @@ public class InspectionNotificationTests
         Assert.Equal(1, Assert.Single(verified.Calculation.Breakdown).OffenseNumber);
         var request = fixture.Request(ViolationType.Ticket);
         request.ReviewedCalculation = verified.ReviewedCalculation;
+        request.ReviewedBusinessSnapshot = verified.ReviewedBusinessSnapshot;
         var saved = await fixture.Service.CreateTicketAsync(request);
         Assert.Equal(31, saved.PersonId);
         Assert.Equal("Juan Dela Cruz", saved.PersonFullName);
@@ -150,7 +216,7 @@ public class InspectionNotificationTests
             VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
             PaperReference = "000456", IssuePlace = "Fish aisle near F-014",
             OrdinanceIds = [1], Description = "Synthetic citation",
-            PenaltyType = PenaltyType.CashFine, EvidenceCount = 1
+            PenaltyType = PenaltyType.CashFine, EvidenceCount = 2, PaperTicketPhotoCount = 1, SupportingEvidenceCount = 1
         }));
         await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket)));
         Assert.Null(fixture.CreatedTicket);
@@ -246,13 +312,13 @@ public class InspectionNotificationTests
     {
         using var fixture = new Fixture();
         var request = fixture.Request(ViolationType.Ticket);
-        request.TicketEvidenceFiles = emptyFile
+        request.PaperTicketPhoto = emptyFile
             ? [new FormFile(Stream.Null, 0, 0, "ticket_evidence_files", "stall.jpg")]
             : [];
 
         var error = await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.Service.CreateTicketAsync(request));
 
-        Assert.Equal("Photo evidence is required for tickets.", error.Message);
+        Assert.Contains(emptyFile ? "must not be empty" : "Exactly one paper ticket", error.Message);
         Assert.Null(fixture.CreatedTicket);
         Assert.Equal(0, fixture.UploadCalls);
         Assert.False(fixture.Committed);
@@ -300,7 +366,7 @@ public class InspectionNotificationTests
         using var fixture = new Fixture();
         var request = fixture.Request(ViolationType.Ticket);
         byte[] bytes = invalidSignature ? [0x25, 0x50, 0x44, 0x46] : [0xff, 0xd8, 0xff, 0xd9];
-        request.TicketEvidenceFiles = [new FormFile(new MemoryStream(bytes), 0, oversized ? 5 * 1024 * 1024 + 1 : bytes.Length, "ticket_evidence_files", name)
+        request.SupportingEvidenceFiles = [new FormFile(new MemoryStream(bytes), 0, oversized ? 5 * 1024 * 1024 + 1 : bytes.Length, "ticket_evidence_files", name)
             { Headers = new HeaderDictionary(), ContentType = contentType }];
 
         await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.Service.CreateTicketAsync(request));
@@ -365,6 +431,87 @@ public class InspectionNotificationTests
         Assert.Null(fixture.PushData);
     }
 
+    [Fact]
+    public async Task Citation_requires_explicit_photo_categories_before_upload()
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        request.TicketEvidenceFiles = [Photo("unclassified.jpg")];
+        await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.Service.CreateTicketAsync(request));
+        Assert.Equal(0, fixture.UploadCalls);
+        Assert.Null(fixture.CreatedTicket);
+    }
+
+    [Fact]
+    public async Task Citation_persists_photo_roles_and_supporting_order()
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        var paper = typeof(CreateTicketRequest).GetProperty("PaperTicketPhoto");
+        var supporting = typeof(CreateTicketRequest).GetProperty("SupportingEvidenceFiles");
+        Assert.NotNull(paper);
+        Assert.NotNull(supporting);
+        request.TicketEvidenceFiles = [];
+        paper.SetValue(request, new List<IFormFile> { Photo("paper.jpg") });
+        supporting.SetValue(request, new List<IFormFile> { Photo("stall.jpg"), Photo("aisle.jpg") });
+        await fixture.Service.CreateTicketAsync(request);
+        var saved = fixture.CreatedTicket!.TicketEvidences!.ToList();
+        Assert.Equal(3, saved.Count);
+        Assert.Equal(new[] { "PaperTicket", "Supporting", "Supporting" },
+            saved.Select(e => e.GetType().GetProperty("Role")!.GetValue(e)!.ToString()));
+        Assert.Equal(new[] { 0, 0, 1 }, saved.Select(e => (int)e.GetType().GetProperty("SortOrder")!.GetValue(e)!));
+        Assert.Equal(1, fixture.UploadCalls);
+        Assert.Equal(fixture.UploadedFiles["paper.jpg"], saved[0].FileKey);
+        Assert.Equal(fixture.UploadedFiles["stall.jpg"], saved[1].FileKey);
+        Assert.Equal(fixture.UploadedFiles["aisle.jpg"], saved[2].FileKey);
+    }
+
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(2, 1)]
+    [InlineData(1, 0)]
+    public async Task Invalid_citation_categories_never_upload_or_save(int papers, int supporting)
+    {
+        using var fixture = new Fixture();
+        var request = fixture.Request(ViolationType.Ticket);
+        request.PaperTicketPhoto = Enumerable.Range(0, papers).Select(i => Photo($"paper{i}.jpg")).ToList();
+        request.SupportingEvidenceFiles = Enumerable.Range(0, supporting).Select(i => Photo($"support{i}.jpg")).ToList();
+        await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.Service.CreateTicketAsync(request));
+        Assert.Equal(0, fixture.UploadCalls);
+        Assert.Null(fixture.CreatedTicket);
+    }
+
+    [Theory]
+    [InlineData(0, 1, 1)]
+    [InlineData(2, 1, 3)]
+    [InlineData(1, 0, 1)]
+    [InlineData(1, 1, 3)]
+    public async Task Verify_rejects_invalid_category_counts_without_writing(int papers, int supporting, int total)
+    {
+        using var fixture = new Fixture();
+        await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.Service.VerifyInspectionAsync(new()
+        {
+            VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz", PaperReference = "000456",
+            IssuePlace = "Fish aisle", OrdinanceIds = [1], Description = "Market ID not displayed",
+            PenaltyType = PenaltyType.CashFine, EvidenceCount = total, PaperTicketPhotoCount = papers, SupportingEvidenceCount = supporting
+        }));
+        Assert.Equal(0, fixture.UploadCalls);
+        Assert.Null(fixture.CreatedTicket);
+    }
+
+    [Fact]
+    public async Task Upload_failure_rolls_back_citation_without_creating_evidence_rows()
+    {
+        using var fixture = new Fixture { FailUpload = true };
+        await Assert.ThrowsAsync<IOException>(() => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket)));
+        Assert.Null(fixture.CreatedTicket);
+        Assert.True(fixture.RolledBack);
+        Assert.False(fixture.Committed);
+    }
+
+    private static IFormFile Photo(string name) => new FormFile(new MemoryStream([0xff, 0xd8, 0xff, 0xd9]), 0, 4, "photo", name)
+        { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
+
     private sealed class Fixture : AppDbContext
     {
         public List<Notification> NotificationsSaved { get; } = [];
@@ -372,12 +519,20 @@ public class InspectionNotificationTests
         public Ticket? CreatedTicket;
         public bool Committed, RolledBack, FailPush, FailNotificationSave, FailConcurrentSave;
         public bool HighSeverity;
+        public BusinessSnapshotResponse Snapshot { get; set; } = new()
+        {
+            BusinessAccountNumber = "MM-17", BusinessName = "Reyes Fresh Fish", RegisteredOwnerName = "Juan Reyes",
+            BusinessType = "Public", StallNumber = "F-014", MarketSectionName = "Fish and Seafood",
+            BusinessAddress = "14 Market Street Santo Nino Marikina"
+        };
         public bool ExistingPaperReference;
         public string? UniqueConstraint;
         public int PushCalls;
         public int EmailCalls;
         public string EmailBody = "";
         public int UploadCalls;
+        public bool FailUpload;
+        public Dictionary<string, string> UploadedFiles = [];
         public bool FailEmail;
         public string VendorEmail = "";
         public Dictionary<string, string>? PushData;
@@ -426,8 +581,12 @@ public class InspectionNotificationTests
             });
             var vendorLookup = ReviewBoundaryProxy.Create<IVendorRepository>((method, args) => Task.FromResult<VendorTicketSummary?>(new()
             {
-                Id = 17, FirstName = "Juan", LastName = "Reyes", Email = VendorEmail, BusinessAccountNumber = "MM-17",
-                BusinessName = "Reyes Fresh Fish", MarketSectionId = 1, MarketSectionName = "Fish and Seafood"
+                Id = 17, FirstName = Snapshot.RegisteredOwnerName![..Snapshot.RegisteredOwnerName.LastIndexOf(' ')],
+                LastName = Snapshot.RegisteredOwnerName[(Snapshot.RegisteredOwnerName.LastIndexOf(' ') + 1)..],
+                Email = VendorEmail, BusinessAccountNumber = Snapshot.BusinessAccountNumber!,
+                BusinessName = Snapshot.BusinessName!, MarketSectionId = 1, MarketSectionName = Snapshot.MarketSectionName!,
+                BusinessAddress = Snapshot.BusinessAddress ?? "", StallNumber = Snapshot.StallNumber,
+                Type = Enum.Parse<BusinessType>(Snapshot.BusinessType!)
             }));
             var ordinances = ReviewBoundaryProxy.Create<IOrdinanceRepository>((method, args) => Task.FromResult(new List<OrdinanceOffenseSummary>
             {
@@ -450,7 +609,10 @@ public class InspectionNotificationTests
             {
                 if (method.Name != "UploadEvidencesAsync") throw new InvalidOperationException(method.Name);
                 UploadCalls++;
-                return Task.FromResult(((Dictionary<IFormFile, string>)args[0]!).Values.ToList());
+                var uploads = (Dictionary<IFormFile, string>)args[0]!;
+                UploadedFiles = uploads.ToDictionary(pair => pair.Key.FileName, pair => pair.Value);
+                return FailUpload ? Task.FromException<List<string>>(new IOException("Storage unavailable"))
+                    : Task.FromResult(uploads.Values.Reverse().ToList());
             });
             Service = new TicketService(tickets, ordinances, vendorLookup, unit, storage, notifications, compliance,
                 personRepository: new PersonRepository(this));
@@ -470,12 +632,12 @@ public class InspectionNotificationTests
             PaperViolatorName = type == ViolationType.Ticket ? "Juan Cruz" : null,
             PaperReference = type == ViolationType.Ticket ? "000456" : null,
             IssuePlace = type == ViolationType.Ticket ? "Fish aisle near F-014" : null,
+            ReviewedBusinessSnapshot = JsonSerializer.Serialize(Snapshot,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }),
             ReviewedCalculation = "{\"total_payment_amount\":500,\"highest_severity\":\"Minor\",\"breakdown\":[{\"ordinance_id\":1,\"ordinance_no\":\"011\",\"ordinance_code\":\"MKT-001\",\"offense_number\":1,\"payment_amount\":500,\"severity\":\"Minor\"}]}",
             Description = "Market identification card not displayed", PenaltyType = PenaltyType.CashFine,
-            Ordinances = [1], TicketEvidenceFiles = type == ViolationType.Ticket
-                ? [new FormFile(new MemoryStream([0xff, 0xd8, 0xff, 0xd9]), 0, 4, "ticket_evidence_files", "stall.jpg")
-                    { Headers = new HeaderDictionary(), ContentType = "image/jpeg" }]
-                : []
+            Ordinances = [1], PaperTicketPhoto = type == ViolationType.Ticket ? [Photo("paper.jpg")] : [],
+            SupportingEvidenceFiles = type == ViolationType.Ticket ? [Photo("stall.jpg")] : []
         };
     }
 }

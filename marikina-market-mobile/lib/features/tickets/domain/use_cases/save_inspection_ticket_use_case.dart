@@ -44,9 +44,13 @@ class SaveInspectionTicketUseCase
           ),
         );
       }
-      if (params.evidences == null || params.evidences!.isEmpty) {
+      if (params.paperTicketPhoto == null ||
+          params.evidences == null ||
+          params.evidences!.isEmpty) {
         return Result.failure(
-          ValidationFailure('Photo evidence is required for tickets.'),
+          ValidationFailure(
+            'One paper ticket photo and at least one supporting photo are required for tickets.',
+          ),
         );
       }
 
@@ -70,6 +74,7 @@ class SaveInspectionTicketUseCase
         paperReference: params.paperReference?.trim(),
         issuePlace: params.issuePlace?.trim(),
         reviewedCalculation: params.reviewedCalculation,
+        reviewedBusinessSnapshot: params.reviewedBusinessSnapshot,
         vendorId: params.vendorId,
         marketSectionId: params.marketSectionId,
         enforcerId: params.enforcerId,
@@ -79,6 +84,7 @@ class SaveInspectionTicketUseCase
         communityServiceHours: params.communityServiceHours,
         ordinanceIds: params.ordinanceIds,
         evidences: params.evidences,
+        paperTicketPhoto: params.paperTicketPhoto,
       ),
     );
   }

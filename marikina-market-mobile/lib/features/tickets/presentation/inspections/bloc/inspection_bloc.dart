@@ -406,6 +406,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
         paperReference: event.paperReference,
         issuePlace: event.issuePlace,
         reviewedCalculation: event.reviewedCalculation,
+        reviewedBusinessSnapshot: event.reviewedBusinessSnapshot,
         vendorId: event.vendorId,
         marketSectionId: event.marketSectionId,
         enforcerId: event.enforcerId,
@@ -415,6 +416,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
         communityServiceHours: event.communityServiceHours,
         ordinanceIds: event.ordinanceIds,
         evidences: event.evidences,
+        paperTicketPhoto: event.paperTicketPhoto,
       ),
     );
 

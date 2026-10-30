@@ -81,6 +81,11 @@ void main() {
     final summary = TicketSummaryModel.fromJson({
       ..._summary,
       'stall_number': null,
+      'business_snapshot': {
+        'business_name': 'Synthetic Market Goods',
+        'market_section_name': 'Section A',
+        'stall_number': null,
+      },
       'overdue_date': null,
     }).toEntity();
     expect(summary.stallNumber, isNull);
@@ -176,6 +181,11 @@ void main() {
     final summary = TicketSummaryModel.fromJson({
       ..._summary,
       'stall_number': null,
+      'business_snapshot': {
+        'business_name': 'Synthetic Market Goods',
+        'market_section_name': 'Section A',
+        'stall_number': null,
+      },
       'overdue_date': null,
       'status': 'Overdue',
     }).toEntity();

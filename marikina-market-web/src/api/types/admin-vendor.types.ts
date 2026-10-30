@@ -1,3 +1,4 @@
+import type { BusinessSnapshot } from "./ticket.types";
 export interface AdminVendorSummary {
   vendorId: number;
   businessAccountNumber: string;
@@ -105,6 +106,7 @@ export interface AdminVendorComplianceScore {
 }
 
 export interface AdminVendorInspection {
+  businessSnapshot?: BusinessSnapshot | null;
   ticketId: number;
   controlNumber: string | null;
   type: string | number;

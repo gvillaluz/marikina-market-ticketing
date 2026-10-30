@@ -77,12 +77,14 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     _communityHrsController.text,
     _selectedPenaltyType,
     ..._selectedOrdinances.map((item) => item.id),
+    _paperTicketPhoto?.path,
     ..._capturedEvidences.map((file) => file.path),
   ]);
   FineSummary? _fineSummary;
 
   List<Ordinance> _selectedOrdinances = [];
   final List<XFile> _capturedEvidences = [];
+  XFile? _paperTicketPhoto;
   bool _hasTextDraft = false;
   bool _isOpeningPreview = false;
 
@@ -155,7 +157,9 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     final isTicket = _selectedType == ViolationType.ticket;
     final hasVendorOrOrdinances =
         _vendorSummary != null || _selectedOrdinances.isNotEmpty;
-    final hasEvidences = isTicket && _capturedEvidences.isNotEmpty;
+    final hasEvidences =
+        isTicket &&
+        (_paperTicketPhoto != null || _capturedEvidences.isNotEmpty);
     return !hasVendorOrOrdinances && !hasEvidences && !_hasTextDraft;
   }
 
@@ -435,8 +439,10 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
           ? 'Description is required.'
           : null;
 
-      _photoError = (isTicket && _capturedEvidences.isEmpty)
-          ? 'At least one photo evidence is required for tickets.'
+      _photoError =
+          (isTicket &&
+              (_paperTicketPhoto == null || _capturedEvidences.isEmpty))
+          ? 'One paper ticket photo and at least one supporting photo are required for tickets.'
           : null;
 
       if (isTicket && _selectedPenaltyType == PenaltyType.communityService) {
@@ -500,6 +506,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
           fineSummary: _fineSummary,
           ordinances: List.unmodifiable(_selectedOrdinances),
           evidences: List.unmodifiable(_capturedEvidences),
+          paperTicketPhoto: _paperTicketPhoto,
           description: _ticketDescriptionController.text.trim(),
           ticketType: _selectedType,
           penaltyType: _selectedPenaltyType,
@@ -672,10 +679,28 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
                         if (isTicket) ...[
                           const SizedBox(height: 20),
-                          const Text('PHOTO EVIDENCE'),
+                          const Text('Paper ticket photo'),
                           const SizedBox(height: 5),
 
                           AddPhotoEvidenceBtn(
+                            photos: _paperTicketPhoto == null
+                                ? []
+                                : [_paperTicketPhoto!],
+                            onPhotoAdded: (photo) => setState(() {
+                              _paperTicketPhoto = photo;
+                              _photoError = null;
+                            }),
+                            onPhotoRemoved: (_) =>
+                                setState(() => _paperTicketPhoto = null),
+                            isInvalid: _photoError != null,
+                            buttonLabel: _paperTicketPhoto == null
+                                ? 'Take paper ticket photo'
+                                : 'Replace paper ticket photo',
+                          ),
+                          const SizedBox(height: AppTheme.inspectionSmallGap),
+                          const Text('Supporting evidence'),
+                          AddPhotoEvidenceBtn(
+                            buttonLabel: 'Add supporting photo',
                             photos: _capturedEvidences,
                             onPhotoAdded: (photo) => addEvidence(photo),
                             onPhotoRemoved: (index) => removeEvidence(index),

@@ -217,7 +217,10 @@ class TicketDetailContent extends StatelessWidget {
                   penaltyType: ticket.penaltyType,
                   violations: ticket.violations,
                   description: ticket.description,
-                  marketSection: ticket.marketSectionName,
+                  marketSection: isTicket
+                      ? (ticket.businessSnapshot?.marketSectionName ??
+                            'Historical business details unavailable.')
+                      : ticket.marketSectionName,
                   categories: ticket.categories,
                   isTicket: isTicket,
                 ),
@@ -355,6 +358,7 @@ class TicketDetailContent extends StatelessWidget {
             ),
           ] else ...[
             TicketDetailEvidenceSection(
+              evidenceItems: ticket.evidenceItems,
               evidences: ticket.evidenceUrls!,
               isTicket: isTicket,
             ),

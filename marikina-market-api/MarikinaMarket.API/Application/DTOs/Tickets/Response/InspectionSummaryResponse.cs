@@ -5,6 +5,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
 {
     public class InspectionSummaryResponse
     {
+        public BusinessSnapshotResponse? BusinessSnapshot { get; set; }
         public string? PaperReference { get; set; }
         public string? IssuePlace { get; set; }
         public required int Id { get; init; }

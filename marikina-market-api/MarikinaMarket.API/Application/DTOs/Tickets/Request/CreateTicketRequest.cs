@@ -20,6 +20,8 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
         public string? PaperReference { get; set; }
         [FromForm(Name = "issue_place"), StringLength(500)]
         public string? IssuePlace { get; set; }
+        [FromForm(Name = "reviewed_business_snapshot"), StringLength(4000)]
+        public string? ReviewedBusinessSnapshot { get; set; }
         [FromForm(Name = "reviewed_calculation"), StringLength(20000)]
         public string? ReviewedCalculation { get; set; }
 
@@ -54,5 +56,12 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
 
         [FromForm(Name = "ticket_evidence_files")]
         public List<IFormFile> TicketEvidenceFiles { get; set; } = [];
+
+        // Bind all occurrences so a second paper file cannot be silently ignored.
+        [FromForm(Name = "paper_ticket_photo")]
+        public List<IFormFile> PaperTicketPhoto { get; set; } = [];
+
+        [FromForm(Name = "supporting_evidence_files")]
+        public List<IFormFile> SupportingEvidenceFiles { get; set; } = [];
     }
 }

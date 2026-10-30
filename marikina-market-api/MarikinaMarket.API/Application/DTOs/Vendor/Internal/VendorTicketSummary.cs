@@ -12,6 +12,7 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Internal
         public required string MarketSectionName { get; set; }
         public required string BusinessName { get; set; }
         public required string BusinessAccountNumber { get; set; }
+        public string BusinessAddress { get; set; } = "";
         public string? StallNumber { get; set; }
         public BusinessType Type { get; set; }
     }

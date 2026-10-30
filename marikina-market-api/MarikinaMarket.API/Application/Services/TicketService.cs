@@ -384,10 +384,15 @@ namespace MarikinaMarket.API.Application.Services
             if (request.Type == ViolationType.Ticket)
             {
                 await ValidatePaperMetadataAsync(request.PaperReference, request.IssuePlace);
-                if (request.TicketEvidenceFiles is null || request.TicketEvidenceFiles.Count == 0
-                    || request.TicketEvidenceFiles.Any(file => file is null || file.Length <= 0))
-                    throw new InvalidRequestException("Photo evidence is required for tickets.");
-                foreach (var file in request.TicketEvidenceFiles)
+                if (request.TicketEvidenceFiles?.Count > 0)
+                    throw new InvalidRequestException("Classify photos as paper ticket or supporting evidence.");
+                if (request.PaperTicketPhoto is null || request.PaperTicketPhoto.Count != 1
+                    || request.SupportingEvidenceFiles is null || request.SupportingEvidenceFiles.Count == 0)
+                    throw new InvalidRequestException("Exactly one paper ticket photo and at least one supporting photo are required for tickets.");
+                var photos = request.PaperTicketPhoto.Concat(request.SupportingEvidenceFiles).ToList();
+                if (photos.Any(file => file is null || file.Length <= 0))
+                    throw new InvalidRequestException("Photo evidence files must not be empty.");
+                foreach (var file in photos)
                     await ValidateTicketEvidenceAsync(file);
                 if (request.PenaltyType == PenaltyType.CommunityService
                     && (request.CommunityServiceHours is null || request.CommunityServiceHours < 3))
@@ -558,25 +563,24 @@ namespace MarikinaMarket.API.Application.Services
                 if (request.PenaltyType != PenaltyType.CashFine && ordinanceFineSummary.HighestSeverity == Severity.High)
                     throw new ValidationException("High severity violations must be paid as cash fine.");
                 EnsureReviewedCalculation(request.ReviewedCalculation, ordinanceFineSummary);
+                var businessSnapshot = GetBusinessSnapshot(vendor);
+                EnsureReviewedBusinessSnapshot(request.ReviewedBusinessSnapshot, businessSnapshot);
                 var newControlNumber = await _ticketRepository.GetNewControlNumber();
                 var ticketEvidences = new List<TicketEvidence>();
 
-                if (request.TicketEvidenceFiles != null && request.TicketEvidenceFiles.Any())
+                if (request.PaperTicketPhoto.Count > 0)
                 {
-                    Dictionary<IFormFile, string> filesWithKeys = new Dictionary<IFormFile, string>();
-
-                    foreach (var file in request.TicketEvidenceFiles)
-                    {
-                        filesWithKeys[file] = GenerateFileKey(file);
-                    }
-
-                    var keys = await _storageService.UploadEvidencesAsync(filesWithKeys);
-
-                    foreach (var key in keys)
+                    var photos = request.PaperTicketPhoto.Concat(request.SupportingEvidenceFiles).ToList();
+                    var filesWithKeys = photos.ToDictionary(file => file, GenerateFileKey);
+                    await _storageService.UploadEvidencesAsync(filesWithKeys);
+                    // Use our file/key association, never an upload completion order.
+                    for (var index = 0; index < photos.Count; index++)
                     {
                         ticketEvidences.Add(new TicketEvidence
                         {
-                            FileKey = key
+                            FileKey = filesWithKeys[photos[index]],
+                            Role = index == 0 ? TicketEvidenceRole.PaperTicket : TicketEvidenceRole.Supporting,
+                            SortOrder = index == 0 ? 0 : index - 1
                         });
                     }
                 }
@@ -585,6 +589,13 @@ namespace MarikinaMarket.API.Application.Services
 
                 var ticket = new Ticket
                 {
+                    SnapshotBusinessAccountNumber = businessSnapshot.BusinessAccountNumber,
+                    SnapshotBusinessName = businessSnapshot.BusinessName,
+                    SnapshotRegisteredOwnerName = businessSnapshot.RegisteredOwnerName,
+                    SnapshotBusinessType = businessSnapshot.BusinessType,
+                    SnapshotStallNumber = businessSnapshot.StallNumber,
+                    SnapshotMarketSectionName = businessSnapshot.MarketSectionName,
+                    SnapshotBusinessAddress = businessSnapshot.BusinessAddress,
                     PaperReference = request.PaperReference, IssuePlace = request.IssuePlace,
                     PersonId = person!.Id, PaperViolatorName = request.PaperViolatorName!.Trim(),
                     ControlNumber = newControlNumber.ToString(),
@@ -672,6 +683,7 @@ namespace MarikinaMarket.API.Application.Services
                     ControlNumber = newTicket!.ControlNumber!,
                     VendorId = newTicket.VendorId,
                     PersonId = person.Id, PersonFullName = person.FullName, PaperViolatorName = newTicket.PaperViolatorName,
+                    BusinessSnapshot = businessSnapshot with { },
                     PaperReference = newTicket.PaperReference, IssuePlace = newTicket.IssuePlace,
                     RegisteredOwnerName = vendor.FirstName + " " + vendor.LastName,
                     LastName = vendor.LastName,
@@ -799,6 +811,7 @@ namespace MarikinaMarket.API.Application.Services
                 VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.PersonFullName,
                     PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
+                    BusinessSnapshot = t.BusinessSnapshot,
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                 LastName = t.LastName,
                 FirstName = t.FirstName,
@@ -853,6 +866,7 @@ namespace MarikinaMarket.API.Application.Services
             {
                 Items = inspections.Select(inspection => new VendorInspectionHistoryResponse
                 {
+                    BusinessSnapshot = inspection.BusinessSnapshot,
                     TicketId = inspection.TicketId,
                     ControlNumber = inspection.ControlNumber ??
                         (inspection.Type == ViolationType.Warning
@@ -935,6 +949,7 @@ namespace MarikinaMarket.API.Application.Services
                 VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.PersonFullName,
                     PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
+                    BusinessSnapshot = t.BusinessSnapshot,
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                 BusinessName = t.BusinessName,
                 MarketSectionName = t.MarketSectionName,
@@ -996,6 +1011,8 @@ namespace MarikinaMarket.API.Application.Services
                 }
 
                 ticketDetail.TicketEvidences = presignedUrls;
+                foreach (var item in ticketDetail.EvidenceItems)
+                    item.Url = keysWithUrls[item.Url];
             }
 
             return ticketDetail;
@@ -1171,6 +1188,7 @@ namespace MarikinaMarket.API.Application.Services
                 VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.PersonFullName,
                     PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
+                    BusinessSnapshot = t.BusinessSnapshot,
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                 VendorLastName = t.VendorLastName,
                 VendorFirstName = t.VendorFirstName,
@@ -1215,6 +1233,7 @@ namespace MarikinaMarket.API.Application.Services
                 VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.PersonFullName,
                     PaperViolatorName = t.PaperViolatorName, RegisteredOwnerName = t.RegisteredOwnerName,
+                    BusinessSnapshot = t.BusinessSnapshot,
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                 VendorLastName = t.VendorLastName,
                 VendorFirstName = t.VendorFirstName,
@@ -1285,6 +1304,8 @@ namespace MarikinaMarket.API.Application.Services
                 ? await _storageService.GetPresignedUrlsAsync(B2BucketType.Evidence, keys)
                 : new Dictionary<string, string>();
             ticket.TicketEvidences = evidenceKeys.Select(key => urls[key]).ToList();
+            foreach (var item in ticket.EvidenceItems)
+                item.Url = urls[item.Url];
             ticket.ProofUrls = proofKeys.Select(key => urls[key]).ToList();
             foreach (var log in ticket.CommunityServiceLogs)
                 log.ProofUrl = string.IsNullOrWhiteSpace(log.ProofUrl) ? "" : urls[log.ProofUrl];
@@ -1502,17 +1523,46 @@ namespace MarikinaMarket.API.Application.Services
             request.IssuePlace = request.IssuePlace?.Trim();
             Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
             await ValidatePaperMetadataAsync(request.PaperReference, request.IssuePlace);
+            if (request.PaperTicketPhotoCount != 1 || request.SupportingEvidenceCount < 1
+                || (long)request.EvidenceCount != (long)request.PaperTicketPhotoCount + request.SupportingEvidenceCount)
+                throw new InvalidRequestException("Exactly one paper ticket photo and at least one supporting photo are required for tickets.");
             if (request.PenaltyType == PenaltyType.CommunityService && request.CommunityServiceHours is null or < 3)
                 throw new ValidationException("Community service requires a minimum of 3 hours.");
-            if (await _vendorRepository.GetByIdAsync(request.VendorId) is null)
-                throw new RecordNotFoundException("Business not found.");
+            var business = await _vendorRepository.GetByIdAsync(request.VendorId)
+                ?? throw new RecordNotFoundException("Business not found.");
             var calculation = await GetPersonFineSummaryAsync(request.OrdinanceIds, request.PersonId);
             if (calculation.Breakdown.Any(item => item.IsDuplicate == true))
                 throw new DuplicateOrdinanceException("This person already has an active citation for a selected ordinance today.",
                     await _ticketRepository.GetPersonDuplicatesAsync(request.PersonId, request.OrdinanceIds, DateTime.UtcNow));
             if (request.PenaltyType != PenaltyType.CashFine && calculation.HighestSeverity == Severity.High)
                 throw new ValidationException("High severity violations must be paid as cash fine.");
-            return new() { Calculation = calculation, ReviewedCalculation = JsonSerializer.Serialize(calculation, ReviewJson) };
+            var snapshot = GetBusinessSnapshot(business);
+            return new() { Calculation = calculation, ReviewedCalculation = JsonSerializer.Serialize(calculation, ReviewJson),
+                BusinessSnapshot = snapshot, ReviewedBusinessSnapshot = JsonSerializer.Serialize(snapshot, ReviewJson) };
+        }
+
+        private static BusinessSnapshotResponse GetBusinessSnapshot(VendorTicketSummary business) => new()
+        {
+            BusinessAccountNumber = business.BusinessAccountNumber,
+            BusinessName = business.BusinessName,
+            RegisteredOwnerName = business.FirstName + " " + business.LastName,
+            BusinessType = business.Type.ToString(),
+            StallNumber = business.StallNumber,
+            MarketSectionName = business.MarketSectionName,
+            BusinessAddress = business.BusinessAddress
+        };
+
+        private static void EnsureReviewedBusinessSnapshot(string? reviewed, BusinessSnapshotResponse current)
+        {
+            BusinessSnapshotResponse? previous;
+            try { previous = string.IsNullOrWhiteSpace(reviewed) ? null : JsonSerializer.Deserialize<BusinessSnapshotResponse>(reviewed, ReviewJson); }
+            catch (JsonException) { throw new ValidationException("Verify the business details before submitting."); }
+            if (previous is null || string.IsNullOrWhiteSpace(previous.BusinessAccountNumber)
+                || string.IsNullOrWhiteSpace(previous.BusinessName) || string.IsNullOrWhiteSpace(previous.RegisteredOwnerName)
+                || string.IsNullOrWhiteSpace(previous.BusinessType) || string.IsNullOrWhiteSpace(previous.MarketSectionName))
+                throw new ValidationException("Verify the business details before submitting.");
+            if (previous != current)
+                throw new ConcurrencyConflictException("Business details changed. Review and verify again before submitting.");
         }
 
         private async Task ValidatePaperMetadataAsync(string? paperReference, string? issuePlace)

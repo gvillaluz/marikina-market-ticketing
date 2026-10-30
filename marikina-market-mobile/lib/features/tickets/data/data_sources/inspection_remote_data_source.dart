@@ -266,12 +266,25 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
           evidenceFiles.add(
             await MultipartFile.fromFile(
               compressedFile.path,
-              filename: file.name,
+              filename: 'supporting-${evidenceFiles.length + 1}.jpg',
+              contentType: DioMediaType('image', 'jpeg'),
             ),
           );
         }
       }
 
+      MultipartFile? paperPhoto;
+      if (params.ticketType == ViolationType.ticket &&
+          params.paperTicketPhoto != null) {
+        final compressed = await compressImage(
+          File(params.paperTicketPhoto!.path),
+        );
+        paperPhoto = await MultipartFile.fromFile(
+          compressed.path,
+          filename: 'paper-ticket.jpg',
+          contentType: DioMediaType('image', 'jpeg'),
+        );
+      }
       final formData = FormData.fromMap({
         "vendor_id": params.vendorId,
         "person_id": params.personId,
@@ -279,6 +292,7 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
         "issue_place": params.issuePlace?.trim(),
         "paper_violator_name": params.paperViolatorName,
         "reviewed_calculation": params.reviewedCalculation,
+        "reviewed_business_snapshot": params.reviewedBusinessSnapshot,
         "market_section_id": params.marketSectionId,
         "enforcer_id": params.enforcerId,
         "type": params.ticketType.value,
@@ -286,7 +300,11 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
         "penalty_type": params.penaltyType.value,
         "community_service_hours": params.communityServiceHours,
         "ordinances": params.ordinanceIds,
-        "ticket_evidence_files": evidenceFiles,
+        if (params.ticketType == ViolationType.ticket)
+          "supporting_evidence_files": evidenceFiles,
+        if (params.ticketType == ViolationType.warning)
+          "ticket_evidence_files": evidenceFiles,
+        "paper_ticket_photo": ?paperPhoto,
       }, ListFormat.multi);
 
       final response = await apiClient.post(
@@ -436,6 +454,8 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
         'penalty_type': input.penaltyType.value,
         'community_service_hours': input.communityServiceHours,
         'evidence_count': input.evidenceCount,
+        'paper_ticket_photo_count': input.paperTicketPhotoCount,
+        'supporting_evidence_count': input.supportingEvidenceCount,
       },
     );
     return InspectionVerificationModel.fromJson(response.data);

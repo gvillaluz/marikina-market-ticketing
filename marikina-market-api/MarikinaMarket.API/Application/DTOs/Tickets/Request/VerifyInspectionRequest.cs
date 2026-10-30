@@ -15,4 +15,6 @@ public class VerifyInspectionRequest
     [EnumDataType(typeof(PenaltyType))] public PenaltyType PenaltyType { get; set; }
     public int? CommunityServiceHours { get; set; }
     [Range(1, int.MaxValue)] public int EvidenceCount { get; set; }
+    [Range(0, int.MaxValue)] public int PaperTicketPhotoCount { get; set; }
+    [Range(0, int.MaxValue)] public int SupportingEvidenceCount { get; set; }
 }

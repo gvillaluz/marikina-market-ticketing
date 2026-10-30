@@ -31,6 +31,11 @@ const ticketResponse = <String, Object?>{
   'control_number': 'TKT-2026-0042',
   'status': 'Pending',
   'business_name': 'Market Goods',
+  'business_snapshot': {
+    'business_name': 'Market Goods',
+    'market_section_name': 'Section A',
+    'stall_number': 'A-12',
+  },
   'stall_number': 'A-12',
   'market_section_name': 'Section A',
   'issued_at': '2026-10-07T08:00:00Z',
@@ -137,7 +142,15 @@ void main() {
           reply(options, {
             'items': [
               if (!empty)
-                {...ticketResponse, 'business_name': 'Updated Market Goods'},
+                {
+                  ...ticketResponse,
+                  'business_name': 'Current registry B',
+                  'business_snapshot': {
+                    'business_name': 'Updated Market Goods',
+                    'market_section_name': 'Section A',
+                    'stall_number': 'A-12',
+                  },
+                },
             ],
             'has_more': false,
           }),

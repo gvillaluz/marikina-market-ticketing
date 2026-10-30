@@ -10,3 +10,7 @@
   font-size: 0.8rem;
   color: var(--neutral-500);
 }
+
+.group + .group {
+  margin-top: var(--space-lg);
+}

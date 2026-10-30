@@ -40,7 +40,7 @@ function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail }) {
           label="DATE & TIME"
           value={`${formatDateTime(detail?.issuedAt || "")}`}
         />
-        <TicketInfoRow label="MARKET SECTION" value={detail?.marketSectionName} />
+        <TicketInfoRow label="MARKET SECTION" value={(detail?.type === "Ticket" ? detail.businessSnapshot?.marketSectionName : detail?.marketSectionName)} />
         <TicketInfoRow
           label="VIOLATION COMMITTED"
           value={detail?.categories.join(", ")}

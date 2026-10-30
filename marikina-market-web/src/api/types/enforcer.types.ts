@@ -1,6 +1,6 @@
+import type { BusinessSnapshot } from "./ticket.types";
 import type { UserRole } from "./common.types";
 import { AccountStatus } from "./common.types";
-import { TicketType } from "./ticket.types";
 
 export interface EnforcerSummary {
   enforcerId: number;
@@ -57,6 +57,7 @@ export interface EnforcerPerformanceData {
 }
 
 export interface InspectionHistorySummary {
+  businessSnapshot?: BusinessSnapshot | null;
   ticketId: number;
   controlNumber: string;
   issuedAt: Date;
@@ -65,6 +66,6 @@ export interface InspectionHistorySummary {
   stallNumber: string;
   marketSectionId: number;
   marketSectionName: string;
-  type: TicketType;
+  type: "Ticket" | "Warning";
   status: AccountStatus;
 }

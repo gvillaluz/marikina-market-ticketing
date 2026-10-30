@@ -184,6 +184,11 @@ void main() {
               'business_type': 'Public',
               'business_account_number': 'BUS-12',
               'business_name': 'Market Goods',
+              'business_snapshot': {
+                'business_name': 'Market Goods',
+                'market_section_name': 'Section A',
+                'stall_number': 'A-12',
+              },
               'first_name': 'Maria Isabel',
               'last_name': 'Dela Cruz Santos',
               'violations': [],

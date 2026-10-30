@@ -1,3 +1,13 @@
+export interface BusinessSnapshot {
+  businessAccountNumber: string | null;
+  businessName: string | null;
+  registeredOwnerName: string | null;
+  businessType: string | null;
+  stallNumber: string | null;
+  marketSectionName: string | null;
+  businessAddress: string | null;
+}
+
 import type {
   MarketSection,
   OffenseLevel,
@@ -66,6 +76,7 @@ interface BaseRecordDetail {
 }
 
 export interface InspectionSummary {
+  businessSnapshot?: BusinessSnapshot | null;
   paperReference?: string | null;
   issuePlace?: string | null;
   personId?: number | null;
@@ -146,6 +157,7 @@ export interface TicketHistoryEntry {
 export type PenaltyType = "CashFine" | "BloodDonation" | "CommunityService";
 
 export interface TicketSummary {
+  businessSnapshot?: BusinessSnapshot | null;
   paperReference?: string | null;
   issuePlace?: string | null;
   personId?: number | null;
@@ -205,7 +217,16 @@ export interface TicketStatusUpdateResponse {
   version: number;
 }
 
+export interface TicketEvidenceItem {
+  id: number;
+  role: "PaperTicket" | "Supporting" | null;
+  sortOrder: number | null;
+  url: string;
+}
+
 export interface TicketDetail {
+  evidenceItems?: TicketEvidenceItem[];
+  businessSnapshot?: BusinessSnapshot | null;
   paperReference?: string | null;
   issuePlace?: string | null;
   personId?: number | null;
@@ -249,6 +270,7 @@ export interface TicketDetail {
 }
 
 export interface PersonTicketHistoryItem {
+  businessSnapshot?: BusinessSnapshot | null;
   paperReference?: string | null;
   issuePlace?: string | null;
   ticketId: number;

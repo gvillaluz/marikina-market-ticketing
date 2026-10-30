@@ -24,22 +24,62 @@ class ViolatorDetailSection extends StatelessWidget {
           title: 'VIOLATOR DETAILS',
         ),
         const SizedBox(height: AppTheme.ticketSmallGap),
-        TicketPaperField(
-          label: "BUSINESS ID:",
-          value: ticket.businessAccountNumber,
-        ),
-        const SizedBox(height: AppTheme.ticketSmallGap),
-        TicketPaperField(
-          label: "STALL/UNIT NO:",
-          value: ticket.stallNumber ?? 'N/A',
-        ),
-        const SizedBox(height: AppTheme.ticketSmallGap),
-        TicketPaperField(label: "TRADE NAME:", value: ticket.tradeName),
-        const SizedBox(height: AppTheme.ticketSmallGap),
-        TicketPaperField(
-          label: "REGISTERED OWNER:",
-          value: '${ticket.lastName}, ${ticket.firstName}',
-        ),
+        if (isTicket && ticket.businessSnapshot == null)
+          const Text('Historical business details unavailable.'),
+        if (isTicket && ticket.businessSnapshot != null) ...[
+          TicketPaperField(
+            label: 'BUSINESS ID:',
+            value:
+                ticket.businessSnapshot!.businessAccountNumber ?? 'Unavailable',
+          ),
+          TicketPaperField(
+            label: 'TRADE NAME:',
+            value: ticket.businessSnapshot!.businessName ?? 'Unavailable',
+          ),
+          TicketPaperField(
+            label: 'REGISTERED OWNER:',
+            value:
+                ticket.businessSnapshot!.registeredOwnerName ?? 'Unavailable',
+          ),
+          TicketPaperField(
+            label: 'BUSINESS TYPE:',
+            value: ticket.businessSnapshot!.businessType ?? 'Unavailable',
+          ),
+          TicketPaperField(
+            label: 'STALL/UNIT NO:',
+            value: ticket.businessSnapshot!.stallNumber ?? 'Unavailable',
+          ),
+          TicketPaperField(
+            label: 'MARKET SECTION:',
+            value: ticket.businessSnapshot!.marketSectionName ?? 'Unavailable',
+          ),
+          TicketPaperField(
+            label: 'ADDRESS:',
+            value:
+                ticket.businessSnapshot!.businessAddress?.trim().isNotEmpty ==
+                    true
+                ? ticket.businessSnapshot!.businessAddress!.trim()
+                : 'Address is unavailable.',
+          ),
+        ],
+        if (!isTicket) ...[
+          TicketPaperField(
+            label: "BUSINESS ID:",
+            value: ticket.businessAccountNumber,
+          ),
+          const SizedBox(height: AppTheme.ticketSmallGap),
+          TicketPaperField(
+            label: "STALL/UNIT NO:",
+            value: ticket.stallNumber ?? 'N/A',
+          ),
+          const SizedBox(height: AppTheme.ticketSmallGap),
+          TicketPaperField(label: "TRADE NAME:", value: ticket.tradeName),
+          const SizedBox(height: AppTheme.ticketSmallGap),
+          TicketPaperField(
+            label: "REGISTERED OWNER:",
+            value: '${ticket.lastName}, ${ticket.firstName}',
+          ),
+        ],
         if (isTicket) ...[
           TicketPaperField(
             label: 'RECORDED VIOLATOR:',
@@ -50,13 +90,6 @@ class ViolatorDetailSection extends StatelessWidget {
             value: ticket.personId == null
                 ? 'Unconfirmed (legacy record)'
                 : '${ticket.personFullName ?? 'Person'} · Person ${ticket.personId}',
-          ),
-          const SizedBox(height: AppTheme.ticketSmallGap),
-          TicketPaperField(
-            label: "ADDRESS:",
-            value: ticket.address?.trim().isNotEmpty == true
-                ? ticket.address!.trim()
-                : 'Address is unavailable.',
           ),
         ],
       ],

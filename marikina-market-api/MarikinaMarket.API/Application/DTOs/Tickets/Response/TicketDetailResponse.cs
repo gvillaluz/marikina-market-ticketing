@@ -6,6 +6,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
 {
     public class TicketDetailResponse
     {
+        public BusinessSnapshotResponse? BusinessSnapshot { get; set; }
         public string? PaperReference { get; set; }
         public string? IssuePlace { get; set; }
         public int TicketId { get; set; }
@@ -35,5 +36,6 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
         public DateTime? DueDate { get; set; }
         public decimal? TotalFineAmount { get; set; }
         public List<String>? TicketEvidences { get; set; } = [];
+        public List<TicketEvidenceResponse> EvidenceItems { get; set; } = [];
     }
 }

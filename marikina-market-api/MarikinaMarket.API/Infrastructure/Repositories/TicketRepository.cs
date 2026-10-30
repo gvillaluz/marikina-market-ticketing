@@ -170,6 +170,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    BusinessSnapshot = t.SnapshotBusinessAccountNumber == null ? null : new BusinessSnapshotResponse
+                    {
+                        BusinessAccountNumber = t.SnapshotBusinessAccountNumber,
+                        BusinessName = t.SnapshotBusinessName,
+                        RegisteredOwnerName = t.SnapshotRegisteredOwnerName,
+                        BusinessType = t.SnapshotBusinessType,
+                        StallNumber = t.SnapshotStallNumber,
+                        MarketSectionName = t.SnapshotMarketSectionName,
+                        BusinessAddress = t.SnapshotBusinessAddress,
+                    },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
@@ -204,6 +214,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         ? t.IssuedAt.AddDays(5) : null,
                     TotalFineAmount = t.TotalPaymentAmount ?? null,
                     TicketEvidences = t.TicketEvidences!.Select(e => e.FileKey).ToList() ?? new List<string>(),
+                    EvidenceItems = t.TicketEvidences!.OrderBy(e => e.Role).ThenBy(e => e.SortOrder).ThenBy(e => e.Id)
+                        .Select(e => new TicketEvidenceResponse { Id = e.Id, Role = e.Role, SortOrder = e.SortOrder, Url = e.FileKey }).ToList(),
                 });
         }
 
@@ -292,6 +304,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(t => new PersonTicketHistoryResponse
                 {
                     TicketId = t.Id, ControlNumber = t.ControlNumber, PaperViolatorName = t.PaperViolatorName,
+                    BusinessSnapshot = t.SnapshotBusinessAccountNumber == null ? null : new BusinessSnapshotResponse
+                    {
+                        BusinessAccountNumber = t.SnapshotBusinessAccountNumber,
+                        BusinessName = t.SnapshotBusinessName,
+                        RegisteredOwnerName = t.SnapshotRegisteredOwnerName,
+                        BusinessType = t.SnapshotBusinessType,
+                        StallNumber = t.SnapshotStallNumber,
+                        MarketSectionName = t.SnapshotMarketSectionName,
+                        BusinessAddress = t.SnapshotBusinessAddress,
+                    },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     BusinessName = t.Vendor!.BusinessName,
                     RegisteredOwnerName = t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
@@ -382,6 +404,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    BusinessSnapshot = t.SnapshotBusinessAccountNumber == null ? null : new BusinessSnapshotResponse
+                    {
+                        BusinessAccountNumber = t.SnapshotBusinessAccountNumber,
+                        BusinessName = t.SnapshotBusinessName,
+                        RegisteredOwnerName = t.SnapshotRegisteredOwnerName,
+                        BusinessType = t.SnapshotBusinessType,
+                        StallNumber = t.SnapshotStallNumber,
+                        MarketSectionName = t.SnapshotMarketSectionName,
+                        BusinessAddress = t.SnapshotBusinessAddress,
+                    },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     LastName = t.Vendor!.OwnerLastName,
@@ -440,6 +472,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    BusinessSnapshot = t.SnapshotBusinessAccountNumber == null ? null : new BusinessSnapshotResponse
+                    {
+                        BusinessAccountNumber = t.SnapshotBusinessAccountNumber,
+                        BusinessName = t.SnapshotBusinessName,
+                        RegisteredOwnerName = t.SnapshotRegisteredOwnerName,
+                        BusinessType = t.SnapshotBusinessType,
+                        StallNumber = t.SnapshotStallNumber,
+                        MarketSectionName = t.SnapshotMarketSectionName,
+                        BusinessAddress = t.SnapshotBusinessAddress,
+                    },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     BusinessName = t.Vendor!.BusinessName,
@@ -473,6 +515,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    BusinessSnapshot = t.SnapshotBusinessAccountNumber == null ? null : new BusinessSnapshotResponse
+                    {
+                        BusinessAccountNumber = t.SnapshotBusinessAccountNumber,
+                        BusinessName = t.SnapshotBusinessName,
+                        RegisteredOwnerName = t.SnapshotRegisteredOwnerName,
+                        BusinessType = t.SnapshotBusinessType,
+                        StallNumber = t.SnapshotStallNumber,
+                        MarketSectionName = t.SnapshotMarketSectionName,
+                        BusinessAddress = t.SnapshotBusinessAddress,
+                    },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     VendorLastName = t.Vendor!.OwnerLastName!,
@@ -552,6 +604,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    BusinessSnapshot = t.SnapshotBusinessAccountNumber == null ? null : new BusinessSnapshotResponse
+                    {
+                        BusinessAccountNumber = t.SnapshotBusinessAccountNumber,
+                        BusinessName = t.SnapshotBusinessName,
+                        RegisteredOwnerName = t.SnapshotRegisteredOwnerName,
+                        BusinessType = t.SnapshotBusinessType,
+                        StallNumber = t.SnapshotStallNumber,
+                        MarketSectionName = t.SnapshotMarketSectionName,
+                        BusinessAddress = t.SnapshotBusinessAddress,
+                    },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     VendorFirstName = t.Vendor!.OwnerFirstName,
@@ -616,6 +678,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
+                    BusinessSnapshot = t.SnapshotBusinessAccountNumber == null ? null : new BusinessSnapshotResponse
+                    {
+                        BusinessAccountNumber = t.SnapshotBusinessAccountNumber,
+                        BusinessName = t.SnapshotBusinessName,
+                        RegisteredOwnerName = t.SnapshotRegisteredOwnerName,
+                        BusinessType = t.SnapshotBusinessType,
+                        StallNumber = t.SnapshotStallNumber,
+                        MarketSectionName = t.SnapshotMarketSectionName,
+                        BusinessAddress = t.SnapshotBusinessAddress,
+                    },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
@@ -649,6 +721,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         ? t.IssuedAt.AddDays(5) : null,
                     TotalFineAmount = t.TotalPaymentAmount ?? null,
                     TicketEvidences = t.TicketEvidences!.Select(e => e.FileKey).ToList() ?? new List<string>(),
+                    EvidenceItems = t.TicketEvidences!.OrderBy(e => e.Role).ThenBy(e => e.SortOrder).ThenBy(e => e.Id)
+                        .Select(e => new TicketEvidenceResponse { Id = e.Id, Role = e.Role, SortOrder = e.SortOrder, Url = e.FileKey }).ToList(),
                     Status = t.Status,
                     EnforcerFirstName = t.Enforcer!.FirstName,
                     EnforcerLastName = t.Enforcer.LastName,
@@ -802,6 +876,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Take(limit + 1)
                 .Select(t => new InspectionSummary
                 {
+                    BusinessSnapshot = t.SnapshotBusinessAccountNumber == null ? null : new BusinessSnapshotResponse
+                    {
+                        BusinessAccountNumber = t.SnapshotBusinessAccountNumber,
+                        BusinessName = t.SnapshotBusinessName,
+                        RegisteredOwnerName = t.SnapshotRegisteredOwnerName,
+                        BusinessType = t.SnapshotBusinessType,
+                        StallNumber = t.SnapshotStallNumber,
+                        MarketSectionName = t.SnapshotMarketSectionName,
+                        BusinessAddress = t.SnapshotBusinessAddress,
+                    },
                     Id = t.Id,
                     ControlNumber = t.ControlNumber!,
                     VendorId = t.VendorId,
@@ -851,6 +935,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Take(limit + 1)
                 .Select(t => new VendorInspectionHistoryItem
                 {
+                    BusinessSnapshot = t.SnapshotBusinessAccountNumber == null ? null : new BusinessSnapshotResponse
+                    {
+                        BusinessAccountNumber = t.SnapshotBusinessAccountNumber,
+                        BusinessName = t.SnapshotBusinessName,
+                        RegisteredOwnerName = t.SnapshotRegisteredOwnerName,
+                        BusinessType = t.SnapshotBusinessType,
+                        StallNumber = t.SnapshotStallNumber,
+                        MarketSectionName = t.SnapshotMarketSectionName,
+                        BusinessAddress = t.SnapshotBusinessAddress,
+                    },
                     TicketId = t.Id,
                     ControlNumber = t.ControlNumber,
                     Type = t.Type,

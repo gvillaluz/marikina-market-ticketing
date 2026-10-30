@@ -15,6 +15,8 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
 
             builder.Property(t => t.FileKey)
                 .HasMaxLength(1000);
+
+            builder.Property(t => t.Role).HasConversion<string>().HasMaxLength(20);
         }
     }
 }

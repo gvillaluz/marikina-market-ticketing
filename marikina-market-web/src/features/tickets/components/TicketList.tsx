@@ -54,7 +54,7 @@ export default function TicketList({
           key: "section",
           header: "Market section",
           align: "left",
-          render: (ticket) => ticket.marketSectionName || "\u2014",
+          render: (ticket) => ticket.businessSnapshot?.marketSectionName || "Historical business details unavailable.",
         },
         {
           key: "status",

@@ -85,6 +85,7 @@ class NewWarningSubmitted extends InspectionEvent {
 
 class NewInspectionSubmitted extends InspectionEvent {
   final String? paperReference, issuePlace;
+  final String? reviewedBusinessSnapshot;
   final int? personId;
   final String? paperViolatorName, reviewedCalculation;
   final int vendorId;
@@ -97,6 +98,7 @@ class NewInspectionSubmitted extends InspectionEvent {
   final String description;
   final List<OrdinanceCategory> primaryCategory;
   final List<XFile>? evidences;
+  final XFile? paperTicketPhoto;
 
   NewInspectionSubmitted({
     this.paperReference,
@@ -104,6 +106,7 @@ class NewInspectionSubmitted extends InspectionEvent {
     this.personId,
     this.paperViolatorName,
     this.reviewedCalculation,
+    this.reviewedBusinessSnapshot,
     required this.vendorId,
     required this.enforcerId,
     required this.marketSectionId,
@@ -114,5 +117,6 @@ class NewInspectionSubmitted extends InspectionEvent {
     required this.description,
     required this.primaryCategory,
     required this.evidences,
+    this.paperTicketPhoto,
   });
 }

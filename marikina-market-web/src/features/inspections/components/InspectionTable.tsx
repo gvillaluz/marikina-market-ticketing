@@ -59,12 +59,12 @@ export function InspectionTable({
             {
               key: "tradeName",
               header: "Trade name",
-              render: (row) => row.businessName || "\u2014",
+              render: (row) => row.type === "Ticket" ? (row.businessSnapshot?.businessName || "Historical business details unavailable.") : (row.businessName || "\u2014"),
             },
             {
               key: "section",
               header: "Market section",
-              render: (row) => row.marketSectionName || "\u2014",
+              render: (row) => row.type === "Ticket" ? (row.businessSnapshot?.marketSectionName || "Historical business details unavailable.") : (row.marketSectionName || "\u2014"),
             },
             {
               key: "type",

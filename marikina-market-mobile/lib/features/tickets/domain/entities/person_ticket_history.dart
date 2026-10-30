@@ -1,4 +1,7 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/business_snapshot.dart';
+
 class PersonTicketHistory {
+  final BusinessSnapshot? businessSnapshot;
   final String? paperReference, issuePlace;
   final int ticketId;
   final String reference, businessName, enforcerName;
@@ -8,6 +11,7 @@ class PersonTicketHistory {
   final double outstandingCashFine;
   final List<String> ordinances;
   const PersonTicketHistory({
+    this.businessSnapshot,
     this.paperReference,
     this.issuePlace,
     required this.ticketId,

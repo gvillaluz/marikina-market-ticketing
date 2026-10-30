@@ -29,6 +29,11 @@ const input = VerifyInspectionInput(
 );
 Map<String, Object?> verified(String snapshot) => {
   'reviewed_calculation': snapshot,
+  'reviewed_business_snapshot': 'server-reviewed-business',
+  'business_snapshot': {
+    'business_name': 'Historical A',
+    'registered_owner_name': 'Original Owner',
+  },
   'calculation': {
     'total_payment_amount': 500,
     'highest_severity': 'Minor',
@@ -92,6 +97,7 @@ void main() {
           paperReference: '000456',
           issuePlace: 'Fish aisle near F-014',
           reviewedCalculation: 'server-reviewed-calculation',
+          reviewedBusinessSnapshot: 'server-reviewed-business',
           vendorId: 17,
           enforcerId: 7,
           marketSectionId: 1,
@@ -102,12 +108,14 @@ void main() {
           description: 'Synthetic market aisle obstruction',
           primaryCategory: <OrdinanceCategory>[],
           evidences: [XFile(photo.path)],
+          paperTicketPhoto: XFile(photo.path),
         ),
       );
       final fields = await captured.future.timeout(const Duration(seconds: 5));
       expect(fields['person_id'], '31');
       expect(fields['paper_violator_name'], 'Juan Cruz');
       expect(fields['reviewed_calculation'], 'server-reviewed-calculation');
+      expect(fields['reviewed_business_snapshot'], 'server-reviewed-business');
       expect(fields['vendor_id'], '17');
       expect(fields['paper_reference'], '000456');
       expect(fields['issue_place'], 'Fish aisle near F-014');
@@ -141,6 +149,14 @@ void main() {
       try {
         final state = await next as InspectionVerified;
         expect(state.verification.reviewedCalculation, 'second-review');
+        expect(
+          state.verification.reviewedBusinessSnapshot,
+          'server-reviewed-business',
+        );
+        expect(
+          state.verification.businessSnapshot?.businessName,
+          'Historical A',
+        );
       } finally {
         first.complete(reply(options, verified('cancelled-review')));
       }

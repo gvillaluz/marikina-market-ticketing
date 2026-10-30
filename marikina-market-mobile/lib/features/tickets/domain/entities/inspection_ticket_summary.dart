@@ -1,9 +1,11 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/business_snapshot.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class InspectionTicketSummary {
+  final BusinessSnapshot? businessSnapshot;
   final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
@@ -28,6 +30,7 @@ class InspectionTicketSummary {
   final DateTime updatedAt;
 
   InspectionTicketSummary({
+    this.businessSnapshot,
     this.paperReference,
     this.issuePlace,
     this.personId,

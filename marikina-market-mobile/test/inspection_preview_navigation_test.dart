@@ -206,6 +206,16 @@ void main() {
                 case '/enforcer/tickets/verify':
                   return reply(options, {
                     'reviewed_calculation': 'reviewed-calculation',
+                    'reviewed_business_snapshot': 'reviewed-business',
+                    'business_snapshot': {
+                      'business_account_number': 'TEST-12',
+                      'business_name': 'Synthetic Market Goods',
+                      'registered_owner_name': 'Synthetic Vendor',
+                      'business_type': 'Public',
+                      'stall_number': 'A-12',
+                      'market_section_name': 'Section A',
+                      'business_address': 'Synthetic Street, Marikina',
+                    },
                     'calculation': {
                       'total_payment_amount': 100,
                       'highest_severity': 'Minor',
@@ -381,9 +391,18 @@ void main() {
               () => File('assets/logo/org_logo.png').copy(file.path),
             );
             evidence = XFile(file.path);
-            tester
-                .widget<AddPhotoEvidenceBtn>(find.byType(AddPhotoEvidenceBtn))
-                .onPhotoAdded(evidence);
+            final paper = XFile(
+              (await tester.runAsync(
+                () => file.copy('${folder.path}/paper.png'),
+              ))!.path,
+            );
+            for (final control in tester.widgetList<AddPhotoEvidenceBtn>(
+              find.byType(AddPhotoEvidenceBtn),
+            )) {
+              control.onPhotoAdded(
+                control.buttonLabel.contains('paper') ? paper : evidence,
+              );
+            }
             await flush(tester);
           }
           await tester.ensureVisible(formAction());
@@ -415,6 +434,7 @@ void main() {
           expect(data.ticketType, type);
           expect(data.evidences?.length, type == ViolationType.ticket ? 1 : 0);
           if (evidence != null) {
+            expect(data.paperTicketPhoto, isNotNull);
             expect(data.evidences!.single.path, evidence.path);
           }
           expect(saveRequests, 0);

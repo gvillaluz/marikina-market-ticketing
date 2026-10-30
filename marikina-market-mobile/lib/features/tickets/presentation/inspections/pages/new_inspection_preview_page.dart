@@ -61,6 +61,13 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
       );
       return;
     }
+    if (data.paperTicketPhoto == null || (data.evidences?.isEmpty ?? true)) {
+      setState(
+        () => _verificationMessage =
+            'One paper ticket photo and at least one supporting photo are required for tickets.',
+      );
+      return;
+    }
     if (data.personId == null ||
         data.penaltyType == null ||
         _verifying ||
@@ -79,7 +86,11 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
           ordinanceIds: data.ordinances.map((o) => o.id).toList(),
           penaltyType: data.penaltyType!,
           communityServiceHours: data.communityServiceHrs,
-          evidenceCount: data.evidences?.length ?? 0,
+          evidenceCount:
+              (data.evidences?.length ?? 0) +
+              (data.paperTicketPhoto == null ? 0 : 1),
+          paperTicketPhotoCount: data.paperTicketPhoto == null ? 0 : 1,
+          supportingEvidenceCount: data.evidences?.length ?? 0,
         ),
       ),
     );
@@ -97,6 +108,10 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
         paperReference: widget.formData.paperReference,
         issuePlace: widget.formData.issuePlace,
         reviewedCalculation: _verification?.reviewedCalculation,
+        reviewedBusinessSnapshot: _verification?.reviewedBusinessSnapshot,
+        paperTicketPhoto: widget.formData.ticketType == ViolationType.ticket
+            ? widget.formData.paperTicketPhoto
+            : null,
         vendorId: widget.formData.vendorSummary.id,
         enforcerId: widget.formData.enforcerId,
         marketSectionId: widget.formData.vendorSummary.marketSectionId,
@@ -151,7 +166,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
               _verifying = false;
               _verification = state.verification;
               _verificationMessage =
-                  'Verified. Review the calculated offense positions and fine before submitting.';
+                  'Verified. Review the business details, calculated offense positions and fine before submitting.';
             });
           }
           if (state is InspectionVerificationError) {
@@ -320,6 +335,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: ViolatorInfoSection(
                               vendor: widget.formData.vendorSummary,
+                              businessSnapshot: _verification?.businessSnapshot,
                               personId: widget.formData.personId,
                               personFullName: widget.formData.personFullName,
                               paperViolatorName:
@@ -343,10 +359,14 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                               fine: fineSummary,
                               ordinances: widget.formData.ordinances,
                               isTicket: isTicket,
-                              marketSection: widget
-                                  .formData
-                                  .vendorSummary
-                                  .marketSectionName,
+                              marketSection:
+                                  _verification
+                                      ?.businessSnapshot
+                                      ?.marketSectionName ??
+                                  widget
+                                      .formData
+                                      .vendorSummary
+                                      .marketSectionName,
                               description: widget.formData.description,
                             ),
                           ),
@@ -440,10 +460,20 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Text('Photos attached to this inspection record.'),
+                      const Text(
+                        'Review the paper ticket and supporting evidence separately.',
+                      ),
 
                       const SizedBox(height: 10),
 
+                      if (widget.formData.paperTicketPhoto != null) ...[
+                        const Text('Paper ticket photo'),
+                        PhotoEvidencePreviewSection(
+                          evidences: [widget.formData.paperTicketPhoto!],
+                        ),
+                        const SizedBox(height: AppTheme.inspectionSmallGap),
+                      ],
+                      const Text('Supporting evidence'),
                       if (widget.formData.evidences?.isEmpty ?? true) ...[
                         Container(
                           width: double.infinity,
@@ -538,6 +568,9 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                       onPressed:
                           isTicket &&
                               (_verification == null ||
+                                  _verification?.businessSnapshot == null ||
+                                  _verification?.reviewedBusinessSnapshot ==
+                                      null ||
                                   _verifying ||
                                   _submissionUncertain)
                           ? null

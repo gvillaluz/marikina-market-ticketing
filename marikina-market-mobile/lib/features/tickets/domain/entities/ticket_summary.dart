@@ -1,6 +1,8 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/business_snapshot.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 
 class TicketSummary {
+  final BusinessSnapshot? businessSnapshot;
   final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
@@ -18,6 +20,7 @@ class TicketSummary {
   final DateTime? overDueDate;
 
   const TicketSummary({
+    this.businessSnapshot,
     this.paperReference,
     this.issuePlace,
     this.personId,

@@ -8,11 +8,13 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 
 class AddPhotoEvidenceBtn extends StatefulWidget {
   final List<XFile> photos;
+  final String buttonLabel;
   final ValueChanged<XFile> onPhotoAdded;
   final ValueChanged<int> onPhotoRemoved;
   final bool isInvalid;
   const AddPhotoEvidenceBtn({
     required this.photos,
+    this.buttonLabel = 'Take a photo',
     required this.onPhotoAdded,
     required this.onPhotoRemoved,
     required this.isInvalid,
@@ -61,7 +63,7 @@ class _AddPhotoEvidenceBtnState extends State<AddPhotoEvidenceBtn> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       AppPrimaryButton(
-        label: _isCapturing ? 'Opening camera' : 'Take a photo',
+        label: _isCapturing ? 'Opening camera' : widget.buttonLabel,
         iconData: Icons.add_a_photo_outlined,
         onPressed: _captureEvidence,
         isLoading: _isCapturing,

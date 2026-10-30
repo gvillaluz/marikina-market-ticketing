@@ -17,7 +17,7 @@ export default function PersonTicketHistory({ personId }: { personId: number }) 
       {!history.isPending && !history.isError && history.items.length === 0 && <p>No citations linked to this person.</p>}
       <ol className={styles.records}>
         {history.items.map(ticket => <li key={ticket.ticketId}>
-          <strong>Paper reference: {ticket.paperReference || "Unavailable (legacy record)"} · {ticket.businessName}</strong>
+          <strong>Paper reference: {ticket.paperReference || "Unavailable (legacy record)"} · {ticket.businessSnapshot?.businessName || "Historical business details unavailable."}</strong>
           <p>System control: {ticket.controlNumber || "Unnumbered"}</p>
           <p>Issue place: {ticket.issuePlace || "Unavailable (legacy record)"}</p>
           <p>Recorded violator: {ticket.paperViolatorName || "Unconfirmed"}</p>

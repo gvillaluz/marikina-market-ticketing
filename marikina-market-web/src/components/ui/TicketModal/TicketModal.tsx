@@ -124,6 +124,8 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
 
           {!isLoading && !isError && isTicket && (
             <TicketPhotoEvidenceSection
+              evidenceItems={ticket?.evidenceItems}
+              isTicket={ticket?.type === "Ticket"}
               images={ticket?.ticketEvidences || []}
             />
           )}

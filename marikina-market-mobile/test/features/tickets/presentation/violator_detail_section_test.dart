@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/business_snapshot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail.dart';
@@ -29,6 +30,14 @@ void main() {
 }
 
 TicketDetail _ticket({required String? address}) => TicketDetail(
+  businessSnapshot: BusinessSnapshot(
+    businessAccountNumber: 'BUS-123',
+    businessName: 'Market Store',
+    registeredOwnerName: 'Jane Doe',
+    businessType: 'Public',
+    marketSectionName: 'Section A',
+    businessAddress: address,
+  ),
   ticketId: 1,
   enforcerId: 2,
   vendorId: 3,

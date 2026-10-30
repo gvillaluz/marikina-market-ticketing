@@ -34,6 +34,7 @@ import TicketDetailError from "../components/detail/TicketDetailError";
 import { useTicketDetails } from "../hooks/useTicketDetails";
 import { formatPenaltyType, getTicketTotalFineAmount } from "../tickets.utils";
 import EvidenceSection from "../components/detail/EvidenceSection";
+import TicketPhotoEvidenceSection from "@/components/ui/TicketModal/modal/TicketPhotoEvidenceSection";
 import { useUpdateStatus } from "../hooks/useUpdateStatus";
 import { TicketModal } from "../../../components/ui/TicketModal/TicketModal";
 import Modal from "@/components/ui/Modal";
@@ -145,13 +146,17 @@ const TicketDetailPage: FC = () => {
             />
             <InfoField
               label="REGISTERED OWNER"
-              value={ticket.registeredOwnerName || `${ticket.lastName}, ${ticket.firstName}`}
+              value={ticket.businessSnapshot?.registeredOwnerName || "Historical business details unavailable."}
             />
+            <InfoField label="BUSINESS ACCOUNT NUMBER" value={ticket.businessSnapshot?.businessAccountNumber || "Unavailable"} />
+            <InfoField label="BUSINESS NAME" value={ticket.businessSnapshot?.businessName || "Unavailable"} />
+            <InfoField label="BUSINESS TYPE" value={ticket.businessSnapshot?.businessType || "Unavailable"} />
+            <InfoField label="BUSINESS ADDRESS" value={ticket.businessSnapshot?.businessAddress || "Unavailable"} />
             <InfoField label="RECORDED VIOLATOR" value={ticket.paperViolatorName || "Unconfirmed (legacy record)"} />
             <InfoField label="CONFIRMED PERSON" value={ticket.personId ? `${ticket.personFullName || "Person"} · Person ${ticket.personId}` : "Unconfirmed (legacy record)"} />
             <InfoField
               label="STALL LOCATION"
-              value={`${ticket?.marketSectionName}, ${ticket?.stallNumber}`}
+              value={ticket.businessSnapshot ? [ticket.businessSnapshot.marketSectionName, ticket.businessSnapshot.stallNumber].filter(Boolean).join(", ") : "Historical business details unavailable."}
             />
           </div>
         </DetailCard>
@@ -202,7 +207,7 @@ const TicketDetailPage: FC = () => {
                 {ticket?.ticketEvidences.length === 0 ? (
                   <EvidenceThumbnail caption="No additional media" />
                 ) : (
-                  <EvidenceSection images={ticket?.ticketEvidences || []} />
+                  <TicketPhotoEvidenceSection images={ticket?.ticketEvidences || []} evidenceItems={ticket?.evidenceItems} isTicket={ticket?.type === "Ticket"} />
                 )}
               </div>
             </div>

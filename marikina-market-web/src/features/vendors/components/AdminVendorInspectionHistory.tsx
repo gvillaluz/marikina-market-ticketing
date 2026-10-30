@@ -82,6 +82,7 @@ export default function AdminVendorInspectionHistory({
           {isWarning(inspection)
             ? "N/A"
             : formatControlNumber(inspection.controlNumber)}
+          {!isWarning(inspection) && <><br />{inspection.businessSnapshot?.businessName || "Historical business details unavailable."}</>}
         </strong>
       ),
     },
@@ -92,9 +93,8 @@ export default function AdminVendorInspectionHistory({
       align: "center",
       render: (inspection) => (
         <span
-          className={`${styles.typeBadge} ${
-            isWarning(inspection) ? styles.warningType : styles.ticketType
-          }`}
+          className={`${styles.typeBadge} ${isWarning(inspection) ? styles.warningType : styles.ticketType
+            }`}
         >
           {inspection.type}
         </span>

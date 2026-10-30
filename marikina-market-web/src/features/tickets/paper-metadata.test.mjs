@@ -42,7 +42,7 @@ async function load(file) {
 }
 const { default: Details } = await import(await load(path.join(src, 'components/ui/TicketModal/modal/TicketViolationDetailsSection.tsx')));
 const record = { type: 'Ticket', violations: [], categories: [], issuedAt: '2026-10-29T08:00:00Z',
-  marketSectionName: 'Fish section', description: 'Synthetic citation', paperReference: '000456', issuePlace: 'Fish aisle near F-014' };
+  marketSectionName: 'Fish section', businessSnapshot: { marketSectionName: 'Fish section' }, description: 'Synthetic citation', paperReference: '000456', issuePlace: 'Fish aisle near F-014' };
 
 test('real ticket detail rows preserve printed reference and written place separately from section', () => {
   const html = renderToStaticMarkup(React.createElement(Details, { detail: record }));

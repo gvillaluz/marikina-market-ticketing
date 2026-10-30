@@ -14,6 +14,7 @@ class InspectionFormData {
   final FineSummary? fineSummary;
   final List<Ordinance> ordinances;
   final List<XFile>? evidences;
+  final XFile? paperTicketPhoto;
   final String description;
   final ViolationType ticketType;
   final PenaltyType? penaltyType;
@@ -31,6 +32,7 @@ class InspectionFormData {
     required this.fineSummary,
     required this.ordinances,
     required this.evidences,
+    this.paperTicketPhoto,
     required this.description,
     required this.ticketType,
     required this.penaltyType,

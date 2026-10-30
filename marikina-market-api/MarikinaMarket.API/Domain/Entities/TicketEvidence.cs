@@ -7,5 +7,7 @@
         public Ticket? Ticket { get; set; }
 
         public required string FileKey { get; set; }
+        public Enums.TicketEvidenceRole? Role { get; set; }
+        public int? SortOrder { get; set; }
     }
 }

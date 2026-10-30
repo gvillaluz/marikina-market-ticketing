@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/features/tickets/data/models/business_snapshot_model.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_ticket_summary.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
@@ -5,6 +6,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/business_ty
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class InspectionSummaryModel {
+  final BusinessSnapshotModel? businessSnapshot;
   final String? paperReference, issuePlace;
   final int? personId;
   final String? personFullName, paperViolatorName, registeredOwnerName;
@@ -29,6 +31,7 @@ class InspectionSummaryModel {
   final DateTime updatedAt;
 
   InspectionSummaryModel({
+    this.businessSnapshot,
     this.paperReference,
     this.issuePlace,
     this.personId,
@@ -58,6 +61,12 @@ class InspectionSummaryModel {
 
   factory InspectionSummaryModel.fromJson(Map<String, dynamic> json) {
     return InspectionSummaryModel(
+      businessSnapshot: json['business_snapshot'] == null
+          ? null
+          : BusinessSnapshotModel.fromJson(
+              json['business_snapshot'] as Map<String, Object?>,
+            ),
+
       ticketId: json['id'] as int,
       ticketType: ViolationType.fromValue(json['type'] as String),
       controlNumber: json['control_number'] != null
@@ -131,6 +140,7 @@ class InspectionSummaryModel {
       personId: personId,
       personFullName: personFullName,
       paperViolatorName: paperViolatorName,
+      businessSnapshot: businessSnapshot?.toEntity(),
       paperReference: paperReference,
       issuePlace: issuePlace,
       registeredOwnerName: registeredOwnerName,

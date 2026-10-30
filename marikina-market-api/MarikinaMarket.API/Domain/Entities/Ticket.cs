@@ -13,6 +13,14 @@ namespace MarikinaMarket.API.Domain.Entities
         public Person? Person { get; set; }
         public string? PaperViolatorName { get; set; }
         public string? PaperReference { get; set; }
+        public string? SnapshotBusinessAccountNumber { get; set; }
+        public string? SnapshotBusinessName { get; set; }
+        public string? SnapshotRegisteredOwnerName { get; set; }
+        public string? SnapshotBusinessType { get; set; }
+        public string? SnapshotStallNumber { get; set; }
+        public string? SnapshotMarketSectionName { get; set; }
+        public string? SnapshotBusinessAddress { get; set; }
+
         public string? IssuePlace { get; set; }
 
         public int MarketSectionId { get; set; }

@@ -167,6 +167,7 @@ namespace MarikinaMarket.API.Application.Services
 
             var inspectionResponse = inspections.Select(i => new InspectionResponse
             {
+                BusinessSnapshot = i.BusinessSnapshot,
                 TicketId = i.Id,
                 ControlNumber = i.ControlNumber,
                 IssuedAt = i.IssuedAt,

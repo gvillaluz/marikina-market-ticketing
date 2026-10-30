@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/features/tickets/data/models/business_snapshot_model.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_ticket_history.dart';
 
 class PersonTicketHistoryModel {
@@ -6,6 +7,11 @@ class PersonTicketHistoryModel {
   factory PersonTicketHistoryModel.fromJson(Map<String, Object?> json) =>
       PersonTicketHistoryModel._(json);
   PersonTicketHistory toEntity() => PersonTicketHistory(
+    businessSnapshot: _json['business_snapshot'] == null
+        ? null
+        : BusinessSnapshotModel.fromJson(
+            _json['business_snapshot'] as Map<String, Object?>,
+          ).toEntity(),
     ticketId: _json['ticket_id'] as int,
     reference: _json['control_number'] as String? ?? 'Unnumbered',
     businessName: _json['business_name'] as String,

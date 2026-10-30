@@ -2,17 +2,63 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/evidence_gallery_screen.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_evidence.dart';
 
 class TicketDetailEvidenceSection extends StatelessWidget {
   final List<String> evidences;
   final bool isTicket;
+  final List<TicketEvidence> evidenceItems;
   const TicketDetailEvidenceSection({
     required this.evidences,
     required this.isTicket,
+    this.evidenceItems = const [],
     super.key,
   });
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    if (!isTicket) return _buildPhotos(context);
+    final groups = <String, List<String>>{};
+    if (evidenceItems.isEmpty) {
+      groups['Unclassified evidence'] = evidences;
+    } else {
+      for (final role in ['PaperTicket', 'Supporting', null]) {
+        final items =
+            evidenceItems
+                .where(
+                  (item) => role == null
+                      ? item.role != 'PaperTicket' && item.role != 'Supporting'
+                      : item.role == role,
+                )
+                .toList()
+              ..sort((a, b) {
+                final order = (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0);
+                return order == 0 ? a.id.compareTo(b.id) : order;
+              });
+        if (items.isNotEmpty) {
+          groups[role == 'PaperTicket'
+              ? 'Paper ticket photo'
+              : role == 'Supporting'
+              ? 'Supporting evidence'
+              : 'Unclassified evidence'] = items
+              .map((item) => item.url)
+              .toList();
+        }
+      }
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final group in groups.entries) ...[
+          Text(group.key, style: AppTheme.inspectionBodyStyle),
+          const SizedBox(height: AppTheme.ticketSmallGap),
+          TicketDetailEvidenceSection(evidences: group.value, isTicket: false),
+          const SizedBox(height: AppTheme.ticketSmallGap),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPhotos(BuildContext context) => Container(
     padding: AppTheme.ticketCardPadding,
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surface,
