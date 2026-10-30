@@ -22,7 +22,6 @@ import 'package:marikina_market_mobile/features/records/domain/use_cases/load_re
 import 'package:marikina_market_mobile/features/records/domain/use_cases/load_record_detail_use_case.dart';
 import 'package:marikina_market_mobile/features/records/domain/use_cases/load_vendor_receipt_use_case.dart';
 import 'package:marikina_market_mobile/features/records/domain/use_cases/load_vendor_service_progress_use_case.dart';
-import 'package:marikina_market_mobile/features/records/domain/use_cases/submit_vendor_receipt_use_case.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/vendor_settlement/vendor_settlement_bloc.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/records/records_bloc.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/record_detail/record_detail_bloc.dart';
@@ -199,13 +198,8 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   sl.registerLazySingleton(() => LoadRecordDetailUseCase(sl()));
   sl.registerLazySingleton(() => LoadVendorReceiptUseCase(sl()));
   sl.registerLazySingleton(() => LoadVendorServiceProgressUseCase(sl()));
-  sl.registerLazySingleton(() => SubmitVendorReceiptUseCase(sl()));
   sl.registerFactory(
-    () => VendorSettlementBloc(
-      loadReceipt: sl(),
-      loadProgress: sl(),
-      submitReceipt: sl(),
-    ),
+    () => VendorSettlementBloc(loadReceipt: sl(), loadProgress: sl()),
   );
   sl.registerFactory(() => RecordsBloc(sl()));
   sl.registerFactory(() => RecordDetailBloc(sl()));

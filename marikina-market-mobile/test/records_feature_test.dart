@@ -14,7 +14,6 @@ import 'package:marikina_market_mobile/core/router/app_routes.dart';
 import 'package:marikina_market_mobile/features/records/domain/use_cases/load_record_detail_use_case.dart';
 import 'package:marikina_market_mobile/features/records/domain/use_cases/load_vendor_receipt_use_case.dart';
 import 'package:marikina_market_mobile/features/records/domain/use_cases/load_vendor_service_progress_use_case.dart';
-import 'package:marikina_market_mobile/features/records/domain/use_cases/submit_vendor_receipt_use_case.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/vendor_settlement/vendor_settlement_bloc.dart';
 import 'package:marikina_market_mobile/features/records/presentation/bloc/record_detail/record_detail_bloc.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
@@ -624,7 +623,6 @@ void main() {
         settlementBloc = VendorSettlementBloc(
           loadReceipt: LoadVendorReceiptUseCase(repository),
           loadProgress: LoadVendorServiceProgressUseCase(repository),
-          submitReceipt: SubmitVendorReceiptUseCase(repository),
         );
       });
       sl.registerFactory<RecordsBloc>(() => recordsBloc);

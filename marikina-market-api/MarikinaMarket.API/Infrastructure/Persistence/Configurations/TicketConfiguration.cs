@@ -8,6 +8,7 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<Ticket> builder)
         {
+            builder.Property(x => x.ReceiptSubmissionHash).HasMaxLength(64);
             builder.Property(x => x.Categories)
                 .HasConversion<string>();
 

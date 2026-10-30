@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/submit_community_service_log_params.dart';
+import 'package:marikina_market_mobile/features/tickets/data/data_sources/ticket_remote_data_source.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/bloc/ticket_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/bloc/ticket_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/bloc/ticket_state.dart';
@@ -42,6 +43,63 @@ Future<void> loadServiceTicket(TicketBloc bloc) async {
 
 void main() {
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
+
+  for (final receipt in [false, true]) {
+    test(
+      'settlement submission ID survives uncertain save and data source recreation: $receipt',
+      () async {
+        final ids = <String?>[];
+        final client = contractClient((options) async {
+          ids.add(
+            Map.fromEntries((options.data as FormData).fields)['submission_id'],
+          );
+          if (ids.length == 1) {
+            throw DioException(
+              requestOptions: options,
+              type: DioExceptionType.connectionError,
+            );
+          }
+          return reply(
+            options,
+            receipt
+                ? {
+                    'ticket_id': 101,
+                    'penalty_type': 'CashFine',
+                    'proof_urls': <String>[],
+                  }
+                : emptyProgress,
+          );
+        });
+        Future<void> submit(TicketRemoteDataSourceImpl source) async {
+          if (receipt) {
+            await source.submitTicketReceiptProof(
+              101,
+              File('assets/logo/org_logo.png'),
+            );
+          } else {
+            await source.submitCommunityServiceLog(serviceEntry());
+          }
+        }
+
+        await expectLater(
+          submit(TicketRemoteDataSourceImpl(client)),
+          throwsA(anything),
+        );
+        await submit(TicketRemoteDataSourceImpl(client));
+        expect(
+          ids.first,
+          matches(
+            RegExp(
+              r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+            ),
+          ),
+        );
+        expect(ids[1], ids[0]);
+        await submit(TicketRemoteDataSourceImpl(client));
+        expect(ids[2], isNot(ids[0]));
+      },
+    );
+  }
 
   for (final (hours, remaining, percentage, status) in [
     (2, 6, 25, TicketStatus.inProgress),

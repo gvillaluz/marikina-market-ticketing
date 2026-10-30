@@ -4,6 +4,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
 {
     public class TicketReceiptProofResponse
     {
+        public Guid? SubmissionId { get; set; }
         public int TicketId { get; set; }
         public PenaltyType PenaltyType { get; set; }
         public List<string> ProofUrls { get; set; } = [];

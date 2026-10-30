@@ -52,19 +52,6 @@ namespace MarikinaMarket.API.Presentation.Controllers
             return Ok(await _service.GetVendorTicketReceiptProofAsync(id, userId));
         }
 
-        [HttpPost("{id}/settlement/receipt")]
-        [Consumes("multipart/form-data")]
-        public async Task<ActionResult<TicketReceiptProofResponse>> SubmitReceiptProof(
-            [FromRoute] int id, [FromForm] SubmitTicketReceiptProofRequest request)
-        {
-            if (id <= 0)
-                return BadRequest("Ticket identification must be greater than zero.");
-            if (!TryGetUserId(out var userId))
-                return Unauthorized("Invalid token.");
-
-            return Ok(await _service.SubmitVendorTicketReceiptProofAsync(id, userId, request));
-        }
-
         [HttpGet("{id}/settlement/community-service")]
         public async Task<ActionResult<CommunityServiceProgressResponse>> GetCommunityServiceProgress([FromRoute] int id)
         {

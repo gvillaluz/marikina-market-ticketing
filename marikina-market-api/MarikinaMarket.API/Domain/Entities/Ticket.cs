@@ -36,6 +36,8 @@ namespace MarikinaMarket.API.Domain.Entities
         public Severity? HighestSeverity { get; set; }
         public PenaltyType? PenaltyType { get; set; }
         public int? CommunityServiceHours { get; set; }
+        public Guid? ReceiptSubmissionId { get; set; }
+        public string? ReceiptSubmissionHash { get; set; }
         public List<string>? ProofUrls { get; set; }
         public List<ViolationCategory> Categories { get; set; } = [];
         public DateTime IssuedAt { get; set; }

@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Diagnostics;
@@ -98,85 +101,99 @@ namespace MarikinaMarket.API.Application.Services
             return await BuildCommunityServiceProgressAsync(ticket);
         }
 
-        public async Task<TicketReceiptProofResponse> SubmitVendorTicketReceiptProofAsync(
-            int ticketId, int userId, SubmitTicketReceiptProofRequest request)
-        {
-            var ticket = await GetVendorTicketForSettlementAsync(ticketId, userId);
-            return await SaveTicketReceiptProofAsync(ticket, request);
-        }
-
         public async Task<TicketReceiptProofResponse> SubmitTicketReceiptProofAsync(
-            int ticketId,
-            int enforcerId,
-            SubmitTicketReceiptProofRequest request)
+            int ticketId, int enforcerId, SubmitTicketReceiptProofRequest request)
         {
-            var ticket = await GetTicketForSettlementAsync(ticketId, enforcerId);
-
-            return await SaveTicketReceiptProofAsync(ticket, request);
-        }
-
-        private async Task<TicketReceiptProofResponse> SaveTicketReceiptProofAsync(
-            Ticket ticket, SubmitTicketReceiptProofRequest request)
-        {
-            if (request is null)
-                throw new InvalidRequestException("A settlement proof file is required.");
-
-            if (ticket.PenaltyType is not (PenaltyType.CashFine or PenaltyType.BloodDonation))
-                throw new InvalidRequestException("Receipt proof is only accepted for cash fine or blood donation tickets.");
-
-            var proofKey = await UploadSettlementProofAsync(request.ProofFile);
-
-            ticket.ProofUrls ??= [];
-            ticket.ProofUrls.Add(proofKey);
-            ticket.UpdatedAt = DateTime.UtcNow;
-            await _unitOfWork.SaveChangesAsync();
-
-            return await BuildTicketReceiptProofResponseAsync(ticket);
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var ticket = await GetTicketForSettlementAsync(ticketId, enforcerId);
+                if (request is null) throw new InvalidRequestException("A settlement proof file is required.");
+                RequireSubmissionId(request.SubmissionId);
+                if (ticket.PenaltyType is not (PenaltyType.CashFine or PenaltyType.BloodDonation))
+                    throw new InvalidRequestException("Receipt proof is only accepted for cash fine or blood donation tickets.");
+                var hash = await SettlementHashAsync(request.ProofFile);
+                if (ticket.ReceiptSubmissionId == request.SubmissionId)
+                {
+                    RequireSameSubmission(ticket.ReceiptSubmissionHash, hash);
+                    await _unitOfWork.CommitAsync();
+                    return await BuildTicketReceiptProofResponseAsync(ticket);
+                }
+                if (ticket.ProofUrls?.Count > 0)
+                    throw new ConcurrencyConflictException("A settlement receipt is already saved. Reload the ticket to view it.");
+                var proofKey = await UploadSettlementProofAsync(request.ProofFile);
+                ticket.ProofUrls = [proofKey];
+                ticket.ReceiptSubmissionId = request.SubmissionId;
+                ticket.ReceiptSubmissionHash = hash;
+                ticket.UpdatedAt = DateTime.UtcNow;
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return await BuildTicketReceiptProofResponseAsync(ticket);
+            }
+            catch { await _unitOfWork.RollbackAsync(); throw; }
         }
 
         public async Task<CommunityServiceProgressResponse> LogCommunityServiceHoursAsync(
-            int ticketId,
-            int enforcerId,
-            SubmitCommunityServiceLogRequest request)
+            int ticketId, int enforcerId, SubmitCommunityServiceLogRequest request)
         {
-            var ticket = await GetTicketForSettlementAsync(ticketId, enforcerId);
-
-            if (ticket.PenaltyType != PenaltyType.CommunityService)
-                throw new InvalidRequestException("Community service entries are only accepted for community service tickets.");
-
-            ValidateCommunityServiceLog(ticket, request, DateTime.UtcNow);
-
-            var completedHours = ticket.CommunityServiceLogs.Sum(log => log.HoursWorked);
-            var requiredHours = ticket.CommunityServiceHours!.Value;
-            var hoursWorked = request.HoursWorked!.Value;
-
-            if (completedHours + hoursWorked > requiredHours)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                var remainingHours = requiredHours - completedHours;
-                throw new InvalidRequestException($"Hours worked cannot exceed the remaining {remainingHours:0.##} community service hours.");
+                var ticket = await GetTicketForSettlementAsync(ticketId, enforcerId);
+                if (ticket.PenaltyType != PenaltyType.CommunityService)
+                    throw new InvalidRequestException("Community service entries are only accepted for community service tickets.");
+                RequireSubmissionId(request.SubmissionId);
+                ValidateCommunityServiceLog(ticket, request, DateTime.UtcNow);
+                var payload = request.ServiceDate!.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                    + "|" + request.HoursWorked!.Value.ToString("0.##", CultureInfo.InvariantCulture);
+                var hash = await SettlementHashAsync(request.ProofFile, payload);
+                var saved = ticket.CommunityServiceLogs.FirstOrDefault(log => log.SubmissionId == request.SubmissionId);
+                if (saved is not null)
+                {
+                    RequireSameSubmission(saved.SubmissionHash, hash);
+                    await _unitOfWork.CommitAsync();
+                    return await BuildCommunityServiceProgressAsync(ticket);
+                }
+                var completed = ticket.CommunityServiceLogs.Sum(log => log.HoursWorked);
+                var required = ticket.CommunityServiceHours!.Value;
+                var hours = request.HoursWorked!.Value;
+                if (completed + hours > required)
+                    throw new InvalidRequestException($"Hours worked cannot exceed the remaining {required - completed:0.##} community service hours.");
+                var proofKey = await UploadSettlementProofAsync(request.ProofFile);
+                ticket.CommunityServiceLogs.Add(new CommunityServiceLog
+                {
+                    TicketId = ticket.Id, SubmissionId = request.SubmissionId, SubmissionHash = hash,
+                    ServiceDate = DateTime.SpecifyKind(request.ServiceDate!.Value.Date, DateTimeKind.Utc),
+                    HoursWorked = hours, ProofUrl = proofKey, RecordedById = enforcerId, CreatedAt = DateTime.UtcNow
+                });
+                ticket.UpdatedAt = DateTime.UtcNow;
+                ticket.Status = completed + hours >= required ? TicketStatus.Cleared : TicketStatus.InProgress;
+                ticket.ResolvedAt = ticket.Status == TicketStatus.Cleared ? ticket.UpdatedAt : null;
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return await BuildCommunityServiceProgressAsync(ticket);
             }
+            catch { await _unitOfWork.RollbackAsync(); throw; }
+        }
 
-            var proofKey = await UploadSettlementProofAsync(request.ProofFile);
+        private static void RequireSubmissionId(Guid? id)
+        {
+            if (!id.HasValue || id.Value == Guid.Empty)
+                throw new InvalidRequestException("A valid submission ID is required.");
+        }
 
-            ticket.CommunityServiceLogs.Add(new CommunityServiceLog
-            {
-                TicketId = ticket.Id,
-                ServiceDate = DateTime.SpecifyKind(request.ServiceDate!.Value.Date, DateTimeKind.Utc),
-                HoursWorked = hoursWorked,
-                ProofUrl = proofKey,
-                RecordedById = enforcerId,
-                CreatedAt = DateTime.UtcNow
-            });
-            ticket.UpdatedAt = DateTime.UtcNow;
-            ticket.Status = completedHours + hoursWorked >= requiredHours
-                ? TicketStatus.Cleared
-                : TicketStatus.InProgress;
-            ticket.ResolvedAt = ticket.Status == TicketStatus.Cleared
-                ? ticket.UpdatedAt
-                : null;
-            await _unitOfWork.SaveChangesAsync();
+        private static void RequireSameSubmission(string? savedHash, string hash)
+        {
+            if (savedHash != hash)
+                throw new ConcurrencyConflictException("This submission ID was already used with different data. Reload the ticket before continuing.");
+        }
 
-            return await BuildCommunityServiceProgressAsync(ticket);
+        private static async Task<string> SettlementHashAsync(IFormFile? file, string payload = "")
+        {
+            await ValidateSettlementProofAsync(file);
+            using var stream = file!.OpenReadStream();
+            var imageHash = Convert.ToHexString(await SHA256.HashDataAsync(stream));
+            return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload + "|" + imageHash)));
         }
 
         private async Task<TicketReceiptProofResponse> BuildTicketReceiptProofResponseAsync(Ticket ticket)
@@ -191,6 +208,7 @@ namespace MarikinaMarket.API.Application.Services
             {
                 TicketId = ticket.Id,
                 PenaltyType = ticket.PenaltyType!.Value,
+                SubmissionId = ticket.ReceiptSubmissionId,
                 ProofUrls = proofKeys.Select(key => proofUrls[key]).ToList()
             };
         }
@@ -220,6 +238,7 @@ namespace MarikinaMarket.API.Application.Services
                 CompletionPercentage = Math.Min(100m, Math.Round(completedHours / requiredHours * 100m, 1)),
                 Entries = logs.Select(log => new CommunityServiceLogResponse
                 {
+                    SubmissionId = log.SubmissionId,
                     ServiceDate = log.ServiceDate,
                     HoursWorked = log.HoursWorked,
                     ProofUrl = proofUrls[log.ProofUrl]

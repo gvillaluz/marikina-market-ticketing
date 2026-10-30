@@ -4,6 +4,8 @@ namespace MarikinaMarket.API.Domain.Entities
     {
         public int Id { get; set; }
 
+        public Guid? SubmissionId { get; set; }
+        public string? SubmissionHash { get; set; }
         public int TicketId { get; set; }
         public Ticket? Ticket { get; set; }
 

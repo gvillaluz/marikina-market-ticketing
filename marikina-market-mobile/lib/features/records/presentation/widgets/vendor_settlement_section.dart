@@ -59,11 +59,9 @@ class VendorSettlementSection extends StatelessWidget {
                         message:
                             state.error ??
                             'Settlement details are unavailable.',
-                        onRetry: state.isUploading
-                            ? null
-                            : () => context.read<VendorSettlementBloc>().add(
-                                LoadVendorSettlement(detail),
-                              ),
+                        onRetry: () => context.read<VendorSettlementBloc>().add(
+                          LoadVendorSettlement(detail),
+                        ),
                       )
                     : state.isService && state.progress != null
                     ? VendorServiceProgressSection(progress: state.progress!)

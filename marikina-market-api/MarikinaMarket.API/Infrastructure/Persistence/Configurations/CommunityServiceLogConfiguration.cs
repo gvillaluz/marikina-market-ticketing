@@ -9,6 +9,9 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<CommunityServiceLog> builder)
         {
+            builder.Property(x => x.SubmissionHash).HasMaxLength(64);
+            builder.HasIndex(x => x.TicketId);
+            builder.HasIndex(x => new { x.TicketId, x.SubmissionId }).IsUnique();
             builder.HasOne(x => x.Ticket)
                 .WithMany(x => x.CommunityServiceLogs)
                 .HasForeignKey(x => x.TicketId)

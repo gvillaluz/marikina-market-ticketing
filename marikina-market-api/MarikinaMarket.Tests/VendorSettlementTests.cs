@@ -15,6 +15,144 @@ public class VendorSettlementTests
     private const string Receipt = "/api/vendor/tickets/101/settlement/receipt";
     private const string Community = "/api/vendor/tickets/101/settlement/community-service";
 
+    [Theory]
+    [InlineData(PenaltyType.CashFine)]
+    [InlineData(PenaltyType.BloodDonation)]
+    public async Task Settlement_receipt_rejects_changed_image_for_used_submission_id(PenaltyType penalty)
+    {
+        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets => tickets[0].PenaltyType = penalty);
+        var id = Guid.NewGuid().ToString();
+        foreach (var (filename, mime, expected) in new[]
+        {
+            ("proof.png", "image/png", HttpStatusCode.OK),
+            ("proof.jpg", "image/jpeg", HttpStatusCode.Conflict)
+        })
+        {
+            using var form = Proof(filename, mime, submissionId: id);
+            using var response = await host.SendAsync(HttpMethod.Post,
+                "/api/enforcer/tickets/101/settlement/receipt", form, "MarketEnforcer", "12");
+            Assert.Equal(expected, response.StatusCode);
+        }
+        Assert.Single(host.Tickets[0].ProofUrls!);
+        Assert.Single(host.Storage.UploadedKeys);
+    }
+
+    [Fact]
+    public void Settlement_model_matches_checked_in_snapshot()
+    {
+        using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql("Host=localhost;Database=unused;Username=unused;Password=unused")
+            .UseSnakeCaseNamingConvention().Options);
+        var snapshot = Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrationsAssembly>(context).ModelSnapshot!.Model;
+        var initialized = Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService<Microsoft.EntityFrameworkCore.Infrastructure.IModelRuntimeInitializer>(context).Initialize(snapshot, designTime: true);
+        var current = Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService<Microsoft.EntityFrameworkCore.Metadata.IDesignTimeModel>(context).Model;
+        var differences = Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrationsModelDiffer>(context)
+            .GetDifferences(initialized.GetRelationalModel(), current.GetRelationalModel());
+        Assert.True(differences.Count == 0, string.Join("\n", differences.Select(operation => JsonSerializer.Serialize(operation, operation.GetType()))));
+    }
+
+    [Fact]
+    public async Task Settlement_service_rejects_changed_payload_for_used_id_but_allows_new_identical_entry()
+    {
+        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets =>
+        {
+            tickets[0].PenaltyType = PenaltyType.CommunityService;
+            tickets[0].CommunityServiceHours = 8;
+        });
+        var id = Guid.NewGuid().ToString();
+        foreach (var (submission, hours, expected) in new[]
+        {
+            (id, "1", HttpStatusCode.OK),
+            (id, "2", HttpStatusCode.Conflict),
+            (Guid.NewGuid().ToString(), "1", HttpStatusCode.OK)
+        })
+        {
+            using var form = Proof("proof.png", "image/png", submissionId: submission);
+            form.Add(new StringContent("2026-10-01"), "service_date");
+            form.Add(new StringContent(hours), "hours_worked");
+            using var response = await host.SendAsync(HttpMethod.Post,
+                "/api/enforcer/tickets/101/settlement/community-service", form, "MarketEnforcer", "12");
+            Assert.Equal(expected, response.StatusCode);
+        }
+        Assert.Equal(2, host.Tickets[0].CommunityServiceLogs.Count);
+        Assert.Equal(2m, host.Tickets[0].CommunityServiceLogs.Sum(log => log.HoursWorked));
+        Assert.Equal(2, host.Storage.UploadedKeys.Count);
+    }
+
+    [Theory]
+    [InlineData(PenaltyType.CashFine)]
+    [InlineData(PenaltyType.BloodDonation)]
+    public async Task Settlement_saved_receipt_rejects_a_new_submission_id(PenaltyType penalty)
+    {
+        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets => tickets[0].PenaltyType = penalty);
+        foreach (var expected in new[] { HttpStatusCode.OK, HttpStatusCode.Conflict })
+        {
+            using var form = Proof("proof.png", "image/png");
+            using var response = await host.SendAsync(HttpMethod.Post,
+                "/api/enforcer/tickets/101/settlement/receipt", form, "MarketEnforcer", "12");
+            Assert.Equal(expected, response.StatusCode);
+        }
+        Assert.Single(host.Tickets[0].ProofUrls!);
+        Assert.Single(host.Storage.UploadedKeys);
+    }
+
+    [Theory]
+    [InlineData(PenaltyType.CashFine)]
+    [InlineData(PenaltyType.BloodDonation)]
+    public async Task Settlement_receipt_retry_with_same_submission_id_saves_one_proof(PenaltyType penalty)
+    {
+        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets => tickets[0].PenaltyType = penalty);
+        foreach (var attempt in Enumerable.Range(0, 2))
+        {
+            using var form = Proof("proof.png", "image/png", submissionId: "049687a9-45dd-4b96-b2a3-a38f7d946c56");
+            using var response = await host.SendAsync(HttpMethod.Post,
+                "/api/enforcer/tickets/101/settlement/receipt", form, "MarketEnforcer", "12");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+        Assert.Single(host.Tickets[0].ProofUrls!);
+        Assert.Single(host.Storage.UploadedKeys);
+        Assert.Equal(1, host.UnitOfWork.SaveCalls);
+        Assert.Equal(TicketStatus.Pending, host.Tickets[0].Status);
+    }
+
+    [Fact]
+    public async Task Settlement_service_retry_with_same_submission_id_counts_hours_once()
+    {
+        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets =>
+        {
+            tickets[0].PenaltyType = PenaltyType.CommunityService;
+            tickets[0].CommunityServiceHours = 8;
+        });
+        foreach (var attempt in Enumerable.Range(0, 2))
+        {
+            using var form = Proof("proof.png", "image/png", submissionId: "5fceba1f-4dbc-4e5e-a964-f1a1df3f5ec7");
+            form.Add(new StringContent("2026-10-01"), "service_date");
+            form.Add(new StringContent("1"), "hours_worked");
+            using var response = await host.SendAsync(HttpMethod.Post,
+                "/api/enforcer/tickets/101/settlement/community-service", form, "MarketEnforcer", "12");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+        Assert.Single(host.Tickets[0].CommunityServiceLogs);
+        Assert.Equal(1m, host.Tickets[0].CommunityServiceLogs.Sum(log => log.HoursWorked));
+        Assert.Single(host.Storage.UploadedKeys);
+        Assert.Equal(1, host.UnitOfWork.SaveCalls);
+        Assert.Equal(TicketStatus.InProgress, host.Tickets[0].Status);
+    }
+
+    [Theory]
+    [InlineData(PenaltyType.CashFine)]
+    [InlineData(PenaltyType.BloodDonation)]
+    public async Task Vendor_receipt_submission_is_not_available(PenaltyType penalty)
+    {
+        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets => tickets[0].PenaltyType = penalty);
+        using var form = Proof("proof.png", "image/png");
+        using var response = await host.SendAsync(HttpMethod.Post, Receipt, form);
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Empty(host.Storage.UploadedKeys);
+        Assert.Equal(0, host.UnitOfWork.SaveCalls);
+        Assert.Equal(TicketStatus.Pending, host.Tickets[0].Status);
+    }
+
     public static IEnumerable<object[]> SettlementConsumers()
     {
         yield return ["vendor", PenaltyType.CashFine];
@@ -57,7 +195,7 @@ public class VendorSettlementTests
                 actor == "vendor" ? "MarketVendor" : "MarketEnforcer", actor == "vendor" ? "7" : "12");
             if (actor == "vendor")
             {
-                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+                Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
                 Assert.Empty(host.Storage.UploadedKeys);
                 Assert.Equal(0, host.UnitOfWork.SaveCalls);
                 continue;
@@ -95,7 +233,7 @@ public class VendorSettlementTests
                 actor == "vendor" ? "MarketVendor" : "MarketEnforcer", actor == "vendor" ? "7" : "12");
             if (actor == "vendor")
             {
-                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+                Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
                 Assert.Empty(host.Storage.UploadedKeys);
                 Assert.Equal(0, host.UnitOfWork.SaveCalls);
                 continue;
@@ -117,65 +255,6 @@ public class VendorSettlementTests
         using var response = await host.GetAsync(Receipt);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal(0, host.Storage.Calls);
-        Assert.Equal(0, host.UnitOfWork.SaveCalls);
-    }
-
-    [Theory]
-    [InlineData("proof.jpg", "image/jpeg", PenaltyType.CashFine)]
-    [InlineData("proof.jpeg", "image/jpeg", PenaltyType.BloodDonation)]
-    [InlineData("proof.png", "image/png", PenaltyType.CashFine)]
-    public async Task Former_account_cannot_append_receipt_proof(
-        string filename, string mime, PenaltyType penalty)
-    {
-        await using var host = await VendorTicketHost.CreateAsync(configureTickets: tickets => tickets[0].PenaltyType = penalty);
-        using var form = Proof(filename, mime);
-        using var response = await host.SendAsync(HttpMethod.Post, Receipt, form);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Empty(host.Storage.UploadedKeys);
-        Assert.Equal(0, host.UnitOfWork.SaveCalls);
-        Assert.Null(host.Tickets[0].ProofUrls);
-    }
-
-    [Fact]
-    public async Task Former_account_cannot_initialize_proof_storage()
-    {
-        await using var host = await VendorTicketHost.CreateAsync();
-        using var form = Proof("proof.png", "image/png");
-        using var response = await host.SendAsync(HttpMethod.Post, Receipt, form);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Empty(host.Storage.UploadedKeys);
-        Assert.Equal(0, host.UnitOfWork.SaveCalls);
-        Assert.Null(host.Tickets[0].ProofUrls);
-    }
-
-    [Theory]
-    [InlineData("proof.gif", "image/gif", 16)]
-    [InlineData("proof.png", "image/jpeg", 16)]
-    [InlineData("proof.jpg", "image/png", 16)]
-    [InlineData("proof.png", "image/png", 0)]
-    [InlineData("proof.png", "image/png", 5242881)]
-    public async Task Former_account_cannot_upload_files_of_any_shape(string filename, string mime, int length)
-    {
-        await using var host = await VendorTicketHost.CreateAsync();
-        using var form = Proof(filename, mime, length);
-        using var response = await host.SendAsync(HttpMethod.Post, Receipt, form);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Empty(host.Storage.UploadedKeys);
-        Assert.Equal(0, host.UnitOfWork.SaveCalls);
-        Assert.Null(host.Tickets[0].ProofUrls);
-    }
-
-    [Fact]
-    public async Task ReceiptPost_RequiresProofFileAndMultipartContentType()
-    {
-        await using var host = await VendorTicketHost.CreateAsync();
-        using var form = new MultipartFormDataContent();
-        using var missing = await host.SendAsync(HttpMethod.Post, Receipt, form);
-        Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
-        using var json = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
-        using var wrongFormat = await host.SendAsync(HttpMethod.Post, Receipt, json);
-        Assert.Equal(HttpStatusCode.UnsupportedMediaType, wrongFormat.StatusCode);
-        Assert.Empty(host.Storage.UploadedKeys);
         Assert.Equal(0, host.UnitOfWork.SaveCalls);
     }
 
@@ -217,13 +296,10 @@ public class VendorSettlementTests
 
     [Theory]
     [InlineData("receipt", false, "901", 404)]
-    [InlineData("receipt", true, "901", 404)]
     [InlineData("community-service", false, "901", 404)]
     [InlineData("receipt", false, "99999", 404)]
-    [InlineData("receipt", true, "99999", 404)]
     [InlineData("community-service", false, "99999", 404)]
     [InlineData("receipt", false, "0", 400)]
-    [InlineData("receipt", true, "0", 400)]
     [InlineData("community-service", false, "0", 400)]
     public async Task OwnershipAndIds_AreValidatedBeforeStorageAccess(string action, bool post, string id, int expected)
     {
@@ -244,7 +320,6 @@ public class VendorSettlementTests
 
     [Theory]
     [InlineData("receipt", false)]
-    [InlineData("receipt", true)]
     [InlineData("community-service", false)]
     public async Task AllRoutes_RejectInvalidClaimsAndWrongRoles(string action, bool post)
     {
@@ -264,7 +339,6 @@ public class VendorSettlementTests
 
     [Theory]
     [InlineData("receipt", false)]
-    [InlineData("receipt", true)]
     [InlineData("community-service", false)]
     public async Task Former_account_cannot_access_any_settlement_type(string action, bool post)
     {
@@ -312,9 +386,10 @@ public class VendorSettlementTests
             ? "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aS1sAAAAASUVORK5CYII="
             : "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9U6KKKAP/2Q==");
 
-    private static MultipartFormDataContent Proof(string filename, string mime, int? length = null, byte[]? bytes = null)
+    private static MultipartFormDataContent Proof(string filename, string mime, int? length = null, byte[]? bytes = null, string? submissionId = null)
     {
         var form = new MultipartFormDataContent();
+        form.Add(new StringContent(submissionId ?? Guid.NewGuid().ToString()), "submission_id");
         var image = bytes ?? ImageBytes(filename);
         if (length.HasValue) Array.Resize(ref image, length.Value);
         var content = new ByteArrayContent(image);

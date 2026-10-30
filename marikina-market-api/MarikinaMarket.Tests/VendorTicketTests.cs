@@ -382,7 +382,9 @@ public class VendorTicketUnitOfWorkBoundary : DispatchProxy
     public int SaveCalls { get; private set; }
     protected override object? Invoke(MethodInfo? method, object?[]? args)
     {
-        Assert.Equal(nameof(IUnitOfWork.SaveChangesAsync), method!.Name);
+        if (method!.Name is nameof(IUnitOfWork.BeginTransactionAsync) or nameof(IUnitOfWork.CommitAsync) or nameof(IUnitOfWork.RollbackAsync))
+            return Task.CompletedTask;
+        Assert.Equal(nameof(IUnitOfWork.SaveChangesAsync), method.Name);
         SaveCalls++;
         return Task.FromResult(1);
     }

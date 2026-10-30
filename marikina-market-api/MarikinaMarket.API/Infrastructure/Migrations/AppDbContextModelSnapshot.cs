@@ -410,6 +410,8 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("recorded_by_id");
 
+                    b.Property<Guid?>("SubmissionId").HasColumnType("uuid").HasColumnName("submission_id");
+                    b.Property<string>("SubmissionHash").HasMaxLength(64).HasColumnType("character varying(64)").HasColumnName("submission_hash");
                     b.Property<DateTime>("ServiceDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("service_date");
@@ -420,6 +422,8 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_community_service_logs");
+
+                    b.HasIndex("TicketId", "SubmissionId").IsUnique().HasDatabaseName("ix_community_service_logs_ticket_id_submission_id");
 
                     b.HasIndex("RecordedById")
                         .HasDatabaseName("ix_community_service_logs_recorded_by_id");
@@ -938,6 +942,8 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("penalty_type");
 
+                    b.Property<Guid?>("ReceiptSubmissionId").HasColumnType("uuid").HasColumnName("receipt_submission_id");
+                    b.Property<string>("ReceiptSubmissionHash").HasMaxLength(64).HasColumnType("character varying(64)").HasColumnName("receipt_submission_hash");
                     b.PrimitiveCollection<List<string>>("ProofUrls")
                         .HasColumnType("text[]")
                         .HasColumnName("proof_urls");

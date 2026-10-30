@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -33,6 +35,40 @@ abstract class TicketRemoteDataSource {
 
 class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
   final ApiClient apiClient;
+  static const _submissionStorage = FlutterSecureStorage();
+  String _submissionKey(int id, String action) =>
+      'ticket_settlement_${id}_$action';
+  Future<String> _submissionId(int id, String action) async {
+    final key = _submissionKey(id, action);
+    final pending = await _submissionStorage.read(key: key);
+    if (pending != null) return pending;
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 15) | 64;
+    bytes[8] = (bytes[8] & 63) | 128;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    final value = [
+      hex.substring(0, 8),
+      hex.substring(8, 12),
+      hex.substring(12, 16),
+      hex.substring(16, 20),
+      hex.substring(20),
+    ].join('-');
+    await _submissionStorage.write(key: key, value: value);
+    return value;
+  }
+
+  Future<void> _reconcileSubmission(
+    int id,
+    String action,
+    Iterable<Object?> savedIds,
+  ) async {
+    final key = _submissionKey(id, action);
+    final pending = await _submissionStorage.read(key: key);
+    if (pending != null && savedIds.contains(pending)) {
+      await _submissionStorage.delete(key: key);
+    }
+  }
 
   TicketRemoteDataSourceImpl(this.apiClient);
 
@@ -78,9 +114,13 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
       final response = await apiClient.get(
         '/enforcer/tickets/$ticketId/settlement/receipt',
       );
-      return TicketReceiptProofModel.fromJson(
+      final model = TicketReceiptProofModel.fromJson(
         response.data as Map<String, dynamic>,
       );
+      await _reconcileSubmission(ticketId, 'receipt', [
+        (response.data as Map)['submission_id'],
+      ]);
+      return model;
     } on DioException catch (error) {
       _throwRequestException(error, 'Unable to load settlement receipt.');
     }
@@ -94,9 +134,16 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
       final response = await apiClient.get(
         '/enforcer/tickets/$ticketId/settlement/community-service',
       );
-      return CommunityServiceProgressModel.fromJson(
+      final model = CommunityServiceProgressModel.fromJson(
         response.data as Map<String, dynamic>,
       );
+      final entries = (response.data as Map)['entries'] as List? ?? const [];
+      await _reconcileSubmission(
+        ticketId,
+        'service',
+        entries.map((e) => (e as Map)['submission_id']),
+      );
+      return model;
     } on DioException catch (error) {
       _throwRequestException(
         error,
@@ -113,6 +160,7 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
     try {
       final formData = FormData.fromMap({
         'proof_file': await MultipartFile.fromFile(proofFile.path),
+        'submission_id': await _submissionId(ticketId, 'receipt'),
       });
       final response = await apiClient.post(
         '/enforcer/tickets/$ticketId/settlement/receipt',
@@ -121,9 +169,14 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
           contentType: 'multipart/form-data; boundary=${formData.boundary}',
         ),
       );
-      return TicketReceiptProofModel.fromJson(
+      final model = TicketReceiptProofModel.fromJson(
         response.data as Map<String, dynamic>,
       );
+      await _reconcileSubmission(ticketId, 'receipt', [
+        (response.data as Map)['submission_id'],
+      ]);
+      await _submissionStorage.delete(key: _submissionKey(ticketId, 'receipt'));
+      return model;
     } on DioException catch (error) {
       _throwRequestException(error, 'Unable to save settlement receipt.');
     }
@@ -138,6 +191,7 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
         'proof_file': await MultipartFile.fromFile(params.proofFile.path),
         'service_date': params.serviceDate.toIso8601String(),
         'hours_worked': params.hoursWorked,
+        'submission_id': await _submissionId(params.ticketId, 'service'),
       });
       final response = await apiClient.post(
         '/enforcer/tickets/${params.ticketId}/settlement/community-service',
@@ -146,9 +200,19 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
           contentType: 'multipart/form-data; boundary=${formData.boundary}',
         ),
       );
-      return CommunityServiceProgressModel.fromJson(
+      final model = CommunityServiceProgressModel.fromJson(
         response.data as Map<String, dynamic>,
       );
+      final entries = (response.data as Map)['entries'] as List? ?? const [];
+      await _reconcileSubmission(
+        params.ticketId,
+        'service',
+        entries.map((e) => (e as Map)['submission_id']),
+      );
+      await _submissionStorage.delete(
+        key: _submissionKey(params.ticketId, 'service'),
+      );
+      return model;
     } on DioException catch (error) {
       _throwRequestException(error, 'Unable to save community service entry.');
     }

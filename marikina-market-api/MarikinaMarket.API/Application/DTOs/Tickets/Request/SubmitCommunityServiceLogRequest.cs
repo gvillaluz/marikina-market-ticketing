@@ -5,6 +5,10 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
 {
     public class SubmitCommunityServiceLogRequest
     {
+        [FromForm(Name = "submission_id")]
+        [Required(ErrorMessage = "Submission ID is required.")]
+        public Guid? SubmissionId { get; set; }
+
         [FromForm(Name = "proof_file")]
         [Required(ErrorMessage = "Community service proof is required.")]
         public IFormFile? ProofFile { get; set; }

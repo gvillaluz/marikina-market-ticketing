@@ -1,10 +1,8 @@
 import 'package:dio/dio.dart';
-import 'dart:io';
 import 'package:marikina_market_mobile/core/errors/exceptions.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/ticket_receipt_proof.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/community_service_progress.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
-import '../../domain/entities/submit_vendor_receipt_params.dart';
 import 'package:marikina_market_mobile/core/errors/api_error_message.dart';
 import 'package:marikina_market_mobile/core/errors/failure.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
@@ -47,21 +45,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
         }
         return progress;
       });
-  @override
-  Future<Result<TicketReceiptProof>> submitReceipt(
-    SubmitVendorReceiptParams params,
-  ) => _settlementResult(() async {
-    _validateId(params.ticketId);
-    if (params.filePath.trim().isEmpty) {
-      throw ValidationException('Attach a receipt photo first.');
-    }
-    final receipt = (await remote.submitReceipt(
-      params.ticketId,
-      params.filePath,
-    )).toEntity();
-    _validateReceipt(receipt, params.ticketId);
-    return receipt;
-  });
   void _validateId(int id) {
     if (id <= 0 || id > 2147483647) {
       throw ValidationException('Invalid ticket ID.');
@@ -83,10 +66,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
       return ResultFailure(_failure(error));
     } on ValidationException catch (error) {
       return ResultFailure(ValidationFailure(error.message));
-    } on FileSystemException {
-      return const ResultFailure(
-        ValidationFailure('Unable to read the photo. Please choose it again.'),
-      );
     } on FormatException {
       return const ResultFailure(
         ServerFailure('Unable to read settlement details. Please try again.'),
