@@ -340,14 +340,11 @@ namespace MarikinaMarket.API.Application.Services
         {
             ValidateOrdinanceIds(ordinanceIds);
             if (ordinanceIds.Count != 1)
-                throw new ValidationException("Select exactly one minor ordinance for a warning.");
+                throw new ValidationException("Select exactly one warning-eligible ordinance.");
             var ordinances = await _ordinanceRepository.GetByPersonIdsAsync(ordinanceIds, personId);
             ValidateOrdinanceConfiguration(ordinances, ordinanceIds);
-            var tiers = ordinances[0].PenaltyTiers;
-            var baseTier = tiers.FirstOrDefault(t => t.OffenseNumber == 1)
-                ?? tiers.OrderBy(t => t.OffenseNumber).First();
-            if (baseTier.Severity != Severity.Minor)
-                throw new ValidationException("Warnings require a minor ordinance.");
+            if (!ordinances[0].WarningEligible)
+                throw new ValidationException("This ordinance is not configured as eligible for warnings.");
             return ordinances;
         }
 
@@ -365,8 +362,6 @@ namespace MarikinaMarket.API.Application.Services
             )
         {
             List<OrdinanceFineBreakdownItem> items = [];
-            decimal totalPaymentAmount = 0;
-            Severity highestSeverity = Severity.Minor;
 
             List<int> duplicateIds = [];
 
@@ -385,25 +380,26 @@ namespace MarikinaMarket.API.Application.Services
                     ordinance.OffenseCount = offenseNumber;
 
                 var applicableTier = ordinance.PenaltyTiers
-                    .FirstOrDefault(pt => pt.OffenseNumber == offenseNumber)
-                    ?? ordinance.PenaltyTiers.OrderByDescending(pt => pt.OffenseNumber).First();
-
-                if (!isDuplicate)
-                {
-                    totalPaymentAmount += applicableTier.PenaltyAmount;
-
-                    if (applicableTier.Severity > highestSeverity)
-                        highestSeverity = applicableTier.Severity;
-                }
+                    .FirstOrDefault(pt => pt.OffenseNumber == offenseNumber);
+                var fineKind = applicableTier?.FineKind ?? FineKind.Unconfirmed;
+                var configured = applicableTier is not null && fineKind != FineKind.Unconfirmed;
 
                 items.Add(new OrdinanceFineBreakdownItem
                 {
                     OrdinanceId = ordinance.OrdinanceId,
                     OrdinanceNo = ordinance.OrdinanceNo,
-                    OrdinanceCode = ordinance.Code,
+                    Section = ordinance.Section,
+                    SpecificCategory = ordinance.SpecificCategory,
                     OffenseNumber = offenseNumber,
-                    PaymentAmount = applicableTier.PenaltyAmount,
-                    Severity = applicableTier.Severity,
+                    PaymentAmount = fineKind == FineKind.Fixed ? applicableTier?.PenaltyAmount : null,
+                    Severity = ordinance.Severity,
+                    FineKind = fineKind,
+                    MinimumFine = fineKind == FineKind.UpTo ? 100m : null,
+                    MaximumFine = applicableTier?.MaximumFine,
+                    PenaltyTerms = applicableTier?.PenaltyTerms ?? (applicableTier is null
+                        ? "No confirmed penalty rule is configured for this offense. Administrator confirmation is required." : null),
+                    AllowBloodDonation = configured && offenseNumber == 1 && applicableTier!.AllowBloodDonation,
+                    AllowCommunityService = configured && offenseNumber == 1 && applicableTier!.AllowCommunityService,
                     Category = ordinance.Category,
                     IsDuplicate = isDuplicate
                 });
@@ -411,10 +407,57 @@ namespace MarikinaMarket.API.Application.Services
 
             return new FineSummaryResponse
             {
-                TotalPaymentAmount = totalPaymentAmount,
-                HighestSeverity = highestSeverity,
+                TotalPaymentAmount = items.All(item => item.PaymentAmount.HasValue && item.Severity.HasValue)
+                    ? items.Where(item => item.IsDuplicate != true).Sum(item => item.PaymentAmount!.Value) : null,
+                HighestSeverity = items.All(item => item.Severity.HasValue) ? items.Max(item => item.Severity) : null,
+                AllowBloodDonation = items.Count > 0 && items.All(item => item.AllowBloodDonation),
+                AllowCommunityService = items.Count > 0 && items.All(item => item.AllowCommunityService),
                 Breakdown = items
             };
+        }
+
+        private static void ApplyFineAssessments(FineSummaryResponse calculation, List<FineAssessmentRequest>? assessments)
+        {
+            if (assessments is null || assessments.Any(item => item is null || item.OrdinanceId <= 0)
+                || assessments.Select(item => item.OrdinanceId).Distinct().Count() != assessments.Count)
+                throw new ValidationException("Fine assessments must identify valid, distinct selected ordinances.");
+            foreach (var assessment in assessments)
+            {
+                var item = calculation.Breakdown.SingleOrDefault(item => item.OrdinanceId == assessment.OrdinanceId);
+                if (item is null || item.FineKind != FineKind.UpTo)
+                    throw new ValidationException("Only selected up-to fine tiers can have a paper-assessed amount.");
+                if (!assessment.AssessedAmount.HasValue || assessment.AssessedAmount < 100m
+                    || !item.MaximumFine.HasValue || assessment.AssessedAmount > item.MaximumFine
+                    || decimal.Round(assessment.AssessedAmount.Value, 2) != assessment.AssessedAmount.Value)
+                    throw new ValidationException($"Enter a paper-assessed fine from 100 to {item.MaximumFine} with at most two decimal places.");
+                item.PaymentAmount = assessment.AssessedAmount;
+            }
+            if (calculation.Breakdown.Any(item => !item.Severity.HasValue))
+                throw new ValidationException("An ordinance scoring classification is unconfigured. Administrator confirmation is required.");
+            if (calculation.Breakdown.Any(item => item.FineKind == FineKind.Unconfirmed))
+                throw new ValidationException("A confirmed penalty rule is required before assessment. Review the displayed penalty terms.");
+            if (calculation.Breakdown.Any(item => !item.PaymentAmount.HasValue))
+                throw new ValidationException("Enter the paper-assessed amount for each up-to fine before verifying or submitting.");
+            calculation.TotalPaymentAmount = calculation.Breakdown.Sum(item => item.PaymentAmount!.Value);
+        }
+
+        private static List<FineAssessmentRequest> ParseFineAssessments(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return [];
+            try
+            {
+                return JsonSerializer.Deserialize<List<FineAssessmentRequest>>(value, ReviewJson)
+                    ?? throw new ValidationException("Fine assessments must be a JSON array.");
+            }
+            catch (JsonException) { throw new ValidationException("Fine assessments must be a valid JSON array."); }
+        }
+
+        private static void ValidatePenaltyEligibility(FineSummaryResponse calculation, PenaltyType penaltyType)
+        {
+            if (penaltyType == PenaltyType.BloodDonation && !calculation.AllowBloodDonation)
+                throw new ValidationException("Blood donation is not enabled for every selected first-offense tier.");
+            if (penaltyType == PenaltyType.CommunityService && !calculation.AllowCommunityService)
+                throw new ValidationException("Community service is not enabled for every selected first-offense tier.");
         }
 
         public async Task<InspectionSummaryResponse> CreateTicketAsync(CreateTicketRequest request)
@@ -439,7 +482,7 @@ namespace MarikinaMarket.API.Application.Services
                 await ValidateTicketEvidenceAsync(request.PaperTicketPhoto[0]);
                 ValidateOrdinanceIds(request.Ordinances);
                 if (request.Ordinances.Count != 1)
-                    throw new ValidationException("Select exactly one minor ordinance for a warning.");
+                    throw new ValidationException("Select exactly one warning-eligible ordinance for a warning.");
             }
             if (request.Type == ViolationType.Ticket)
             {
@@ -636,8 +679,8 @@ namespace MarikinaMarket.API.Application.Services
                     };
                 }
 
-                if (request.PenaltyType != PenaltyType.CashFine && ordinanceFineSummary.HighestSeverity == Severity.High)
-                    throw new ValidationException("High severity violations must be paid as cash fine.");
+                ApplyFineAssessments(ordinanceFineSummary, ParseFineAssessments(request.FineAssessments));
+                ValidatePenaltyEligibility(ordinanceFineSummary, request.PenaltyType);
                 EnsureReviewedCalculation(request.ReviewedCalculation, ordinanceFineSummary);
                 var businessSnapshot = GetBusinessSnapshot(vendor);
                 EnsureReviewedBusinessSnapshot(request.ReviewedBusinessSnapshot, businessSnapshot);
@@ -1587,7 +1630,7 @@ namespace MarikinaMarket.API.Application.Services
 
         private static void ValidateOrdinanceConfiguration(List<OrdinanceOffenseSummary> ordinances, List<int> ids)
         {
-            if (ordinances.Count != ids.Count || ordinances.Any(o => o.PenaltyTiers.Count == 0))
+            if (ordinances.Count != ids.Count)
                 throw new ValidationException("An ordinance or its penalty calculation is unavailable. Review the selected ordinances.");
         }
 
@@ -1618,8 +1661,8 @@ namespace MarikinaMarket.API.Application.Services
             if (calculation.Breakdown.Any(item => item.IsDuplicate == true))
                 throw new DuplicateOrdinanceException("This person already has an active citation for a selected ordinance today.",
                     await _ticketRepository.GetPersonDuplicatesAsync(request.PersonId, request.OrdinanceIds, DateTime.UtcNow));
-            if (request.PenaltyType != PenaltyType.CashFine && calculation.HighestSeverity == Severity.High)
-                throw new ValidationException("High severity violations must be paid as cash fine.");
+            ApplyFineAssessments(calculation, request.FineAssessments);
+            ValidatePenaltyEligibility(calculation, request.PenaltyType);
             var snapshot = GetBusinessSnapshot(business);
             return new() { Calculation = calculation, ReviewedCalculation = JsonSerializer.Serialize(calculation, ReviewJson),
                 BusinessSnapshot = snapshot, ReviewedBusinessSnapshot = JsonSerializer.Serialize(snapshot, ReviewJson) };
@@ -1667,9 +1710,13 @@ namespace MarikinaMarket.API.Application.Services
                 || previous.Breakdown.Select(item => item.OrdinanceId).Distinct().Count() != previous.Breakdown.Count)
                 throw new ValidationException("Verify the corrected citation before submitting.");
             if (previous.TotalPaymentAmount != current.TotalPaymentAmount || previous.HighestSeverity != current.HighestSeverity
+                || previous.AllowBloodDonation != current.AllowBloodDonation || previous.AllowCommunityService != current.AllowCommunityService
                 || previous.Breakdown.Count != current.Breakdown.Count
                 || current.Breakdown.Any(item => !previous.Breakdown.Any(old => old.OrdinanceId == item.OrdinanceId
-                    && old.OffenseNumber == item.OffenseNumber && old.PaymentAmount == item.PaymentAmount && old.Severity == item.Severity)))
+                    && old.OffenseNumber == item.OffenseNumber && old.PaymentAmount == item.PaymentAmount && old.Severity == item.Severity
+                    && old.FineKind == item.FineKind && old.MinimumFine == item.MinimumFine && old.MaximumFine == item.MaximumFine
+                    && old.PenaltyTerms == item.PenaltyTerms && old.AllowBloodDonation == item.AllowBloodDonation
+                    && old.AllowCommunityService == item.AllowCommunityService)))
                 throw new ConcurrencyConflictException("Offense history or the calculated fine changed. Review and verify again before submitting.");
         }
 

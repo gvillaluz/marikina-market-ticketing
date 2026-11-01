@@ -1,6 +1,8 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 
 class VerifyInspectionInput {
+  final List<FineAssessment> fineAssessments;
   final String? paperReference, issuePlace;
   final int vendorId, personId, evidenceCount;
   final int paperTicketPhotoCount, supportingEvidenceCount;
@@ -9,6 +11,7 @@ class VerifyInspectionInput {
   final PenaltyType penaltyType;
   final int? communityServiceHours;
   const VerifyInspectionInput({
+    this.fineAssessments = const [],
     this.paperReference,
     this.issuePlace,
     required this.vendorId,

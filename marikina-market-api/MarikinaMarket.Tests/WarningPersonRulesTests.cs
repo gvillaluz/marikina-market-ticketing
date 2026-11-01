@@ -57,7 +57,7 @@ public class WarningPersonRulesTests
     private static AppDbContext Context() => new(new DbContextOptionsBuilder<AppDbContext>().Options);
     private static Ticket Record(int id, int? person, int business, ViolationType type, TicketStatus? status, DateTime time)
     {
-        var ordinance = new Ordinance { Id = 5, OrdinanceNo = "011", Series = "2014", MarketCode = "FISH", Title = "Sanitation" };
+        var ordinance = new Ordinance { Id = 5, OrdinanceNo = "011", Series = "2014", Section = "FISH", Title = "Sanitation" };
         return new Ticket
         {
             Id = id, PersonId = person, VendorId = business, Type = type, Status = status,

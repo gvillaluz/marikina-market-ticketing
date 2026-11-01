@@ -14,9 +14,16 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
             builder.Property(x => x.Series)
                 .IsRequired();
 
-            builder.Property(x => x.MarketCode)
-                .HasColumnName("market_code")
-                .IsRequired();
+            builder.Property(x => x.Section)
+                .HasColumnName("section")
+                .HasMaxLength(100);
+
+            // Preserve unknown legacy codes for recovery; they are not section numbers.
+            builder.Property<string>("LegacyMarketCode")
+                .HasColumnName("market_code");
+
+            builder.Property(x => x.SpecificCategory)
+                .HasMaxLength(100);
 
             builder.HasIndex(x => x.OrdinanceNo);
 
@@ -25,6 +32,7 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.Category)
                 .HasConversion<string>();
+            builder.Property(x => x.Severity).HasConversion<string>();
 
             builder.Property(x => x.CreatedAt)
                 .HasDefaultValueSql("timezone('utc', now())");

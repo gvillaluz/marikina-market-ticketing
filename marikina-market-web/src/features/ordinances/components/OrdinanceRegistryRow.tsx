@@ -19,11 +19,13 @@ export default function OrdinanceRegistryRow({
     <tr className={styles.row}>
       <th scope="row" className={styles.identity}>
         <strong>Ord No. {ordinance.ordinanceNo}, Series of {ordinance.series}</strong>
+        <span>{ordinance.section ? `Section ${ordinance.section}` : "Section unavailable"}</span>
         <span>{ordinance.title}</span>
       </th>
       <td>
         {CATEGORY_OPTIONS.find((option) => option.value === ordinance.category)
           ?.label ?? ordinance.category}
+        {ordinance.category === "Others" && ordinance.specificCategory ? ` — ${ordinance.specificCategory}` : ""}
       </td>
       <td>
         {ordinance.penaltyTierCount}{" "}

@@ -11,7 +11,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/di/dependency_injection.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
-import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
+import '../../../domain/entities/fine_assessment.dart';
+import '../../../domain/enums/fine_kind.dart';
+import '../widgets/form/assessed_fine_field.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
 import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/duplicate_ordinance.dart';
@@ -77,10 +79,37 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     _communityHrsController.text,
     _selectedPenaltyType,
     ..._selectedOrdinances.map((item) => item.id),
+    ...(_assessmentTexts.keys.toList()..sort()).map(
+      (id) => '$id:${_assessmentTexts[id]}',
+    ),
     _paperTicketPhoto?.path,
     ..._capturedEvidences.map((file) => file.path),
   ]);
   FineSummary? _fineSummary;
+  final Map<int, String> _assessmentTexts = {};
+
+  Map<int, double> get _assessedAmounts => {
+    for (final item in _fineSummary?.breakdownItems ?? <Never>[])
+      if (item.fineKind == FineKind.upTo &&
+          parseAssessedFine(_assessmentTexts[item.ordinanceId] ?? '', item) !=
+              null)
+        item.ordinanceId: parseAssessedFine(
+          _assessmentTexts[item.ordinanceId] ?? '',
+          item,
+        )!,
+  };
+  FineSummary? get _localFineSummary =>
+      _fineSummary?.withAssessments(_assessedAmounts);
+
+  void _ensurePenaltyAllowed() {
+    final summary = _localFineSummary;
+    if ((_selectedPenaltyType == PenaltyType.bloodDonation &&
+            summary?.allowBloodDonation != true) ||
+        (_selectedPenaltyType == PenaltyType.communityService &&
+            summary?.allowCommunityService != true)) {
+      _selectedPenaltyType = PenaltyType.cashFine;
+    }
+  }
 
   List<Ordinance> _selectedOrdinances = [];
   final List<XFile> _capturedEvidences = [];
@@ -117,6 +146,9 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   void _onChangeOrdinance(List<Ordinance> ordinances) {
     setState(() {
       _selectedOrdinances = ordinances;
+      _assessmentTexts.removeWhere(
+        (id, _) => !ordinances.any((item) => item.id == id),
+      );
       if (ordinances.isNotEmpty) _ordinanceError = null;
     });
   }
@@ -129,28 +161,15 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     setState(() {
       final removedOrdinance = _selectedOrdinances[index];
       _selectedOrdinances.removeAt(index);
+      _assessmentTexts.remove(removedOrdinance.id);
 
       if (isTicket && _fineSummary != null) {
         _fineSummary!.breakdownItems.removeWhere(
           (item) => item.ordinanceId == removedOrdinance.id,
         );
-        if (_highestSelectedSeverity == Severity.high) {
-          _selectedPenaltyType = PenaltyType.cashFine;
-        }
+        _ensurePenaltyAllowed();
       }
     });
-  }
-
-  Severity get _highestSelectedSeverity {
-    final breakdownItems = _fineSummary?.breakdownItems ?? [];
-    if (breakdownItems.isEmpty) return Severity.minor;
-
-    return breakdownItems
-        .map((item) => item.severity)
-        .reduce(
-          (highest, severity) =>
-              severity.compareTo(highest) > 0 ? severity : highest,
-        );
   }
 
   bool get _isFormEmpty {
@@ -275,7 +294,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
               (ordinance) => DuplicateOrdinance(
                 ordinanceId: ordinance.ordinanceId,
                 ordinanceNo: ordinance.ordinanceNo,
-                ordinanceCode: ordinance.ordinanceCode,
+                section: ordinance.section,
+                specificCategory: ordinance.specificCategory,
               ),
             )
             .toList(),
@@ -289,9 +309,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
       setState(() {
         _fineSummary = selectionResult;
-        if (_highestSelectedSeverity == Severity.high) {
-          _selectedPenaltyType = PenaltyType.cashFine;
-        }
+        _ensurePenaltyAllowed();
 
         final duplicatedSummaryIds = _fineSummary?.breakdownItems
             .where((f) => f.isDuplicate == true)
@@ -307,7 +325,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                 (item) => DuplicateOrdinance(
                   ordinanceId: item.ordinanceId,
                   ordinanceNo: item.ordinanceNo,
-                  ordinanceCode: item.ordinanceCode,
+                  section: item.section,
+                  specificCategory: item.specificCategory,
                 ),
               )
               .toList();
@@ -431,6 +450,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
       _ordinanceError = _selectedOrdinances.isEmpty
           ? 'Please select at least one ordinance.'
+          : isTicket && _localFineSummary?.isAssessable != true
+          ? 'Complete the paper-assessed fines. Unconfirmed penalties or scoring require administrator configuration.'
           : null;
 
       _descriptionError = _ticketDescriptionController.text.trim().isEmpty
@@ -500,7 +521,15 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
           issuePlace: _issuePlaceController.text.trim(),
           enforcerId: widget.user.userId,
           vendorSummary: _vendorSummary!,
-          fineSummary: _fineSummary,
+          fineSummary: _localFineSummary,
+          fineAssessments: _assessedAmounts.entries
+              .map(
+                (entry) => FineAssessment(
+                  ordinanceId: entry.key,
+                  assessedAmount: entry.value,
+                ),
+              )
+              .toList(),
           ordinances: List.unmodifiable(_selectedOrdinances),
           evidences: isTicket
               ? List.unmodifiable(_capturedEvidences)
@@ -597,6 +626,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                             _paperName = '';
                             _selectedOrdinances = [];
                             _fineSummary = null;
+                            _assessmentTexts.clear();
                             _photoError = null;
                             _ordinanceError = null;
                             _communityHrsError = null;
@@ -632,6 +662,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                             _confirmedPerson = person;
                             _paperName = paperName;
                             _fineSummary = null;
+                            _assessmentTexts.clear();
                             _selectedOrdinances = [];
                           }),
                         ),
@@ -646,7 +677,10 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           onDelete: _onDeleteFineSummary,
                           ordinances: _selectedOrdinances,
                           capturedPhotos: _capturedEvidences,
-                          fineSummary: _fineSummary,
+                          fineSummary: _localFineSummary,
+                          assessmentTexts: _assessmentTexts,
+                          onAssessmentChanged: (id, value) =>
+                              setState(() => _assessmentTexts[id] = value),
                           isTicket: isTicket,
                           errorMessage: _ordinanceError,
                         ),
@@ -657,9 +691,13 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                             _selectedOrdinances.isNotEmpty) ...[
                           PaymentTypeSection(
                             selectedPenaltyType: _selectedPenaltyType,
-                            severity: _highestSelectedSeverity,
+                            allowBloodDonation:
+                                _localFineSummary?.allowBloodDonation ?? false,
+                            allowCommunityService:
+                                _localFineSummary?.allowCommunityService ??
+                                false,
                             totalFineAmount:
-                                _fineSummary?.totalPaymentAmount ?? 0.0,
+                                _localFineSummary?.totalPaymentAmount,
                             onChangeType: _onChangePenaltyType,
                             communityHrsController: _communityHrsController,
                             communityHrsError: _communityHrsError,

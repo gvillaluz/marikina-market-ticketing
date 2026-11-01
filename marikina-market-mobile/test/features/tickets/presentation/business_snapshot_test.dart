@@ -10,6 +10,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dar
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_hive_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_model.dart';
+import 'package:marikina_market_mobile/features/tickets/data/models/fine_summary_model.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_form_data.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/pages/new_inspection_preview_page.dart';
@@ -98,9 +99,10 @@ void main() {
                   {
                     'ordinance_id': 1,
                     'ordinance_no': '011',
-                    'ordinance_code': 'SAN',
+                    'section': '66',
                     'offense_number': 1,
                     'payment_amount': 500,
+                    'fine_kind': 'Fixed',
                     'severity': 'Minor',
                     'is_duplicate': false,
                   },
@@ -151,7 +153,22 @@ void main() {
         issuePlace: 'Fish aisle',
         enforcerId: 3,
         vendorSummary: vendor,
-        fineSummary: null,
+        fineSummary: FineSummaryModel.fromJson({
+          'total_payment_amount': 500,
+          'highest_severity': 'Minor',
+          'breakdown': [
+            {
+              'ordinance_id': 1,
+              'ordinance_no': '011',
+              'section': '66',
+              'offense_number': 1,
+              'payment_amount': 500,
+              'fine_kind': 'Fixed',
+              'severity': 'Minor',
+              'is_duplicate': false,
+            },
+          ],
+        }).toEntity(),
         ordinances: [OrdinanceModel.fromJson(ordinanceResponse).toEntity()],
         evidences: [XFile(photo.path)],
         paperTicketPhoto: XFile(photo.path),

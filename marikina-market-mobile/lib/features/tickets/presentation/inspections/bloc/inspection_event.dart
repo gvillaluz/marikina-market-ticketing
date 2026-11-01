@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
 export './inspection_verification_requested.dart';
 export './person_history_requested.dart';
 export './person_creation_requested.dart';
@@ -89,6 +90,7 @@ class NewWarningSubmitted extends InspectionEvent {
 }
 
 class NewInspectionSubmitted extends InspectionEvent {
+  final List<FineAssessment> fineAssessments;
   final String? paperReference, issuePlace;
   final String? reviewedBusinessSnapshot;
   final int? personId;
@@ -106,6 +108,7 @@ class NewInspectionSubmitted extends InspectionEvent {
   final XFile? paperTicketPhoto;
 
   NewInspectionSubmitted({
+    this.fineAssessments = const [],
     this.paperReference,
     this.issuePlace,
     this.personId,

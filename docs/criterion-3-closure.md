@@ -47,6 +47,6 @@ Analyzer remains exit 1 with exactly these five infos and no new warning/error. 
 
 ## Documentation changes and manual checks
 
-`roadmap.md` marks only criterion 3 closed and parks the unrelated limits. This closure record supplies the decision; `criterion-3-closure-failures.md` and `revision-criterion-3-slice-2-progress.md` point to it. Earlier proposals/reports remain historical, with closure notices where needed.
+`roadmap.md` marks only criterion 3 closed and parks the unrelated limits. This closure record supplies the decision. The criterion 3 working notes (closure failures, repair plan, slice 2 plan/progress) were removed on 2026-11-01 at the user's request and remain in git history. Earlier proposals/reports remain historical, with closure notices where needed.
 
 No new manual check is required for this documentation-only decision. Optional repeat steps remain in the repair report: use only the disposable API, open control 18, compare separate identities, match/explicitly confirm person 8, inspect history and discard the draft. Do not rerun historical reset/migration/creation scripts. No next slice starts under this approval.

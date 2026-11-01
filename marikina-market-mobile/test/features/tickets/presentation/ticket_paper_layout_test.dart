@@ -69,7 +69,7 @@ TicketDetailContent paper({
             ordinanceId: 11,
             ordinanceNo: '2026-123456789',
             series: '2026',
-            ordinanceCode: 'SEC-8',
+            section: '8',
             paymentAmount: 1500,
             offenseNumber: 1,
           ),
@@ -370,7 +370,7 @@ void main() {
         id: 11,
         ordinanceNo: '2026-123456789',
         series: '2026',
-        marketCode: 'SEC-8',
+        section: '8',
         title: 'Keep market aisles clear',
         description: 'Obstruction',
         category: OrdinanceCategory.sanitation,
@@ -393,7 +393,7 @@ void main() {
       final label = find.text('Ord No. 2026-123456789, Series of 2026');
       expect(label, findsOneWidget);
       expect(
-        tester.getTopLeft(find.text('SEC-8')).dy -
+        tester.getTopLeft(find.text('Section 8')).dy -
             tester.getBottomLeft(label).dy,
         6,
       );

@@ -11,7 +11,7 @@ import {
   formatOrdinal,
 } from "@/utils/formatters";
 
-function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail }) {
+function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail; }) {
   return (
     <>
       <TicketSectionHeader title={"VIOLATION DETAILS"} icon={FileWarning} />
@@ -28,11 +28,11 @@ function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail }) {
           {detail?.violations.map((violation, i) => (
             detail.type === "Warning" ? <TicketInfoRow key={i}
               label={`Ord No. ${violation.ordinanceNo}, Series of ${violation.series}`}
-              value={violation.ordinanceCode} /> :
+              value={`${violation.section ? `Section ${violation.section}` : "Section unavailable"}${violation.specificCategory ? ` — ${violation.specificCategory}` : ""}`} /> :
               <OrdinanceCard
                 key={i}
                 title={`Ord No. ${violation.ordinanceNo}, Series of ${violation.series}`}
-                subtitle={violation.ordinanceCode}
+                subtitle={`${violation.section ? `Section ${violation.section}` : "Section unavailable"}${violation.specificCategory ? ` — ${violation.specificCategory}` : ""}`}
                 offense={formatOrdinal(violation.offenseCount)}
                 price={
                   detail.type === "Ticket" && violation.penaltyAmount

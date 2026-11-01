@@ -71,7 +71,7 @@ class DuplicateWarningDialog extends StatelessWidget {
                       ),
                     ),
                     subtitle: Text(
-                      duplicateOrdinances[i].ordinanceCode,
+                      duplicateOrdinances[i].detailsLabel,
                       style: const TextStyle(
                         color: AppColors.mediumGrey,
                         fontSize: AppTheme.captionFontSize,

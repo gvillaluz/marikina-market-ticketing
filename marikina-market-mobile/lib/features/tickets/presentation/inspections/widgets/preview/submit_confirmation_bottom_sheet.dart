@@ -73,9 +73,11 @@ class _SubmitConfirmationBottomSheetState
             if (widget.penaltyType == PenaltyType.cashFine)
               InspectionConfirmationDetail(
                 label: 'Total fine due',
-                value: _currencyFormat.format(
-                  widget.fineSummary!.totalPaymentAmount,
-                ),
+                value: widget.fineSummary!.totalPaymentAmount == null
+                    ? 'Assessment unavailable'
+                    : _currencyFormat.format(
+                        widget.fineSummary!.totalPaymentAmount,
+                      ),
               ),
             InspectionConfirmationDetail(
               label: 'Penalty type',
@@ -109,7 +111,9 @@ class _SubmitConfirmationBottomSheetState
           AppPrimaryButton(
             label: widget.isTicket
                 ? widget.penaltyType == PenaltyType.cashFine
-                      ? 'Issue ticket ${_currencyFormat.format(widget.fineSummary?.totalPaymentAmount ?? 0)}'
+                      ? widget.fineSummary?.totalPaymentAmount == null
+                            ? 'Assessment unavailable'
+                            : 'Issue ticket ${_currencyFormat.format(widget.fineSummary!.totalPaymentAmount)}'
                       : 'Confirm ${widget.penaltyType?.label ?? "ticket"}'
                 : 'Confirm warning',
             iconData: Icons.check_circle_outline,

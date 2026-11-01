@@ -77,20 +77,28 @@ const summary = {
   id: 7,
   ordinanceNo: "011",
   series: "2026",
-  marketCode: "MKT-011",
+  section: "53",
+  specificCategory: null,
   title: "Market sanitation",
   category: "Sanitation",
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
   isActive: true,
   severity: "Minor",
+  warningEligible: true,
   penaltyTierCount: 2,
 };
 const detail = {
   ...summary,
   penaltyTiers: [
-    { id: 71, offenseNumber: 1, severity: "Minor", penaltyAmount: 500 },
-    { id: 72, offenseNumber: 2, severity: "Moderate", penaltyAmount: 1000 },
+    {
+      id: 71, offenseNumber: 1, fineKind: "Fixed", penaltyAmount: 500, minimumFine: null, maximumFine: null,
+      penaltyTerms: null, allowBloodDonation: true, allowCommunityService: false
+    },
+    {
+      id: 72, offenseNumber: 2, fineKind: "Fixed", penaltyAmount: 1000, minimumFine: null, maximumFine: null,
+      penaltyTerms: null, allowBloodDonation: false, allowCommunityService: false
+    },
   ],
 };
 const errors = load("utils/apiErrors.ts");
@@ -154,7 +162,7 @@ function editorHarness(role = "HeadAdmin") {
       "@/store/store": { useAuthStore: store },
       "@/utils/apiErrors": errors,
       "@/components/ui/Toast/useToast": {
-        useToast: () => ({ showToast() {} }),
+        useToast: () => ({ showToast() { } }),
       },
       "@/api/client": {
         default: {
@@ -195,7 +203,7 @@ function editorHarness(role = "HeadAdmin") {
           };
         },
         useQueryClient: () => ({
-          async cancelQueries() {},
+          async cancelQueries() { },
           setQueryData(_key, update) {
             list = update(list);
           },
@@ -207,7 +215,7 @@ function editorHarness(role = "HeadAdmin") {
           mutationOptions = options;
           return {
             isPending: pending,
-            reset() {},
+            reset() { },
             mutate(variables) {
               const callbacks = mutationOptions;
               pending = true;
@@ -282,7 +290,7 @@ test("both administrators reach ordinances through Configurations without backup
       "@/context/AuthContext": {
         useAuth: () => ({
           user: { firstName: "Juan", lastName: "Reyes", role },
-          logout() {},
+          logout() { },
         }),
       },
       "@/features/vendors": { RegistrationCountBadge: () => null },
@@ -294,7 +302,7 @@ test("both administrators reach ordinances through Configurations without backup
         React.createElement(Sidebar, {
           open: true,
           collapsed: false,
-          onClose() {},
+          onClose() { },
         }),
       ),
     );
@@ -357,11 +365,14 @@ test("ordinance validation matches numeric number, text limits and penalty preci
   const fields = {
     ordinanceNumber: "011",
     series: "2026",
-    marketCode: "MKT-011",
+    section: "53",
+    specificCategory: "",
     title: "Market sanitation",
     category: "Sanitation",
+    severity: "Minor",
+    warningEligible: false,
   };
-  const tiers = [{ key: "first", severity: "Minor", amount: "500.00" }];
+  const tiers = [fixedTier({ amount: "500.00" })];
   assert.equal(buildOrdinanceRequest(fields, tiers).ordinanceNumber, "011");
   for (const number of ["Ord. No. 011", "11.5", "-11", "١١", "1".repeat(101)]) {
     assert.equal(
@@ -394,9 +405,11 @@ test("AdminOfficer creation submits once and refreshes list, details and count",
   for (const [key, value] of Object.entries({
     ordinanceNumber: "028",
     series: "2026",
-    marketCode: "MKT-028",
+    section: "12",
     title: "Market identification",
-    category: "Licensing",
+    category: "Others",
+    specificCategory: "Market identification",
+    severity: "Moderate",
   }))
     h.render().changeField(key, value);
   h.render().addTier();
@@ -413,6 +426,8 @@ test("AdminOfficer creation submits once and refreshes list, details and count",
   h.render().submit();
   await Promise.resolve();
   assert.equal(h.requests.filter(([method]) => method === "post").length, 1);
+  assert.equal(h.requests.find(([method]) => method === "post")[2].section, "12");
+  assert.equal(h.requests.find(([method]) => method === "post")[2].specificCategory, "Market identification");
   assert.equal(h.render().isSaving, true);
   h.render().close();
   assert.equal(h.render().open, true);
@@ -470,4 +485,251 @@ test("failed detail loading blocks saving and retries the selected ordinance", a
   assert.equal(h.render().isDetailError, false);
   assert.equal(h.render().tiers.length, 2);
   assert.equal(h.requests[0][1], "/ordinance/7");
+});
+
+test("new category choices preserve historical numeric category identities", () => {
+  const { CATEGORY_OPTIONS } = load("features/ordinances/ordinances.constants.ts");
+  assert.deepEqual(Array.from(CATEGORY_OPTIONS, ({ value }) => value), [
+    "Traffic", "Obstruction", "Sanitation", "WeightMeasures", "DressCode",
+    "IllegalVendor", "NonSmoking", "Others",
+  ]);
+  const { normalizeCategory } = load("features/ordinances/ordinances.utils.ts");
+  for (const [id, expected] of [[3, "Licensing"], [4, "Noise"], [5, "WeightMeasures"], [6, "DressCode"], [9, "Others"]])
+    assert.equal(normalizeCategory(id), expected);
+});
+
+test("section and specific category are validated and sent using the revised contract", () => {
+  const { buildOrdinanceRequest, validateOrdinance } = load("features/ordinances/ordinances.utils.ts");
+  const fields = { ordinanceNumber: "11", series: "2014", section: " 53 ", title: "Restriction of public places", category: "Others", specificCategory: "  Public access  ", severity: "Minor", warningEligible: false };
+  const tiers = [fixedTier()];
+  const request = buildOrdinanceRequest(fields, tiers);
+  assert.ok(request);
+  assert.equal(request.section, "53");
+  assert.equal(request.specificCategory, "Public access");
+  assert.equal("marketCode" in request, false);
+  assert.equal(buildOrdinanceRequest({ ...fields, specificCategory: " " }, tiers), null);
+  assert.equal(buildOrdinanceRequest({ ...fields, section: " " }, tiers), null);
+  assert.equal(buildOrdinanceRequest({ ...fields, specificCategory: "a".repeat(101) }, tiers), null);
+  assert.ok(validateOrdinance({ ...fields, section: "a".repeat(101) }, tiers).fieldErrors.section);
+  assert.equal(buildOrdinanceRequest({ ...fields, category: "DressCode" }, tiers).specificCategory, null);
+  assert.equal(buildOrdinanceRequest({ ...fields, category: "Noise" }, tiers), null);
+});
+
+test("switching category clears specific text and legacy choices need recategorization", () => {
+  const h = editorHarness();
+  h.render().launch();
+  h.render().changeField("category", "Others");
+  h.render().changeField("specificCategory", "Public access");
+  assert.equal(h.render().fields.specificCategory, "Public access");
+  h.render().changeField("category", "DressCode");
+  assert.equal(h.render().fields.specificCategory, "");
+  h.render().changeField("category", "Licensing");
+  assert.equal(h.render().fields.category, "");
+  const legacy = editorHarness();
+  legacy.query({ data: { ...detail, section: null, category: "Noise" }, isSuccess: true, isFetching: false, isError: false });
+  legacy.render().launch({ ...summary, section: null, category: "Noise" });
+  legacy.render();
+  legacy.flush();
+  assert.equal(legacy.render().fields.section, "");
+  assert.equal(legacy.render().fields.category, "");
+  assert.equal(legacy.render().canSave, false);
+});
+
+test("ordinance fields show specific category only for Others and label fines correctly", () => {
+  const h = editorHarness();
+  h.render().launch();
+  h.render().changeField("category", "Others");
+  const Fields = load("features/ordinances/components/OrdinanceDetailsFields.tsx").default;
+  let html = renderToStaticMarkup(React.createElement(Fields, { editor: h.render() }));
+  assert.match(html, /Section of ordinance/);
+  assert.match(html, /Specific category/);
+  h.render().changeField("category", "Traffic");
+  html = renderToStaticMarkup(React.createElement(Fields, { editor: h.render() }));
+  assert.doesNotMatch(html, /Specific category/);
+  const Tier = load("features/ordinances/components/PenaltyTierRow.tsx").default;
+  html = renderToStaticMarkup(React.createElement(Tier, { tier: fixedTier(), number: 1, errors: {}, touched: {}, onChange() { }, onBlur() { }, onRemove() { } }));
+  assert.match(html, /Fine amount/);
+  assert.doesNotMatch(html, /[Ff]ee amount/);
+});
+
+test("registry shows ordinance section, legacy unavailability and specific category", () => {
+  const Row = load("features/ordinances/components/OrdinanceRegistryRow.tsx").default;
+  const render = (ordinance) => renderToStaticMarkup(React.createElement(Row, { ordinance, disabled: false, onManage() { } }));
+  let html = render({ ...summary, section: "53", category: "Others", specificCategory: "Public access" });
+  assert.match(html, /Section 53/);
+  assert.match(html, /Public access/);
+  html = render({ ...summary, section: null, specificCategory: null });
+  assert.match(html, /Section unavailable/);
+  assert.doesNotMatch(html, /MKT-011/);
+});
+
+test("registry search matches sections and tolerates missing legacy sections", () => {
+  const { useOrdinances } = load("features/ordinances/hooks/useOrdinances.ts", {
+    react: { useState: () => ["53", () => { }] },
+    "@/api/endpoints/ordinance.api": { ordinanceApi: { getAll: async () => [] } },
+    "@tanstack/react-query": { useQuery: () => ({ data: [{ ...summary, section: "53" }, { ...summary, id: 8, section: null }] }) },
+  });
+  const result = useOrdinances();
+  assert.equal(result.ordinances.length, 1);
+  assert.equal(result.ordinances[0].section, "53");
+});
+
+const scoringFields = {
+  ordinanceNumber: "11", series: "2014", section: "53", title: "Restriction of public places",
+  category: "Obstruction", specificCategory: "", severity: "High", warningEligible: true,
+};
+const fixedTier = (changes = {}) => ({
+  key: "first", fineKind: "Fixed", amount: "500", maximumFine: "", penaltyTerms: "",
+  allowBloodDonation: false, allowCommunityService: false, ...changes,
+});
+
+test("slice 2 saves ordinance scoring and warning settings without tier severity", () => {
+  const { buildOrdinanceRequest } = load("features/ordinances/ordinances.utils.ts");
+  const request = buildOrdinanceRequest(scoringFields, [fixedTier({ allowBloodDonation: true })]);
+  assert.ok(request);
+  assert.equal(request.severity, "High");
+  assert.equal(request.warningEligible, true);
+  assert.equal(request.penaltyTiers[0].fineKind, "Fixed");
+  assert.equal(request.penaltyTiers[0].penaltyAmount, 500);
+  assert.equal(request.penaltyTiers[0].maximumFine, null);
+  assert.equal(request.penaltyTiers[0].allowBloodDonation, true);
+  assert.equal(request.penaltyTiers[0].allowCommunityService, false);
+  assert.equal("severity" in request.penaltyTiers[0], false);
+  assert.equal(buildOrdinanceRequest({ ...scoringFields, severity: "" }, [fixedTier()]), null);
+});
+
+test("slice 2 applies the minimum only to up-to caps and preserves fixed amounts", () => {
+  const { buildOrdinanceRequest } = load("features/ordinances/ordinances.utils.ts");
+  const upTo = fixedTier({ fineKind: "UpTo", amount: "", maximumFine: "1000" });
+  const request = buildOrdinanceRequest(scoringFields, [upTo]);
+  assert.ok(request);
+  assert.equal(request.penaltyTiers[0].penaltyAmount, null);
+  assert.equal(request.penaltyTiers[0].maximumFine, 1000);
+  assert.equal("minimumFine" in request.penaltyTiers[0], false);
+  for (const cap of ["99.99", "", "100.001", "-100"])
+    assert.equal(buildOrdinanceRequest(scoringFields, [{ ...upTo, maximumFine: cap }]), null);
+  assert.equal(buildOrdinanceRequest(scoringFields, [{ ...upTo, maximumFine: "100" }]).penaltyTiers[0].maximumFine, 100);
+  assert.equal(buildOrdinanceRequest(scoringFields, [fixedTier({ amount: "50" })]).penaltyTiers[0].penaltyAmount, 50);
+});
+
+test("slice 2 unconfirmed terms stay unassessed and require meaningful text", () => {
+  const { buildOrdinanceRequest } = load("features/ordinances/ordinances.utils.ts");
+  const tier = fixedTier({ fineKind: "Unconfirmed", amount: "", penaltyTerms: "  Fine not stated; confirmation required.  " });
+  const request = buildOrdinanceRequest(scoringFields, [tier]);
+  assert.ok(request);
+  assert.equal(request.penaltyTiers[0].penaltyAmount, null);
+  assert.equal(request.penaltyTiers[0].maximumFine, null);
+  assert.equal(request.penaltyTiers[0].penaltyTerms, "Fine not stated; confirmation required.");
+  assert.equal(buildOrdinanceRequest(scoringFields, [{ ...tier, penaltyTerms: " " }]), null);
+});
+
+test("slice 2 rejects alternative flags on later tiers independently of severity", () => {
+  const { buildOrdinanceRequest } = load("features/ordinances/ordinances.utils.ts");
+  for (const flag of ["allowBloodDonation", "allowCommunityService"]) {
+    assert.ok(buildOrdinanceRequest(scoringFields, [fixedTier({ [flag]: true })]));
+    assert.equal(buildOrdinanceRequest(scoringFields, [fixedTier(), fixedTier({ key: "second", [flag]: true })]), null);
+  }
+  assert.ok(buildOrdinanceRequest({ ...scoringFields, severity: "Minor", warningEligible: false }, [fixedTier()]));
+});
+
+test("slice 2 normalizes fine kinds without requiring removed tier severity", () => {
+  const { normalizeOrdinanceDetails } = load("features/ordinances/ordinances.utils.ts");
+  const normalized = normalizeOrdinanceDetails({
+    ...summary, severity: 2, warningEligible: true,
+    penaltyTiers: [{
+      id: 71, offenseNumber: 1, fineKind: 1, penaltyAmount: null, minimumFine: 100,
+      maximumFine: 1000, penaltyTerms: "Up to PHP 1,000", allowBloodDonation: false, allowCommunityService: true
+    }]
+  });
+  assert.equal(normalized.severity, "High");
+  assert.equal(normalized.warningEligible, true);
+  assert.equal(normalized.penaltyTiers[0].fineKind, "UpTo");
+  assert.equal(normalized.penaltyTiers[0].penaltyAmount, null);
+  assert.equal(normalized.penaltyTiers[0].allowCommunityService, true);
+});
+
+test("slice 2 tier controls show fine rules and first-offense alternatives without severity", () => {
+  const Tier = load("features/ordinances/components/PenaltyTierRow.tsx").default;
+  const render = (number, tier) => renderToStaticMarkup(React.createElement(Tier, {
+    tier, number, disabled: false, errors: {}, touched: {}, onChange() { }, onBlur() { }, onRemove() { },
+  }));
+  let html = render(1, fixedTier({ fineKind: "UpTo", maximumFine: "1000" }));
+  assert.match(html, /Maximum fine amount/);
+  assert.match(html, /100/);
+  assert.match(html, /Blood donation/);
+  assert.match(html, /Community service/);
+  assert.doesNotMatch(html, /Severity/);
+  html = render(2, fixedTier());
+  assert.doesNotMatch(html, /type="checkbox"/);
+  html = render(1, fixedTier({ fineKind: "Unconfirmed", amount: "" }));
+  assert.match(html, /Penalty terms/);
+  assert.doesNotMatch(html, /type="number"/);
+});
+
+test("slice 2 editor uses explicit settings and clears stale money when the fine rule changes", () => {
+  const h = editorHarness();
+  h.render().launch();
+  assert.equal(h.render().fields.severity, "");
+  assert.equal(h.render().fields.warningEligible, false);
+  h.render().changeField("severity", "High");
+  h.render().changeField("warningEligible", true);
+  h.render().addTier();
+  const key = h.render().tiers[0].key;
+  assert.equal(h.render().tiers[0].allowBloodDonation, false);
+  h.render().changeTier(key, "amount", "500");
+  h.render().changeTier(key, "fineKind", "UpTo");
+  assert.equal(h.render().tiers[0].amount, "");
+  assert.equal(h.render().tiers[0].maximumFine, "");
+  h.render().changeTier(key, "maximumFine", "1000");
+  h.render().changeTier(key, "allowCommunityService", true);
+  h.render().addTier();
+  const second = h.render().tiers[1].key;
+  h.render().changeTier(second, "allowCommunityService", true);
+  assert.equal(h.render().tiers[1].allowCommunityService, false);
+  assert.equal(h.render().fields.severity, "High");
+  assert.equal(h.render().fields.warningEligible, true);
+  assert.equal(h.render().highestFee, 1000);
+  h.render().changeTier(key, "fineKind", "Unconfirmed");
+  assert.equal(h.render().highestFee, null);
+});
+
+test("slice 2 edit and undo restore scoring, warning, terms and independent first-tier flags", () => {
+  const h = editorHarness();
+  h.render().launch(summary);
+  h.render();
+  h.flush();
+  const key = h.render().tiers[0].key;
+  assert.equal(h.render().tiers[0].allowBloodDonation, true);
+  h.render().changeField("severity", "High");
+  h.render().changeField("warningEligible", false);
+  h.render().changeTier(key, "allowBloodDonation", false);
+  h.render().changeTier(key, "allowCommunityService", true);
+  h.render().changeTier(key, "penaltyTerms", "Updated terms");
+  assert.equal(h.render().hasChanges, true);
+  h.render().undo();
+  assert.equal(h.render().fields.severity, "Minor");
+  assert.equal(h.render().fields.warningEligible, true);
+  assert.equal(h.render().tiers[0].allowBloodDonation, true);
+  assert.equal(h.render().tiers[0].allowCommunityService, false);
+  assert.equal(h.render().tiers[0].penaltyTerms, "");
+  assert.equal(h.render().hasChanges, false);
+});
+
+test("slice 2 optional terms and missing values are represented honestly", () => {
+  const { buildOrdinanceRequest } = load("features/ordinances/ordinances.utils.ts");
+  assert.equal(buildOrdinanceRequest(scoringFields, [fixedTier()]).penaltyTiers[0].penaltyTerms, null);
+  assert.equal(buildOrdinanceRequest(scoringFields, [fixedTier({ penaltyTerms: "a".repeat(1001) })]), null);
+  const Field = load("features/ordinances/components/OrdinanceField.tsx").default;
+  const html = renderToStaticMarkup(React.createElement(Field, {
+    label: "Penalty terms (optional)", value: "", multiline: true, required: false,
+    disabled: false, onChange() { }, onBlur() { },
+  }));
+  assert.doesNotMatch(html, /required=/);
+  const Fields = load("features/ordinances/components/OrdinanceDetailsFields.tsx").default;
+  const h = editorHarness();
+  h.render().launch();
+  const fieldsHtml = renderToStaticMarkup(React.createElement(Fields, { editor: h.render() }));
+  assert.match(fieldsHtml, /Scoring severity/);
+  assert.match(fieldsHtml, /Severity affects compliance scoring only/);
+  assert.match(fieldsHtml, /Include in the warning ordinance list/);
 });

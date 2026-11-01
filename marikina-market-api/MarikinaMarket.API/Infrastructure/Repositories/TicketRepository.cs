@@ -199,7 +199,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         OrdinanceId = tv.OrdinanceId,
                         OrdinanceNo = tv.Ordinance!.OrdinanceNo,
                         Series = tv.Ordinance.Series,
-                        OrdinanceCode = tv.Ordinance.MarketCode,
+                        Section = tv.Ordinance.Section,
+                        SpecificCategory = tv.Ordinance.SpecificCategory,
                         OffenseCount = tv.OffenseCount,
                         PenaltyAmount = tv.PenaltyAmount
                     }).ToList(),
@@ -245,7 +246,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     OrdinanceId = tv.OrdinanceId,
                     OrdinanceNo = tv.Ordinance!.OrdinanceNo,
-                    OrdinanceCode = tv.Ordinance.MarketCode
+                    Section = tv.Ordinance.Section,
+                    SpecificCategory = tv.Ordinance.SpecificCategory
                 })
                 .Distinct()
                 .ToListAsync();
@@ -265,7 +267,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     OrdinanceId = tv.OrdinanceId,
                     OrdinanceNo = tv.Ordinance!.OrdinanceNo,
-                    OrdinanceCode = tv.Ordinance.MarketCode
+                    Section = tv.Ordinance.Section,
+                    SpecificCategory = tv.Ordinance.SpecificCategory
                 })
                 .Distinct()
                 .ToListAsync();
@@ -284,7 +287,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(tv => new DuplicateOrdinance
                 {
                     OrdinanceId = tv.OrdinanceId, OrdinanceNo = tv.Ordinance!.OrdinanceNo,
-                    OrdinanceCode = tv.Ordinance.MarketCode
+                    Section = tv.Ordinance.Section,
+                    SpecificCategory = tv.Ordinance.SpecificCategory
                 }).Distinct().ToListAsync();
         }
 
@@ -309,7 +313,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(tv => new DuplicateOrdinance
                 {
                     OrdinanceId = tv.OrdinanceId, OrdinanceNo = tv.Ordinance!.OrdinanceNo,
-                    OrdinanceCode = tv.Ordinance.MarketCode
+                    Section = tv.Ordinance.Section,
+                    SpecificCategory = tv.Ordinance.SpecificCategory
                 }).Distinct().ToListAsync();
         }
 
@@ -724,7 +729,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         OrdinanceId = tv.OrdinanceId,
                         OrdinanceNo = tv.Ordinance!.OrdinanceNo,
                         Series = tv.Ordinance.Series,
-                        OrdinanceCode = tv.Ordinance.MarketCode,
+                        Section = tv.Ordinance.Section,
+                        SpecificCategory = tv.Ordinance.SpecificCategory,
                         OffenseCount = tv.OffenseCount,
                         PenaltyAmount = tv.PenaltyAmount
                     }).ToList(),

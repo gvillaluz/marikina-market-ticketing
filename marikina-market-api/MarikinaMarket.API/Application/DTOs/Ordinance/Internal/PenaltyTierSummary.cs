@@ -6,7 +6,11 @@ namespace MarikinaMarket.API.Application.DTOs.Ordinance.Internal
     {
         public int OrdinanceId { get; set; }
         public int OffenseNumber { get; set; }
-        public Severity Severity { get; set; }
-        public decimal PenaltyAmount { get; set; }
+        public FineKind FineKind { get; set; }
+        public decimal? PenaltyAmount { get; set; }
+        public decimal? MaximumFine { get; set; }
+        public string? PenaltyTerms { get; set; }
+        public bool AllowBloodDonation { get; set; }
+        public bool AllowCommunityService { get; set; }
     }
 }

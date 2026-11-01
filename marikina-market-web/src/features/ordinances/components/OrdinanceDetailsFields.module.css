@@ -22,6 +22,11 @@
   gap: var(--ordinance-space-md);
 }
 
+.explanation {
+  color: var(--text-muted);
+  font-size: var(--market-font-size-caption);
+}
+
 @media (min-width: 640px) {
   .identity {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);

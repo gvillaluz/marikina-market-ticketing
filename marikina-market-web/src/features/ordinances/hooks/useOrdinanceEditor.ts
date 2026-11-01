@@ -17,6 +17,7 @@ import {
   hasDraftChanges,
   isCategory,
   isSeverity,
+  isFineKind,
   normalizeOrdinance,
   normalizeOrdinanceDetails,
   ordinanceError,
@@ -36,9 +37,12 @@ function fieldsFrom(item: OrdinanceSummary): OrdinanceFields {
   return {
     ordinanceNumber: item.ordinanceNo,
     series: item.series,
-    marketCode: item.marketCode,
+    section: item.section ?? "",
+    specificCategory: item.specificCategory ?? "",
     title: item.title,
-    category: item.category,
+    category: isCategory(item.category) ? item.category : "",
+    severity: item.severity ?? "",
+    warningEligible: item.warningEligible,
   };
 }
 
@@ -97,8 +101,12 @@ export function useOrdinanceEditor() {
         .sort((a, b) => a.offenseNumber - b.offenseNumber)
         .map((item) => ({
           key: crypto.randomUUID(),
-          severity: item.severity,
-          amount: String(item.penaltyAmount),
+          fineKind: item.fineKind,
+          amount: item.penaltyAmount == null ? "" : String(item.penaltyAmount),
+          maximumFine: item.maximumFine == null ? "" : String(item.maximumFine),
+          penaltyTerms: item.penaltyTerms ?? "",
+          allowBloodDonation: item.allowBloodDonation,
+          allowCommunityService: item.allowCommunityService,
         })),
     };
     baseline.current = cloneDraft(loaded);
@@ -124,10 +132,13 @@ export function useOrdinanceEditor() {
     selected !== null &&
     baseline.current !== null &&
     hasDraftChanges({ fields, tiers }, baseline.current);
-  const highestFee = tiers.reduce(
-    (maximum, tier) => Math.max(maximum, parsePenaltyAmount(tier.amount) ?? 0),
-    0,
-  );
+  const configuredAmounts = tiers.flatMap((tier) => {
+    const value = tier.fineKind === "Fixed" ? tier.amount
+      : tier.fineKind === "UpTo" ? tier.maximumFine : "";
+    const amount = parsePenaltyAmount(value);
+    return amount === null ? [] : [amount];
+  });
+  const highestFee = configuredAmounts.length ? Math.max(...configuredAmounts) : null;
   const save = useMutation({
     mutationFn: ({
       id,
@@ -248,13 +259,19 @@ export function useOrdinanceEditor() {
       setError("");
       save.reset();
     },
-    changeField(name: OrdinanceFieldName, value: string) {
+    changeField(name: OrdinanceFieldName, value: string | boolean) {
       if (disabled) return;
-      setFields((current) =>
-        name === "category"
-          ? { ...current, category: isCategory(value) ? value : "" }
-          : { ...current, [name]: value },
-      );
+      setFields((current) => {
+        if (name === "warningEligible") return { ...current, warningEligible: value === true };
+        if (typeof value !== "string") return current;
+        if (name === "severity") return { ...current, severity: isSeverity(value) ? value : "" };
+        return name === "category" ? {
+          ...current,
+          category: isCategory(value) ? value : "",
+          specificCategory: value === "Others" ? current.specificCategory : "",
+        }
+          : { ...current, [name]: value };
+      });
       setError("");
     },
     touchField(name: OrdinanceFieldName) {
@@ -264,7 +281,10 @@ export function useOrdinanceEditor() {
       if (disabled) return;
       setTiers((current) => [
         ...current,
-        { key: crypto.randomUUID(), severity: "Minor", amount: "" },
+        {
+          key: crypto.randomUUID(), fineKind: "Fixed", amount: "", maximumFine: "", penaltyTerms: "",
+          allowBloodDonation: false, allowCommunityService: false
+        },
       ]);
       setError("");
     },
@@ -278,16 +298,19 @@ export function useOrdinanceEditor() {
       });
       setError("");
     },
-    changeTier(key: string, name: TierFieldName, value: string) {
+    changeTier(key: string, name: TierFieldName, value: string | boolean) {
       if (disabled) return;
       setTiers((current) =>
-        current.map((item) =>
-          item.key !== key
-            ? item
-            : name === "severity"
-              ? { ...item, severity: isSeverity(value) ? value : "" }
-              : { ...item, amount: value },
-        ),
+        current.map((item, index) => {
+          if (item.key !== key) return item;
+          if (name === "allowBloodDonation" || name === "allowCommunityService")
+            return { ...item, [name]: index === 0 && value === true };
+          if (typeof value !== "string") return item;
+          if (name === "fineKind") return {
+            ...item, fineKind: isFineKind(value) ? value : "", amount: "", maximumFine: "",
+          };
+          return { ...item, [name]: value };
+        }),
       );
       setError("");
     },

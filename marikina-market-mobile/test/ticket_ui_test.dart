@@ -39,7 +39,7 @@ void main() {
           'ordinance_id': 11,
           'ordinance_no': '11',
           'series': '2014',
-          'ordinance_code': 'SEC-8',
+          'section': '8',
           'offense_count': 2,
           'penalty_amount': 1500,
         }).toEntity();
@@ -63,7 +63,7 @@ void main() {
         );
         expect(find.text('Ord No. 11, Series of 2014'), findsOneWidget);
         expect(
-          tester.getTopLeft(find.text('SEC-8')).dy -
+          tester.getTopLeft(find.text('Section 8')).dy -
               tester.getBottomLeft(find.text('Ord No. 11, Series of 2014')).dy,
           6,
         );
@@ -82,7 +82,7 @@ void main() {
           );
           expect(
             tester.getTopLeft(row).dy -
-                tester.getBottomLeft(find.text('SEC-8')).dy,
+                tester.getBottomLeft(find.text('Section 8')).dy,
             12,
           );
         }

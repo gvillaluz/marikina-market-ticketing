@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/payment_type_section.dart';
 
 void main() {
-  testWidgets('high severity only allows cash fine', (tester) async {
+  testWidgets('disabled independent alternatives cannot be selected', (
+    tester,
+  ) async {
     final hoursController = TextEditingController();
     PenaltyType? changedType;
 
@@ -14,7 +15,8 @@ void main() {
         home: Scaffold(
           body: PaymentTypeSection(
             selectedPenaltyType: PenaltyType.bloodDonation,
-            severity: Severity.high,
+            allowBloodDonation: false,
+            allowCommunityService: false,
             totalFineAmount: 100,
             onChangeType: (value) => changedType = value,
             communityHrsController: hoursController,
@@ -34,29 +36,37 @@ void main() {
     hoursController.dispose();
   });
 
-  testWidgets('non-high severity allows other penalty types', (tester) async {
-    final hoursController = TextEditingController();
-    PenaltyType? changedType;
+  testWidgets(
+    'blood donation can be enabled independently of community service',
+    (tester) async {
+      final hoursController = TextEditingController();
+      PenaltyType? changedType;
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: PaymentTypeSection(
-            selectedPenaltyType: PenaltyType.cashFine,
-            severity: Severity.moderate,
-            totalFineAmount: 100,
-            onChangeType: (value) => changedType = value,
-            communityHrsController: hoursController,
-            communityHrsError: null,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaymentTypeSection(
+              selectedPenaltyType: PenaltyType.cashFine,
+              allowBloodDonation: true,
+              allowCommunityService: false,
+              totalFineAmount: 100,
+              onChangeType: (value) => changedType = value,
+              communityHrsController: hoursController,
+              communityHrsError: null,
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.tap(find.text('Blood donation'));
-    await tester.pump();
+      await tester.tap(find.text('Blood donation'));
+      await tester.pump();
 
-    expect(changedType, PenaltyType.bloodDonation);
-    hoursController.dispose();
-  });
+      expect(changedType, PenaltyType.bloodDonation);
+      changedType = null;
+      await tester.tap(find.text('Community service'));
+      await tester.pump();
+      expect(changedType, isNull);
+      hoursController.dispose();
+    },
+  );
 }

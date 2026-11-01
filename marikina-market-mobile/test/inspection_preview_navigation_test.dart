@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +27,8 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/select_ordinance_bottom_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/pages/add_new_inspection_page.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/pages/new_inspection_preview_page.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/add_photo_evidence_btn.dart';
@@ -67,6 +70,18 @@ Future<void> flush(WidgetTester tester) async {
   await tester.runAsync(
     () => Future<void>.delayed(const Duration(milliseconds: 40)),
   );
+  // Give real I/O a turn between fake-clock frames while loading animations
+  // run. pumpAndSettle alone advances only fake time and can starve Hive/Dio.
+  for (
+    var attempt = 0;
+    attempt < 100 && tester.binding.hasScheduledFrame;
+    attempt++
+  ) {
+    await tester.pump(const Duration(milliseconds: 20));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+  }
   await tester.pumpAndSettle();
 }
 
@@ -223,8 +238,9 @@ void main() {
                         {
                           'ordinance_id': 1,
                           'ordinance_no': ordinanceResponse['ordinance_no'],
-                          'ordinance_code': 'MKT-001',
+                          'section': '53',
                           'payment_amount': 100,
+                          'fine_kind': 'Fixed',
                           'severity': 'Minor',
                           'offense_number': 1,
                           'is_duplicate': false,
@@ -245,8 +261,9 @@ void main() {
                       {
                         'ordinance_id': 1,
                         'ordinance_no': ordinanceResponse['ordinance_no'],
-                        'ordinance_code': 'MKT-001',
+                        'section': '53',
                         'payment_amount': 100,
+                        'fine_kind': 'Fixed',
                         'severity': 'Minor',
                         'offense_number': 1,
                         'is_duplicate': false,
@@ -264,8 +281,6 @@ void main() {
             }),
           );
           final connectivity = ConnectivityCubit(LoginTestNetworkInfo());
-          // Complete real Hive I/O outside the widget test's fake clock before
-          // the form and selection sheet read the shared ordinance cache.
           await tester.runAsync(() => template!.loadOrdinancesUseCase());
           late AuthBloc auth;
           await tester.runAsync(() async {
@@ -327,6 +342,20 @@ void main() {
             MaterialApp.router(theme: AppTheme.light, routerConfig: router),
           );
           await flush(tester);
+          final formBloc = tester
+              .element(find.byType(AddNewInspectionPage))
+              .read<InspectionBloc>();
+          for (
+            var attempt = 0;
+            attempt < 100 && formBloc.ordinances.isEmpty;
+            attempt++
+          ) {
+            await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 10)),
+            );
+            await tester.pump(const Duration(milliseconds: 20));
+          }
+          expect(formBloc.ordinances, isNotEmpty);
           tester
               .widget<ViolatorInfoCard>(find.byType(ViolatorInfoCard))
               .onVendorSelected(vendor);
@@ -375,6 +404,25 @@ void main() {
           await tester.pump();
           await tester.ensureVisible(find.text('Select Ordinance'));
           await tester.tap(find.text('Select Ordinance'));
+          await tester.pump();
+          final selectionBloc = tester
+              .element(find.byType(SelectOrdinanceBottomSheet))
+              .read<InspectionBloc>();
+          // Real Hive I/O and Dio's fake-clock scheduling both need progress.
+          // Stop as soon as the actual sheet BLoC has finished loading.
+          for (
+            var attempt = 0;
+            attempt < 100 &&
+                selectionBloc.state is! OrdinanceSelectionLoaded &&
+                selectionBloc.state is! OrdinanceSelectionError;
+            attempt++
+          ) {
+            await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 10)),
+            );
+            await tester.pump(const Duration(milliseconds: 20));
+          }
+          expect(selectionBloc.state, isA<OrdinanceSelectionLoaded>());
           await flush(tester);
           await tester.tap(
             find.text(
@@ -405,6 +453,11 @@ void main() {
                 () => file.copy('${folder.path}/paper.png'),
               ))!.path,
             );
+            await tester.runAsync(() async {
+              final context = tester.element(find.byType(AddNewInspectionPage));
+              await precacheImage(FileImage(file), context);
+              await precacheImage(FileImage(File(paper.path)), context);
+            });
             for (final control in tester.widgetList<AddPhotoEvidenceBtn>(
               find.byType(AddPhotoEvidenceBtn),
             )) {
@@ -531,6 +584,24 @@ void main() {
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox.shrink());
           await tester.pump();
+          // The catalog refresh writes through real Hive I/O. Close that box
+          // outside the fake clock before the shared fixture's teardown.
+          var cacheClosed = false;
+          final closingCache = Hive.box<OrdinanceHiveModel>(
+            'ordinances',
+          ).close().then((_) => cacheClosed = true);
+          for (var attempt = 0; attempt < 100 && !cacheClosed; attempt++) {
+            await tester.pump();
+            await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 10)),
+            );
+          }
+          expect(
+            cacheClosed,
+            isTrue,
+            reason: 'Real Hive close must complete before fixture teardown.',
+          );
+          await closingCache;
         },
       );
     }

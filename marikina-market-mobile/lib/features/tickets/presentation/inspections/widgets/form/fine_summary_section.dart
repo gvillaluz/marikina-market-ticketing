@@ -6,18 +6,24 @@ import 'package:marikina_market_mobile/core/utils/extentions/integer_extensions.
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_breakdown_item.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
+import '../../../../domain/enums/fine_kind.dart';
+import 'assessed_fine_field.dart';
 
 class FineSummarySection extends StatelessWidget {
   final List<Ordinance> items;
   final FineSummary? fineSummary;
   final bool isTicket;
   final ValueChanged<int> onDelete;
+  final Map<int, String> assessmentTexts;
+  final void Function(int, String)? onAssessmentChanged;
 
   const FineSummarySection({
     required this.items,
     required this.fineSummary,
     required this.isTicket,
     required this.onDelete,
+    this.assessmentTexts = const {},
+    this.onAssessmentChanged,
     super.key,
   });
 
@@ -44,6 +50,17 @@ class FineSummarySection extends StatelessWidget {
     } else {
       return Color(0xFF27500A);
     }
+  }
+
+  String _unavailableReason() {
+    final lines = fineSummary?.breakdownItems ?? const <FineBreakdownItem>[];
+    if (lines.any((item) => item.severity == null)) {
+      return 'Unavailable — an administrator must set the scoring severity';
+    }
+    if (lines.any((item) => item.fineKind == FineKind.unconfirmed)) {
+      return 'Unavailable — the penalty is not confirmed';
+    }
+    return 'Unavailable until assessed';
   }
 
   FineBreakdownItem? _breakdownFor(Ordinance ordinance) {
@@ -84,7 +101,7 @@ class FineSummarySection extends StatelessWidget {
                   ),
 
                   Text(
-                    ordinance.ordinanceCode,
+                    ordinance.detailsLabel,
                     style: TextStyle(
                       fontSize: AppTheme.captionFontSize,
                       height: 1,
@@ -92,10 +109,34 @@ class FineSummarySection extends StatelessWidget {
                     ),
                   ),
 
+                  Text(
+                    ordinance.title,
+                    style: TextStyle(fontSize: AppTheme.captionFontSize),
+                    softWrap: true,
+                  ),
+
                   if (isTicket && breakdown != null) ...{
+                    if (breakdown.penaltyTerms?.isNotEmpty ?? false)
+                      Text(breakdown.penaltyTerms!),
+                    if (breakdown.fineKind == FineKind.unconfirmed)
+                      const Text(
+                        'Assessment unavailable. The applicable penalty must be configured.',
+                      ),
+                    if (breakdown.fineKind == FineKind.upTo)
+                      AssessedFineField(
+                        item: breakdown,
+                        value: assessmentTexts[breakdown.ordinanceId] ?? '',
+                        onChanged: (value) => onAssessmentChanged?.call(
+                          breakdown.ordinanceId,
+                          value,
+                        ),
+                      ),
                     const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: AppTheme.inspectionSmallGap,
+                      runSpacing: AppTheme.inspectionSmallGap,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -126,7 +167,9 @@ class FineSummarySection extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          _currencyFormat.format(breakdown.paymentAmount),
+                          breakdown.paymentAmount == null
+                              ? 'Assessment required'
+                              : _currencyFormat.format(breakdown.paymentAmount),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -177,7 +220,9 @@ class FineSummarySection extends StatelessWidget {
                 ),
 
                 Text(
-                  _currencyFormat.format(fineSummary?.totalPaymentAmount),
+                  fineSummary?.totalPaymentAmount == null
+                      ? _unavailableReason()
+                      : _currencyFormat.format(fineSummary!.totalPaymentAmount),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: AppTheme.sectionHeadingFontSize,

@@ -3,15 +3,23 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/duplicat
 class DuplicateInfoModel {
   final int ordinanceId;
   final String ordinanceNo;
-  final String ordinanceCode;
+  final String? section;
+  final String? specificCategory;
 
-  DuplicateInfoModel({required this.ordinanceId, required this.ordinanceNo, required this.ordinanceCode});
+  DuplicateInfoModel({
+    required this.ordinanceId,
+    required this.ordinanceNo,
+    required this.section,
+    this.specificCategory,
+  });
 
   factory DuplicateInfoModel.fromJson(Map<String, dynamic> json) {
     return DuplicateInfoModel(
       ordinanceId: (json['ordinanceId'] ?? json['ordinance_id']) as int,
       ordinanceNo: (json['ordinanceNo'] ?? json['ordinance_no']) as String,
-      ordinanceCode: (json['ordinanceCode'] ?? json['ordinance_code']) as String,
+      section: json['section'] as String?,
+      specificCategory:
+          (json['specificCategory'] ?? json['specific_category']) as String?,
     );
   }
 
@@ -19,7 +27,8 @@ class DuplicateInfoModel {
     return DuplicateOrdinance(
       ordinanceId: ordinanceId,
       ordinanceNo: ordinanceNo,
-      ordinanceCode: ordinanceCode,
+      section: section,
+      specificCategory: specificCategory,
     );
   }
 }

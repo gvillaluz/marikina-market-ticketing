@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/features/tickets/domain/enums/fine_kind.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/violation_details_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,7 +52,7 @@ void main() {
             id: 11,
             ordinanceNo: '2026-123456789',
             series: '2026',
-            marketCode: 'SEC-8',
+            section: '8',
             title: 'Keep market aisles clear',
             description: 'Obstruction',
             category: OrdinanceCategory.sanitation,
@@ -80,9 +81,10 @@ void main() {
                               severity: Severity.minor,
                               breakdownItems: [
                                 FineBreakdownItem(
+                                  fineKind: FineKind.fixed,
                                   ordinanceId: 11,
                                   ordinanceNo: '2026-123456789',
-                                  ordinanceCode: 'SEC-8',
+                                  section: '8',
                                   paymentAmount: 1500,
                                   severity: Severity.minor,
                                   offenseNumber: 1,
@@ -116,7 +118,7 @@ void main() {
             find.text('Ord No. 2026-123456789, Series of 2026'),
           );
           await tester.pumpAndSettle();
-          expect(find.text('SEC-8'), findsOneWidget);
+          expect(find.text('Section 8'), findsOneWidget);
           final ordinancePrice = find.descendant(
             of: find.byType(ViolationDetailsSection),
             matching: find.text('₱1,500.00'),

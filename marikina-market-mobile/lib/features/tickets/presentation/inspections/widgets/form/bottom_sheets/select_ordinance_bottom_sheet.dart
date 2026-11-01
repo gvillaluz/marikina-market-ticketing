@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
-import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
@@ -140,8 +139,9 @@ class _SelectOrdinanceBottomSheetState
           .ordinances
           .where(
             (ordinance) =>
+                ordinance.isActive &&
                 (!widget.isWarningTicket ||
-                    ordinance.severity == Severity.minor) &&
+                    ordinance.warningEligible == true) &&
                 (ordinance.ordinanceNo.toLowerCase().contains(query) ||
                     ordinance.series.toLowerCase().contains(query)),
           )
@@ -173,7 +173,7 @@ class _SelectOrdinanceBottomSheetState
       return InspectionSelectionSheet(
         title: 'Select ordinances',
         description: widget.isWarningTicket
-            ? 'Choose one minor ordinance for this warning.'
+            ? 'Choose one eligible ordinance for this warning.'
             : 'Choose the ordinances for this inspection.',
         isBusy: _confirming,
         slivers: [
@@ -260,7 +260,8 @@ class _SelectOrdinanceBottomSheetState
                     key: ValueKey(ordinance.id),
                     title:
                         'Ord No. ${ordinance.ordinanceNo}, Series of ${ordinance.series}',
-                    subtitle: ordinance.ordinanceCode,
+                    subtitle:
+                        '${ordinance.sectionLabel} · ${ordinance.categoryLabel}\n${ordinance.title}',
                     isSelected: selectedIds.contains(ordinance.id),
                     onTap: _confirming ? null : () => _toggle(ordinance),
                   );

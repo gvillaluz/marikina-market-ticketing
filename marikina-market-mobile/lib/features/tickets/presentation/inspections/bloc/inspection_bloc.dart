@@ -402,6 +402,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
 
     final result = await saveInspectionTicketUseCase(
       SaveInspectionParams(
+        fineAssessments: event.fineAssessments,
         personId: event.personId,
         paperViolatorName: event.paperViolatorName,
         paperReference: event.paperReference,

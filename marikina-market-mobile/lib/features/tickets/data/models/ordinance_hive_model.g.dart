@@ -30,13 +30,19 @@ class OrdinanceHiveModelAdapter extends TypeAdapter<OrdinanceHiveModel> {
       updatedAt: fields[10] as DateTime?,
       isActive: fields[11] == null ? true : fields[11] as bool,
       penaltyTierCount: fields[12] == null ? 0 : fields[12] as int,
+      section: fields[13] as String?,
+      specificCategory: fields[14] as String?,
+      warningEligible: fields[15] as bool?,
+      penaltyTiers: (fields[16] as List? ?? const [])
+          .map((tier) => Map<String, Object?>.from(tier as Map))
+          .toList(),
     );
   }
 
   @override
   void write(BinaryWriter writer, OrdinanceHiveModel obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.ordinanceId)
       ..writeByte(1)
@@ -62,7 +68,15 @@ class OrdinanceHiveModelAdapter extends TypeAdapter<OrdinanceHiveModel> {
       ..writeByte(11)
       ..write(obj.isActive)
       ..writeByte(12)
-      ..write(obj.penaltyTierCount);
+      ..write(obj.penaltyTierCount)
+      ..writeByte(13)
+      ..write(obj.section)
+      ..writeByte(14)
+      ..write(obj.specificCategory)
+      ..writeByte(15)
+      ..write(obj.warningEligible)
+      ..writeByte(16)
+      ..write(obj.penaltyTiers);
   }
 
   @override

@@ -19,11 +19,16 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
             builder.Property(t => t.OffenseNumber)
                 .IsRequired();
 
-            builder.Property(t => t.Severity)
+            builder.Property(t => t.FineKind)
                 .HasConversion<string>();
+
+            // Keep the old tier classification solely for guarded migration rollback.
+            builder.Property<string>("LegacySeverity").HasColumnName("severity");
 
             builder.Property(t => t.PenaltyAmount)
                 .HasPrecision(18, 2);
+            builder.Property(t => t.MaximumFine).HasPrecision(18, 2);
+            builder.Property(t => t.PenaltyTerms).HasMaxLength(1000);
         }
     }
 }

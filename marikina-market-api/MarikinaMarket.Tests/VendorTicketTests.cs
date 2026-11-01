@@ -297,7 +297,7 @@ internal sealed class VendorTicketHost : IAsyncDisposable
 
     private static Ordinance Ordinance(int id, string number, string title) => new()
     {
-        Id = id, OrdinanceNo = number, Series = "2014", MarketCode = "MKT-" + id, Title = title
+        Id = id, OrdinanceNo = number, Series = "2014", Section = "MKT-" + id, Title = title
     };
 
     public async ValueTask DisposeAsync()

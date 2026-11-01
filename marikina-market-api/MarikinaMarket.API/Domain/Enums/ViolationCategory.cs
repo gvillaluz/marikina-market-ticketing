@@ -7,6 +7,10 @@
         Sanitation,
         Licensing,
         Noise,
-        WeightMeasures
+        WeightMeasures,
+        DressCode,
+        IllegalVendor,
+        NonSmoking,
+        Others
     }
 }

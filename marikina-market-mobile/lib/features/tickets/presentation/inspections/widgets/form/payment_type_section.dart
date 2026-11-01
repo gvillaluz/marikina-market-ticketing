@@ -1,13 +1,12 @@
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
-import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 
 class PaymentTypeSection extends StatefulWidget {
   final PenaltyType selectedPenaltyType;
-  final Severity severity;
-  final double totalFineAmount;
+  final bool allowBloodDonation, allowCommunityService;
+  final double? totalFineAmount;
   final ValueChanged<PenaltyType> onChangeType;
   final TextEditingController communityHrsController;
   final String? communityHrsError;
@@ -15,7 +14,8 @@ class PaymentTypeSection extends StatefulWidget {
   const PaymentTypeSection({
     super.key,
     required this.selectedPenaltyType,
-    required this.severity,
+    required this.allowBloodDonation,
+    required this.allowCommunityService,
     required this.totalFineAmount,
     required this.onChangeType,
     required this.communityHrsController,
@@ -32,7 +32,11 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
   @override
   void initState() {
     super.initState();
-    _selectedType = widget.severity == Severity.high
+    _selectedType =
+        (widget.selectedPenaltyType == PenaltyType.bloodDonation &&
+                !widget.allowBloodDonation) ||
+            (widget.selectedPenaltyType == PenaltyType.communityService &&
+                !widget.allowCommunityService)
         ? PenaltyType.cashFine
         : widget.selectedPenaltyType;
   }
@@ -40,15 +44,17 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
   @override
   void didUpdateWidget(covariant PaymentTypeSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _selectedType = widget.severity == Severity.high
+    _selectedType =
+        (widget.selectedPenaltyType == PenaltyType.bloodDonation &&
+                !widget.allowBloodDonation) ||
+            (widget.selectedPenaltyType == PenaltyType.communityService &&
+                !widget.allowCommunityService)
         ? PenaltyType.cashFine
         : widget.selectedPenaltyType;
   }
 
   @override
   Widget build(BuildContext context) {
-    final isHighSeverity = widget.severity == Severity.high;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -68,7 +74,9 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
             children: [
               _buildOptionTile(
                 value: PenaltyType.cashFine,
-                title: 'Pay ₱${widget.totalFineAmount.toStringAsFixed(2)}',
+                title: widget.totalFineAmount == null
+                    ? 'Cash fine — assessment required'
+                    : 'Pay ₱${widget.totalFineAmount!.toStringAsFixed(2)}',
               ),
               const Divider(height: 1, color: AppColors.lightGrey),
 
@@ -76,14 +84,14 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
                 value: PenaltyType.communityService,
                 title: 'Community service',
                 trailingText: '3 hrs',
-                disabled: isHighSeverity,
+                disabled: !widget.allowCommunityService,
               ),
               const Divider(height: 1, color: AppColors.lightGrey),
 
               _buildOptionTile(
                 value: PenaltyType.bloodDonation,
                 title: 'Blood donation',
-                disabled: isHighSeverity,
+                disabled: !widget.allowBloodDonation,
               ),
             ],
           ),

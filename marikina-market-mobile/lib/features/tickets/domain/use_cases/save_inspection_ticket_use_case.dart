@@ -99,6 +99,7 @@ class SaveInspectionTicketUseCase
     return await _repository.saveNewInspection(
       // Preserve the confirmed identity and Verify snapshot across this boundary.
       SaveInspectionParams(
+        fineAssessments: params.fineAssessments,
         personId: params.personId,
         paperViolatorName: params.paperViolatorName,
         paperReference: params.paperReference?.trim(),

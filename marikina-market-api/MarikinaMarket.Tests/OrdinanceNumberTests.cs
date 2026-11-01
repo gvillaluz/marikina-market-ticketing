@@ -39,9 +39,9 @@ public class OrdinanceNumberTests
 
     private static SaveOrdinanceRequest Request(string number) => new()
     {
-        OrdinanceNumber = number, Series = "2014", MarketCode = "MKT-001",
-        Title = "Market Identification Card", Category = ViolationCategory.Licensing,
-        PenaltyTiers = [new() { OffenseNumber = 1, Severity = Severity.Minor, PenaltyAmount = 500m }]
+        OrdinanceNumber = number, Series = "2014", Section = "MKT-001",
+        Title = "Market Identification Card", Category = ViolationCategory.Obstruction, Severity = Severity.Minor,
+        PenaltyTiers = [new() { OffenseNumber = 1, FineKind = FineKind.Fixed, PenaltyAmount = 500m }]
     };
 
     private static OrdinanceService CreateService(out OrdinanceNumberBoundary boundary)

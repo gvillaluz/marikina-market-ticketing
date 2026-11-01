@@ -1,4 +1,4 @@
-﻿using MarikinaMarket.API.Domain.Entities;
+using MarikinaMarket.API.Domain.Entities;
 
 namespace MarikinaMarket.API.Application.DTOs.Tickets.Internal
 {
@@ -9,7 +9,8 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Internal
         public int OrdinanceId { get; set; }
         public required string OrdinanceNo { get; set; }
         public string Series { get; set; } = "";
-        public required string OrdinanceCode { get; set; }
+        public string? Section { get; set; }
+        public string? SpecificCategory { get; set; }
         public int OffenseCount { get; set; }
         public decimal? PenaltyAmount { get; set; }
     }

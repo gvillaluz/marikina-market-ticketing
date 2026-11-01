@@ -134,7 +134,7 @@ class TicketDetailContent extends StatelessWidget {
                         ),
                       ),
                       subtitle: Text(
-                        droppedOrdinances[index].ordinanceCode,
+                        droppedOrdinances[index].detailsLabel,
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: AppTheme.captionFontSize,

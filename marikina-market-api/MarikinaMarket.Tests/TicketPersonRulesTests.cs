@@ -12,7 +12,7 @@ public class TicketPersonRulesTests
     [Fact]
     public async Task Every_citation_status_and_penalty_counts_once_per_person_and_ordinance()
     {
-        var ordinance = new Ordinance { Id = 5, OrdinanceNo = "011", Series = "2014", MarketCode = "FISH", Title = "Sanitation" };
+        var ordinance = new Ordinance { Id = 5, OrdinanceNo = "011", Series = "2014", Section = "FISH", Title = "Sanitation" };
         var id = 0;
         foreach (var status in Enum.GetValues<TicketStatus>())
             foreach (var penalty in Enum.GetValues<PenaltyType>())
@@ -42,7 +42,7 @@ public class TicketPersonRulesTests
     public async Task Duplicate_uses_person_ordinance_Manila_day_and_only_active_status(TicketStatus status, bool duplicate)
     {
         var now = new DateTime(2026, 10, 28, 16, 5, 0, DateTimeKind.Utc); // Oct 29, 00:05 Manila.
-        var ordinance = new Ordinance { Id = 5, OrdinanceNo = "011", Series = "2014", MarketCode = "FISH", Title = "Sanitation" };
+        var ordinance = new Ordinance { Id = 5, OrdinanceNo = "011", Series = "2014", Section = "FISH", Title = "Sanitation" };
         var ticket = Citation(1, 1, status, now.AddMinutes(-4)); ticket.VendorId = 99; ticket.EnforcerId = 88;
         ticket.TicketViolations = [new() { OrdinanceId = 5, Ordinance = ordinance }];
         var yesterday = Citation(2, 1, TicketStatus.Pending, now.AddMinutes(-6));

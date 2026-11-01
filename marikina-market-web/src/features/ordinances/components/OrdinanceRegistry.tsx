@@ -43,8 +43,8 @@ export default function OrdinanceRegistry({
             type="search"
             value={directory.search}
             onChange={(event) => directory.setSearch(event.target.value)}
-            placeholder="Search code or title…"
-            aria-label="Search ordinances by code or title"
+            placeholder="Search number, section or title…"
+            aria-label="Search ordinances by number, section or title"
           />
         </div>
       </header>

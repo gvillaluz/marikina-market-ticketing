@@ -1,4 +1,8 @@
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_verification.dart';
+import '../../../domain/entities/fine_assessment.dart';
+import '../../../domain/entities/fine_summary.dart';
+import '../../../domain/enums/fine_kind.dart';
+import '../widgets/form/assessed_fine_field.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/person_history_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_header.dart';
@@ -39,6 +43,66 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
   InspectionVerification? _verification;
   String? _verificationMessage;
   InspectionBloc? _inspectionBloc;
+  late Map<int, String> _assessmentTexts;
+  FineSummary? _assessmentBasis;
+
+  @override
+  void initState() {
+    super.initState();
+    _assessmentBasis = widget.formData.fineSummary;
+    _assessmentTexts = {
+      for (final amount in widget.formData.fineAssessments)
+        amount.ordinanceId: amount.assessedAmount.toStringAsFixed(2),
+    };
+  }
+
+  Map<int, double> get _assessedAmounts => {
+    for (final item in _assessmentBasis?.breakdownItems ?? <Never>[])
+      if (item.fineKind == FineKind.upTo &&
+          parseAssessedFine(_assessmentTexts[item.ordinanceId] ?? '', item) !=
+              null)
+        item.ordinanceId: parseAssessedFine(
+          _assessmentTexts[item.ordinanceId] ?? '',
+          item,
+        )!,
+  };
+  List<FineAssessment> get _fineAssessments => _assessedAmounts.entries
+      .map(
+        (entry) =>
+            FineAssessment(ordinanceId: entry.key, assessedAmount: entry.value),
+      )
+      .toList();
+  FineSummary? get _localFineSummary =>
+      _assessmentBasis?.withAssessments(_assessedAmounts);
+
+  void _changeAssessment(int id, String text) {
+    _inspectionBloc?.invalidateVerification();
+    setState(() {
+      _assessmentTexts[id] = text;
+      _verification = null;
+      _verifying = false;
+      _verificationMessage =
+          'Information changed. Verify again before submitting.';
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant NewInspectionPreviewPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.formData, widget.formData)) {
+      _inspectionBloc?.invalidateVerification();
+      _assessmentBasis = widget.formData.fineSummary;
+      _verification = null;
+      _verifying = false;
+      _verificationMessage =
+          'Information changed. Verify again before submitting.';
+      _assessmentTexts = {
+        for (final amount in widget.formData.fineAssessments)
+          amount.ordinanceId: amount.assessedAmount.toStringAsFixed(2),
+      };
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -53,6 +117,13 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
 
   void _verify() {
     final data = widget.formData;
+    if (_localFineSummary?.isAssessable != true) {
+      setState(
+        () => _verificationMessage =
+            'Complete the assessed fines and confirm the applicable penalty configuration before verifying.',
+      );
+      return;
+    }
     if ((data.paperReference?.trim().isEmpty ?? true) ||
         (data.issuePlace?.trim().isEmpty ?? true)) {
       setState(
@@ -84,6 +155,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
           issuePlace: data.issuePlace,
           description: data.description,
           ordinanceIds: data.ordinances.map((o) => o.id).toList(),
+          fineAssessments: _fineAssessments,
           penaltyType: data.penaltyType!,
           communityServiceHours: data.communityServiceHrs,
           evidenceCount:
@@ -97,12 +169,18 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
   }
 
   void _submit(BuildContext context) {
+    if (widget.formData.ticketType == ViolationType.ticket &&
+        (_verification == null ||
+            _verification!.calculation.isAssessable != true)) {
+      return;
+    }
     final categories = widget.formData.ordinances
         .map((o) => o.category)
         .toList();
 
     context.read<InspectionBloc>().add(
       NewInspectionSubmitted(
+        fineAssessments: _fineAssessments,
         personId: widget.formData.personId,
         paperViolatorName: widget.formData.paperViolatorName,
         paperReference: widget.formData.paperReference,
@@ -131,11 +209,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
     final ViolationType ticketType = widget.formData.ticketType;
     final bool isTicket = ticketType == ViolationType.ticket;
 
-    final fineSummary =
-        _verification?.calculation ?? widget.formData.fineSummary;
-    final breakdownItems = fineSummary?.breakdownItems ?? [];
-    final sorted = breakdownItems.map((item) => item.severity).toList()..sort();
-    final highest = sorted.isEmpty ? null : sorted.last;
+    final fineSummary = _verification?.calculation ?? _localFineSummary;
+    final highest = fineSummary?.severity;
 
     final penaltyType = widget.formData.penaltyType;
 
@@ -163,6 +238,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
             setState(() {
               _verifying = false;
               _verification = state.verification;
+              _assessmentBasis = state.verification.calculation;
               _verificationMessage =
                   'Verified. Review the business details, calculated offense positions and fine before submitting.';
             });
@@ -385,7 +461,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                                 right: 20,
                               ),
                               child: PenaltyDetailsSection(
-                                severity: highest!,
+                                severity: highest,
                                 penaltyType: penaltyType,
                                 totalFineAmount: fineSummary.totalPaymentAmount,
                                 communityHrs:
@@ -548,6 +624,15 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                     const SizedBox(height: AppTheme.ticketSmallGap),
 
                     if (isTicket) ...[
+                      for (final item
+                          in _assessmentBasis?.breakdownItems ?? <Never>[])
+                        if (item.fineKind == FineKind.upTo)
+                          AssessedFineField(
+                            item: item,
+                            value: _assessmentTexts[item.ordinanceId] ?? '',
+                            onChanged: (value) =>
+                                _changeAssessment(item.ordinanceId, value),
+                          ),
                       if (_verificationMessage != null)
                         Text(_verificationMessage!),
                       TextButton(
@@ -570,7 +655,11 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                         label: 'Verify ticket',
                         iconData: Icons.fact_check_outlined,
                         isLoading: _verifying,
-                        onPressed: _submissionUncertain ? null : _verify,
+                        onPressed:
+                            _submissionUncertain ||
+                                _localFineSummary?.isAssessable != true
+                            ? null
+                            : _verify,
                       ),
                     ],
                     if (!isTicket)
@@ -594,6 +683,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           _submissionUncertain ||
                               (isTicket &&
                                   (_verification == null ||
+                                      _verification?.calculation.isAssessable !=
+                                          true ||
                                       _verification?.businessSnapshot == null ||
                                       _verification?.reviewedBusinessSnapshot ==
                                           null ||

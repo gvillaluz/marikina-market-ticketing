@@ -193,7 +193,7 @@ const TicketDetailPage: FC = () => {
                 <InfoField
                   key={i}
                   label="VIOLATION TYPE / ORDINANCE"
-                  value={`${violation.ordinanceNo} (${violation.ordinanceCode})`}
+                  value={`Ord No. ${violation.ordinanceNo}, Series of ${violation.series} — ${violation.section ? `Section ${violation.section}` : "Section unavailable"}${violation.specificCategory ? ` — ${violation.specificCategory}` : ""}`}
                 />
               ))}
               <div className={styles.descriptionBlock}>

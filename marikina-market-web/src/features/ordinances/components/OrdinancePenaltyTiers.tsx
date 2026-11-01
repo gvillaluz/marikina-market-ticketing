@@ -23,7 +23,7 @@ export default function OrdinancePenaltyTiers({ editor }: Props) {
             Assigned Penalty Tiers
           </h4>
           <p className={controls.sectionSubtitle}>
-            Set the severity and fee for each offense occurrence.
+            Configure the fine rule and terms for each offense occurrence.
           </p>
         </div>
         <div className={styles.actions}>
@@ -88,8 +88,8 @@ export default function OrdinancePenaltyTiers({ editor }: Props) {
             ))}
           </ol>
           <p className={styles.summary}>
-            Highest configured fee{" "}
-            <strong>{formatCurrency(editor.highestFee)}</strong>
+            Highest configured fine or cap{" "}
+            <strong>{editor.highestFee === null ? "—" : formatCurrency(editor.highestFee)}</strong>
           </p>
         </>
       )}

@@ -1,8 +1,10 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class SaveInspectionParams {
+  final List<FineAssessment> fineAssessments;
   final String? paperReference, issuePlace;
   final String? reviewedBusinessSnapshot;
   final int? personId;
@@ -19,6 +21,7 @@ class SaveInspectionParams {
   final XFile? paperTicketPhoto;
 
   SaveInspectionParams({
+    this.fineAssessments = const [],
     this.paperReference,
     this.issuePlace,
     this.personId,

@@ -70,7 +70,7 @@ const detailResponse = <String, Object?>{
       'ticket_id': 101,
       'ordinance_id': 2,
       'ordinance_no': '104',
-      'ordinance_code': 'SAMPLE-002',
+      'section': '13',
       'offense_count': 1,
       'penalty_amount': 500,
     },
@@ -464,7 +464,7 @@ void main() {
       );
       expect(find.text('PENDING'), findsNothing);
       final price = find.text('₱500.00').first;
-      final code = find.text('SAMPLE-002');
+      final code = find.text('Section 13');
       expect(
         (tester.getCenter(price).dy -
                 tester.getCenter(find.text('1st offense')).dy)

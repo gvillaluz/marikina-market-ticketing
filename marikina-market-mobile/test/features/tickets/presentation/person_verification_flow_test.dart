@@ -9,6 +9,7 @@ import 'package:hive/hive.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_hive_model.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/ordinance_category.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
@@ -17,6 +18,7 @@ import '../../../inspection_list_ui_test.dart' show listBloc;
 import '../../auth/data/login_mobile_contract_test.dart' show reply;
 
 const input = VerifyInspectionInput(
+  fineAssessments: [FineAssessment(ordinanceId: 1, assessedAmount: 500)],
   vendorId: 17,
   personId: 31,
   paperViolatorName: 'Juan Cruz',
@@ -41,8 +43,11 @@ Map<String, Object?> verified(String snapshot) => {
       {
         'ordinance_id': 1,
         'ordinance_no': '011',
-        'ordinance_code': 'SAN',
+        'section': '66',
         'payment_amount': 500,
+        'fine_kind': 'UpTo',
+        'minimum_fine': 100,
+        'maximum_fine': 1000,
         'severity': 'Minor',
         'offense_number': 1,
         'is_duplicate': false,
@@ -92,6 +97,7 @@ void main() {
       });
       bloc.add(
         NewInspectionSubmitted(
+          fineAssessments: input.fineAssessments,
           personId: 31,
           paperViolatorName: 'Juan Cruz',
           paperReference: '000456',
@@ -119,6 +125,9 @@ void main() {
       expect(fields['vendor_id'], '17');
       expect(fields['paper_reference'], '000456');
       expect(fields['issue_place'], 'Fish aisle near F-014');
+      expect(jsonDecode(fields['fine_assessments']!), [
+        {'ordinance_id': 1, 'assessed_amount': 500.0},
+      ]);
     },
   );
   test(
@@ -133,6 +142,9 @@ void main() {
         expect(options.data['person_id'], 31);
         expect(options.data['paper_reference'], '000456');
         expect(options.data['issue_place'], 'Fish aisle near F-014');
+        expect(options.data['fine_assessments'], [
+          {'ordinance_id': 1, 'assessed_amount': 500.0},
+        ]);
         if (++calls == 1) {
           firstRequest.complete(options);
           return first.future;

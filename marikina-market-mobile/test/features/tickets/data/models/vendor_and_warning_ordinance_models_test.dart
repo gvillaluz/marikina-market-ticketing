@@ -71,11 +71,11 @@ void main() {
     final ordinance = WarningOrdinanceModel.fromJson({
       'ordinance_id': 10,
       'ordinance_no': 'ORD-10',
-      'ordinance_code': 'CODE-10',
+      'section': '12',
     }).toEntity();
 
     expect(ordinance.ordinanceId, 10);
     expect(ordinance.ordinanceNo, 'ORD-10');
-    expect(ordinance.ordinanceCode, 'CODE-10');
+    expect(ordinance.section, '12');
   });
 }

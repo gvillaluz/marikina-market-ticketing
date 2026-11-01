@@ -116,9 +116,9 @@ public class InspectionNotificationTests
     }
 
     [Fact]
-    public async Task Noncash_high_severity_is_rejected_before_evidence_upload()
+    public async Task Disabled_community_service_is_rejected_before_evidence_upload()
     {
-        using var fixture = new Fixture { HighSeverity = true };
+        using var fixture = new Fixture { HighSeverity = true, AllowCommunityService = false };
         var request = fixture.Request(ViolationType.Ticket);
         request.PenaltyType = PenaltyType.CommunityService;
         request.CommunityServiceHours = 3;
@@ -562,14 +562,16 @@ public class InspectionNotificationTests
         var error = await Record.ExceptionAsync(() => fixture.Service.CreateTicketAsync(request));
         Assert.True(error is System.ComponentModel.DataAnnotations.ValidationException or InvalidRequestException,
             $"Expected validation error for {invalid}, got {error?.GetType().Name ?? "success"}.");
+        if (invalid == "two-ordinances")
+            Assert.Equal("Select exactly one warning-eligible ordinance for a warning.", error!.Message);
         Assert.Null(fixture.CreatedTicket);
         Assert.Equal(0, fixture.UploadCalls);
     }
 
     [Fact]
-    public async Task Warning_rejects_nonminor_ordinance_without_upload_or_record()
+    public async Task Warning_rejects_ineligible_ordinance_without_upload_or_record()
     {
-        using var fixture = new Fixture { HighSeverity = true };
+        using var fixture = new Fixture { WarningEligible = false };
         var error = await Record.ExceptionAsync(() => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Warning)));
         Assert.True(error is System.ComponentModel.DataAnnotations.ValidationException or InvalidRequestException);
         Assert.Null(fixture.CreatedTicket);
@@ -614,13 +616,22 @@ public class InspectionNotificationTests
     private static IFormFile Photo(string name) => new FormFile(new MemoryStream([0xff, 0xd8, 0xff, 0xd9]), 0, 4, "photo", name)
         { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
 
-    private sealed class Fixture : AppDbContext
+    internal sealed class Fixture : AppDbContext
     {
         public List<Notification> NotificationsSaved { get; } = [];
         public TicketService Service { get; }
         public Ticket? CreatedTicket;
         public bool Committed, RolledBack, FailPush, FailNotificationSave, FailConcurrentSave;
         public bool HighSeverity;
+        public bool WarningEligible = true;
+        public bool AllowBloodDonation = true, AllowCommunityService = true;
+        public FineKind FineKind;
+        public decimal? MaximumFine;
+        public string? PenaltyTerms;
+        public int OffenseCount;
+        public int TierOffense = 1;
+        public bool MissingSeverity;
+        public bool AdditionalOrdinance;
         public bool PreviousWarning, PendingWarningCitation;
         public int? WarningLookupPersonId;
         public BusinessSnapshotResponse Snapshot { get; set; } = new()
@@ -693,11 +704,7 @@ public class InspectionNotificationTests
                 BusinessAddress = Snapshot.BusinessAddress ?? "", StallNumber = Snapshot.StallNumber,
                 Type = Enum.Parse<BusinessType>(Snapshot.BusinessType!)
             }));
-            var ordinances = ReviewBoundaryProxy.Create<IOrdinanceRepository>((method, args) => Task.FromResult(new List<OrdinanceOffenseSummary>
-            {
-                new() { OrdinanceId = 1, OrdinanceNo = "011", Series = "2014", Code = "MKT-001", Title = "Market ID",
-                    Category = ViolationCategory.Licensing, PenaltyTiers = [new() { OffenseNumber = 1, Severity = HighSeverity ? Severity.High : Severity.Minor, PenaltyAmount = 500m }] }
-            }));
+            var ordinances = ReviewBoundaryProxy.Create<IOrdinanceRepository>((method, args) => Task.FromResult(GetOrdinances()));
             var unit = ReviewBoundaryProxy.Create<IUnitOfWork>((method, args) =>
             {
                 if (method.Name == "SaveChangesAsync") return SaveChangesAsync();
@@ -722,16 +729,32 @@ public class InspectionNotificationTests
             Service = new TicketService(tickets, ordinances, vendorLookup, unit, storage, notifications, compliance,
                 personRepository: new PersonRepository(this));
         }
+        private List<OrdinanceOffenseSummary> GetOrdinances()
+        {
+            var values = new List<OrdinanceOffenseSummary>
+            {
+                new() { OrdinanceId = 1, OrdinanceNo = "011", Series = "2014", Section = "12", Title = "Market ID",
+                    Severity = MissingSeverity ? null : HighSeverity ? Severity.High : Severity.Minor,
+                    WarningEligible = WarningEligible, OffenseCount = OffenseCount,
+                    Category = ViolationCategory.Licensing, PenaltyTiers = [new() { OffenseNumber = TierOffense,
+                        FineKind = FineKind, PenaltyAmount = FineKind == FineKind.Fixed ? 500m : null,
+                        MaximumFine = MaximumFine, PenaltyTerms = PenaltyTerms,
+                        AllowBloodDonation = AllowBloodDonation, AllowCommunityService = AllowCommunityService }] }
+            };
+            if (AdditionalOrdinance) values.Add(new() { OrdinanceId = 2, OrdinanceNo = "011", Section = "13", Title = "Public places",
+                Severity = Severity.Minor, PenaltyTiers = [new() { OffenseNumber = 1, PenaltyAmount = 200m }] });
+            return values;
+        }
         private Task<Ticket> AddTicket(Ticket ticket) { ticket.Id = 11; ticket.Version = 7; CreatedTicket = ticket; return Task.FromResult(ticket); }
         private Task<List<WarningOrdinance>> WarningLookup(int personId)
         {
             WarningLookupPersonId = personId;
-            return Task.FromResult(PreviousWarning ? new List<WarningOrdinance> { new() { OrdinanceId = 1, OrdinanceNo = "011", OrdinanceCode = "MKT-001" } } : []);
+            return Task.FromResult(PreviousWarning ? new List<WarningOrdinance> { new() { OrdinanceId = 1, OrdinanceNo = "011", Section = "MKT-001" } } : []);
         }
         private Task<List<DuplicateOrdinance>> WarningCitationLookup(int personId)
         {
             WarningLookupPersonId = personId;
-            return Task.FromResult(PendingWarningCitation ? new List<DuplicateOrdinance> { new() { OrdinanceId = 1, OrdinanceNo = "011", OrdinanceCode = "MKT-001" } } : []);
+            return Task.FromResult(PendingWarningCitation ? new List<DuplicateOrdinance> { new() { OrdinanceId = 1, OrdinanceNo = "011", Section = "MKT-001" } } : []);
         }
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
             => UniqueConstraint is not null
@@ -749,7 +772,7 @@ public class InspectionNotificationTests
             IssuePlace = "Fish aisle near F-014",
             ReviewedBusinessSnapshot = JsonSerializer.Serialize(Snapshot,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }),
-            ReviewedCalculation = "{\"total_payment_amount\":500,\"highest_severity\":\"Minor\",\"breakdown\":[{\"ordinance_id\":1,\"ordinance_no\":\"011\",\"ordinance_code\":\"MKT-001\",\"offense_number\":1,\"payment_amount\":500,\"severity\":\"Minor\"}]}",
+            ReviewedCalculation = "{\"total_payment_amount\":500,\"highest_severity\":\"Minor\",\"allow_blood_donation\":true,\"allow_community_service\":true,\"breakdown\":[{\"ordinance_id\":1,\"ordinance_no\":\"011\",\"section\":\"MKT-001\",\"offense_number\":1,\"payment_amount\":500,\"severity\":\"Minor\",\"allow_blood_donation\":true,\"allow_community_service\":true}]}",
             Description = "Market identification card not displayed", PenaltyType = PenaltyType.CashFine,
             Ordinances = [1], PaperTicketPhoto = [Photo("paper.jpg")],
             SupportingEvidenceFiles = type == ViolationType.Ticket ? [Photo("stall.jpg")] : []

@@ -96,7 +96,7 @@ class TicketViolationSection extends StatelessWidget {
                   ),
                   const SizedBox(height: AppTheme.ticketTinyGap),
                   Text(
-                    ordinance.ordinanceCode,
+                    ordinance.detailsLabel,
                     style: const TextStyle(
                       fontSize: AppTheme.captionFontSize,
                       height: 1,
@@ -186,7 +186,7 @@ class TicketViolationSection extends StatelessWidget {
             ),
             TicketPaperField(
               label: 'VIOLATION COMMITTED:',
-              value: categories.map((c) => c.value).join(', '),
+              value: categories.map((c) => c.label).join(', '),
             ),
 
             TicketPaperField(label: 'DESCRIPTION:', value: description),

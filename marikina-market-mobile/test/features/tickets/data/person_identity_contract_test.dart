@@ -35,8 +35,9 @@ void main() {
             {
               'ordinance_id': 5,
               'ordinance_no': '011',
-              'ordinance_code': 'SAN',
+              'section': '66',
               'payment_amount': 1500,
+              'fine_kind': 'Fixed',
               'severity': 'Minor',
               'offense_number': 3,
               'category': 'Sanitation',

@@ -103,7 +103,7 @@ class ViolationDetailsSection extends StatelessWidget {
                   ),
                   const SizedBox(height: AppTheme.inspectionTinyGap),
                   Text(
-                    ordinance.ordinanceCode,
+                    ordinance.sectionLabel,
                     style: const TextStyle(
                       fontSize: AppTheme.captionFontSize,
                       height: 1,
@@ -112,6 +112,8 @@ class ViolationDetailsSection extends StatelessWidget {
                   ),
 
                   if (isTicket && breakdown != null) ...[
+                    if (breakdown.penaltyTerms?.isNotEmpty ?? false)
+                      Text(breakdown.penaltyTerms!),
                     const SizedBox(height: AppTheme.ticketSmallGap),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -153,7 +155,11 @@ class ViolationDetailsSection extends StatelessWidget {
                           Align(
                             alignment: Alignment.centerRight,
                             child: Text(
-                              _currencyFormat.format(breakdown.paymentAmount),
+                              breakdown.paymentAmount == null
+                                  ? 'Assessment unavailable'
+                                  : _currencyFormat.format(
+                                      breakdown.paymentAmount,
+                                    ),
                               textAlign: TextAlign.right,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -191,10 +197,7 @@ class ViolationDetailsSection extends StatelessWidget {
             ),
             TicketPaperField(
               label: 'VIOLATION COMMITTED:',
-              value: ordinances
-                  .map((o) => o.category.value)
-                  .toList()
-                  .join(', '),
+              value: ordinances.map((o) => o.categoryLabel).toList().join(', '),
             ),
 
             TicketPaperField(label: 'DESCRIPTION:', value: description),

@@ -14,6 +14,7 @@ public class VerifyInspectionRequest
     [Required, StringLength(1000)] public required string Description { get; set; }
     [EnumDataType(typeof(PenaltyType))] public PenaltyType PenaltyType { get; set; }
     public int? CommunityServiceHours { get; set; }
+    public List<FineAssessmentRequest> FineAssessments { get; set; } = [];
     [Range(1, int.MaxValue)] public int EvidenceCount { get; set; }
     [Range(0, int.MaxValue)] public int PaperTicketPhotoCount { get; set; }
     [Range(0, int.MaxValue)] public int SupportingEvidenceCount { get; set; }

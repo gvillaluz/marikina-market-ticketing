@@ -62,8 +62,8 @@ public class EnforcerSummaryTests
         var user = new User { FirstName = "Juan", LastName = "Santos", DateOfBirth = new DateOnly(1990, 1, 1),
             HouseNumber = "1", Street = "Test Street", Barangay = "Test Barangay", City = "Marikina" };
         var ordinances = new[] {
-            new Ordinance { Id = 11, OrdinanceNo = "011", Series = "2014", MarketCode = "SEC-8", Title = "Market walkway", Category = ViolationCategory.Obstruction },
-            new Ordinance { Id = 145, OrdinanceNo = "145", Series = "2006", MarketCode = "SEC-9", Title = "Market access", Category = ViolationCategory.Obstruction }
+            new Ordinance { Id = 11, OrdinanceNo = "011", Series = "2014", Section = "SEC-8", Title = "Market walkway", Category = ViolationCategory.Obstruction },
+            new Ordinance { Id = 145, OrdinanceNo = "145", Series = "2006", Section = "SEC-9", Title = "Market access", Category = ViolationCategory.Obstruction }
         };
         Ticket Record(int id, ViolationType type, BusinessType businessType, int enforcerId = 8) => new()
         {

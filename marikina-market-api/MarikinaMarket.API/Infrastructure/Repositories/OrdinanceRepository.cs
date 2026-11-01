@@ -1,4 +1,4 @@
-﻿using MarikinaMarket.API.Application.DTOs.Ordinance.Internal;
+using MarikinaMarket.API.Application.DTOs.Ordinance.Internal;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
@@ -19,22 +19,24 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         public async Task<List<OrdinanceOffenseSummary>> GetByIdsAsync(List<int> ordinanceIds, int vendorId)
         {
             return await _context.Ordinances
-                .Where(o => ordinanceIds.Contains(o.Id))
+                .Where(o => ordinanceIds.Contains(o.Id) && o.IsActive)
                 .Select(o => new OrdinanceOffenseSummary
                 {
                     OrdinanceId = o.Id,
                     OrdinanceNo = o.OrdinanceNo,
                     Series = o.Series,
-                    Code = o.MarketCode,
+                    Section = o.Section, SpecificCategory = o.SpecificCategory,
                     Title = o.Title,
                     Category = o.Category,
+                    Severity = o.Severity, WarningEligible = o.WarningEligible,
                     PenaltyTiers = o.PenaltyTiers
                         .Select(pt => new PenaltyTierSummary
                         {
                             OrdinanceId = pt.OrdinanceId,
                             OffenseNumber = pt.OffenseNumber,
-                            Severity = pt.Severity,
-                            PenaltyAmount = pt.PenaltyAmount
+                            FineKind = pt.FineKind, PenaltyAmount = pt.PenaltyAmount,
+                            MaximumFine = pt.MaximumFine, PenaltyTerms = pt.PenaltyTerms,
+                            AllowBloodDonation = pt.AllowBloodDonation, AllowCommunityService = pt.AllowCommunityService
                         }).ToList(),
                     OffenseCount = o.TicketViolations
                         .Count(tv => tv.Ticket!.VendorId == vendorId
@@ -53,15 +55,19 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public async Task<List<OrdinanceOffenseSummary>> GetByPersonIdsAsync(List<int> ordinanceIds, int personId)
         {
-            return await _context.Ordinances.Where(o => ordinanceIds.Contains(o.Id))
+            // Deactivated ordinances cannot be summarized, warned or cited.
+            return await _context.Ordinances.Where(o => ordinanceIds.Contains(o.Id) && o.IsActive)
                 .Select(o => new OrdinanceOffenseSummary
                 {
                     OrdinanceId = o.Id, OrdinanceNo = o.OrdinanceNo, Series = o.Series,
-                    Code = o.MarketCode, Title = o.Title, Category = o.Category,
+                    Section = o.Section, SpecificCategory = o.SpecificCategory, Title = o.Title, Category = o.Category,
+                    Severity = o.Severity, WarningEligible = o.WarningEligible,
                     PenaltyTiers = o.PenaltyTiers.Select(pt => new PenaltyTierSummary
                     {
                         OrdinanceId = pt.OrdinanceId, OffenseNumber = pt.OffenseNumber,
-                        Severity = pt.Severity, PenaltyAmount = pt.PenaltyAmount
+                        FineKind = pt.FineKind, PenaltyAmount = pt.PenaltyAmount,
+                        MaximumFine = pt.MaximumFine, PenaltyTerms = pt.PenaltyTerms,
+                        AllowBloodDonation = pt.AllowBloodDonation, AllowCommunityService = pt.AllowCommunityService
                     }).ToList(),
                     OffenseCount = o.TicketViolations
                         .Where(tv => tv.Ticket!.PersonId == personId && tv.Ticket.Type == ViolationType.Ticket)

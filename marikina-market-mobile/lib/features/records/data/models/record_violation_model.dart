@@ -7,7 +7,8 @@ class RecordViolationModel {
       RecordViolationModel._(json);
   RecordViolation toEntity() => RecordViolation(
     ordinanceNumber: json['ordinance_no'] as String,
-    ordinanceCode: json['ordinance_code'] as String,
+    section: json['section'] as String?,
+    specificCategory: json['specific_category'] as String?,
     offenseCount: json['offense_count'] as int,
     penaltyAmount: (json['penalty_amount'] as num?)?.toDouble(),
   );

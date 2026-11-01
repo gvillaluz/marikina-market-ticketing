@@ -64,13 +64,6 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<Result<List<Ordinance>>> loadOrdinances() async {
     try {
-      final localOrdinanceModels = await localDataSource.getCacheOrdinances();
-      if (localOrdinanceModels.isNotEmpty) {
-        return Result.success(
-          localOrdinanceModels.map((model) => model.toEntity()).toList(),
-        );
-      }
-
       final ordinanceModels = await remoteDataSource.getOrdinances();
       await localDataSource.saveOrdinances(
         ordinanceModels.map(OrdinanceHiveModel.fromModel).toList(),
@@ -81,7 +74,15 @@ class InspectionRepositoryImpl implements InspectionRepository {
     } on CacheException catch (e) {
       return Result.failure(CacheFailure(e.message));
     } on NetworkException catch (e) {
-      return Result.failure(NetworkFailure(e.message));
+      final cached = await loadCacheOrdinances();
+      if (cached is Success<List<Ordinance>> && cached.data.isEmpty) {
+        return Result.failure(NetworkFailure(e.message));
+      }
+      return cached;
+    } on UnauthorizedException catch (e) {
+      return Result.failure(UnauthorizedFailure(e.message));
+    } on ValidationException catch (e) {
+      return Result.failure(ValidationFailure(e.message));
     } on ServerException catch (e) {
       return Result.failure(ServerFailure(e.message));
     }

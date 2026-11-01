@@ -4,7 +4,8 @@ class ViolationSummaryModel {
   final int ordinanceId;
   final String ordinanceNo;
   final String series;
-  final String ordinanceCode;
+  final String? section;
+  final String? specificCategory;
   final double? paymentAmount;
   final int offenseNumber;
 
@@ -12,7 +13,8 @@ class ViolationSummaryModel {
     required this.ordinanceId,
     required this.ordinanceNo,
     this.series = '',
-    required this.ordinanceCode,
+    required this.section,
+    this.specificCategory,
     this.paymentAmount,
     required this.offenseNumber,
   });
@@ -22,7 +24,8 @@ class ViolationSummaryModel {
       ordinanceId: json['ordinance_id'] as int,
       ordinanceNo: json['ordinance_no'] as String,
       series: json['series'] as String? ?? '',
-      ordinanceCode: json['ordinance_code'] as String,
+      section: json['section'] as String?,
+      specificCategory: json['specific_category'] as String?,
       offenseNumber: json['offense_count'] as int,
       paymentAmount: (json['penalty_amount'] as num?)?.toDouble(),
     );
@@ -33,7 +36,8 @@ class ViolationSummaryModel {
       ordinanceId: ordinanceId,
       ordinanceNo: ordinanceNo,
       series: series,
-      ordinanceCode: ordinanceCode,
+      section: section,
+      specificCategory: specificCategory,
       offenseNumber: offenseNumber,
       paymentAmount: paymentAmount,
     );

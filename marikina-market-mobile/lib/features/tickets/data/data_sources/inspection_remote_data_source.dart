@@ -3,6 +3,7 @@ import 'package:marikina_market_mobile/features/tickets/data/models/person_ticke
 import 'package:marikina_market_mobile/features/tickets/data/models/inspection_verification_model.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:marikina_market_mobile/core/errors/exceptions.dart';
@@ -299,6 +300,16 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
         "issue_place": params.issuePlace?.trim(),
         "paper_violator_name": params.paperViolatorName,
         "reviewed_calculation": params.reviewedCalculation,
+        "fine_assessments": jsonEncode(
+          params.fineAssessments
+              .map(
+                (assessment) => {
+                  'ordinance_id': assessment.ordinanceId,
+                  'assessed_amount': assessment.assessedAmount,
+                },
+              )
+              .toList(),
+        ),
         "reviewed_business_snapshot": params.reviewedBusinessSnapshot,
         "market_section_id": params.marketSectionId,
         "enforcer_id": params.enforcerId,
@@ -457,6 +468,14 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
         'issue_place': input.issuePlace?.trim(),
         'paper_violator_name': input.paperViolatorName,
         'ordinance_ids': input.ordinanceIds,
+        'fine_assessments': input.fineAssessments
+            .map(
+              (assessment) => {
+                'ordinance_id': assessment.ordinanceId,
+                'assessed_amount': assessment.assessedAmount,
+              },
+            )
+            .toList(),
         'description': input.description,
         'penalty_type': input.penaltyType.value,
         'community_service_hours': input.communityServiceHours,

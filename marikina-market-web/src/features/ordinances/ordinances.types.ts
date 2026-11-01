@@ -1,7 +1,7 @@
 import type { Severity } from '@/api/types/common.types';
 import type { TicketCategories } from '@/api/types/ticket.types';
 
-import type { OrdinanceSummaryResponse } from '@/api/types/ordinance.types';
+import type { FineKind, OrdinanceSummaryResponse } from '@/api/types/ordinance.types';
 
 export interface OrdinanceSummary extends Omit<OrdinanceSummaryResponse, 'category' | 'severity'> {
   category: TicketCategories;
@@ -11,15 +11,22 @@ export interface OrdinanceSummary extends Omit<OrdinanceSummaryResponse, 'catego
 export interface OrdinanceFields {
   ordinanceNumber: string;
   series: string;
-  marketCode: string;
+  section: string;
+  specificCategory: string;
   title: string;
   category: TicketCategories | '';
+  severity: Severity | '';
+  warningEligible: boolean;
 }
 
 export interface DraftPenaltyTier {
   key: string;
-  severity: Severity | '';
+  fineKind: FineKind | '';
   amount: string;
+  maximumFine: string;
+  penaltyTerms: string;
+  allowBloodDonation: boolean;
+  allowCommunityService: boolean;
 }
 
 export interface OrdinanceDraft {
@@ -28,6 +35,6 @@ export interface OrdinanceDraft {
 }
 
 export type OrdinanceFieldName = keyof OrdinanceFields;
-export type TierFieldName = 'severity' | 'amount';
+export type TierFieldName = Exclude<keyof DraftPenaltyTier, 'key'>;
 export type OrdinanceFieldErrors = Partial<Record<OrdinanceFieldName, string>>;
 export type TierFieldErrors = Partial<Record<TierFieldName, string>>;

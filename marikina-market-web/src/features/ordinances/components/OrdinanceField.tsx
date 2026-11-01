@@ -11,9 +11,10 @@ interface OrdinanceFieldProps {
   error?: string;
   disabled: boolean;
   placeholder?: string;
-  options?: readonly { value: string; label: string }[];
+  options?: readonly { value: string; label: string; }[];
   multiline?: boolean;
   monetary?: boolean;
+  required?: boolean;
 }
 
 export default function OrdinanceField({
@@ -28,13 +29,14 @@ export default function OrdinanceField({
   options,
   multiline,
   monetary,
+  required = true,
 }: OrdinanceFieldProps) {
   const id = useId();
   const inputProps = {
     id,
     value,
     disabled,
-    required: true,
+    required,
     onBlur,
     "aria-label": ariaLabel,
     "aria-invalid": Boolean(error),

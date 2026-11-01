@@ -95,10 +95,26 @@ void main() {
             ...ordinanceResponse,
             'ordinance_no': '2026-123456789',
             'series': '2026',
+            'category': 'Others',
+            'severity': 'High',
+            'warning_eligible': true,
+            'specific_category': 'Market clearance and stall requirements',
           };
           final selected = [OrdinanceModel.fromJson(payload).toEntity()];
           final bloc = await tester.runAsync(
-            () => listBloc((options) async => reply(options, [payload])),
+            () => listBloc(
+              (options) async => reply(options, [
+                payload,
+                {
+                  ...ordinanceResponse,
+                  'id': 2,
+                  'section': '70',
+                  'ordinance_no': 'Minor without warning permission',
+                  'severity': 'Minor',
+                  'warning_eligible': false,
+                },
+              ]),
+            ),
           );
           await tester.runAsync(() async {
             final loaded = bloc!.stream.firstWhere(
@@ -128,7 +144,17 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
+          expect(
+            find.textContaining('Minor without warning permission'),
+            warning ? findsNothing : findsOneWidget,
+          );
           const label = 'Ord No. 2026-123456789, Series of 2026';
+          expect(
+            find.textContaining(
+              'Others: Market clearance and stall requirements',
+            ),
+            findsOneWidget,
+          );
           expect(find.text(label), findsNWidgets(2));
           final chipLabel = find.descendant(
             of: find.byType(InputChip),
@@ -141,7 +167,7 @@ void main() {
             tester,
             'ordinance-${width.toInt()}-warning-$warning',
           );
-          expect(find.text('MKT-001'), findsOneWidget);
+          expect(find.textContaining('Section 69'), findsOneWidget);
           await tester.enterText(find.byType(TextField), '2026');
           await tester.pumpAndSettle();
           expect(find.text(label), findsNWidgets(2));

@@ -19,108 +19,108 @@ class DuplicateTicketDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryRed.withValues(alpha: .10),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryRed.withValues(alpha: .10),
+                ),
+                child: const Icon(
+                  Icons.close,
+                  color: AppColors.primaryRed,
+                  size: 20,
+                ),
               ),
-              child: const Icon(
-                Icons.close,
-                color: AppColors.primaryRed,
-                size: 20,
+              const SizedBox(height: 12),
+              const Text(
+                'Ticket not created',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: AppTheme.bodyFontSize,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Ticket not created',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: AppTheme.bodyFontSize,
+              const SizedBox(height: 4),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: AppTheme.captionFontSize,
+                  color: AppColors.mediumGrey,
+                  height: 1.4,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: AppTheme.captionFontSize,
-                color: AppColors.mediumGrey,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.lightGrey, width: 1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: duplicateOrdinances.map((ordinance) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 6,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.lightGrey, width: 1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: duplicateOrdinances.map((ordinance) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
                             ordinance.ordinanceNo,
                             style: const TextStyle(
                               fontSize: AppTheme.captionFontSize,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          ordinance.ordinanceCode,
-                          style: const TextStyle(
-                            fontSize: AppTheme.captionFontSize,
-                            color: AppColors.mediumGrey,
+                          const SizedBox(height: AppTheme.ticketTinyGap),
+                          Text(
+                            ordinance.detailsLabel,
+                            style: const TextStyle(
+                              fontSize: AppTheme.captionFontSize,
+                              color: AppColors.mediumGrey,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.primaryLight,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  );
-                }).toList(),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.primaryLight,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pop();
-                  onEditOrdinances();
-                },
-                child: const Text(
-                  'Edit ordinances',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    onEditOrdinances();
+                  },
+                  child: const Text(
+                    'Edit ordinances',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

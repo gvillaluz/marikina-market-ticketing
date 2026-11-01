@@ -22,7 +22,11 @@ export type TicketCategories =
   | "Sanitation"
   | "Licensing"
   | "Noise"
-  | "WeightMeasures";
+  | "WeightMeasures"
+  | "DressCode"
+  | "IllegalVendor"
+  | "NonSmoking"
+  | "Others";
 
 export interface InspectionRecord {
   id: string;
@@ -198,7 +202,8 @@ export interface Violation {
   ordinanceId: number;
   ordinanceNo: string;
   series: string;
-  ordinanceCode: string;
+  section: string | null;
+  specificCategory: string | null;
   offenseCount: number;
   penaltyAmount?: number;
 }

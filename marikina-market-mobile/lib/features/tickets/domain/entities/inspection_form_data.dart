@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
@@ -6,6 +7,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dar
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 
 class InspectionFormData {
+  final List<FineAssessment> fineAssessments;
   final String? paperReference, issuePlace;
   final int? personId;
   final String? paperViolatorName, personFullName, reviewedCalculation;
@@ -21,6 +23,7 @@ class InspectionFormData {
   final int? communityServiceHrs;
 
   InspectionFormData({
+    this.fineAssessments = const [],
     this.paperReference,
     this.issuePlace,
     this.personId,

@@ -1,7 +1,8 @@
 import { Info } from "lucide-react";
 import type { useOrdinanceEditor } from "../hooks/useOrdinanceEditor";
-import { CATEGORY_OPTIONS } from "../ordinances.constants";
+import { CATEGORY_OPTIONS, SEVERITY_OPTIONS } from "../ordinances.constants";
 import OrdinanceField from "./OrdinanceField";
+import OrdinanceOption from "./OrdinanceOption";
 import controls from "./OrdinanceControls.module.css";
 import styles from "./OrdinanceDetailsFields.module.css";
 
@@ -52,15 +53,15 @@ export default function OrdinanceDetailsFields({ editor }: Props) {
           error={editor.touched.series ? editor.fieldErrors.series : undefined}
         />
         <OrdinanceField
-          label="Market code"
-          value={editor.fields.marketCode}
-          placeholder="e.g. BAN-WASTE"
+          label="Section of ordinance"
+          value={editor.fields.section}
+          placeholder="e.g. 53"
           disabled={editor.disabled}
-          onChange={(value) => editor.changeField("marketCode", value)}
-          onBlur={() => editor.touchField("marketCode")}
+          onChange={(value) => editor.changeField("section", value)}
+          onBlur={() => editor.touchField("section")}
           error={
-            editor.touched.marketCode
-              ? editor.fieldErrors.marketCode
+            editor.touched.section
+              ? editor.fieldErrors.section
               : undefined
           }
         />
@@ -85,6 +86,38 @@ export default function OrdinanceDetailsFields({ editor }: Props) {
         error={
           editor.touched.category ? editor.fieldErrors.category : undefined
         }
+      />
+      {editor.fields.category === "Others" && (
+        <OrdinanceField
+          label="Specific category"
+          value={editor.fields.specificCategory}
+          placeholder="Enter the specific category"
+          disabled={editor.disabled}
+          onChange={(value) => editor.changeField("specificCategory", value)}
+          onBlur={() => editor.touchField("specificCategory")}
+          error={
+            editor.touched.specificCategory
+              ? editor.fieldErrors.specificCategory
+              : undefined
+          }
+        />
+      )}
+      <OrdinanceField
+        label="Scoring severity"
+        value={editor.fields.severity}
+        options={SEVERITY_OPTIONS}
+        placeholder="Select scoring severity"
+        disabled={editor.disabled}
+        onChange={(value) => editor.changeField("severity", value)}
+        onBlur={() => editor.touchField("severity")}
+        error={editor.touched.severity ? editor.fieldErrors.severity : undefined}
+      />
+      <p className={styles.explanation}>Severity affects compliance scoring only.</p>
+      <OrdinanceOption
+        label="Include in the warning ordinance list"
+        checked={editor.fields.warningEligible}
+        disabled={editor.disabled}
+        onChange={(value) => editor.changeField("warningEligible", value)}
       />
     </section>
   );

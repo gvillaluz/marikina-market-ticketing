@@ -24,6 +24,8 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
         public string? ReviewedBusinessSnapshot { get; set; }
         [FromForm(Name = "reviewed_calculation"), StringLength(20000)]
         public string? ReviewedCalculation { get; set; }
+        [FromForm(Name = "fine_assessments"), StringLength(20000)]
+        public string? FineAssessments { get; set; }
 
         [FromForm(Name = "market_section_id")]
         [Required(ErrorMessage = "Market section is required.")]

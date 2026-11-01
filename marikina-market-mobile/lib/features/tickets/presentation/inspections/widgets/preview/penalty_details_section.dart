@@ -9,9 +9,9 @@ import 'package:marikina_market_mobile/features/tickets/presentation/widgets/tic
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class PenaltyDetailsSection extends StatelessWidget {
-  final Severity severity;
+  final Severity? severity;
   final PenaltyType penaltyType;
-  final double totalFineAmount;
+  final double? totalFineAmount;
   final int? communityHrs;
 
   const PenaltyDetailsSection({
@@ -66,25 +66,27 @@ class PenaltyDetailsSection extends StatelessWidget {
           spacing: AppTheme.inspectionSmallGap,
           children: [
             TicketPaperField(
-              label: 'SEVERITY:',
-              value: severity.value,
-              valueWidget: Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: _getBgColor(),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  child: Text(
-                    severity.value,
-                    style: TextStyle(color: _getColor()),
-                  ),
-                ),
-              ),
+              label: 'SCORING SEVERITY:',
+              value: severity?.value ?? 'Unconfigured',
+              valueWidget: severity == null
+                  ? null
+                  : Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: _getBgColor(),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        child: Text(
+                          severity!.value,
+                          style: TextStyle(color: _getColor()),
+                        ),
+                      ),
+                    ),
             ),
             TicketPaperField(label: 'PENALTY TYPE:', value: penalty),
             TicketPaperField(
@@ -114,7 +116,9 @@ class PenaltyDetailsSection extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTheme.inspectionTinyGap),
                 Text(
-                  _currencyFormat.format(totalFineAmount),
+                  totalFineAmount == null
+                      ? 'Assessment unavailable'
+                      : _currencyFormat.format(totalFineAmount),
                   style: AppTheme.detailTitleStyle.copyWith(
                     color: AppColors.primary,
                   ),

@@ -15,6 +15,8 @@ class TicketViolationCard extends StatelessWidget {
   final FineSummary? fineSummary;
   final bool isTicket;
   final String? errorMessage;
+  final Map<int, String> assessmentTexts;
+  final void Function(int, String)? onAssessmentChanged;
 
   const TicketViolationCard({
     super.key,
@@ -25,6 +27,8 @@ class TicketViolationCard extends StatelessWidget {
     required this.fineSummary,
     required this.isTicket,
     required this.errorMessage,
+    this.assessmentTexts = const {},
+    this.onAssessmentChanged,
   });
 
   @override
@@ -78,6 +82,8 @@ class TicketViolationCard extends StatelessWidget {
             fineSummary: fineSummary,
             isTicket: isTicket,
             onDelete: onDelete,
+            assessmentTexts: assessmentTexts,
+            onAssessmentChanged: onAssessmentChanged,
           ),
           const SizedBox(height: 20),
         ],

@@ -76,7 +76,7 @@ internal sealed class OrdinanceManagementAccessHost : IAsyncDisposable
     private WebApplication _app = null!;
     private HttpClient _client = null!;
     private readonly SymmetricSecurityKey _key = new(RandomNumberGenerator.GetBytes(32));
-    public List<Ordinance> Items { get; } = [new() { Id = 7, OrdinanceNo = "011", Series = "2026", MarketCode = "MKT-011", Title = "Market sanitation", Category = ViolationCategory.Sanitation }];
+    public List<Ordinance> Items { get; } = [new() { Id = 7, OrdinanceNo = "011", Series = "2026", Section = "MKT-011", Title = "Market sanitation", Category = ViolationCategory.Sanitation }];
     public int Commits;
 
     public static async Task<OrdinanceManagementAccessHost> Create()
@@ -138,8 +138,8 @@ internal sealed class OrdinanceManagementAccessHost : IAsyncDisposable
 
     public static object Request() => new
     {
-        ordinance_number = "011", series = "2026", market_code = "MKT-011", title = "Market sanitation", category = "Sanitation",
-        penalty_tiers = new[] { new { offense_number = 1, severity = "Minor", penalty_amount = 500 } }
+        ordinance_number = "011", series = "2026", section = "MKT-011", title = "Market sanitation", category = "Sanitation", severity = "Minor",
+        penalty_tiers = new[] { new { offense_number = 1, fine_kind = "Fixed", penalty_amount = 500 } }
     };
 
     public Task<HttpResponseMessage> Send(HttpMethod method, string path, string? role, object? body = null)

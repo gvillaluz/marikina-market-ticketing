@@ -33,7 +33,7 @@ class VendorRecordViolationCard extends StatelessWidget {
           ),
           const SizedBox(height: AppTheme.ticketTinyGap),
           Text(
-            violation.ordinanceCode,
+            violation.detailsLabel,
             style: const TextStyle(
               fontSize: AppTheme.captionFontSize,
               height: 1,

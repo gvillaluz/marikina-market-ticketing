@@ -93,9 +93,9 @@ public class AnalyticsCalculationTests
 
     private static AppDbContext Context(List<Ticket> records)
     {
-        var sanitation = new Ordinance { Id = 1, OrdinanceNo = "011", Series = "2026", MarketCode = "MKT", Title = "Sanitation", Category = ViolationCategory.Sanitation };
-        var sanitationSecond = new Ordinance { Id = 2, OrdinanceNo = "012", Series = "2026", MarketCode = "MKT", Title = "Sanitation second", Category = ViolationCategory.Sanitation };
-        var licensing = new Ordinance { Id = 3, OrdinanceNo = "013", Series = "2026", MarketCode = "MKT", Title = "Licensing", Category = ViolationCategory.Licensing };
+        var sanitation = new Ordinance { Id = 1, OrdinanceNo = "011", Series = "2026", Section = "MKT", Title = "Sanitation", Category = ViolationCategory.Sanitation };
+        var sanitationSecond = new Ordinance { Id = 2, OrdinanceNo = "012", Series = "2026", Section = "MKT", Title = "Sanitation second", Category = ViolationCategory.Sanitation };
+        var licensing = new Ordinance { Id = 3, OrdinanceNo = "013", Series = "2026", Section = "MKT", Title = "Licensing", Category = ViolationCategory.Licensing };
         var links = new List<TicketViolation>();
         void Link(int ticketId, Ordinance ordinance)
         {

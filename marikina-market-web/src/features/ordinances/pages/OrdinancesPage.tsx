@@ -59,8 +59,9 @@ export default function OrdinancesPage() {
         <div>
           <h2>How penalty tiers work</h2>
           <p>
-            Set one amount and severity for each offense number. Ticket totals
-            are calculated from the applicable tier.
+            Configure fixed fines, maximum fines or unconfirmed terms for each
+            offense number. Warning eligibility is set on the ordinance;
+            alternative penalties are configured on the first offense only.
           </p>
         </div>
       </aside>
