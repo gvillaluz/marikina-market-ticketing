@@ -9,7 +9,6 @@ import 'package:marikina_market_mobile/features/profile/presentation/widgets/pro
 import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_header_card.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_portrait.dart';
 import 'features/profile/profile_contract_test.dart' show profileResponse;
-import 'vendor_profile_session_test.dart' show vendorAccount;
 import 'profile_preview_capture.dart';
 
 const pickerChannel = MethodChannel('plugins.flutter.io/image_picker');
@@ -83,92 +82,87 @@ void main() {
         .setMockMethodCallHandler(pickerChannel, null);
   });
 
-  for (final vendor in [false, true]) {
-    for (final compact in [false, true]) {
-      final label =
-          '${vendor ? 'vendor' : 'enforcer'}-${compact ? '280-2x' : '390-1x'}';
-      testWidgets(
-        '$label camera overlaps portrait and outer target opens options',
-        (tester) async {
-          tester.view.physicalSize = Size(compact ? 280 : 390, 844);
-          tester.view.devicePixelRatio = 1;
-          addTearDown(tester.view.resetPhysicalSize);
-          addTearDown(tester.view.resetDevicePixelRatio);
-          final user = UserModel.fromJson(
-            vendor ? vendorAccount : profileResponse,
-          ).toEntity();
-          final previewKey = GlobalKey();
-          await tester.pumpWidget(
-            RepaintBoundary(
-              key: previewKey,
-              child: MaterialApp(
-                debugShowCheckedModeBanner: false,
-                theme: profilePreviewTheme,
-                home: MediaQuery(
-                  data: MediaQueryData(
-                    textScaler: TextScaler.linear(compact ? 2 : 1),
-                  ),
-                  child: Scaffold(
-                    body: SingleChildScrollView(
-                      child: ProfileHeaderCard(
-                        user: user,
-                        onChangePhoto: (_) {},
-                        onRemovePhoto: () {},
-                      ),
+  for (final compact in [false, true]) {
+    final label = 'enforcer-${compact ? '280-2x' : '390-1x'}';
+    testWidgets(
+      '$label camera overlaps portrait and outer target opens options',
+      (tester) async {
+        tester.view.physicalSize = Size(compact ? 280 : 390, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final user = UserModel.fromJson(profileResponse).toEntity();
+        final previewKey = GlobalKey();
+        await tester.pumpWidget(
+          RepaintBoundary(
+            key: previewKey,
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: profilePreviewTheme,
+              home: MediaQuery(
+                data: MediaQueryData(
+                  textScaler: TextScaler.linear(compact ? 2 : 1),
+                ),
+                child: Scaffold(
+                  body: SingleChildScrollView(
+                    child: ProfileHeaderCard(
+                      user: user,
+                      onChangePhoto: (_) {},
+                      onRemovePhoto: () {},
                     ),
                   ),
                 ),
               ),
             ),
-          );
-          await tester.pumpAndSettle();
-          final portrait = tester.getRect(find.byType(ProfilePortrait));
-          final target = tester.getRect(cameraButton);
-          final face = tester.getRect(
-            find
-                .descendant(of: cameraButton, matching: find.byType(Material))
-                .last,
-          );
-          expect(portrait.size, const Size(92, 92));
-          expect(
-            portrait.center.dx,
-            closeTo(tester.getCenter(find.byType(ProfileHeaderCard)).dx, .01),
-          );
-          expect(face.right - portrait.right, closeTo(10, .01));
-          expect(face.bottom - portrait.bottom, closeTo(10, .01));
-          expect(face.left, lessThan(portrait.right));
-          expect(face.top, lessThan(portrait.bottom));
-          expect(target.width, greaterThanOrEqualTo(48));
-          expect(target.height, greaterThanOrEqualTo(48));
-          expect(
+          ),
+        );
+        await tester.pumpAndSettle();
+        final portrait = tester.getRect(find.byType(ProfilePortrait));
+        final target = tester.getRect(cameraButton);
+        final face = tester.getRect(
+          find
+              .descendant(of: cameraButton, matching: find.byType(Material))
+              .last,
+        );
+        expect(portrait.size, const Size(92, 92));
+        expect(
+          portrait.center.dx,
+          closeTo(tester.getCenter(find.byType(ProfileHeaderCard)).dx, .01),
+        );
+        expect(face.right - portrait.right, closeTo(10, .01));
+        expect(face.bottom - portrait.bottom, closeTo(10, .01));
+        expect(face.left, lessThan(portrait.right));
+        expect(face.top, lessThan(portrait.bottom));
+        expect(target.width, greaterThanOrEqualTo(48));
+        expect(target.height, greaterThanOrEqualTo(48));
+        expect(
+          tester
+              .getRect(find.byType(ProfileAvatar))
+              .contains(target.bottomRight - const Offset(1, 1)),
+          isTrue,
+        );
+        expect(
+          target.bottom,
+          lessThan(
             tester
-                .getRect(find.byType(ProfileAvatar))
-                .contains(target.bottomRight - const Offset(1, 1)),
-            isTrue,
-          );
-          expect(
-            target.bottom,
-            lessThan(
-              tester
-                  .getTopLeft(find.text('${user.lastName}, ${user.firstName}'))
-                  .dy,
-            ),
-          );
-          expect(tester.takeException(), isNull);
-          await captureProfilePreview(tester, previewKey, label);
-          final outerPoint = Offset(target.right - 2, target.center.dy);
-          expect(outerPoint.dx, greaterThan(portrait.right));
-          await tester.tapAt(outerPoint);
-          await tester.pumpAndSettle();
-          expect(find.text('Add Photo'), findsOneWidget);
-          expect(find.text('Remove Photo'), findsNothing);
-          await tester.tap(find.text('Cancel'));
-          await tester.pumpAndSettle();
-          expect(find.text('Add Photo'), findsNothing);
-          expect(tester.takeException(), isNull);
-        },
-      );
-    }
+                .getTopLeft(find.text('${user.lastName}, ${user.firstName}'))
+                .dy,
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        await captureProfilePreview(tester, previewKey, label);
+        final outerPoint = Offset(target.right - 2, target.center.dy);
+        expect(outerPoint.dx, greaterThan(portrait.right));
+        await tester.tapAt(outerPoint);
+        await tester.pumpAndSettle();
+        expect(find.text('Add Photo'), findsOneWidget);
+        expect(find.text('Remove Photo'), findsNothing);
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(find.text('Add Photo'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
   }
 
   testWidgets(

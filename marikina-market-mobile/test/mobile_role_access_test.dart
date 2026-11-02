@@ -15,44 +15,52 @@ Authenticated account(String role, {bool mustChangePassword = false}) =>
       }).toEntity(),
     );
 
+const retiredVendorPaths = [
+  '/vendor/dashboard',
+  '/vendor/records',
+  '/vendor/records/42',
+  '/vendor/notifications',
+  '/vendor/profile',
+  '/vendor/qr',
+];
+
 void main() {
-  test('vendors land on their dashboard after authentication', () {
+  test('vendor accounts have no mobile access from any path', () {
     final auth = account('MarketVendor');
-    for (final path in [Routes.login, Routes.loginOtp, Routes.splash]) {
-      expect(MobileRouteAccess.redirect(auth, path), Routes.vendorDashboard);
+    for (final path in [
+      Routes.login,
+      Routes.loginOtp,
+      Routes.splash,
+      ...retiredVendorPaths,
+      Routes.dashboard,
+      Routes.inspetions,
+      Routes.tickets,
+      '/ticket/42',
+      Routes.newInspection,
+      Routes.notifications,
+      Routes.profile,
+      Routes.editProfile,
+      Routes.changePassword,
+    ]) {
+      expect(
+        MobileRouteAccess.redirect(auth, path),
+        Routes.mobileAccessUnavailable,
+        reason: path,
+      );
     }
-  });
-  test(
-    'vendor access includes approved vendor pages and rejects enforcer pages',
-    () {
-      final auth = account('MarketVendor');
-      for (final path in [
-        Routes.vendorDashboard,
-        Routes.vendorRecords,
-        Routes.vendorNotifications,
-        Routes.vendorProfile,
-        Routes.vendorQr,
-        Routes.editProfile,
-        Routes.changePassword,
-        '/vendor/records/42',
-      ]) {
-        expect(MobileRouteAccess.redirect(auth, path), isNull);
-      }
-      for (final path in [
-        Routes.dashboard,
-        Routes.inspetions,
-        Routes.tickets,
-        '/ticket/42',
-        Routes.newInspection,
-        Routes.newInspectionPreview,
-        Routes.notifications,
+    expect(
+      MobileRouteAccess.redirect(auth, Routes.mobileAccessUnavailable),
+      isNull,
+    );
+    expect(
+      MobileRouteAccess.redirect(
+        account('MarketVendor', mustChangePassword: true),
         Routes.profile,
-      ]) {
-        expect(MobileRouteAccess.redirect(auth, path), Routes.vendorDashboard);
-      }
-    },
-  );
-  test('enforcers keep their pages and cannot open vendor routes', () {
+      ),
+      Routes.mobileAccessUnavailable,
+    );
+  });
+  test('enforcers keep their pages and cannot open retired vendor paths', () {
     final auth = account('MarketEnforcer');
     expect(MobileRouteAccess.redirect(auth, Routes.login), Routes.dashboard);
     for (final path in [
@@ -65,12 +73,15 @@ void main() {
     ]) {
       expect(MobileRouteAccess.redirect(auth, path), isNull);
     }
-    expect(
-      MobileRouteAccess.redirect(auth, Routes.vendorRecords),
-      Routes.dashboard,
-    );
+    for (final path in retiredVendorPaths) {
+      expect(
+        MobileRouteAccess.redirect(auth, path),
+        Routes.dashboard,
+        reason: path,
+      );
+    }
   });
-  test('other backend roles cannot inherit enforcer or vendor access', () {
+  test('other backend roles cannot inherit enforcer access', () {
     for (final role in ['HeadAdmin', 'AdminOfficer']) {
       final auth = account(role);
       expect(
@@ -78,7 +89,7 @@ void main() {
         Routes.mobileAccessUnavailable,
       );
       expect(
-        MobileRouteAccess.redirect(auth, Routes.vendorDashboard),
+        MobileRouteAccess.redirect(auth, '/vendor/dashboard'),
         Routes.mobileAccessUnavailable,
       );
       expect(
@@ -93,19 +104,14 @@ void main() {
       resendCooldownSeconds: 30,
       codeExpirySeconds: 600,
     );
+    expect(MobileRouteAccess.redirect(otp, Routes.dashboard), Routes.loginOtp);
     expect(
-      MobileRouteAccess.redirect(otp, Routes.vendorDashboard),
-      Routes.loginOtp,
+      MobileRouteAccess.redirect(
+        account('MarketEnforcer', mustChangePassword: true),
+        Routes.profile,
+      ),
+      Routes.mandatoryChangePassword,
     );
-    for (final role in ['MarketEnforcer', 'MarketVendor']) {
-      expect(
-        MobileRouteAccess.redirect(
-          account(role, mustChangePassword: true),
-          Routes.vendorProfile,
-        ),
-        Routes.mandatoryChangePassword,
-      );
-    }
     expect(
       MobileRouteAccess.redirect(
         AuthChangePasswordLoading(),
@@ -114,12 +120,11 @@ void main() {
       isNull,
     );
     expect(
-      MobileRouteAccess.redirect(Unauthenticated(false), Routes.vendorProfile),
+      MobileRouteAccess.redirect(Unauthenticated(false), Routes.profile),
       Routes.login,
     );
   });
   test('notification taps respect role and validate ticket IDs', () {
-    // Positive vendor-screen navigation is superseded; retain staff/ID guards.
     expect(
       MobileRouteAccess.notificationLocation(account('MarketEnforcer'), '42'),
       '/ticket/42',
@@ -135,10 +140,18 @@ void main() {
       MobileRouteAccess.notificationLocation(account('MarketEnforcer'), '-1'),
       Routes.notifications,
     );
-    expect(
-      MobileRouteAccess.notificationLocation(account('HeadAdmin'), '42'),
-      isNull,
-    );
+    for (final role in ['HeadAdmin', 'MarketVendor']) {
+      expect(
+        MobileRouteAccess.notificationLocation(account(role), '42'),
+        isNull,
+        reason: role,
+      );
+      expect(
+        MobileRouteAccess.notificationLocation(account(role), null),
+        isNull,
+        reason: role,
+      );
+    }
     expect(
       MobileRouteAccess.notificationLocation(
         account('MarketEnforcer', mustChangePassword: true),

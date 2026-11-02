@@ -9,8 +9,8 @@ import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_stat
 import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_actions.dart';
 import 'features/auth/login_mobile_flow_test.dart' show loginBloc;
 import 'features/auth/login_test_network_info.dart';
-import 'features/auth/data/login_mobile_contract_test.dart' show reply;
-import 'vendor_profile_session_test.dart' show vendorAccount;
+import 'features/auth/data/login_mobile_contract_test.dart'
+    show profileResponse, reply;
 import 'profile_preview_capture.dart';
 
 void main() {
@@ -29,7 +29,7 @@ void main() {
             theme: profilePreviewTheme,
             home: Scaffold(
               body: ProfileActions(
-                user: UserModel.fromJson(vendorAccount).toEntity(),
+                user: UserModel.fromJson(profileResponse).toEntity(),
               ),
             ),
           ),
@@ -82,7 +82,7 @@ void main() {
           theme: profilePreviewTheme,
           home: Scaffold(
             body: ProfileActions(
-              user: UserModel.fromJson(vendorAccount).toEntity(),
+              user: UserModel.fromJson(profileResponse).toEntity(),
             ),
           ),
         ),
@@ -133,7 +133,7 @@ void main() {
               child: Scaffold(
                 body: SingleChildScrollView(
                   child: ProfileActions(
-                    user: UserModel.fromJson(vendorAccount).toEntity(),
+                    user: UserModel.fromJson(profileResponse).toEntity(),
                   ),
                 ),
               ),

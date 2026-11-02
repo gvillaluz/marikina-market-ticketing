@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
-import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
-import 'package:marikina_market_mobile/features/profile/presentation/widgets/vendor_business_card.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/bloc/profile_state.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/bloc/profile_event.dart';
@@ -49,10 +47,6 @@ class ProfileContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (user.role == Role.marketVendor) ...[
-                        VendorBusinessCard(user: user),
-                        const SizedBox(height: AppTheme.profileSmallGap),
-                      ],
                       ProfileAccountCard(user: user),
                       const SizedBox(height: AppTheme.profileGap),
                       ProfileActions(user: user),

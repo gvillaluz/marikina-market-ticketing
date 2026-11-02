@@ -185,7 +185,7 @@ void main() {
       );
       expect(
         MobileRouteAccess.redirect(vendorAccount, Routes.newInspectionPreview),
-        Routes.vendorDashboard,
+        Routes.mobileAccessUnavailable,
       );
     },
   );

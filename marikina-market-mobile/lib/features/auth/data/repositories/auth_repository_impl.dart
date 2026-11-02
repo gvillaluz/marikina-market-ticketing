@@ -266,7 +266,6 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await localDataSource.getUser();
 
       final newUser = UserModel(
-        vendor: user.vendor,
         userId: user.userId,
         username: user.username,
         firstName: user.firstName,

@@ -2,10 +2,6 @@ import 'package:marikina_market_mobile/features/tickets/domain/use_cases/match_p
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/create_person_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_person_history_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/verify_inspection_use_case.dart';
-import 'package:marikina_market_mobile/features/profile/data/data_sources/qr_export_data_source.dart';
-import 'package:marikina_market_mobile/features/profile/data/repositories/qr_export_repository_impl.dart';
-import 'package:marikina_market_mobile/features/profile/domain/repositories/qr_export_repository.dart';
-import 'package:marikina_market_mobile/features/profile/domain/use_cases/export_qr_use_case.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
@@ -15,16 +11,6 @@ import 'package:marikina_market_mobile/core/network/client.dart';
 import 'package:marikina_market_mobile/core/network/network_info.dart';
 import 'package:marikina_market_mobile/core/notification/notification_listener_service.dart';
 import 'package:marikina_market_mobile/core/router/app_router.dart';
-import 'package:marikina_market_mobile/features/records/data/data_sources/records_remote_data_source.dart';
-import 'package:marikina_market_mobile/features/records/data/repositories/records_repository_impl.dart';
-import 'package:marikina_market_mobile/features/records/domain/repositories/records_repository.dart';
-import 'package:marikina_market_mobile/features/records/domain/use_cases/load_records_use_case.dart';
-import 'package:marikina_market_mobile/features/records/domain/use_cases/load_record_detail_use_case.dart';
-import 'package:marikina_market_mobile/features/records/domain/use_cases/load_vendor_receipt_use_case.dart';
-import 'package:marikina_market_mobile/features/records/domain/use_cases/load_vendor_service_progress_use_case.dart';
-import 'package:marikina_market_mobile/features/records/presentation/bloc/vendor_settlement/vendor_settlement_bloc.dart';
-import 'package:marikina_market_mobile/features/records/presentation/bloc/records/records_bloc.dart';
-import 'package:marikina_market_mobile/features/records/presentation/bloc/record_detail/record_detail_bloc.dart';
 import 'package:marikina_market_mobile/core/storage/secure_storage_service.dart';
 import 'package:marikina_market_mobile/core/storage/secure_storage_service_impl.dart';
 import 'package:marikina_market_mobile/features/auth/data/data_sources/auth_local_data_source.dart';
@@ -52,18 +38,12 @@ import 'package:marikina_market_mobile/features/dashboard/data/repositories/dash
 import 'package:marikina_market_mobile/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:marikina_market_mobile/features/dashboard/domain/use_cases/load_dashboard_summary_use_case.dart';
 import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
-import 'package:marikina_market_mobile/features/dashboard/data/data_sources/vendor_dashboard_remote_data_source.dart';
-import 'package:marikina_market_mobile/features/dashboard/data/repositories/vendor_dashboard_repository_impl.dart';
-import 'package:marikina_market_mobile/features/dashboard/domain/repositories/vendor_dashboard_repository.dart';
-import 'package:marikina_market_mobile/features/dashboard/domain/use_cases/load_vendor_dashboard_use_case.dart';
-import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/vendor_dashboard_bloc.dart';
 import 'package:marikina_market_mobile/features/notification/data/data_sources/notification_remote_data_source.dart';
 import 'package:marikina_market_mobile/features/notification/data/repositories/notification_repository_impl.dart';
 import 'package:marikina_market_mobile/features/notification/domain/repositories/notification_repository.dart';
 import 'package:marikina_market_mobile/features/notification/domain/use_cases/load_notifications_use_case.dart';
 import 'package:marikina_market_mobile/features/notification/domain/use_cases/mark_as_read_use_case.dart';
 import 'package:marikina_market_mobile/features/notification/domain/use_cases/load_unread_count_use_case.dart';
-import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/reset_password_use_case.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/send_otp_use_case.dart';
@@ -184,25 +164,6 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   sl.registerLazySingleton<DashboardRemoteDataSource>(
     () => DashboardRemoteDataSourceImpl(sl()),
   );
-  sl.registerLazySingleton(() => VendorDashboardRemoteDataSource(sl()));
-  sl.registerLazySingleton<VendorDashboardRepository>(
-    () => VendorDashboardRepositoryImpl(sl()),
-  );
-  sl.registerLazySingleton(() => LoadVendorDashboardUseCase(sl()));
-  sl.registerFactory(() => VendorDashboardBloc(sl()));
-  sl.registerLazySingleton(() => RecordsRemoteDataSource(sl()));
-  sl.registerLazySingleton<RecordsRepository>(
-    () => RecordsRepositoryImpl(sl()),
-  );
-  sl.registerLazySingleton(() => LoadRecordsUseCase(sl()));
-  sl.registerLazySingleton(() => LoadRecordDetailUseCase(sl()));
-  sl.registerLazySingleton(() => LoadVendorReceiptUseCase(sl()));
-  sl.registerLazySingleton(() => LoadVendorServiceProgressUseCase(sl()));
-  sl.registerFactory(
-    () => VendorSettlementBloc(loadReceipt: sl(), loadProgress: sl()),
-  );
-  sl.registerFactory(() => RecordsBloc(sl()));
-  sl.registerFactory(() => RecordDetailBloc(sl()));
   sl.registerLazySingleton<DashboardRepository>(
     () => DashboardRepositoryImpl(sl()),
   );
@@ -269,11 +230,6 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
     ),
   );
 
-  sl.registerLazySingleton(() => QrExportDataSource());
-  sl.registerLazySingleton<QrExportRepository>(
-    () => QrExportRepositoryImpl(sl()),
-  );
-  sl.registerLazySingleton(() => ExportQrUseCase(sl()));
   sl.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSourceImpl(sl()),
   );
@@ -290,46 +246,12 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
       changePasswordUseCase: sl(),
       changeProfilePhotoUseCase: sl(),
       removeProfilePhotoUseCase: sl(),
-      exportQrUseCase: sl(),
     ),
-  );
-
-  sl.registerLazySingleton<ProfileRemoteDataSource>(
-    () => ProfileRemoteDataSourceImpl(sl(), isVendor: true),
-    instanceName: 'vendorProfile',
-  );
-  sl.registerLazySingleton<ProfileRepository>(
-    () => ProfileRepositoryImpl(sl(instanceName: 'vendorProfile'), sl()),
-    instanceName: 'vendorProfile',
-  );
-  sl.registerLazySingleton<EditProfileUseCase>(
-    () => EditProfileUseCase(sl(instanceName: 'vendorProfile')),
-    instanceName: 'vendorProfile',
-  );
-  sl.registerFactory<ProfileBloc>(
-    () => ProfileBloc(
-      editProfileUseCase: sl(instanceName: 'vendorProfile'),
-      changePasswordUseCase: sl(),
-      changeProfilePhotoUseCase: sl(),
-      removeProfilePhotoUseCase: sl(),
-      exportQrUseCase: sl(),
-    ),
-    instanceName: 'vendorProfile',
   );
 
   sl.registerLazySingleton<NotificationRemoteDataSource>(
     () => NotificationRemoteDataSourceImpl(sl()),
   );
-  sl.registerFactory<NotificationBloc>(() {
-    final repository = NotificationRepositoryImpl(
-      NotificationRemoteDataSourceImpl(sl(), role: Role.marketVendor),
-    );
-    return NotificationBloc(
-      loadNotificationsUseCase: LoadNotificationsUseCase(repository),
-      markAsReadUseCase: MarkAsReadUseCase(repository),
-      loadUnreadCountUseCase: LoadUnreadCountUseCase(repository),
-    );
-  }, instanceName: 'vendorNotifications');
   sl.registerLazySingleton<NotificationRepository>(
     () => NotificationRepositoryImpl(sl()),
   );

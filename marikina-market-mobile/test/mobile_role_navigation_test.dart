@@ -1,7 +1,5 @@
-import 'package:marikina_market_mobile/features/profile/presentation/pages/profile_page.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/bloc/profile_bloc.dart';
 import 'features/profile/profile_form_test.dart' show formBloc;
-import 'vendor_profile_session_test.dart' show vendorAccount;
 import 'dart:convert';
 import 'dart:async';
 import 'package:dio/dio.dart';
@@ -13,7 +11,6 @@ import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/di/dependency_injection.dart';
 import 'package:marikina_market_mobile/core/router/app_router.dart';
-import 'package:marikina_market_mobile/core/router/mobile_route_access.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
@@ -27,29 +24,11 @@ import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/dash
 import 'package:marikina_market_mobile/features/dashboard/data/data_sources/dashboard_remote_data_source.dart';
 import 'package:marikina_market_mobile/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:marikina_market_mobile/features/dashboard/domain/use_cases/load_dashboard_summary_use_case.dart';
-import 'package:marikina_market_mobile/features/dashboard/presentation/pages/vendor_dashboard_page.dart';
-import 'package:marikina_market_mobile/features/dashboard/presentation/bloc/vendor_dashboard_bloc.dart';
-import 'vendor_dashboard_test.dart' show vendorDashboardBloc, dashboardResponse;
-import 'package:marikina_market_mobile/features/records/data/data_sources/records_remote_data_source.dart';
-import 'package:marikina_market_mobile/features/records/data/repositories/records_repository_impl.dart';
-import 'package:marikina_market_mobile/features/records/domain/use_cases/load_records_use_case.dart';
-import 'package:marikina_market_mobile/features/records/presentation/bloc/records/records_bloc.dart';
-import 'package:marikina_market_mobile/features/records/presentation/pages/records_page.dart';
-import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
-import 'package:marikina_market_mobile/features/notification/data/data_sources/notification_remote_data_source.dart';
-import 'package:marikina_market_mobile/features/notification/data/repositories/notification_repository_impl.dart';
-import 'package:marikina_market_mobile/features/notification/domain/use_cases/load_notifications_use_case.dart';
-import 'package:marikina_market_mobile/features/notification/domain/use_cases/load_unread_count_use_case.dart';
-import 'package:marikina_market_mobile/features/notification/domain/use_cases/mark_as_read_use_case.dart';
-import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_bloc.dart';
-import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_state.dart';
-import 'package:marikina_market_mobile/features/notification/presentation/pages/notification_page.dart';
 import 'features/auth/login_mobile_flow_test.dart' show loginBloc, startLogin;
 import 'features/auth/login_test_network_info.dart';
 import 'features/auth/data/login_mobile_contract_test.dart'
     show profileResponse, otpResponse, tokenResponse, reply, contractClient;
 import 'dashboard_ui_test.dart' show summaryResponse;
-import 'vendor_notifications_test.dart' show vendorBloc, vendorWarning;
 
 Future<void> authenticate(
   AuthBloc bloc,
@@ -120,143 +99,9 @@ void main() {
           reply(options, {'items': [], 'has_more': false, 'total': 0}),
     );
     addTearDown(client.dio.close);
-    final dashboardClient = contractClient(
-      (options) async => reply(options, dashboardResponse),
-    );
-    addTearDown(dashboardClient.dio.close);
-    sl.registerFactory<VendorDashboardBloc>(
-      () => vendorDashboardBloc(dashboardClient),
-    );
-    addTearDown(() => sl.unregister<VendorDashboardBloc>());
-    sl.registerFactory<RecordsBloc>(
-      () => RecordsBloc(
-        LoadRecordsUseCase(
-          RecordsRepositoryImpl(RecordsRemoteDataSource(client)),
-        ),
-      ),
-    );
-    addTearDown(() => sl.unregister<RecordsBloc>());
-    sl.registerFactory<ProfileBloc>(
-      () => formBloc(client),
-      instanceName: 'vendorProfile',
-    );
-    addTearDown(
-      () => sl.unregister<ProfileBloc>(instanceName: 'vendorProfile'),
-    );
-    sl.registerFactory<NotificationBloc>(() {
-      final repository = NotificationRepositoryImpl(
-        NotificationRemoteDataSourceImpl(client, role: Role.marketVendor),
-      );
-      return NotificationBloc(
-        loadNotificationsUseCase: LoadNotificationsUseCase(repository),
-        markAsReadUseCase: MarkAsReadUseCase(repository),
-        loadUnreadCountUseCase: LoadUnreadCountUseCase(repository),
-      );
-    }, instanceName: 'vendorNotifications');
-    addTearDown(
-      () =>
-          sl.unregister<NotificationBloc>(instanceName: 'vendorNotifications'),
-    );
+    sl.registerFactory<ProfileBloc>(() => formBloc(client));
+    addTearDown(() => sl.unregister<ProfileBloc>());
   });
-
-  testWidgets(
-    'vendor inbox is discarded across accounts and blocked for unsupported roles',
-    (tester) async {
-      late ConnectivityCubit connectivity;
-      late AuthBloc auth;
-      late NotificationBloc firstInbox;
-      late NotificationBloc secondInbox;
-      await tester.runAsync(() async {
-        connectivity = ConnectivityCubit(LoginTestNetworkInfo());
-        auth = loginBloc(connectivity, (options) async => reply(options, {}));
-        await auth.stream.firstWhere((state) => state is Unauthenticated);
-        await authenticate(auth, 'MarketVendor');
-        firstInbox = vendorBloc(
-          (options) async => reply(options, {
-            'items': [
-              {...vendorWarning, 'message': 'First vendor only'},
-            ],
-            'has_more': false,
-            'total': 1,
-          }),
-        );
-        secondInbox = vendorBloc(
-          (options) async => reply(options, {
-            'items': [
-              {...vendorWarning, 'message': 'Second vendor only'},
-            ],
-            'has_more': false,
-            'total': 1,
-          }),
-        );
-      });
-      addTearDown(() async {
-        if (!auth.isClosed) await auth.close();
-      });
-      addTearDown(connectivity.close);
-      sl.unregister<NotificationBloc>(instanceName: 'vendorNotifications');
-      sl.registerFactory<NotificationBloc>(
-        () => (auth.state as Authenticated).user.userId == 1
-            ? firstInbox
-            : secondInbox,
-        instanceName: 'vendorNotifications',
-      );
-      final appRouter = AppRouter(authBloc: auth);
-      var routerDisposed = false;
-      addTearDown(() {
-        if (!routerDisposed) appRouter.dispose();
-      });
-      await showRoleApp(tester, appRouter, auth);
-      await tester.pumpAndSettle();
-      appRouter.router.go(Routes.vendorNotifications);
-      await tester.pumpAndSettle();
-      await tester.runAsync(() async {
-        if (firstInbox.state is! NotificationLoaded) {
-          await firstInbox.stream.firstWhere((s) => s is NotificationLoaded);
-        }
-      });
-      await tester.pumpAndSettle();
-      expect(find.text('First vendor only'), findsOneWidget);
-      await tester.runAsync(
-        () => authenticate(auth, 'MarketVendor', userId: 2),
-      );
-      await tester.pumpAndSettle();
-      expect(firstInbox.isClosed, isTrue);
-      appRouter.router.go(Routes.vendorNotifications);
-      await tester.pumpAndSettle();
-      await tester.runAsync(() async {
-        if (secondInbox.state is! NotificationLoaded) {
-          await secondInbox.stream.firstWhere((s) => s is NotificationLoaded);
-        }
-      });
-      await tester.pumpAndSettle();
-      expect(find.text('First vendor only'), findsNothing);
-      expect(find.text('Second vendor only'), findsOneWidget);
-      final enforcerState = Authenticated(
-        user: UserModel.fromJson(profileResponse).toEntity(),
-      );
-      expect(
-        MobileRouteAccess.redirect(enforcerState, Routes.vendorNotifications),
-        Routes.dashboard,
-      );
-      await tester.runAsync(() => authenticate(auth, 'HeadAdmin', userId: 3));
-      await tester.pumpAndSettle();
-      appRouter.router.go(Routes.vendorNotifications);
-      await tester.pumpAndSettle();
-      expect(
-        appRouter.router.routeInformationProvider.value.uri.path,
-        Routes.mobileAccessUnavailable,
-      );
-      expect(find.byType(NotificationPage), findsNothing);
-      await tester.pumpWidget(const SizedBox());
-      appRouter.dispose();
-      routerDisposed = true;
-      await tester.pump();
-      // Match BlocProvider disposal: cancel auth timers and initiate async close.
-      unawaited(auth.close());
-      expect(auth.isClosed, isTrue);
-    },
-  );
 
   testWidgets('login header has no enforcer label or replacement role text', (
     tester,
@@ -276,26 +121,20 @@ void main() {
   });
 
   testWidgets(
-    'vendor OTP login reaches vendor tabs and cannot enter enforcer pages',
+    'vendor OTP login reaches no-access page and cannot enter enforcer pages',
     (tester) async {
-      tester.view.physicalSize = const Size(280, 640);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      final requests = <String>[];
       late ConnectivityCubit connectivity;
       late AuthBloc auth;
       await tester.runAsync(() async {
         connectivity = ConnectivityCubit(LoginTestNetworkInfo());
         auth = loginBloc(connectivity, (options) async {
-          requests.add(options.path);
           if (options.path == '/auth/login-mobile') {
             return reply(options, otpResponse);
           }
           if (options.path == '/auth/verify-login-mobile') {
             return reply(options, tokenResponse);
           }
-          return reply(options, vendorAccount);
+          return reply(options, {...profileResponse, 'role': 'MarketVendor'});
         });
         await startLogin(auth);
       });
@@ -322,53 +161,23 @@ void main() {
         await authenticated;
       });
       await tester.pumpAndSettle();
-      expect(
-        appRouter.router.routeInformationProvider.value.uri.path,
-        Routes.vendorDashboard,
-      );
-      final destinations = tester
-          .widgetList<NavigationDestination>(find.byType(NavigationDestination))
-          .map((destination) => destination.label);
-      expect(destinations, [
-        'Dashboard',
-        'Records',
-        'Notifications',
-        'Profile',
-      ]);
-      final initialRequests = requests.length;
-      for (var index = 0; index < 4; index++) {
-        await tester.tap(find.byType(NavigationDestination).at(index));
-        await tester.pumpAndSettle();
-        expect(
-          find.byType(
-            index == 1
-                ? RecordsPage
-                : index == 2
-                ? NotificationPage
-                : index == 3
-                ? ProfilePage
-                : VendorDashboardPage,
-          ),
-          findsOneWidget,
-        );
-        expect(tester.takeException(), isNull);
-      }
-      expect(requests.length, initialRequests);
       for (final path in [
+        null,
+        Routes.dashboard,
         Routes.newInspection,
         '/ticket/42',
         Routes.notifications,
+        '/vendor/dashboard',
       ]) {
-        appRouter.router.go(path);
+        if (path != null) appRouter.router.go(path);
         await tester.pumpAndSettle();
         expect(
           appRouter.router.routeInformationProvider.value.uri.path,
-          Routes.vendorDashboard,
+          Routes.mobileAccessUnavailable,
         );
-        expect(find.byType(VendorDashboardPage), findsOneWidget);
+        expect(find.byType(NavigationBar), findsNothing);
         expect(tester.takeException(), isNull);
       }
-      expect(find.byTooltip('Logout'), findsNothing);
       await tester.pumpWidget(const SizedBox());
       appRouter.dispose();
       routerDisposed = true;
@@ -417,19 +226,19 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 20));
       expect(auth.state, isA<Unauthenticated>());
-      await updateAccount('MarketVendor');
+      await updateAccount('MarketEnforcer');
       await showRoleApp(tester, appRouter, auth);
       await settleRoutes();
       final oldShell = tester.state<State>(
         find.byType(StatefulNavigationShell),
       );
-      appRouter.router.go(Routes.vendorRecords);
+      appRouter.router.go(Routes.profile);
       await settleRoutes();
-      await updateAccount('MarketVendor', userId: 2);
+      await updateAccount('MarketEnforcer', userId: 2);
       await settleRoutes();
       expect(
         appRouter.router.routeInformationProvider.value.uri.path,
-        Routes.vendorDashboard,
+        Routes.dashboard,
       );
       expect(
         identical(
@@ -438,16 +247,16 @@ void main() {
         ),
         isFalse,
       );
-      appRouter.router.go(Routes.vendorRecords);
+      appRouter.router.go(Routes.profile);
       await settleRoutes();
       final sameAccountShell = tester.state<State>(
         find.byType(StatefulNavigationShell),
       );
-      await updateAccount('MarketVendor', userId: 2);
+      await updateAccount('MarketEnforcer', userId: 2);
       await settleRoutes();
       expect(
         appRouter.router.routeInformationProvider.value.uri.path,
-        Routes.vendorRecords,
+        Routes.profile,
       );
       expect(
         identical(
@@ -455,12 +264,6 @@ void main() {
           tester.state<State>(find.byType(StatefulNavigationShell)),
         ),
         isTrue,
-      );
-      await updateAccount('MarketEnforcer', userId: 3);
-      await settleRoutes();
-      expect(
-        appRouter.router.routeInformationProvider.value.uri.path,
-        Routes.dashboard,
       );
       expect(
         tester
@@ -470,12 +273,13 @@ void main() {
             .map((destination) => destination.label),
         ['Dashboard', 'Inspections', 'Tickets', 'Profile'],
       );
-      appRouter.router.go(Routes.vendorRecords);
+      await updateAccount('MarketVendor', userId: 3);
       await settleRoutes();
       expect(
         appRouter.router.routeInformationProvider.value.uri.path,
-        Routes.dashboard,
+        Routes.mobileAccessUnavailable,
       );
+      expect(find.byType(NavigationBar), findsNothing);
       expect(tester.takeException(), isNull);
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
@@ -537,7 +341,7 @@ void main() {
         appRouter.router.routeInformationProvider.value.uri.path,
         Routes.dashboard,
       );
-      appRouter.router.go(Routes.vendorProfile);
+      appRouter.router.go('/vendor/profile');
       await tester.pumpAndSettle();
       expect(
         appRouter.router.routeInformationProvider.value.uri.path,

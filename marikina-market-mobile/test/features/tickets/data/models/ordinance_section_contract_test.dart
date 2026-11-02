@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:marikina_market_mobile/features/records/data/models/record_violation_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/duplicate_info_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/fine_breakdown_item_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_model.dart';
@@ -68,12 +67,10 @@ void main() {
       final violation = ViolationSummaryModel.fromJson(response).toEntity();
       final warning = WarningOrdinanceModel.fromJson(response).toEntity();
       final duplicate = DuplicateInfoModel.fromJson(response).toEntity();
-      final record = RecordViolationModel.fromJson(response).toEntity();
       expect(fine.detailsLabel, 'Section 53 · Market clearance');
       expect(violation.detailsLabel, fine.detailsLabel);
       expect(warning.detailsLabel, fine.detailsLabel);
       expect(duplicate.detailsLabel, fine.detailsLabel);
-      expect(record.detailsLabel, fine.detailsLabel);
       expect(fine.paymentAmount, 1000);
       expect(fine.offenseNumber, 2);
       expect(violation.paymentAmount, 1000);

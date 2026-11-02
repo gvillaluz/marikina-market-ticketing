@@ -5,31 +5,21 @@ import 'package:marikina_market_mobile/features/notification/presentation/widget
 
 class NotificationListSkeleton extends StatelessWidget {
   final int itemCount;
-  final bool isVendor;
-  const NotificationListSkeleton({
-    this.itemCount = 5,
-    this.isVendor = false,
-    super.key,
-  });
+  const NotificationListSkeleton({this.itemCount = 5, super.key});
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final cards = Padding(
-        padding: isVendor
-            ? AppTheme.vendorNotificationListPadding
-            : AppTheme.notificationListPadding,
+        padding: AppTheme.vendorNotificationListPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var index = 0; index < itemCount; index++)
               Padding(
-                padding: isVendor
-                    ? AppTheme.vendorNotificationItemPadding
-                    : AppTheme.notificationItemPadding,
+                padding: AppTheme.vendorNotificationItemPadding,
                 child: NotificationSkeletonCard(
                   key: ValueKey('notification-skeleton-card-$index'),
-                  isVendor: isVendor,
                 ),
               ),
           ],

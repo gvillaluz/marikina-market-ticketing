@@ -69,31 +69,6 @@ class AppTheme {
   static const tabInitialOpacity = 0.85;
 
   static const dashboardMaxWidth = 760.0;
-  static const vendorDashboardPadding = EdgeInsets.all(20);
-  static const vendorDashboardTotalsSkeletonHeight = 110.0;
-  static const vendorDashboardScoreSkeletonHeight = 190.0;
-  static const vendorDashboardTaskSkeletonHeight = 76.0;
-  static const vendorDashboardHeadingSkeletonWidth = 180.0;
-  static const vendorDashboardHeadingSkeletonHeight = 18.0;
-  static const vendorDashboardNoticeIconSize = 40.0;
-  static const vendorDashboardSectionRadius = BorderRadius.vertical(
-    top: Radius.circular(20),
-  );
-  static const vendorDashboardCardBorder = Color(0xFFDDE8F2);
-  static const vendorDashboardWarningBackground = Color(0xFFFFF6E6);
-  static const vendorDashboardWarningColor = Color(0xFFA56B00);
-  static const vendorDashboardTicketBackground = Color(0xFFE7F2FF);
-  static const vendorDashboardGoodColor = Color(0xFF398245);
-  static const vendorDashboardGoodBackground = Color(0xFFEAF5E9);
-  static const vendorDashboardMutedColor = Color(0xFF788898);
-  static const vendorDashboardRingSize = 112.0;
-  static const vendorDashboardRingStroke = 8.0;
-  static const vendorDashboardScoreDuration = Duration(milliseconds: 850);
-  static const vendorDashboardDetailStyle = TextStyle(
-    fontSize: 12,
-    height: 1.4,
-  );
-  static const vendorDashboardLabelStyle = TextStyle(fontSize: 11, height: 1.4);
   static const dashboardWideBreakpoint = 720.0;
   static const dashboardGridMaxTextScale = 1.3;
   static const dashboardPagePadding = EdgeInsets.all(20);
@@ -117,8 +92,6 @@ class AppTheme {
   static const dashboardOnlineColor = AppColors.primaryGreen;
 
   static const inspectionHeaderPadding = EdgeInsets.fromLTRB(20, 20, 20, 12);
-  static const recordsPagePadding = EdgeInsets.all(12);
-  static const recordsCardPadding = EdgeInsets.all(12);
   static const recordsListPadding = EdgeInsets.symmetric(horizontal: 12);
   static const recordsSummaryPadding = EdgeInsets.fromLTRB(12, 0, 12, 10);
   static const recordsFilterPadding = EdgeInsets.all(3);
@@ -126,23 +99,8 @@ class AppTheme {
     horizontal: 4,
     vertical: 10,
   );
-  static const recordsStatusPadding = EdgeInsets.symmetric(
-    horizontal: 6,
-    vertical: 2,
-  );
   static const recordsBodyStyle = bodyTextStyle;
-  static const recordsCardTitleStyle = cardHeadingStyle;
-  static const recordsCaptionStyle = captionTextStyle;
-  static const recordsSkeletonHeight = 120.0;
-  static const settlementCardPadding = EdgeInsets.all(14);
   static const settlementCardRadius = BorderRadius.all(Radius.circular(14));
-  static const settlementImageHeight = 190.0;
-  static const settlementServiceProofHeight = 150.0;
-  static const settlementProgressHeight = 7.0;
-  static const settlementClockPadding = EdgeInsets.all(9);
-  static const settlementClockBackground = AppColors.tertiaryYellow;
-  static const settlementClockColor = AppColors.secondaryYellow;
-  static const recordsBackground = Color(0xFFF5FAFF);
   static const recordsFilterBackground = Color(0xFFE9F3FF);
   static const inspectionListPadding = EdgeInsets.symmetric(horizontal: 20);
   static const inspectionCardPadding = EdgeInsets.all(20);
@@ -251,15 +209,6 @@ class AppTheme {
       BoxShadow(color: Color(0x0A17212D), blurRadius: 12, offset: Offset(0, 3)),
     ],
   );
-  static const ticketOrdinancePadding = EdgeInsets.symmetric(
-    horizontal: 12,
-    vertical: 10,
-  );
-  static const ticketOrdinanceRadius = BorderRadius.all(Radius.circular(10));
-  static const ticketOffensePadding = EdgeInsets.symmetric(
-    horizontal: 5,
-    vertical: 3,
-  );
   static Color ticketOffenseBackground(int count) => count > 2
       ? const Color(0xFFFCEBEB)
       : count > 1
@@ -270,19 +219,6 @@ class AppTheme {
       : count > 1
       ? const Color(0xFF633806)
       : const Color(0xFF27500A);
-  static const ticketSettlementPadding = EdgeInsets.all(14);
-  static final ticketSettlementDecoration = BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(14),
-    border: Border.all(color: AppColors.lightGrey.withValues(alpha: .5)),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: .06),
-        blurRadius: 4,
-        offset: const Offset(0, 2),
-      ),
-    ],
-  );
   static const notificationCompactHeaderPadding = EdgeInsets.fromLTRB(
     13,
     20,
@@ -410,19 +346,6 @@ class AppTheme {
     fontWeight: FontWeight.w700,
     color: profileHeroForeground,
   );
-  static const profileQrSize = 220.0;
-  static const profileQrTopCircleOverlay = Color(0x08FFFFFF);
-  static const profileQrBottomCircleOverlay = Color(0x06FFFFFF);
-  static const profileQrBackButtonPadding = EdgeInsets.all(8);
-  static const profileQrBackButtonRadius = BorderRadius.all(Radius.circular(8));
-  static const profileQrAvatarSize = 72.0;
-  static const profileQrMaxWidth = 400.0;
-  static const profileQrExportScale = 3.0;
-  static const profileQrPadding = EdgeInsets.all(24);
-  static const profileQrActionPadding = EdgeInsets.symmetric(
-    horizontal: 16,
-    vertical: 12,
-  );
   static const profilePagePadding = EdgeInsets.all(20);
   static const profileCardPadding = EdgeInsets.all(20);
   static const profileHeaderPadding = EdgeInsets.all(16);
@@ -465,7 +388,6 @@ class AppTheme {
   static const profilePhotoMenuPadding = EdgeInsets.all(20);
   static const profilePhotoBorderWidth = 2.0;
   static const profileAvatarDecodeMaxWidth = 320;
-  static const profileSectionGap = 24.0;
   static const profileActionGap = 12.0;
   static const profileHeadingStyle = sectionHeadingStyle;
   static const profileBodyStyle = bodyTextStyle;

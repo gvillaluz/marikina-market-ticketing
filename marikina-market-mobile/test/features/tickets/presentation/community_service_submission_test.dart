@@ -11,10 +11,45 @@ import 'package:marikina_market_mobile/features/tickets/presentation/tickets/blo
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/bloc/ticket_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/bloc/ticket_state.dart';
 
-import '../../../records_feature_test.dart' show detailResponse;
 import '../../auth/data/login_mobile_contract_test.dart'
     show contractClient, reply;
 import 'ticket_refresh_test.dart' show refreshBloc;
+
+const detailResponse = <String, Object?>{
+  'ticket_id': 101,
+  'enforcer_id': 12,
+  'vendor_id': 70,
+  'control_number': '101',
+  'type': 'Ticket',
+  'business_type': 'Public',
+  'business_account_number': '2026-0001842',
+  'stall_number': 'F-014',
+  'business_name': 'Reyes Fresh Seafood',
+  'last_name': 'Reyes',
+  'first_name': 'Juan',
+  'address': '',
+  'violations': [
+    {
+      'ticket_violation_id': 201,
+      'ticket_id': 101,
+      'ordinance_id': 2,
+      'ordinance_no': '104',
+      'section': '13',
+      'offense_count': 1,
+      'penalty_amount': 500,
+    },
+  ],
+  'issued_at': '2026-10-13T00:01:00Z',
+  'market_section_name': 'Fish and Seafood Section',
+  'categories': ['Licensing'],
+  'description': 'Vendor failed to display a valid market identification card.',
+  'severity': 'Minor',
+  'penalty_type': 'CashFine',
+  'status': 'Pending',
+  'due_date': '2026-10-18T00:01:00Z',
+  'total_fine_amount': 500,
+  'ticket_evidences': <String>[],
+};
 
 const emptyProgress = <String, Object?>{
   'ticket_id': 101,

@@ -1,6 +1,5 @@
 import 'package:image_picker/image_picker.dart';
 import 'package:marikina_market_mobile/features/profile/domain/use_cases/edit_profile_params.dart';
-import 'package:marikina_market_mobile/features/profile/domain/use_cases/export_qr_params.dart';
 
 abstract class ProfileEvent {}
 
@@ -29,8 +28,3 @@ class ChangeProfilePhoto extends ProfileEvent {
 }
 
 class RemoveProfilePhoto extends ProfileEvent {}
-
-class ExportVendorQr extends ProfileEvent {
-  final ExportQrParams params;
-  ExportVendorQr(this.params);
-}

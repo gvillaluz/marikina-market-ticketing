@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/router/mobile_route_access.dart';
-import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
@@ -108,10 +107,6 @@ class NotificationListenerService {
       message.data['ticketId'],
     );
     if (location == null) return;
-    if (location == Routes.vendorNotifications) {
-      router.go(location);
-    } else {
-      router.push(location);
-    }
+    router.push(location);
   }
 }

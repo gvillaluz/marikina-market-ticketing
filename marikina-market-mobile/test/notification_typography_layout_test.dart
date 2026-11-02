@@ -11,24 +11,19 @@ void main() {
   testWidgets(
     'content-sized skeletons scroll inside a bounded loading region',
     (tester) async {
-      for (final isVendor in [true, false]) {
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: AppTheme.light,
-            home: MediaQuery(
-              data: const MediaQueryData(disableAnimations: true),
-              child: Scaffold(
-                body: SizedBox(
-                  height: 300,
-                  child: NotificationListSkeleton(isVendor: isVendor),
-                ),
-              ),
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: MediaQuery(
+            data: const MediaQueryData(disableAnimations: true),
+            child: const Scaffold(
+              body: SizedBox(height: 300, child: NotificationListSkeleton()),
             ),
           ),
-        );
-        expect(find.byType(SingleChildScrollView), findsOneWidget);
-        expect(tester.takeException(), isNull);
-      }
+        ),
+      );
+      expect(find.byType(SingleChildScrollView), findsOneWidget);
+      expect(tester.takeException(), isNull);
     },
   );
   testWidgets('account edit keeps its original size and sign-in is unchanged', (
@@ -128,7 +123,8 @@ void main() {
       );
       final card = find.byKey(const ValueKey('notification-skeleton-card-0'));
       expect(card, findsOneWidget);
-      expect(tester.getSize(card).width, 350);
+      // 390 px view minus 13 px list padding on each side.
+      expect(tester.getSize(card).width, 364);
       expect(tester.getSize(card).height, greaterThan(100));
       expect(tester.takeException(), isNull);
     },

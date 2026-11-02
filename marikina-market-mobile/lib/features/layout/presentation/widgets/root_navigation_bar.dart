@@ -4,12 +4,7 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 
 class RootNavigationBar extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
-  final bool isVendor;
-  const RootNavigationBar({
-    required this.navigationShell,
-    this.isVendor = false,
-    super.key,
-  });
+  const RootNavigationBar({required this.navigationShell, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +19,8 @@ class RootNavigationBar extends StatelessWidget {
           initialLocation: index == navigationShell.currentIndex,
         );
       },
-      destinations: [
-        const NavigationDestination(
+      destinations: const [
+        NavigationDestination(
           icon: Icon(Icons.dashboard_outlined),
           selectedIcon: Icon(Icons.dashboard),
           label: 'Dashboard',
@@ -33,20 +28,14 @@ class RootNavigationBar extends StatelessWidget {
         NavigationDestination(
           icon: Icon(Icons.description_outlined),
           selectedIcon: Icon(Icons.description),
-          label: isVendor ? 'Records' : 'Inspections',
+          label: 'Inspections',
         ),
         NavigationDestination(
-          icon: Icon(
-            isVendor
-                ? Icons.notifications_outlined
-                : Icons.confirmation_num_outlined,
-          ),
-          selectedIcon: Icon(
-            isVendor ? Icons.notifications : Icons.confirmation_num,
-          ),
-          label: isVendor ? 'Notifications' : 'Tickets',
+          icon: Icon(Icons.confirmation_num_outlined),
+          selectedIcon: Icon(Icons.confirmation_num),
+          label: 'Tickets',
         ),
-        const NavigationDestination(
+        NavigationDestination(
           icon: Icon(Icons.person_outline),
           selectedIcon: Icon(Icons.person),
           label: 'Profile',

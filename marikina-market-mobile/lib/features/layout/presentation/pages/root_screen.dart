@@ -6,23 +6,12 @@ import 'package:marikina_market_mobile/features/layout/presentation/widgets/root
 
 class RootScreen extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
-  final bool isVendor;
-  const RootScreen({
-    required this.navigationShell,
-    this.isVendor = false,
-    super.key,
-  });
+  const RootScreen({required this.navigationShell, super.key});
 
   static const List<String> _titles = [
     'Dashboard',
     'Inspections',
     'Tickets',
-    'Profile',
-  ];
-  static const List<String> _vendorTitles = [
-    'Dashboard',
-    'Records',
-    'Notifications',
     'Profile',
   ];
 
@@ -31,10 +20,7 @@ class RootScreen extends StatelessWidget {
     return Scaffold(
       appBar: _buildAppBar(context),
       body: navigationShell,
-      bottomNavigationBar: RootNavigationBar(
-        navigationShell: navigationShell,
-        isVendor: isVendor,
-      ),
+      bottomNavigationBar: RootNavigationBar(navigationShell: navigationShell),
     );
   }
 
@@ -56,7 +42,7 @@ class RootScreen extends StatelessWidget {
       ),
 
       title: Text(
-        (isVendor ? _vendorTitles : _titles)[navigationShell.currentIndex],
+        _titles[navigationShell.currentIndex],
         style: const TextStyle(
           color: AppColors.primary,
           fontSize: 18,
@@ -66,17 +52,16 @@ class RootScreen extends StatelessWidget {
       ),
 
       actions: [
-        if (!isVendor)
-          IconButton(
-            tooltip: 'Notifications',
-            onPressed: () => context.pushNamed(Routes.notificationsName),
-            style: IconButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              backgroundColor: AppColors.primary.withValues(alpha: .08),
-              shape: const CircleBorder(),
-            ),
-            icon: const Icon(Icons.notifications_outlined, size: 24),
+        IconButton(
+          tooltip: 'Notifications',
+          onPressed: () => context.pushNamed(Routes.notificationsName),
+          style: IconButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            backgroundColor: AppColors.primary.withValues(alpha: .08),
+            shape: const CircleBorder(),
           ),
+          icon: const Icon(Icons.notifications_outlined, size: 24),
+        ),
         const SizedBox(width: 16),
       ],
     );

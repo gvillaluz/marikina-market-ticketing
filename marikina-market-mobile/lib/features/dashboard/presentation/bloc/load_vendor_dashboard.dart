@@ -1,3 +1,0 @@
-class LoadVendorDashboard {
-  const LoadVendorDashboard();
-}

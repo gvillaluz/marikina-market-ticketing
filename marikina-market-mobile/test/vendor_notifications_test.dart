@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
-import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
 import 'package:marikina_market_mobile/features/notification/data/data_sources/notification_remote_data_source.dart';
 import 'package:marikina_market_mobile/features/notification/data/repositories/notification_repository_impl.dart';
 import 'package:marikina_market_mobile/features/notification/data/models/notification_summary_model.dart';
@@ -130,37 +129,6 @@ void main() {
   );
 
   test(
-    'vendor list, unread count and read use only the vendor contract',
-    () async {
-      final requests = <String>[];
-      final client = contractClient((options) async {
-        requests.add(
-          '${options.method} ${options.path} ${options.queryParameters}',
-        );
-        return reply(options, {
-          'items': [vendorWarning],
-          'total': 23,
-          'has_more': true,
-        });
-      });
-      addTearDown(client.dio.close);
-      final source = NotificationRemoteDataSourceImpl(
-        client,
-        role: Role.marketVendor,
-      );
-      final page = await source.getNotifications(10, 'All');
-      expect(page.items.single.toEntity().isWarning, isTrue);
-      expect(await source.getUnreadCount(), 23);
-      await source.markAsRead(71);
-      expect(requests, [
-        'GET /notification/vendor {offset: 10, filter: All}',
-        'GET /notification/vendor {offset: 0, filter: Unread}',
-        'PATCH /notification/vendor/71/read {}',
-      ]);
-    },
-  );
-
-  test(
     'integer fine amounts map and enforcer endpoints are preserved',
     () async {
       final client = contractClient((options) async {
@@ -216,7 +184,7 @@ void main() {
       });
       addTearDown(client.dio.close);
       final repo = NotificationRepositoryImpl(
-        NotificationRemoteDataSourceImpl(client, role: Role.marketVendor),
+        NotificationRemoteDataSourceImpl(client),
       );
       final denied = await repo.loadNotifications(0, 'All');
       expect(denied, isA<ResultFailure>());
@@ -237,7 +205,7 @@ void main() {
         final filter = options.queryParameters['filter'];
         final offset = options.queryParameters['offset'] as int? ?? 0;
         if (options.method == 'PATCH') {
-          final id = int.parse(options.path.split('/')[3]);
+          final id = int.parse(options.path.split('/')[2]);
           calls.add('read $id');
           if (id == 72) {
             throw DioException(
@@ -352,7 +320,7 @@ NotificationBloc vendorBloc(
   final client = contractClient(respond);
   addTearDown(client.dio.close);
   final repo = NotificationRepositoryImpl(
-    NotificationRemoteDataSourceImpl(client, role: Role.marketVendor),
+    NotificationRemoteDataSourceImpl(client),
   );
   final bloc = NotificationBloc(
     loadNotificationsUseCase: LoadNotificationsUseCase(repo),

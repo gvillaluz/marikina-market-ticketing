@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:marikina_market_mobile/core/errors/api_error_message.dart';
-import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
 import 'package:marikina_market_mobile/core/errors/exceptions.dart';
 import 'package:marikina_market_mobile/core/network/client.dart';
 import 'package:marikina_market_mobile/core/shared/data/models/page_result_model.dart';
@@ -16,21 +15,10 @@ abstract class NotificationRemoteDataSource {
 }
 
 class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
+  static const _path = '/notification';
   final ApiClient apiClient;
-  final Role role;
 
-  NotificationRemoteDataSourceImpl(
-    this.apiClient, {
-    this.role = Role.marketEnforcer,
-  });
-
-  String get _path => switch (role) {
-    Role.marketVendor => '/notification/vendor',
-    Role.marketEnforcer => '/notification',
-    _ => throw UnauthorizedException(
-      'This account cannot access mobile notifications.',
-    ),
-  };
+  NotificationRemoteDataSourceImpl(this.apiClient);
 
   Never _handleError(DioException e) {
     final message = ApiErrorMessage.fromBody(e.response?.data);

@@ -7,14 +7,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_event.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_state.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/pages/notification_page.dart';
-import 'package:marikina_market_mobile/features/notification/presentation/widgets/vendor_notification_tile.dart';
 import 'features/auth/data/login_mobile_contract_test.dart' show reply;
 import 'vendor_notifications_test.dart' show vendorBloc, vendorWarning;
 
@@ -45,7 +42,7 @@ void main() {
           theme: AppTheme.light,
           home: BlocProvider.value(
             value: bloc,
-            child: const NotificationPage(isVendor: true),
+            child: const NotificationPage(),
           ),
         ),
       );
@@ -149,7 +146,7 @@ void main() {
                 key: boundaryKey,
                 child: BlocProvider.value(
                   value: bloc,
-                  child: const NotificationPage(isVendor: true),
+                  child: const NotificationPage(),
                 ),
               ),
             ),
@@ -190,61 +187,4 @@ void main() {
       },
     );
   }
-
-  testWidgets(
-    'vendor tap reads the notification and opens the vendor record route',
-    (tester) async {
-      final reads = <String>[];
-      late NotificationBloc bloc;
-      await tester.runAsync(() async {
-        bloc = vendorBloc((options) async {
-          if (options.method == 'PATCH') {
-            reads.add(options.path);
-            return reply(options, null);
-          }
-          return reply(options, {
-            'items': [vendorWarning],
-            'total': 1,
-            'has_more': false,
-          });
-        });
-        final ready = bloc.stream.firstWhere((s) => s is NotificationLoaded);
-        bloc.add(LoadNotifications(0, 'All'));
-        await ready;
-      });
-      final router = GoRouter(
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (_, state) => BlocProvider.value(
-              value: bloc,
-              child: const NotificationPage(isVendor: true),
-            ),
-          ),
-          GoRoute(
-            path: Routes.vendorRecordDetail,
-            name: Routes.vendorRecordDetailName,
-            builder: (_, state) => Scaffold(
-              body: Text('Vendor record ${state.pathParameters['ticketId']}'),
-            ),
-          ),
-        ],
-      );
-      addTearDown(router.dispose);
-      await tester.pumpWidget(
-        MaterialApp.router(theme: AppTheme.light, routerConfig: router),
-      );
-      await tester.runAsync(() async {
-        final read = bloc.stream.firstWhere(
-          (s) => s is NotificationLoaded && s.notifications.single.isRead,
-        );
-        await tester.tap(find.byType(VendorNotificationTile));
-        await read;
-      });
-      await tester.pumpAndSettle();
-      expect(reads, ['/notification/vendor/71/read']);
-      expect(find.text('Vendor record 11'), findsOneWidget);
-      await tester.pumpWidget(const SizedBox());
-    },
-  );
 }

@@ -12,15 +12,6 @@ class MobileRouteAccess {
     Routes.codeVerification,
     Routes.resetPassword,
   };
-  static const _vendorRoutes = {
-    Routes.vendorDashboard,
-    Routes.vendorRecords,
-    Routes.vendorNotifications,
-    Routes.vendorProfile,
-    Routes.vendorQr,
-    Routes.editProfile,
-    Routes.changePassword,
-  };
   static const _enforcerRoutes = {
     Routes.dashboard,
     Routes.inspetions,
@@ -50,8 +41,7 @@ class MobileRouteAccess {
     if (state is! Authenticated) {
       return _publicRoutes.contains(path) ? null : Routes.login;
     }
-    final role = state.user.role;
-    if (role != Role.marketEnforcer && role != Role.marketVendor) {
+    if (state.user.role != Role.marketEnforcer) {
       return path == Routes.mobileAccessUnavailable
           ? null
           : Routes.mobileAccessUnavailable;
@@ -61,31 +51,24 @@ class MobileRouteAccess {
           ? null
           : Routes.mandatoryChangePassword;
     }
-    final allowed = role == Role.marketVendor
-        ? _vendorRoutes.contains(path) ||
-              RegExp(r'^/vendor/records/[^/]+$').hasMatch(path)
-        : _enforcerRoutes.contains(path) ||
-              RegExp(r'^/ticket/[^/]+$').hasMatch(path);
-    if (allowed) return null;
-    return role == Role.marketVendor
-        ? Routes.vendorDashboard
-        : Routes.dashboard;
+    final allowed =
+        _enforcerRoutes.contains(path) ||
+        RegExp(r'^/ticket/[^/]+$').hasMatch(path);
+    return allowed ? null : Routes.dashboard;
   }
 
   static String? notificationLocation(AuthState state, Object? ticketId) {
-    if (state is! Authenticated || state.user.mustChangePassword) return null;
+    if (state is! Authenticated ||
+        state.user.mustChangePassword ||
+        state.user.role != Role.marketEnforcer) {
+      return null;
+    }
     final id = ticketId is int
         ? ticketId
         : ticketId is String
         ? int.tryParse(ticketId)
         : null;
     final validId = id != null && id > 0 && id <= 2147483647;
-    if (state.user.role == Role.marketVendor) {
-      return validId ? '/vendor/records/$id' : Routes.vendorNotifications;
-    }
-    if (state.user.role == Role.marketEnforcer) {
-      return validId ? '/ticket/$id' : Routes.notifications;
-    }
-    return null;
+    return validId ? '/ticket/$id' : Routes.notifications;
   }
 }

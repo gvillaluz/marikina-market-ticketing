@@ -53,17 +53,5 @@ abstract class Routes {
   static const notifications = '/notifications';
   static const notificationsName = 'notifications';
 
-  static const vendorDashboard = '/vendor/dashboard';
-  static const vendorDashboardName = 'vendorDashboard';
-  static const vendorRecords = '/vendor/records';
-  static const vendorRecordsName = 'vendorRecords';
-  static const vendorRecordDetail = '/vendor/records/:ticketId';
-  static const vendorRecordDetailName = 'vendorRecordDetail';
-  static const vendorNotifications = '/vendor/notifications';
-  static const vendorNotificationsName = 'vendorNotifications';
-  static const vendorQr = '/vendor/qr';
-  static const vendorQrName = 'vendorQr';
-  static const vendorProfile = '/vendor/profile';
-  static const vendorProfileName = 'vendorProfile';
   static const mobileAccessUnavailable = '/access-unavailable';
 }

@@ -11,8 +11,7 @@ import 'package:marikina_market_mobile/features/notification/presentation/widget
 import 'package:marikina_market_mobile/features/notification/presentation/widgets/vendor_notification_header.dart';
 
 class NotificationPage extends StatefulWidget {
-  final bool isVendor;
-  const NotificationPage({this.isVendor = false, super.key});
+  const NotificationPage({super.key});
   @override
   State<NotificationPage> createState() => _NotificationPageState();
 }
@@ -156,7 +155,7 @@ class _NotificationPageState extends State<NotificationPage> {
                       if (state is NotificationInitial ||
                           state is NotificationLoading) {
                         return SliverToBoxAdapter(
-                          child: NotificationListSkeleton(isVendor: true),
+                          child: const NotificationListSkeleton(),
                         );
                       }
                       if (state is NotificationLoaded) {
@@ -165,7 +164,6 @@ class _NotificationPageState extends State<NotificationPage> {
                               ? AppTheme.vendorNotificationListPadding
                               : AppTheme.notificationListPadding,
                           sliver: NotificationListSliver(
-                            isVendor: widget.isVendor,
                             useVendorStyle: true,
                             isBusy: state.isMarkingAll,
                             data: NotificationListData(

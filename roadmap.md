@@ -44,6 +44,12 @@ Web/reporting revision scope: business/person administration without mandatory v
 
 Exit: each approved slice passes its automated and live acceptance checks, unresolved prerequisites are resolved or explicitly deferred, and the user approves returning to the numbered verification phases. Record implementation, automated checks and E2E separately; incomplete work is not passed.
 
+### Vendor-end removal — mobile only (CLOSED 2026-11-02)
+
+Approved scope: remove the vendor login end of `marikina-market-mobile` (vendor routes, dashboard, records, QR export, vendor profile model) with no API or web change; vendor-as-violator lookups, `Role.marketVendor` and the enforcer inbox's vendor-style tiles kept. Also approved: vendor-only test deletions, unused QR/vendor theme values, the skeleton `isVendor` flag, and removal of `share_plus` and `file_saver`.
+
+Closed by explicit user approval: "okay close it". Evidence ([report](evidence/vendor-mobile-removal-2026-11-02/report.md)): full Flutter suite **417 passed** (first complete run; the vendor-paging stall is gone with the removed records feature); analyzer five inherited infos only; V2529 against guarded disposable `marikina_market_e2e` passed enforcer tabs/bell, notifications open, profile/edit, sign-out, fresh code sign-in and cold relaunches. Vendor no-access screen not shown on device: the API already refuses vendors at mobile sign-in, and the `vendorPublic`/`vendorPrivate` test accounts no longer exist in the disposable database (removed by the criterion-2 vendor account deletion); redirect covered by automated tests. Observations (not fixed): `qr_flutter` now unused; the old grouped notification list (`NotificationList`, `NotificationTile`, `useVendorStyle=false`) is reachable only from tests. Closure does not authorize API/web vendor retirement, further removals or publishing.
+
 ### Ordinance revision — slice 3 (CLOSED 2026-11-01)
 
 Approved scope ([plan](docs/ordinance-slice3-plan.md)): data-only migration `20261101090000_OrdinanceWorkbookCatalog` replacing the catalog with the 53-section Ordinance 011 (2014) workbook (`Untitled spreadsheet.xlsx` categories): 20 legacy rows updated in place, legacy ID 1 retired, 34 new rows left unconfigured (no severity, not warning-eligible), Section 79 split Public/Private, blood donation off, community service first-offense monetary only. Follow-up fixes approved before closure: API enforcement lookups refuse inactive ordinances; mobile hides inactive ordinances, shows titles in selection/form, and explains unavailable totals.
@@ -204,7 +210,8 @@ Local monorepo adoption preserved original repositories, history and uncommitted
 - Analytics severity-count mismatch (summary 1 vs raw evidence 4).
 - Hardcoded configuration notes UI issue.
 - Phase 4 backup README status text; existing package/build warnings.
-- Criterion-3 closure observations: legacy vendor-records paging test stall (full Flutter run incomplete after 451 passes), five retained analyzer infos and Android tooling warnings. Unrelated to the accepted criterion-3 requirements; retained for a separate approved maintenance/retirement decision. See [closure record](docs/criterion-3-closure.md). No automatic repair or vendor-app restoration.
+- Criterion-3 closure observations: five retained analyzer infos and Android tooling warnings (AGP 8.11.1 and Kotlin 2.2.20 nearing end of Flutter support). Unrelated to the accepted criterion-3 requirements; retained for a separate approved maintenance decision. See [closure record](docs/criterion-3-closure.md). The vendor-records paging stall was resolved by the mobile vendor-end removal (2026-11-02).
+- The `vendorPublic`/`vendorPrivate` E2E accounts were removed by the approved criterion-2 vendor account deletion (database holds only the four staff accounts, checked read-only 2026-11-02); their credentials and aliases remain in local user-secrets and evidence helper scripts.
 
 ## Deferred work
 

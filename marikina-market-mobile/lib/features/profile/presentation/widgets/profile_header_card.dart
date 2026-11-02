@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
-import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_avatar.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
@@ -55,24 +52,14 @@ class ProfileHeaderCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
+                const Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'My Profile',
                         style: AppTheme.profileHeroTitleStyle,
                       ),
                     ),
-                    if (user.role == Role.marketVendor)
-                      IconButton(
-                        tooltip: 'My QR Code',
-                        style: IconButton.styleFrom(
-                          foregroundColor: AppTheme.profileHeroForeground,
-                          backgroundColor: AppTheme.profileHeroOverlay,
-                        ),
-                        onPressed: () => context.pushNamed(Routes.vendorQrName),
-                        icon: const Icon(Icons.qr_code_2),
-                      ),
                   ],
                 ),
                 const SizedBox(height: AppTheme.profileSmallGap),
@@ -94,13 +81,7 @@ class ProfileHeaderCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTheme.profileCompactGap),
                 Text(
-                  user.role == Role.marketVendor
-                      ? [
-                          user.vendor?.businessName,
-                          if (user.vendor?.stallNumber?.isNotEmpty == true)
-                            'Stall ${user.vendor!.stallNumber}',
-                        ].whereType<String>().join(' · ')
-                      : user.role.value,
+                  user.role.value,
                   textAlign: TextAlign.center,
                   style: AppTheme.pageSubtitleStyle.copyWith(
                     color: AppTheme.profileHeroForeground,

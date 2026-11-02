@@ -24,7 +24,7 @@ import 'features/auth/login_mobile_flow_test.dart' show loginBloc;
 import 'features/auth/login_test_network_info.dart';
 
 Authenticated account({
-  String role = 'MarketVendor',
+  String role = 'MarketEnforcer',
   int userId = 1,
   bool mustChangePassword = false,
 }) => Authenticated(
@@ -96,18 +96,9 @@ GoRouter notificationRouter() {
     routes: [
       GoRoute(path: '/', builder: (_, _) => page('Home')),
       GoRoute(
-        path: '/vendor/records/:ticketId',
-        builder: (_, state) =>
-            page('Vendor record ${state.pathParameters['ticketId']}'),
-      ),
-      GoRoute(
         path: '/ticket/:ticketId',
         builder: (_, state) =>
             page('Enforcer ticket ${state.pathParameters['ticketId']}'),
-      ),
-      GoRoute(
-        path: Routes.vendorNotifications,
-        builder: (_, _) => page('Vendor inbox'),
       ),
       GoRoute(
         path: Routes.notifications,
@@ -148,10 +139,6 @@ void main() {
     for (final id in <Object>[42, '42', '2147483647']) {
       final expectedId = id.toString();
       expect(
-        MobileRouteAccess.notificationLocation(account(), id),
-        '/vendor/records/$expectedId',
-      );
-      expect(
         MobileRouteAccess.notificationLocation(
           account(role: 'MarketEnforcer'),
           id,
@@ -172,10 +159,6 @@ void main() {
       42.5,
       '../42',
     ]) {
-      expect(
-        MobileRouteAccess.notificationLocation(account(), id),
-        Routes.vendorNotifications,
-      );
       expect(
         MobileRouteAccess.notificationLocation(
           account(role: 'MarketEnforcer'),
@@ -198,10 +181,6 @@ void main() {
       ]) {
         expect(MobileRouteAccess.notificationLocation(state, '42'), isNull);
       }
-      expect(
-        MobileRouteAccess.redirect(account(), '/ticket/42'),
-        Routes.vendorDashboard,
-      );
       expect(
         MobileRouteAccess.redirect(
           account(role: 'MarketEnforcer'),
@@ -229,10 +208,7 @@ void main() {
       expect(router.routeInformationProvider.value.uri.path, '/');
       gate.complete();
       await opening.timeout(const Duration(seconds: 3));
-      expect(
-        router.routeInformationProvider.value.uri.path,
-        '/vendor/records/42',
-      );
+      expect(router.routeInformationProvider.value.uri.path, '/ticket/42');
     },
   );
 
@@ -245,8 +221,7 @@ void main() {
       listenerFor(router, auth);
       final opened = Completer<void>();
       void onRoute() {
-        if (router.routeInformationProvider.value.uri.path ==
-                '/vendor/records/42' &&
+        if (router.routeInformationProvider.value.uri.path == '/ticket/42' &&
             !opened.isCompleted) {
           opened.complete();
         }
@@ -314,7 +289,7 @@ void main() {
         await tester.tap(find.text('Record updated'));
         await tester.pumpAndSettle();
         expect(
-          find.text(changeAccount ? 'Home' : 'Vendor record 42'),
+          find.text(changeAccount ? 'Home' : 'Enforcer ticket 42'),
           findsOneWidget,
         );
         // Let the existing banner's dismissal timer finish before disposing UI.

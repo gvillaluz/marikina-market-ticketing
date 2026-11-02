@@ -10,12 +10,10 @@ class VendorNotificationTile extends StatelessWidget {
   final NotificationSummary notification;
   final ValueChanged<int> onRead;
   final bool isBusy;
-  final bool isVendor;
   const VendorNotificationTile({
     required this.notification,
     required this.onRead,
     this.isBusy = false,
-    this.isVendor = true,
     super.key,
   });
 
@@ -61,9 +59,7 @@ class VendorNotificationTile extends StatelessWidget {
             : () {
                 if (!notification.isRead) onRead(notification.notificationId);
                 context.pushNamed(
-                  isVendor
-                      ? Routes.vendorRecordDetailName
-                      : Routes.ticketDetailName,
+                  Routes.ticketDetailName,
                   pathParameters: {
                     'ticketId': notification.ticketId.toString(),
                   },

@@ -111,5 +111,7 @@ When I correct you or reject your approach:
 6. Rules specific to one application belong in that application's `AGENTS.md`.
 7. Newer rules win conflicts.
 
+1. [CODE] Always leave application code with no dead options, branches or flags after a change, because the user wants the resulting code simple, not just the edits small. Supersedes the "simplest code" line in Scope and Approval where they differ.
+
 <!-- Rules below this line --> 
 

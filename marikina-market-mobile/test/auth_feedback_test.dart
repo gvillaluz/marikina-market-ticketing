@@ -71,7 +71,7 @@ void main() {
             return reply(options, {'message': 'Logged out.'});
           });
           await auth.stream.firstWhere((state) => state is Unauthenticated);
-          await authenticate(auth, 'MarketVendor');
+          await authenticate(auth, 'MarketEnforcer');
           const storage = FlutterSecureStorage();
           await storage.write(key: 'device_token', value: 'synthetic-device');
           await storage.write(key: 'refresh_token', value: 'synthetic-refresh');
@@ -110,7 +110,7 @@ void main() {
         await tester.pump();
         expect(auth.state, isA<Authenticated>());
         expect(
-          MobileRouteAccess.redirect(auth.state, Routes.vendorDashboard),
+          MobileRouteAccess.redirect(auth.state, Routes.dashboard),
           isNull,
         );
         expect(find.text('Signing out…'), findsOneWidget);
@@ -182,7 +182,11 @@ void main() {
           });
           await auth.stream.firstWhere((state) => state is Unauthenticated);
           if (mandatory) {
-            await authenticate(auth, 'MarketVendor', mustChangePassword: true);
+            await authenticate(
+              auth,
+              'MarketEnforcer',
+              mustChangePassword: true,
+            );
           }
         });
         addTearDown(() {

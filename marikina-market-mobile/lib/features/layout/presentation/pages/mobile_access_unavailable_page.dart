@@ -16,7 +16,7 @@ class MobileAccessUnavailablePage extends StatelessWidget {
         child: SingleChildScrollView(
           padding: AppTheme.authPagePadding,
           child: Text(
-            'This account does not have mobile access. Log out and sign in with a vendor or enforcer account.',
+            'This account does not have mobile access. Log out and sign in with an enforcer account.',
             style: AppTheme.authBodyStyle,
             textAlign: TextAlign.center,
           ),
