@@ -7,22 +7,13 @@ import RecentChangeItem from "../components/RecentChangeItem";
 import styles from "./SystemConfigurationPage.module.css";
 import { useMarketSectionCount } from "../hooks/useMarketSectionCount";
 import { useOrdinanceCount } from "../hooks/useOrdinanceCount";
-import StatCard from "@/components/ui/Card/StatCard/StatCard";
+import ConfigStatCard from "../components/ConfigStatCard";
 import { ROUTES } from "@/routes/routePaths";
 import { useAuthStore } from "@/store/store";
 import { ADMIN_ROLES } from "@/api/types/common.types";
 import Button from "@/components/ui/Button/Button";
 import { useRecentChanges } from "../hooks/useRecentChanges";
-
-// STATIC DATA — replace with useSystemStats() once the endpoint exists.
-const STATS = {
-  marketSections: 5,
-  marketSectionsNote: "4 currently active",
-  activeOrdinances: 24,
-  activeOrdinancesNote: "1 draft for review",
-  lastBackup: "Today",
-  lastBackupNote: "Completed at 2:00 AM",
-};
+import { useLastBackup } from "../hooks/useLastBackup";
 
 // STATIC DATA — configuration module entries
 const CONFIG_MODULES = [
@@ -59,6 +50,7 @@ const SystemConfigurationPage: FC = () => {
   const marketSectionSummary = useMarketSectionCount();
   const ordinanceSummary = useOrdinanceCount();
   const recentChanges = useRecentChanges();
+  const lastBackup = useLastBackup();
   const role = useAuthStore((state) => state.user?.role);
   const canManageOrdinances = role != null && ADMIN_ROLES.includes(role);
 
@@ -69,31 +61,52 @@ const SystemConfigurationPage: FC = () => {
         subtitle="Manage core market rules, records, and administrative preferences."
       />
 
-      <div className={styles.statsRow}>
-        <StatCard
+      <div
+        className={styles.statsRow}
+        aria-busy={
+          marketSectionSummary.isLoading ||
+          ordinanceSummary.isLoading ||
+          (lastBackup.canView && lastBackup.isLoading)
+        }
+      >
+        <ConfigStatCard
           icon={LayoutGrid}
           iconColor="#0B57D0"
           iconBg="#E6F1FB"
-          value={marketSectionSummary.count || 0}
+          value={marketSectionSummary.count ?? "—"}
           label="Market sections"
-          note={STATS.marketSectionsNote}
+          note="Currently in use"
+          isLoading={marketSectionSummary.isLoading}
+          isFetching={marketSectionSummary.isFetching}
+          error={marketSectionSummary.error}
+          onRetry={marketSectionSummary.retry}
         />
-        <StatCard
+        <ConfigStatCard
           icon={FileText}
           iconColor="#1E8E3E"
           iconBg="#E6F4EA"
-          value={ordinanceSummary.count || 0}
+          value={ordinanceSummary.count ?? "—"}
           label="Active ordinances"
-          note={STATS.activeOrdinancesNote}
+          note="Currently in use"
+          isLoading={ordinanceSummary.isLoading}
+          isFetching={ordinanceSummary.isFetching}
+          error={ordinanceSummary.error}
+          onRetry={ordinanceSummary.retry}
         />
-        <StatCard
-          icon={Database}
-          iconColor="#534AB7"
-          iconBg="#EEEDFE"
-          value={STATS.lastBackup}
-          label="Last data backup"
-          note={STATS.lastBackupNote}
-        />
+        {lastBackup.canView && (
+          <ConfigStatCard
+            icon={Database}
+            iconColor="#534AB7"
+            iconBg="#EEEDFE"
+            value={lastBackup.value}
+            label="Last data backup"
+            note={lastBackup.note}
+            isLoading={lastBackup.isLoading}
+            isFetching={lastBackup.isFetching}
+            error={lastBackup.error}
+            onRetry={lastBackup.retry}
+          />
+        )}
       </div>
 
       <section className={styles.modulesSection}>

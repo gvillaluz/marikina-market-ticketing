@@ -183,7 +183,7 @@ Exit criteria for revised areas:
 - ☐ Dashboard, reports/exports and mobile summaries use confirmed submitted records once, distinguish warnings/citations and reconcile with independent expected totals. Unsubmitted drafts do not contribute.
 - ☐ Recommended actions show period, section, category and supporting counts, use confirmed data and require administrator review; recorded-ticket counts do not establish inspection-adjusted rates.
 
-Revalidate only affected functionality; original closure does not prove changed behavior. Evidence: `evidence/phase-3-dashboard-current/phase-3-closure-review.md`, `evidence/phase-3-dashboard-current/phase-3-reconciliation.json`. Retained limits include external delivery/device coverage, ranking beyond ten, historical risk bands and unresolved severity-count mismatch.
+Revalidate only affected functionality; original closure does not prove changed behavior. Evidence: `evidence/phase-3-dashboard-current/phase-3-closure-review.md`, `evidence/phase-3-dashboard-current/phase-3-reconciliation.json`. Retained limits include external delivery/device coverage, ranking beyond ten, historical risk bands. The severity-count mismatch (summary 1 vs raw 4) is explained: an evidence-script counting error, with all four raw cases passed. See `evidence/phase-3-analytics-year-filter/count-correction-2026-11-03.md`.
 
 ## Phase 4 — Operational readiness (OPEN)
 
@@ -207,11 +207,12 @@ Local monorepo adoption preserved original repositories, history and uncommitted
 
 ## Backlog (parked, not approved)
 
-- Analytics severity-count mismatch (summary 1 vs raw evidence 4).
-- Hardcoded configuration notes UI issue.
-- Phase 4 backup README status text; existing package/build warnings.
+- Resolved 2026-11-03: analytics severity-count mismatch (summary 1 vs raw evidence 4). The evidence script miscounted the results list under Windows PowerShell 5.1. All four raw cases passed, and the app is not affected. Historical files are unchanged; see the correction note above.
+- Resolved 2026-11-03: hardcoded configuration page stat cards and notes (market sections, active ordinances, last backup). The page now shows live counts and the real last successful backup (HeadAdmin only), with loading skeletons and per-card retry. Evidence: web build passed; the configuration browser check passed 3/3 against a temporary dev server with mocked API responses (real values, none-yet, error/fallback, retry, AdminOfficer hides the backup card, 390px layout). Not verified against the real API; changes remain uncommitted.
+- Resolved 2026-11-04: Phase 4 backup README status text. `evidence/phase-4-full-e2e/README.md` said "running"; it now says completed 2026-10-17, matching `full-e2e.trx` (1 executed, 1 passed) and `result.json`. Documentation only; the evidence folder is git-ignored, so the edit is local.
+- Existing package/build warnings.
 - Criterion-3 closure observations: five retained analyzer infos and Android tooling warnings (AGP 8.11.1 and Kotlin 2.2.20 nearing end of Flutter support). Unrelated to the accepted criterion-3 requirements; retained for a separate approved maintenance decision. See [closure record](docs/criterion-3-closure.md). The vendor-records paging stall was resolved by the mobile vendor-end removal (2026-11-02).
-- The `vendorPublic`/`vendorPrivate` E2E accounts were removed by the approved criterion-2 vendor account deletion (database holds only the four staff accounts, checked read-only 2026-11-02); their credentials and aliases remain in local user-secrets and evidence helper scripts.
+- The `vendorPublic`/`vendorPrivate` E2E accounts were removed by the approved criterion-2 vendor account deletion (database holds only the four staff accounts, checked read-only 2026-11-02); their credentials and aliases remain in local user-secrets and evidence helper scripts. Resolved 2026-11-04: the four `vendorPublic`/`vendorPrivate` user-secret entries (username and password each) were removed from the API project's local user-secrets after the user approved; the four staff accounts' entries remain. The evidence helper scripts were left unchanged: they hold only the account names, no credentials, and are records of closed slices.
 
 ## Deferred work
 

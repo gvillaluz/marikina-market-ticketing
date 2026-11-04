@@ -42,3 +42,6 @@
 # Machine-local workspace evidence and Codex settings retained during cutover.
 /evidence/
 /.codex/
+
+# OCR trial paper-ticket photos (large, machine-local).
+/sample-tickets/

@@ -1,0 +1,25 @@
+.card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 1.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.summary {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: var(--space-xs);
+}

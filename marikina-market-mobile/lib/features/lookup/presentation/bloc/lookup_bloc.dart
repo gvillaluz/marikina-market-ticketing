@@ -3,7 +3,5 @@ import 'package:marikina_market_mobile/features/lookup/presentation/bloc/lookup_
 import 'package:marikina_market_mobile/features/lookup/presentation/bloc/lookup_state.dart';
 
 class LookupBloc extends Bloc<LookupEvent, LookupState> {
-  LookupBloc() : super(LookupInitial()) {
-    
-  }
+  LookupBloc() : super(LookupInitial());
 }

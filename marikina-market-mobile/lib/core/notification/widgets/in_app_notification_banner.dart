@@ -16,7 +16,8 @@ class InAppNotificationBanner extends StatefulWidget {
   });
 
   @override
-  State<InAppNotificationBanner> createState() => _InAppNotificationBannerState();
+  State<InAppNotificationBanner> createState() =>
+      _InAppNotificationBannerState();
 }
 
 class _InAppNotificationBannerState extends State<InAppNotificationBanner>
@@ -64,7 +65,8 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
               widget.onTap?.call();
             },
             onVerticalDragEnd: (details) {
-              if (details.primaryVelocity != null && details.primaryVelocity! < 0) {
+              if (details.primaryVelocity != null &&
+                  details.primaryVelocity! < 0) {
                 dismiss();
               }
             },
@@ -75,7 +77,11 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 4)),
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
                 ],
               ),
               child: Row(
@@ -84,7 +90,9 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -99,14 +107,20 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
                       children: [
                         Text(
                           widget.title,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           widget.body,
-                          style: const TextStyle(fontSize: 13, color: Colors.black54),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),

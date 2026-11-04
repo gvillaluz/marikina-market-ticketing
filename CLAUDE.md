@@ -115,3 +115,5 @@ When I correct you or reject your approach:
 
 <!-- Rules below this line --> 
 
+2. [COMMUNICATION] Always explain results, options and decisions in plain, non-technical language (technical detail only when asked or needed for a decision), because the user needs to understand and decide without a technical background.
+

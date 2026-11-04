@@ -1,5 +1,6 @@
 import { adminConfigurationsApi } from "@/api/endpoints/adminConfigurations.api";
 import { useQuery } from "@tanstack/react-query";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 
 export function useMarketSectionCount() {
   const query = useQuery({
@@ -9,9 +10,16 @@ export function useMarketSectionCount() {
 
   return {
     count: query.data?.count,
-    isLoading: query.isLoading,
+    isLoading: query.isPending,
     isFetching: query.isFetching,
-    isError: query.isError,
-    error: query.error,
+    error: query.isError
+      ? getApiErrorMessage(
+          query.error,
+          "Unable to load market sections. Please try again.",
+        )
+      : "",
+    retry: () => {
+      void query.refetch();
+    },
   };
 }

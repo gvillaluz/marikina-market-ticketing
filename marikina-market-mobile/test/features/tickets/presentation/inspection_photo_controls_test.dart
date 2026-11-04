@@ -48,8 +48,9 @@ Future<void> captureFormControls(WidgetTester tester, String name) async {
   for (var frame = 0; frame < 20; frame++) {
     if (!tester
         .widgetList<RawImage>(find.byType(RawImage))
-        .any((image) => image.image == null))
+        .any((image) => image.image == null)) {
       break;
+    }
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),
     );

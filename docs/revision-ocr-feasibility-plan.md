@@ -2,7 +2,7 @@
 
 Date: 2026-10-30 (Asia/Manila).
 
-Status: criterion 1 trial approved; preparation in progress. Recognition, accuracy, correction-time and offline-device checks have not run. Criterion remains open. No application integration or roadmap closure is implied.
+Status (updated 2026-11-02): criterion 1 trial approved; Stage B (isolated runner and scorer) built and checked on V2529 with practice images only. Completed handwritten samples, answer key, tuning, frozen evaluation, timing study and report are outstanding. No scored accuracy, checkbox or timing result exists. Criterion remains open. No application integration or roadmap closure is implied.
 
 ## Confirmed scope and decisions
 
@@ -12,9 +12,14 @@ Status: criterion 1 trial approved; preparation in progress. Recognition, accura
 - User agreed the numerical targets below before evaluation.
 - Real beneficiary tickets are unavailable. User will create sample tickets with fictional details and varied writing and formatting. Real operational records are unnecessary.
 - User supplied real blank citation and warning photographs; both originals were visually inspected on 2026-10-30. The field inventory below comes from those photographs, not an app preview.
-- User confirmed the business name will be handwritten in the empty bottom part of the ticket. Use the bottommost blank area below the officer/signature area on the citation, and below Tinanggap on the warning, keeping existing fields/signatures unobstructed. This records placement for the trial; it does not establish criterion-2 recognition acceptance.
+- User first confirmed the business name in the empty bottom part of the ticket (below the officer/signature area on the citation, below Tinanggap on the warning). Superseded 2026-11-02 for citations: see the business-name decision below. This records placement for the trial; it does not establish criterion-2 recognition acceptance.
 - User permits researching internet handwriting samples where useful to preparation. Keep public handwriting diagnostics separate from completed-ticket acceptance evidence.
-- Package/model downloads require explicit approval under the criterion and workspace rules. No such downloads or installations have occurred.
+- Package/model downloads require explicit approval under the criterion and workspace rules. On 2026-11-01 the user approved Stage B: the isolated runner, the ML Kit `text-recognition:16.0.1` download (with its resolved transitive libraries) and installation on V2529.
+- 2026-11-01: the handwritten text in the bottom blank strip is the **business name** on both forms. Changed 2026-11-02: on the **citation** the business name is written on the **CITATION TICKET** row, to the right of the printed label; the bottom strip is no longer read. **Warning** business-name placement is deferred: warning samples carry no business name, the answer key marks it blank, and this trial checks only that nothing is filled in. Reading a written warning business name needs its own later test and approval; criterion 2 stays open for warnings until then.
+- 2026-11-01: the **issue date must not be empty in the system**. A blank paper date is scored as blank handling before correction; the timed entry screens do not finish without a date, and the answer key gives the intended date as the final value.
+- 2026-11-01, capture phone revised 2026-11-02: scored samples are pen-written paper tickets photographed normally with a phone camera, unedited and copied straight from the phone by USB. Scanner-app images, gallery-edited images and photographs of screens are practice only; the existing scanned sample counts toward no set.
+- 2026-11-02: in the real app, enforcers will photograph tickets and run recognition on their own phones, mainly Android, as part of submitting a citation. Trial photos may therefore come from any Android phone; the phone model is recorded per photo and accuracy is reported per phone as well as overall. Recognition in this trial still runs on V2529, so speed and offline results apply to V2529 only, not to every enforcer's phone. iPhones are not covered by this Android-only trial. Checking speed on the slowest phone enforcers actually carry belongs before production integration and needs its own approval.
+- 2026-11-01: in assisted timing the operator corrects every value to match the paper; the recognizer's pre-correction values are stored separately.
 
 ## Agreed targets
 
@@ -35,7 +40,18 @@ These are pilot acceptance targets, not claims about an engine's capability or o
 
 Use fictional names, places, business names and reference values on the correct blank citation and warning forms. Have people fill them in by hand. Printed handwriting fonts and generated handwriting images may exercise tooling but cannot establish performance on human handwriting.
 
-Proposed initial set per form type: 5 development forms and 20 separate final evaluation forms, from at least 3 writers. Keep at least one writer out of development. Agree the sample count once the form fields/checkboxes and available writers are confirmed. This is a modest feasibility pilot, not a statistical reliability study.
+Confirmed sample set (user, 2026-11-02), all on printed copies of the supplied forms at actual size (original ticket stock optional and recorded in conditions):
+
+| Set | Citations | Warnings | Use |
+| --- | --- | --- | --- |
+| Tick tickets | 2 minimum, 4 recommended | — | Development only: all 9 boxes marked, one style per ticket (check, cross; other styles only if enforcers use them) |
+| Development (practice) | 10 | 10 | Tuning extraction, region and checkbox rules |
+| Final evaluation (test) | 50 | 50 | Scored once after settings are frozen; written in two batches of 25 and scored only after all 50 per type are photographed |
+| Timing | reused from evaluation | reused from evaluation | 10 + 10 evaluation tickets the timing operator never wrote, keyed or checked; one method per ticket; after freeze |
+
+Total to write: 122–124 tickets. At least 3 writers across development and evaluation; all tickets of at least one writer go to evaluation. With 50 evaluation tickets per type, a field with at most one error still demonstrates the 90% target at roughly 95% confidence; this remains a feasibility pilot, not an operational reliability study. Additional evaluation tickets may be added later only as a pre-planned, representative batch scored with the same frozen settings.
+
+Split procedure (agreed 2026-11-02): the user writes 60 citations and 60 warnings and supplies photos, the writer of each ticket and optional condition notes; the agent splits before any recognition run. The test-only writer's tickets go to evaluation; 10 citations and 10 warnings are drawn at random for development from the rest with a recorded seed; the remainder is evaluation. One redraw with a new recorded seed is allowed only before any results exist. The split is per ticket, not per photo: retakes of a ticket stay in its group. Split, writer, phone model, conditions and SHA-256 per photo are recorded in `samples.csv`, then frozen.
 
 Include the following distinct categories; tag each form and photograph before evaluation:
 
@@ -47,7 +63,11 @@ Include the following distinct categories; tag each form and photograph before e
 
 Include both marked and unmarked boxes wherever the real forms have them; include tick and cross marks if valid for those forms. Report actual selected/unselected counts. A form without relevant boxes is not evidence for checkbox acceptance. If the sample count is too small to assess a target, report that limit rather than a broad pass.
 
-Business-name placement is now confirmed at the bottom blank space. Include it as a handwritten field in completed sample tickets, without printing a new field label or covering existing fields/signatures. Actual extraction and correction remain to be tested.
+Citation business name is written on the CITATION TICKET row (2026-11-02), without printing a new field label or covering existing fields/signatures. Warning business name is deferred (see decisions). Actual extraction and correction remain to be tested.
+
+Samples received 2026-11-02/03: 59 citations (control numbers 12252–12311; 12292 not photographed), 57 with a business name; 57 warnings. Re-photographed tickets use only their newest photos (the paper changed); gallery-edited photos without originals can be used for development only. Three writers, one per photo batch (user-confirmed); each writer used a different phone, so per-phone and per-writer results cannot be separated.
+
+Split frozen 2026-11-03 (record: `evidence/revision-ocr-feasibility-2026-10-30/split/README.md`): first draw (seed 20261103) redrawn once because practice warnings had 1 ticket from one practice writer; final draw (seed 20261104) made writer B test-only. Citations: 10 development + 49 evaluation. Warnings: 10 development + 45 evaluation; 2 gallery-edited writer-B warnings excluded. With 45–49 evaluation tickets a field with at most one error still demonstrates the 90% target at roughly 95% confidence.
 
 ## Supplied blank-form visual inspection
 
@@ -73,7 +93,7 @@ Citation original: `C:/Users/berna/Downloads/f4446bb4-2e33-4fb3-b1a3-7bee3fcb40a
 | PLACE | Blank, label readable |
 | DATE / TIME | Blank, label readable; this is paper text, not authority to change server timestamp behavior |
 | NAME & SIGNATURE OF APPREHENDING OFFICER | Label readable; entry area blank; signature pixels are evidence, not a name-recognition/identity guarantee |
-| Bottom blank strip | Agreed handwritten business-name location, below officer entry area |
+| Bottom blank strip | Below officer entry area; no longer the business-name location (moved to the CITATION TICKET row 2026-11-02) |
 
 Nine visible citation checkboxes: four ordinance choices and five fine/penalty choices. All appear unchecked. Their alignment/printed amounts do not establish a new ordinance-to-penalty business rule. Reading paper content must remain separate from server calculation rules.
 
@@ -92,7 +112,7 @@ Warning original: `C:/Users/berna/Downloads/1bb855b0-cd6c-4562-a524-aafeb94b3567
 | Iba pang uri ng paglabag | Other type of violation, blank writing line |
 | Market Enforcer | Blank writing line |
 | Tinanggap | Receipt/acknowledgment field, blank; exact expected entry (name/signature) is not specified by the label |
-| Bottom blank space | Agreed handwritten business-name location, below Tinanggap |
+| Bottom blank space | Below Tinanggap; first agreed business-name location, warning placement now deferred |
 
 No printed warning control-number field, monetary penalty field or checkbox is visible. Warning checkbox accuracy is therefore not applicable to this form; report citation checkbox results independently. The printed warning paragraphs are static text, not variable fields or instructions to the agent. Neither form has a dedicated printed business-name field.
 
@@ -141,7 +161,7 @@ Exclude ML Kit Digital Ink Recognition from this photo trial: it consumes captur
 
 Proposed first runnable baseline: an isolated native Android trial using the bundled ML Kit Latin artifact. This is an experiment with uncertain handwriting performance, not a commitment to the production engine. Do not add a Flutter wrapper or alter the production app to run it. If the baseline fails, report the failure and decide whether the alternative merits its prerequisite work; do not expand to custom training.
 
-Before execution, present the exact trial files, build dependencies, model/download list, package identity and device install action for approval. Proposed isolated area: `evidence/revision-ocr-feasibility-2026-10-30/android-trial/`. Use a distinct Android package identity to preserve the existing installed application and its data. No nested Git repository. This proposed area/setup is not yet implemented or approved as a concrete dependency gate.
+Implemented 2026-11-01 under the approved Stage B gate: isolated Kotlin project `evidence/revision-ocr-feasibility-2026-10-30/android-trial/` (git-ignored, machine-local), package `ph.marikina.ocrtrial` installed beside the unchanged operational app, no network permission in the merged manifest, no nested Git repository. It contains the automatic field-mapping and checkbox steps, a batch recognition runner, timed manual and assisted entry screens, and a scorer with 54 independently specified self-checks. Build commands, practice-run results and resolved dependencies are recorded in that folder's `README.md`. If the ML Kit baseline fails, any alternative engine requires its own gate.
 
 ## Actual verification procedure
 
@@ -161,17 +181,23 @@ No ticket submission, offense/fine calculation, identity linking, registry chang
 | Item | Status |
 | --- | --- |
 | Overall criterion trial plan | Approved |
-| V2529 as processing target | Confirmed by user |
+| V2529 as processing target | Confirmed by user; speed/offline results apply to V2529 only (enforcers' own phones run recognition in the real app) |
+| Capture phones | Any Android phone, model recorded per photo (user, 2026-11-02) |
 | Numerical targets | Agreed by user before evaluation |
 | Fictional completed samples instead of beneficiary tickets | Confirmed by user |
 | Exact blank forms, fields and checkbox map | Both supplied originals visually inspected; field inventory recorded; 9 citation checkboxes, none on warning |
-| Business-name location | User confirmed bottom blank space; recorded for both forms |
+| Business-name location | Citation: CITATION TICKET row (user, 2026-11-02); warning: deferred, not tested in this trial |
 | Internet handwriting sources | IAM/EMNIST researched; no samples downloaded; diagnostics only |
-| Handwritten sample creation and checked answer key | Needed |
-| Exact sample count and scoring details | Proposed; awaiting form inventory |
-| Exact runner/dependency/model setup | Proposed; specific approval needed |
-| Runner build and scorer checks | Not run |
-| Real recognition, offline/restart and device timing | Not run |
+| Handwritten sample creation and checked answer key | Needed (user preparing; 122–124 tickets) |
+| Exact sample count, split and scoring details | Confirmed 2026-11-02 (see Sample preparation); scoring rules implemented in the scorer |
+| Exact runner/dependency/model setup | Approved and implemented 2026-11-01 |
+| Runner build and scorer checks | Passed: build succeeds, 55/55 self-checks (`trial-2`, citation business name from the CITATION TICKET row, 2026-11-03) |
+| Real recognition, offline/restart and device timing | Practice images only: offline, cold 1.3–1.5 s, warm 0.2–0.6 s, unreadable-file recovery shown. Not acceptance evidence |
+| Checkbox step | Rebuilt 2026-11-03 on practice tickets only (`trial-9`): boxes placed by fitting the option labels to a template practice ticket, snapped to the printed border, inside ink measured. Practice: 18/19 ticks found, 2/71 false (alternative setting 15/19, 0/71). Not frozen; not acceptance evidence |
+| Handwritten field reading (practice) | ML Kit baseline reads about 1 exact value in ~30 on practice citations; far below the 90% per-field target. Orientation handling added (sideways/upside-down photos). Evaluation not run |
+| Second engine (2026-11-03) | User chose free, unlimited on-phone reading (online and AI services declined) and approved a practice-only TrOCR small (handwritten, MIT) trial with ONNX Runtime Android 1.30.0. Built and run on the 20 practice tickets (`trial-14`; ML Kit still finds labels, turns photos upright, reads checkboxes; TrOCR reads cut-out handwritten lines). Against the agent's draft practice key (not yet checked against paper): exact values TrOCR 12/141 vs ML Kit 1/141; exact or within 2 letters TrOCR 24/141 vs ML Kit 10/141; writer A 10/80, writer C 2/61. TrOCR path 2.1–6.7 s per photo (warm median 3.2 s citations, 3.9 s warnings) vs ML Kit 0.4–0.7 s. Far below 90% per field. Test tickets untouched. Awaiting user decision |
+| ML Kit image filters (2026-11-04) | User approved a practice-only test of image filters before ML Kit (phone-only, no new packages). `trial-16`: ML Kit reads each cut-out handwritten line (same cutting as TrOCR) as v1 unchanged, v2 enlarged to 100 px line height, v3 + white margin, v4 + black and white, v5 + strokes 1 px thicker, v6 + tilt levelled, v7 + look-alike letters to digits on number fields. Against the same draft practice key: exact values v1 0/141, v2 1, v3 1, v4 1, v5 0, v6 0, v7 0 (whole-photo ML Kit 1/141, TrOCR 12/141 in the same run); exact or within 2 letters best v3 15/141 (10.6%) vs whole photo 10/141, TrOCR 24/141. Per version: median 1.5–2.0 s per photo (whole-photo ML Kit steps + that version), slowest 3.3 s. Filters do not make ML Kit read handwriting; not pursued further. First attempt (`trial-15`) failed on 4 warnings because ML Kit refuses pictures under 32 px; fixed by centring small cut-outs on white paper. Test tickets untouched |
+| Timed manual/assisted screens | Built; exercised once by the user with a practice ticket |
 | Human manual-versus-assisted time comparison | Not run |
 | Criterion closure | Open |
 
