@@ -15,4 +15,8 @@ jobs:
           dotnet-version: '10.0.x'
       - run: dotnet restore
       - run: dotnet build --no-restore -p:UseAppHost=false
-      - run: dotnet test --no-build --no-restore
+      - run: |
+          export BACKUP_TEST_TEMP_ROOT="$RUNNER_TEMP/backup-tests"
+          mkdir -p "$BACKUP_TEST_TEMP_ROOT"
+          export TMPDIR="$BACKUP_TEST_TEMP_ROOT"
+          dotnet test --no-build --no-restore
