@@ -16,14 +16,7 @@ function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail; }) {
     <>
       <TicketSectionHeader title={"VIOLATION DETAILS"} icon={FileWarning} />
       <section className={styles.detailsSection}>
-        {detail?.type === "Ticket" && <>
-          <TicketInfoRow label="PAPER REFERENCE" value={detail.paperReference || "Unavailable (legacy record)"} />
-          <TicketInfoRow label="ISSUE PLACE" value={detail.issuePlace || "Unavailable (legacy record)"} />
-        </>}
-        {detail?.type === "Warning" && <>
-          <TicketInfoRow label="WARNING REFERENCE" value={detail.controlNumber || "Unavailable (legacy record)"} />
-          <TicketInfoRow label="ISSUE PLACE" value={detail.issuePlace || "Unavailable (legacy record)"} />
-        </>}
+        {detail && <TicketInfoRow label="ISSUE PLACE" value={detail.issuePlace || "Unavailable (legacy record)"} />}
         <div className={styles.ordinanceList}>
           {detail?.violations.map((violation, i) => (
             detail.type === "Warning" ? <TicketInfoRow key={i}

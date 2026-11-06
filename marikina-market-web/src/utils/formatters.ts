@@ -29,19 +29,9 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
-/** Prefix a control number consistently wherever it is shown to the user. */
-export function formatControlNumber(
-  value: string | number | null | undefined,
-  fallback = "—",
-): string {
-  if (value == null || String(value).trim() === "") return fallback;
-
-  const number = String(value)
-    .trim()
-    .replace(/^CTRL\s*#?\s*/i, "")
-    .replace(/^#\s*/, "");
-
-  return `CTRL #${number}`;
+/** The control number staff see (printed ticket number or WRN number); old tickets without one say so. */
+export function formatControlNumber(value: string | null | undefined): string {
+  return value?.trim() || "Unavailable (legacy record)";
 }
 
 /** Format a number with thousands separators. */

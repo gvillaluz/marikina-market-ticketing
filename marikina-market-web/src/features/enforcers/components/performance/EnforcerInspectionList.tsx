@@ -27,8 +27,8 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
       columns={[
         {
           key: "controlNumber",
-          header: "Control #",
-          render: (record) => formatControlNumber(record.controlNumber, "N/A"),
+          header: "Control number",
+          render: (record) => formatControlNumber(record.controlNumber),
         },
         {
           key: "issuedAt",

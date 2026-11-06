@@ -6,7 +6,7 @@ import { RecordStatus, Severity } from '@/api/types/common.types';
 import { formatControlNumber } from '@/utils/formatters';
 
 interface TicketDetailHeaderProps {
-  controlNo: string;
+  controlNo: string | null | undefined;
   status: RecordStatus;
   lastUpdated: string;
 }

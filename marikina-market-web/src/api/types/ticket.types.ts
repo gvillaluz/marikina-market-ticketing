@@ -81,6 +81,7 @@ interface BaseRecordDetail {
 
 export interface InspectionSummary {
   businessSnapshot?: BusinessSnapshot | null;
+  controlNumber: string | null;
   paperReference?: string | null;
   issuePlace?: string | null;
   personId?: number | null;
@@ -169,7 +170,7 @@ export interface TicketSummary {
   paperViolatorName?: string | null;
   registeredOwnerName?: string | null;
   id: number;
-  controlNumber: string;
+  controlNumber: string | null;
   enforcerId: number;
   enforcerFirstName: string;
   enforcerLastName: string;
@@ -243,7 +244,7 @@ export interface TicketDetail {
   enforcerLastName: string;
   enforcerFirstName: string;
   vendorId: number;
-  controlNumber?: string;
+  controlNumber: string | null;
   type: "Warning" | "Ticket";
   businessAccountNumber: string;
   businessType: "Public" | "Private" | 0 | 1;

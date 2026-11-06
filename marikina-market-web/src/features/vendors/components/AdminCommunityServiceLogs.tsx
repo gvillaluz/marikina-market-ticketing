@@ -68,10 +68,12 @@ export default function AdminCommunityServiceLogs({
   const columns: Column<AdminCommunityServiceLog>[] = [
     {
       key: "controlNumber",
-      header: "CTRL #",
+      header: "Control number",
       width: "10%",
       render: (log) => (
-        <span className={styles.controlNumber}>#{log.controlNumber}</span>
+        <span className={styles.controlNumber}>
+          {formatControlNumber(log.controlNumber)}
+        </span>
       ),
     },
     {

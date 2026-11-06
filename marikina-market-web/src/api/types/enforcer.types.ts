@@ -59,7 +59,7 @@ export interface EnforcerPerformanceData {
 export interface InspectionHistorySummary {
   businessSnapshot?: BusinessSnapshot | null;
   ticketId: number;
-  controlNumber: string;
+  controlNumber: string | null;
   issuedAt: Date;
   vendorFirstName: string;
   vendorLastName: string;
