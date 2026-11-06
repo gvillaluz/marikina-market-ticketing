@@ -1,3 +1,5 @@
+using MarikinaMarket.API.Application.DTOs.Person.Response;
+using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using MarikinaMarket.API.Application.DTOs.User.Request;
 using MarikinaMarket.API.Application.DTOs.Vendor.Internal;
 using MarikinaMarket.API.Application.DTOs.Vendor.Request;
@@ -116,15 +118,16 @@ namespace MarikinaMarket.API.Presentation.Controllers
             return Ok(await _service.RequestMoreInformation(request.VendorRegistrationId, action));
         }
 
-        [HttpGet("stall/{businessAccountNumber}")]
+        [HttpGet("lookup")]
         [Authorize(Roles = nameof(Role.MarketEnforcer))]
-        public async Task<ActionResult<List<GetVendorResponse>>> GetVendorByStallNumber([FromRoute] string businessAccountNumber)
-        {
-            if (string.IsNullOrWhiteSpace(businessAccountNumber))
-                return BadRequest("Stall number must not be empty.");
+        public async Task<ActionResult<PageResponse<GetVendorResponse>>> SearchBusinesses([FromQuery] string? search)
+            => Ok(await _service.SearchBusinessesAsync(search));
 
-            return Ok(await _service.GetVendorByBusinessAccountNumberAsync(businessAccountNumber));
-        }
+        [HttpGet("{businessId:int}/people")]
+        [Authorize(Roles = nameof(Role.MarketEnforcer))]
+        public async Task<ActionResult<List<PersonSummaryResponse>>> GetBusinessPeople(
+            [FromRoute] int businessId, [FromServices] ITicketService tickets)
+            => Ok(await tickets.GetBusinessPeopleAsync(businessId));
 
         [HttpGet("code/{code}")]
         [Authorize(Roles = nameof(Role.MarketEnforcer))]

@@ -169,7 +169,7 @@ namespace MarikinaMarket.API.Application.Services
             {
                 BusinessSnapshot = i.BusinessSnapshot,
                 TicketId = i.Id,
-                ControlNumber = i.ControlNumber,
+                ControlNumber = i.Type == ViolationType.Warning ? i.ControlNumber : i.PaperReference,
                 IssuedAt = i.IssuedAt,
                 VendorFirstName = i.FirstName,
                 VendorLastName = i.LastName,

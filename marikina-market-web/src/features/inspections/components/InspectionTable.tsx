@@ -4,7 +4,7 @@ import {
   RecordActions,
   RecordsState,
 } from "@/components/ui/Records";
-import { formatDateTime } from "@/utils/formatters";
+import { formatControlNumber, formatDateTime } from "@/utils/formatters";
 import type { InspectionSummary } from "@/api/types/ticket.types";
 import styles from "./InspectionTable.module.css";
 
@@ -40,7 +40,11 @@ export function InspectionTable({
           loading={isLoading}
           emptyMessage="No inspection records match your search or filters."
           columns={[
-            { key: "paperReference", header: "Paper reference", render: (row) => row.type === "Ticket" ? (row.paperReference || "Unavailable (legacy record)") : "—" },
+            {
+              key: "controlNumber",
+              header: "Control number",
+              render: (row) => formatControlNumber(row.controlNumber),
+            },
             {
               key: "vendor",
               header: "Violator",

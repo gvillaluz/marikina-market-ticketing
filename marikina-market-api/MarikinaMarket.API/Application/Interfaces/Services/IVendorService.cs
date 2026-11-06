@@ -33,7 +33,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
             VendorRegistrationRequestFilters filters);
         public Task<VendorRegistrationDetailsResponse> GetVendorRegistrationDetailsAsync(int registrationId);
         public Task<List<VendorRegistrationDocumentResponse>> GetVendorRegistrationDocumentsAsync(int registrationId);
-        public Task<List<GetVendorResponse>> GetVendorByBusinessAccountNumberAsync(string stallNumber);
+        public Task<PageResponse<GetVendorResponse>> SearchBusinessesAsync(string? search);
         public Task<GetVendorResponse> GetVendorByQrCode(string qrCode);
         public Task<PageResponse<AdminVendorSummaryResponse>> GetAdminVendorSummariesAsync(
             int offset,

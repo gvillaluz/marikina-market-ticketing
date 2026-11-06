@@ -1,4 +1,5 @@
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
+export './business_people_requested.dart';
 export './inspection_verification_requested.dart';
 export './person_history_requested.dart';
 export './person_creation_requested.dart';
@@ -13,7 +14,10 @@ abstract class InspectionEvent {}
 
 class LoadOrdinances extends InspectionEvent {}
 
-class LoadOrdinanceSelection extends InspectionEvent {}
+class LoadOrdinanceSelection extends InspectionEvent {
+  final int? personId;
+  LoadOrdinanceSelection({this.personId});
+}
 
 class LoadInspectionTickets extends InspectionEvent {
   final String search;
@@ -27,9 +31,9 @@ class SearchByCodeRequested extends InspectionEvent {
   SearchByCodeRequested(this.codeValue);
 }
 
-class SearchByStallNumberRequested extends InspectionEvent {
-  final String stallNumber;
-  SearchByStallNumberRequested(this.stallNumber);
+class BusinessSearchRequested extends InspectionEvent {
+  final String search;
+  BusinessSearchRequested(this.search);
 }
 
 class FineSummaryRequested extends InspectionEvent {

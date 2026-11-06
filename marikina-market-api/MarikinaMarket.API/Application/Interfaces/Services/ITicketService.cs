@@ -1,3 +1,5 @@
+using MarikinaMarket.API.Application.DTOs.Ordinance.Response;
+using MarikinaMarket.API.Application.DTOs.Person.Response;
 using MarikinaMarket.API.Application.DTOs.Tickets.Internal;
 using MarikinaMarket.API.Application.DTOs.Tickets.Request;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
@@ -24,6 +26,8 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
         Task<InspectionVerificationResponse> VerifyInspectionAsync(VerifyInspectionRequest request);
         Task<FineSummaryResponse> GetPersonFineSummaryAsync(List<int> ordinanceIds, int personId);
         Task<PageResponse<PersonTicketHistoryResponse>> GetPersonHistoryAsync(int personId, int offset);
+        Task<List<PersonSummaryResponse>> GetBusinessPeopleAsync(int businessId);
+        Task<OrdinanceShortcutsResponse> GetOrdinanceShortcutsAsync(int enforcerId, int? personId);
         Task<PageResponse<VendorInspectionHistoryResponse>> GetVendorInspectionHistoryAsync(
             int vendorId,
             int offset,

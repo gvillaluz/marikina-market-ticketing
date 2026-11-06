@@ -84,10 +84,10 @@ class _PersonHistorySheetState extends State<PersonHistorySheet> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(
-                'Paper reference: ${ticket.paperReference ?? 'Unavailable (legacy record)'} · ${ticket.businessSnapshot?.businessName ?? 'Historical business details unavailable.'}',
+                'Control number: ${ticket.paperReference ?? 'Unavailable (legacy record)'} · ${ticket.businessSnapshot?.businessName ?? 'Historical business details unavailable.'}',
               ),
               subtitle: Text(
-                'System control: ${ticket.reference}\nIssue place: ${ticket.issuePlace ?? 'Unavailable (legacy record)'}\nRecorded violator: ${ticket.paperViolatorName ?? 'Unconfirmed'}\n${ticket.ordinances.join('; ')}\n${ticket.issuedAt.toLocal()} · ${ticket.status ?? 'Unknown'}\nOfficer: ${ticket.enforcerName}\nAssessed cash: ${ticket.assessedCashFine?.toStringAsFixed(2) ?? 'Not cash'} · Outstanding cash: ${ticket.outstandingCashFine.toStringAsFixed(2)}',
+                'Issue place: ${ticket.issuePlace ?? 'Unavailable (legacy record)'}\nRecorded violator: ${ticket.paperViolatorName ?? 'Unconfirmed'}\n${ticket.ordinances.join('; ')}\n${ticket.issuedAt.toLocal()} · ${ticket.status ?? 'Unknown'}\nOfficer: ${ticket.enforcerName}\nAssessed cash: ${ticket.assessedCashFine?.toStringAsFixed(2) ?? 'Not cash'} · Outstanding cash: ${ticket.outstandingCashFine.toStringAsFixed(2)}',
               ),
             ),
           if (_loading) const Center(child: CircularProgressIndicator()),

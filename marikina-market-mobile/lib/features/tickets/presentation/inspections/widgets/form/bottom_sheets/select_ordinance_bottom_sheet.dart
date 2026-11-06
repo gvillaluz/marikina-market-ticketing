@@ -41,8 +41,35 @@ class _SelectOrdinanceBottomSheetState
   void initState() {
     super.initState();
     _selectedOrdinances = List.of(widget.ordinances);
-    context.read<InspectionBloc>().add(LoadOrdinanceSelection());
+    context.read<InspectionBloc>().add(
+      LoadOrdinanceSelection(personId: widget.personId),
+    );
   }
+
+  static bool _matches(Ordinance ordinance, String query) => [
+    ordinance.ordinanceNo,
+    ordinance.series,
+    ordinance.section ?? '',
+    ordinance.title,
+  ].any((text) => text.toLowerCase().contains(query));
+
+  Widget _tile(
+    Ordinance ordinance,
+    Set<int> selectedIds,
+    String keyPrefix,
+  ) => SelectionSheetTile(
+    key: ValueKey('$keyPrefix-${ordinance.id}'),
+    title: 'Ord No. ${ordinance.ordinanceNo}, Series of ${ordinance.series}',
+    subtitle:
+        '${ordinance.sectionLabel} · ${ordinance.categoryLabel}\n${ordinance.title}',
+    isSelected: selectedIds.contains(ordinance.id),
+    onTap: _confirming ? null : () => _toggle(ordinance),
+  );
+
+  Widget _groupHeading(String text) => Padding(
+    padding: const EdgeInsets.only(top: AppTheme.inspectionSmallGap),
+    child: Text(text, style: AppTheme.inspectionHeadingStyle),
+  );
 
   @override
   void dispose() {
@@ -134,21 +161,40 @@ class _SelectOrdinanceBottomSheetState
     },
     builder: (context, state) {
       final query = _searchQuery.toLowerCase();
-      final ordinances = context
-          .read<InspectionBloc>()
-          .ordinances
+      final bloc = context.read<InspectionBloc>();
+      final available = bloc.ordinances
           .where(
             (ordinance) =>
                 ordinance.isActive &&
-                (!widget.isWarningTicket ||
-                    ordinance.warningEligible == true) &&
-                (ordinance.ordinanceNo.toLowerCase().contains(query) ||
-                    ordinance.series.toLowerCase().contains(query)),
+                (!widget.isWarningTicket || ordinance.warningEligible == true),
           )
+          .toList();
+      final ordinances = available
+          .where((ordinance) => _matches(ordinance, query))
           .toList();
       final selectedIds = _selectedOrdinances
           .map((ordinance) => ordinance.id)
           .toSet();
+      final byId = {for (final ordinance in available) ordinance.id: ordinance};
+      final shortcuts = bloc.ordinanceShortcuts;
+      final groups = query.isNotEmpty || shortcuts == null
+          ? const <(String, List<Ordinance>)>[]
+          : [
+                  (
+                    "This person's past violations",
+                    shortcuts.personOrdinanceIds,
+                  ),
+                  ('My recent', shortcuts.myRecentOrdinanceIds),
+                  (
+                    'Most violated (last 30 days)',
+                    shortcuts.mostViolatedOrdinanceIds,
+                  ),
+                ]
+                .map(
+                  (group) => (group.$1, [for (final id in group.$2) ?byId[id]]),
+                )
+                .where((group) => group.$2.isNotEmpty)
+                .toList();
       final loading =
           state is OrdinanceSelectionLoading || state is InspectionInitial;
       Widget? message;
@@ -190,7 +236,7 @@ class _SelectOrdinanceBottomSheetState
                         setState(() => _searchQuery = value.trim()),
                     onTapOutside: (_) => FocusScope.of(context).unfocus(),
                     decoration: InputDecoration(
-                      labelText: 'Search number or series',
+                      labelText: 'Search section, title or number',
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _searchQuery.isEmpty
                           ? null
@@ -249,25 +295,30 @@ class _SelectOrdinanceBottomSheetState
           ),
           if (message != null)
             SliverFillRemaining(hasScrollBody: false, child: message)
-          else
+          else ...[
+            if (groups.isNotEmpty)
+              SliverPadding(
+                padding: AppTheme.selectionSheetPadding,
+                sliver: SliverList.list(
+                  children: [
+                    for (final (heading, items) in groups) ...[
+                      _groupHeading(heading),
+                      for (final ordinance in items)
+                        _tile(ordinance, selectedIds, heading),
+                    ],
+                    _groupHeading('All ordinances'),
+                  ],
+                ),
+              ),
             SliverPadding(
               padding: AppTheme.selectionSheetPadding,
               sliver: SliverList.builder(
                 itemCount: ordinances.length,
-                itemBuilder: (context, index) {
-                  final ordinance = ordinances[index];
-                  return SelectionSheetTile(
-                    key: ValueKey(ordinance.id),
-                    title:
-                        'Ord No. ${ordinance.ordinanceNo}, Series of ${ordinance.series}',
-                    subtitle:
-                        '${ordinance.sectionLabel} · ${ordinance.categoryLabel}\n${ordinance.title}',
-                    isSelected: selectedIds.contains(ordinance.id),
-                    onTap: _confirming ? null : () => _toggle(ordinance),
-                  );
-                },
+                itemBuilder: (context, index) =>
+                    _tile(ordinances[index], selectedIds, 'all'),
               ),
             ),
+          ],
         ],
         footer: AppPrimaryButton(
           label: 'Confirm selection',

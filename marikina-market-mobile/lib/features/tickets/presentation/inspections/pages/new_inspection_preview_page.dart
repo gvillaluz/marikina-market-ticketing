@@ -128,7 +128,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
         (data.issuePlace?.trim().isEmpty ?? true)) {
       setState(
         () => _verificationMessage =
-            'Enter the reviewed paper reference and issue place.',
+            'Enter the reviewed control number and issue place.',
       );
       return;
     }
@@ -664,7 +664,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                     ],
                     if (!isTicket)
                       const Text(
-                        'Internal warning reference is assigned when saved.',
+                        "The warning's control number is assigned when saved.",
                       ),
                     if (!isTicket && _submissionUncertain) ...[
                       const Text(

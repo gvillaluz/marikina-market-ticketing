@@ -50,13 +50,12 @@ const warning = {
   issuePlace: 'Fish aisle near F-014', description: 'Market identification card not displayed'
 };
 
-test('warning detail shows actual place and internal reference without paper citation numbering', () => {
+// The WRN control number is shown once, in the record's top box (control-number.test.mjs).
+test('warning detail shows the actual place without a second number row', () => {
   const html = renderToStaticMarkup(React.createElement(Details, { detail: warning }));
-  assert.match(html, /WARNING REFERENCE/);
-  assert.match(html, /WRN-0011/);
   assert.match(html, /ISSUE PLACE/);
   assert.match(html, /Fish aisle near F-014/);
-  assert.doesNotMatch(html, /PAPER REFERENCE/);
+  assert.doesNotMatch(html, /WARNING REFERENCE|PAPER REFERENCE|WRN-0011/);
 });
 test('warning has one classified paper photo and no supporting-photo section', () => {
   const html = renderToStaticMarkup(React.createElement(Photos, {    

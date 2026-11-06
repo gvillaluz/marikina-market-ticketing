@@ -431,6 +431,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     setState(() {
       _vendorError = null;
       _vendorSummary = vendor;
+      _issuePlaceController.text = vendor.issuePlace;
     });
   }
 
@@ -658,6 +659,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           const SizedBox(height: AppTheme.inspectionSmallGap),
                         ],
                         PersonIdentityReview(
+                          vendor: _vendorSummary!,
                           onChanged: (person, paperName) => setState(() {
                             _confirmedPerson = person;
                             _paperName = paperName;

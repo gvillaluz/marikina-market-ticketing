@@ -81,7 +81,7 @@ class NotificationTile extends StatelessWidget {
               ),
               const SizedBox(height: AppTheme.notificationSmallGap),
               Text(
-                'Ticket #${notification.controlNumber} for ${notification.tradeName} is now ${notification.status?.value ?? 'Warning'}.',
+                '${notification.controlNumber == null ? 'A ticket' : 'Ticket ${notification.controlNumber}'} for ${notification.tradeName} is now ${notification.status?.value ?? 'Warning'}.',
                 style: AppTheme.notificationBodyStyle.copyWith(
                   color: colors.onSurface,
                   fontWeight: notification.isRead

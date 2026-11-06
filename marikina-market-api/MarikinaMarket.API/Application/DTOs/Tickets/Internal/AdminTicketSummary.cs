@@ -9,7 +9,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Internal
         public string? PaperReference { get; set; }
         public string? IssuePlace { get; set; }
         public int Id { get; set; }
-        public required string ControlNumber { get; set; }
+        public string? ControlNumber { get; set; }
         public int EnforcerId { get; set; }
         public required string EnforcerFirstName { get; set; }
         public required string EnforcerLastName { get; set; }

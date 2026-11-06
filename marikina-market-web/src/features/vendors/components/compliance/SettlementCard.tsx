@@ -32,10 +32,7 @@ export default function SettlementCard({
       <div className={styles.settlementTop}>
         <strong>
           {settlement.businessAccountNumber} ·{" "}
-          {formatControlNumber(
-            settlement.controlNumber,
-            `Ticket #${settlement.ticketId}`,
-          )}
+          {formatControlNumber(settlement.controlNumber)}
         </strong>
         <span className={styles.dueLabel}>{dueLabel}</span>
       </div>

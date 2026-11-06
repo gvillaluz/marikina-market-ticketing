@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_candidate.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
+import 'business_people_section.dart';
 import 'create_person_sheet.dart';
 import 'person_history_sheet.dart';
+import 'person_record_tile.dart';
 
 class PersonIdentityReview extends StatefulWidget {
+  final VendorSummary vendor;
   final void Function(PersonCandidate? person, String paperName) onChanged;
-  const PersonIdentityReview({super.key, required this.onChanged});
+  const PersonIdentityReview({
+    super.key,
+    required this.vendor,
+    required this.onChanged,
+  });
   @override
   State<PersonIdentityReview> createState() => _PersonIdentityReviewState();
 }
@@ -23,6 +31,19 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
   PersonCandidate? _confirmed;
   bool _checked = false, _hasMore = false, _loading = false;
   String? _message;
+  List<PersonCandidate> _people = const [];
+  bool _peopleLoading = true;
+  String? _peopleError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPeople();
+  }
+
+  void _loadPeople() => context.read<InspectionBloc>().add(
+    BusinessPeopleRequested(widget.vendor.id),
+  );
 
   @override
   void dispose() {
@@ -43,6 +64,21 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
       _message = null;
     });
     widget.onChanged(null, _name.text.trim());
+  }
+
+  // One tap fills the paper name from the record, so nothing is retyped.
+  void _select(PersonCandidate person) {
+    setState(() {
+      _confirmed = person;
+      _name.text = person.fullName;
+    });
+    widget.onChanged(person, person.fullName);
+  }
+
+  void _findOwner() {
+    _name.text = widget.vendor.ownerName;
+    _changed(_name.text);
+    _check();
   }
 
   void _check({int offset = 0}) {
@@ -96,6 +132,24 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
     BuildContext context,
   ) => BlocConsumer<InspectionBloc, InspectionState>(
     listener: (context, state) {
+      if (state is BusinessPeopleLoading) {
+        setState(() {
+          _peopleLoading = true;
+          _peopleError = null;
+        });
+      }
+      if (state is BusinessPeopleLoaded) {
+        setState(() {
+          _peopleLoading = false;
+          _people = state.people;
+        });
+      }
+      if (state is BusinessPeopleError) {
+        setState(() {
+          _peopleLoading = false;
+          _peopleError = state.message;
+        });
+      }
       if (state is PersonMatchesLoading) {
         setState(() {
           _loading = true;
@@ -125,12 +179,22 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
     builder: (context, state) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        BusinessPeopleSection(
+          ownerName: widget.vendor.ownerName,
+          people: _people,
+          loading: _peopleLoading,
+          error: _peopleError,
+          selectedId: _confirmed?.id,
+          onFindOwner: _findOwner,
+          onRetry: _loadPeople,
+          onSelect: _select,
+        ),
         Text(
-          'Violator identity',
+          'Add helper or another person',
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const Text(
-          'Enter the reviewed paper details, then check possible person records.',
+          'Enter the name from the paper, then search all person records.',
         ),
         TextField(
           controller: _name,
@@ -170,26 +234,21 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
             child: Text(_message!),
           ),
         for (final person in _candidates)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            isThreeLine: true,
-            title: Text('${person.fullName} · Person ${person.id}'),
-            subtitle: Text(
-              '${person.address}\n${person.phoneNumber ?? 'No phone recorded'}${person.matchedFields.isEmpty ? '' : '\nMatches: ${person.matchedFields.join(', ')}'}',
-            ),
-            trailing: TextButton(
-              onPressed: _loading || !_checked
-                  ? null
-                  : () {
-                      setState(() => _confirmed = person);
-                      widget.onChanged(person, _name.text.trim());
-                    },
-              child: Text(
-                _confirmed?.id == person.id ? 'Confirmed' : 'Confirm',
-              ),
-            ),
-            onTap: () =>
-                PersonHistorySheet.show(context, person.id, person.fullName),
+          PersonRecordTile(
+            key: ValueKey('person-match-${person.id}'),
+            person: person,
+            details: [
+              person.address,
+              person.phoneNumber ?? 'No phone recorded',
+              if (person.matchedFields.isNotEmpty)
+                'Matches: ${person.matchedFields.join(', ')}',
+              if (person.ticketTotals.businessNames.isNotEmpty)
+                'Ticketed at: ${person.ticketTotals.businessNames.join(', ')}',
+            ],
+            actionLabel: _confirmed?.id == person.id
+                ? 'Selected'
+                : 'Same person – select',
+            onAction: _loading || !_checked ? null : () => _select(person),
           ),
         if (_hasMore)
           TextButton(
@@ -201,7 +260,11 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
         if (_checked)
           TextButton(
             onPressed: _loading ? null : _create,
-            child: const Text('None of these people — create a new person'),
+            child: Text(
+              _candidates.isEmpty
+                  ? 'New person'
+                  : 'Not any of these – new person',
+            ),
           ),
         if (_confirmed != null) ...[
           Text(

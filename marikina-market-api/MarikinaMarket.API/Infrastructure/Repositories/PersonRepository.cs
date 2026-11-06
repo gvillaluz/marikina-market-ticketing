@@ -9,6 +9,8 @@ public class PersonRepository(AppDbContext context) : IPersonRepository
 {
     public Task<Person?> GetAsync(int id) => context.Persons.SingleOrDefaultAsync(p => p.Id == id);
 
+    public Task<List<Person>> GetManyAsync(List<int> ids) => context.Persons.AsNoTracking().Where(p => ids.Contains(p.Id)).ToListAsync();
+
     public async Task<(List<Person> Items, int Total)> SearchAsync(string? search, int offset, int limit)
     {
         var query = context.Persons.AsNoTracking();

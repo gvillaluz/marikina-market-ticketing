@@ -2,7 +2,9 @@
 
 Date: 2026-10-30 (Asia/Manila).
 
-Status (updated 2026-11-02): criterion 1 trial approved; Stage B (isolated runner and scorer) built and checked on V2529 with practice images only. Completed handwritten samples, answer key, tuning, frozen evaluation, timing study and report are outstanding. No scored accuracy, checkbox or timing result exists. Criterion remains open. No application integration or roadmap closure is implied.
+**Status (updated 2026-11-06): DROPPED.** On 2026-11-04 the user decided to drop OCR. The practice trial (20 tickets) fell far short of the 90% per-field target: the best reader (TrOCR) got 12 of 141 handwritten values exactly right, ML Kit 1 of 141, and image filters did not help. Checkboxes worked on practice (18/19 found, 2/71 false). Google Cloud Vision was not run because it needs billing. The 94 test tickets were never scored, so no final evaluation exists. The criterion is not passed; it was removed from the roadmap and replaced by faster in-app entry (see `docs/revision-ocr-next-session.md`). The rest of this document is kept as the trial record.
+
+Previous status (2026-11-02): criterion 1 trial approved; Stage B (isolated runner and scorer) built and checked on V2529 with practice images only. Completed handwritten samples, answer key, tuning, frozen evaluation, timing study and report are outstanding. No scored accuracy, checkbox or timing result exists. Criterion remains open. No application integration or roadmap closure is implied.
 
 ## Confirmed scope and decisions
 

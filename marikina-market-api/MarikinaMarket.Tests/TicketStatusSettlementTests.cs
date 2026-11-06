@@ -254,7 +254,8 @@ public class TicketStatusSettlementTests
     public async Task Status_email_encodes_names_and_control_number()
     {
         var fixture = new Fixture(PenaltyType.CashFine);
-        fixture.Ticket.ControlNumber = "<img src=x>";
+        // The email shows the control number from the paper ticket, which the enforcer types in.
+        fixture.Ticket.PaperReference = "<img src=x>";
         fixture.Ticket.Vendor = new Business
         {
             BusinessAccountNumber = "business", BusinessName = "Stall", QrCodeValue = "qr",

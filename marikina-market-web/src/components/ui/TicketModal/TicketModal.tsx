@@ -17,6 +17,7 @@ import Button from "@/components/ui/Button";
 import { RefreshCw } from "lucide-react";
 
 import { getApiErrorMessage } from "@/utils/apiErrors";
+import { formatControlNumber } from "@/utils/formatters";
 
 interface TicketModalProps {
   isOpen: boolean;
@@ -95,14 +96,12 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
                       {isTicket ? "VIOLATION TICKET" : "WRITTEN WARNING TICKET"}
                     </span>
                   </div>
-                  {isTicket && (
-                    <div className={styles.controlNo}>
-                      <span className={styles.controlLabel}>SYSTEM CONTROL NO.</span>
-                      <span className={styles.controlValue}>
-                        {ticket?.controlNumber || "N/A"}
-                      </span>
-                    </div>
-                  )}
+                  <div className={styles.controlNo}>
+                    <span className={styles.controlLabel}>CONTROL NO.</span>
+                    <span className={styles.controlValue}>
+                      {formatControlNumber(ticket.controlNumber)}
+                    </span>
+                  </div>
                 </div>
 
                 <hr className={styles.divider} />

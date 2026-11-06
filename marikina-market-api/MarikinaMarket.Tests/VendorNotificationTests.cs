@@ -53,6 +53,25 @@ public class VendorNotificationTests
         if (offset == 0) Assert.Equal(12, rows[0].GetProperty("id").GetInt32());
     }
 
+    // The control number shown to people: the paper ticket's printed number, or a warning's own number.
+    [Theory]
+    [InlineData(ViolationType.Ticket, "11", "000456", "000456")]
+    [InlineData(ViolationType.Warning, "WRN-0003", null, "WRN-0003")]
+    [InlineData(ViolationType.Ticket, "11", null, null)] // old ticket recorded before paper numbers
+    public async Task Enforcer_notifications_carry_the_paper_control_number(
+        ViolationType type, string appNumber, string? paperNumber, string? expected)
+    {
+        using var fixture = new Fixture();
+        fixture.Add(1, 17, type: type, appNumber: appNumber, paperNumber: paperNumber).EnforcerId = 7;
+        await using var host = await fixture.HostAsync();
+        using var response = await host.SendAsync(HttpMethod.Get, "/api/Notification?filter=All&offset=0", "MarketEnforcer");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var number = Assert.Single(json.RootElement.GetProperty("items").EnumerateArray().ToList()).GetProperty("control_number");
+        if (expected is null) Assert.Equal(JsonValueKind.Null, number.ValueKind);
+        else Assert.Equal(expected, number.GetString());
+    }
+
     [Fact]
     public async Task Enforcer_empty_inbox_returns_zero_and_read_rejects_other_owner()
     {
@@ -221,7 +240,8 @@ public class VendorNotificationTests
             });
             Service = new NotificationService(push, null!, users, new NotificationRepository(this), new VendorRepository(this));
         }
-        public Notification Add(int id, int vendorId, bool vendorRead = false)
+        public Notification Add(int id, int vendorId, bool vendorRead = false,
+            ViolationType type = ViolationType.Ticket, string appNumber = "VIO-0101", string? paperNumber = null)
         {
             var record = new Notification
             {
@@ -230,8 +250,8 @@ public class VendorNotificationTests
                 CreatedAt = new DateTime(2026, 10, 14, 2, 0, 0, DateTimeKind.Utc), Status = TicketStatus.Pending,
                 Ticket = new Ticket
                 {
-                    Id = id + 100, VendorId = vendorId, Description = "Inspection", ControlNumber = "VIO-0101",
-                    Type = ViolationType.Ticket, Status = TicketStatus.Pending, PenaltyType = PenaltyType.CashFine,
+                    Id = id + 100, VendorId = vendorId, Description = "Inspection", ControlNumber = appNumber, PaperReference = paperNumber,
+                    Type = type, Status = TicketStatus.Pending, PenaltyType = PenaltyType.CashFine,
                     IssuedAt = new DateTime(2026, 10, 14, 2, 0, 0, DateTimeKind.Utc),
                     Vendor = new Business { Id = vendorId, BusinessAccountNumber = "MM-17", BusinessName = "Reyes Fresh Fish", QrCodeValue = "sample" },
                     MarketSection = new MarketSection { Name = "Fish and Seafood", Description = "Fish retail" }

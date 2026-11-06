@@ -12,7 +12,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getRecordFileName(
-  ticket: { type: string; controlNumber?: string },
+  ticket: { type: string; controlNumber?: string | null },
   ticketId: number,
 ) {
   const recordName =

@@ -12,6 +12,9 @@ using MarikinaMarket.API.Application.Services;
 using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Infrastructure.Json;
+using MarikinaMarket.API.Infrastructure.Persistence;
+using MarikinaMarket.API.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using MarikinaMarket.API.Presentation.Controllers;
 using MarikinaMarket.API.Presentation.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -74,7 +77,7 @@ public class PersonManagementTests
     public async Task Create_trims_fields_and_allows_identical_people_without_accounts()
     {
         var repository = new MemoryRepository();
-        var service = new PersonService(repository);
+        var service = new PersonService(repository, NoTickets());
         var first = await service.SaveAsync(null, Request());
         var second = await service.SaveAsync(null, Request());
         Assert.Equal("E2E Elena Reyes", first.FullName);
@@ -89,7 +92,7 @@ public class PersonManagementTests
     public async Task Edit_preserves_identity_and_creation_time()
     {
         var repository = new MemoryRepository();
-        var service = new PersonService(repository);
+        var service = new PersonService(repository, NoTickets());
         var original = await service.SaveAsync(null, Request());
         var request = Request(); request.FullName = "E2E Elena Santos"; request.PhoneNumber = "09171234567";
         var edited = await service.SaveAsync(original.Id, request);
@@ -109,7 +112,7 @@ public class PersonManagementTests
     public async Task Invalid_fields_do_not_write(string name, string address, string? phone)
     {
         var repository = new MemoryRepository();
-        await Assert.ThrowsAsync<ValidationException>(() => new PersonService(repository).SaveAsync(null,
+        await Assert.ThrowsAsync<ValidationException>(() => new PersonService(repository, NoTickets()).SaveAsync(null,
             new() { FullName = name, Address = address, PhoneNumber = phone }));
         Assert.Empty(repository.Records);
     }
@@ -117,7 +120,7 @@ public class PersonManagementTests
     [Fact]
     public async Task Length_limits_missing_records_and_invalid_keys_do_not_write()
     {
-        var repository = new MemoryRepository(); var service = new PersonService(repository);
+        var repository = new MemoryRepository(); var service = new PersonService(repository, NoTickets());
         var request = Request(); request.FullName = new string('a', 201);
         await Assert.ThrowsAsync<ValidationException>(() => service.SaveAsync(null, request));
         request = Request(); request.Address = new string('a', 501);
@@ -132,12 +135,21 @@ public class PersonManagementTests
     private static SavePersonRequest Request() => new()
     { FullName = " E2E Elena Reyes ", Address = " 12 Market Lane, Marikina City ", PhoneNumber = " " };
 
+    // Real ticket repository over an empty synthetic ticket set: these tests cover person records, not ticket totals.
+    private static TicketRepository NoTickets()
+    {
+        var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);
+        context.Tickets = new AccountDatabaseSet<Ticket>([]);
+        return new TicketRepository(context);
+    }
+
     // Persistence boundary only; production service validation and mapping execute unchanged.
     private sealed class MemoryRepository : IPersonRepository
     {
         public List<Person> Records { get; } = new();
         public int Writes;
         public Task<Person?> GetAsync(int id) => Task.FromResult(Records.SingleOrDefault(p => p.Id == id));
+        public Task<List<Person>> GetManyAsync(List<int> ids) => Task.FromResult(Records.Where(p => ids.Contains(p.Id)).ToList());
         public Task<(List<Person> Items, int Total)> MatchAsync(string[] tokens, string? address, string? phone, int offset, int limit)
             => SearchAsync(null, offset, limit);
         public Task AddAsync(Person person) { person.Id = Records.Count + 1; Records.Add(person); return Task.CompletedTask; }
@@ -157,7 +169,7 @@ public class PersonManagementTests
         {
             var host = new Host(); var builder = WebApplication.CreateBuilder();
             builder.WebHost.UseTestServer(); builder.Logging.ClearProviders();
-            builder.Services.AddSingleton<IPersonService>(new PersonService(host.Repository));
+            builder.Services.AddSingleton<IPersonService>(new PersonService(host.Repository, NoTickets()));
             builder.Services.AddTransient<ExceptionHandlingMiddleware>();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
                 options.TokenValidationParameters = new() {

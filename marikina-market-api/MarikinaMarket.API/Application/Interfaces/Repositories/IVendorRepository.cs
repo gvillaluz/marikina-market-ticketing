@@ -11,6 +11,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task SaveBusinessChangesAsync();
         public Task<Business?> GetVendorProfileByUserIdAsync(int userId);
         public Task<VendorTicketSummary?> GetByIdAsync(int id);
+        public Task<bool> IsActiveBusinessAsync(int id);
         public Task<int?> GetVendorIdByUserIdAsync(int userId);
         public Task<int?> GetVendorUserIdAsync(int vendorId);
         public Task<Business> CreateVendorAsync(Business vendorProfile);
@@ -25,7 +26,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
             int pageSize,
             VendorRegistrationRequestFilters filters);
         public Task<int> GetVendorRegistrationSummaryCountAsync(VendorRegistrationRequestFilters filters);
-        public Task<List<VendorLookupResult>> GetVendorByBusinessAccountNumber(string businessAccountNumber);
+        public Task<(List<VendorLookupResult> Items, int Total)> SearchActiveBusinessesAsync(string search, int limit);
         public Task<VendorLookupResult?> GetVendorByQrCode(string codeValue);
         public Task<VendorProfileDetails?> GetVendorProfileDetailsAsync(int vendorId);
         public Task<List<Business>> GetVendorProfilesForComplianceUpdateAsync();

@@ -281,9 +281,13 @@ void main() {
         );
         expect(tester.takeException(), isNull);
         expect(find.text('Contested'), findsOneWidget);
-        expect(find.text('#TKT-2026-0000000042'), findsOneWidget);
+        // Control number = the paper ticket's number; the app's own number is not shown.
+        expect(find.text('CONTROL NUMBER:'), findsOneWidget);
+        expect(find.text('000456'), findsOneWidget);
+        expect(find.textContaining('TKT-2026-0000000042'), findsNothing);
+        expect(find.textContaining('Paper reference'), findsNothing);
         expect(find.textContaining('Oct 7, 2026'), findsOneWidget);
-        expect(find.text('SYSTEM CONTROL:'), findsOneWidget);
+        expect(find.text('SYSTEM CONTROL:'), findsNothing);
         expect(find.text('Market Goods'), findsOneWidget);
         final card = tester.getRect(find.byType(TicketCard));
         for (final text

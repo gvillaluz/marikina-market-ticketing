@@ -15,6 +15,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/select_ordinance_bottom_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/fine_summary_section.dart';
+import 'ordinance_shortcuts_test.dart' show withNoShortcuts;
 import 'inspection_list_ui_test.dart' show listBloc;
 import 'features/auth/data/login_mobile_contract_test.dart' show reply;
 import 'features/tickets/data/models/ordinance_model_test.dart'
@@ -84,7 +85,9 @@ void main() {
       (tester) async {
         final bloc = await tester.runAsync(
           () => listBloc(
-            (options) async => reply(options, [_public, _private, _retired]),
+            withNoShortcuts(
+              (options) async => reply(options, [_public, _private, _retired]),
+            ),
           ),
         );
         await tester.runAsync(() async {

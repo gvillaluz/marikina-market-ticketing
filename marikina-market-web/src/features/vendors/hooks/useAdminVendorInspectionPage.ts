@@ -15,7 +15,7 @@ function exportInspectionRecords(rows: AdminVendorInspection[]) {
   const data = [
     ["Control Number", "Type", "Date & Time", "Ordinance(s)", "Enforcer"],
     ...rows.map((row) => [
-      row.type === "Warning" ? "N/A" : formatControlNumber(row.controlNumber),
+      formatControlNumber(row.controlNumber),
       String(row.type),
       formatDateTime(row.issuedAt),
       row.ordinanceNumbers.join(", "),

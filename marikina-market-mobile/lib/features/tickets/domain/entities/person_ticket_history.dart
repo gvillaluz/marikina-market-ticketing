@@ -4,7 +4,7 @@ class PersonTicketHistory {
   final BusinessSnapshot? businessSnapshot;
   final String? paperReference, issuePlace;
   final int ticketId;
-  final String reference, businessName, enforcerName;
+  final String businessName, enforcerName;
   final String? paperViolatorName, status, penaltyType;
   final DateTime issuedAt;
   final double? assessedCashFine;
@@ -15,7 +15,6 @@ class PersonTicketHistory {
     this.paperReference,
     this.issuePlace,
     required this.ticketId,
-    required this.reference,
     required this.businessName,
     required this.enforcerName,
     this.paperViolatorName,

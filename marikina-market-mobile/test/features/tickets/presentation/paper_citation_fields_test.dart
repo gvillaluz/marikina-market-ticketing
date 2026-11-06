@@ -28,7 +28,7 @@ void main() {
       );
       expect(form.currentState!.validate(), isFalse);
       await tester.pump();
-      expect(find.text('Paper reference is required.'), findsOneWidget);
+      expect(find.text('Control number is required.'), findsOneWidget);
       expect(find.text('Issue place is required.'), findsOneWidget);
       reference.text = '000456-a';
       place.text = 'Fish aisle near F-014';
@@ -73,7 +73,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('Paper reference'), findsOneWidget);
+    expect(find.text('Control number'), findsOneWidget);
     expect(find.text('Issue place'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());

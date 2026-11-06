@@ -5,6 +5,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
     public class AdminInspectionSummaryResponse
     {
         public BusinessSnapshotResponse? BusinessSnapshot { get; set; }
+        public string? ControlNumber { get; set; }
         public string? PaperReference { get; set; }
         public string? IssuePlace { get; set; }
         public int TicketId { get; set; }

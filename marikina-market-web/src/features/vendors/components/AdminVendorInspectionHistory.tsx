@@ -74,14 +74,12 @@ export default function AdminVendorInspectionHistory({
   const columns: Column<AdminVendorInspection>[] = [
     {
       key: "controlNumber",
-      header: "CONTROL #",
+      header: "CONTROL NUMBER",
       width: "16%",
       align: "left",
       render: (inspection) => (
         <strong className={styles.controlNumber}>
-          {isWarning(inspection)
-            ? "N/A"
-            : formatControlNumber(inspection.controlNumber)}
+          {formatControlNumber(inspection.controlNumber)}
           {!isWarning(inspection) && <><br />{inspection.businessSnapshot?.businessName || "Historical business details unavailable."}</>}
         </strong>
       ),

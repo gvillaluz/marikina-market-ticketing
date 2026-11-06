@@ -7,7 +7,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_s
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/auto_fill_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/qr_scanner_screen.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/search_by_stall_bottom_sheet.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/search_business_bottom_sheet.dart';
 
 class ViolatorInfoCard extends StatelessWidget {
   // final TextEditingController stallNumberController;
@@ -45,7 +45,7 @@ class ViolatorInfoCard extends StatelessWidget {
     onVendorSelected(vendor);
   }
 
-  Future<void> _handleSearchById(BuildContext context) async {
+  Future<void> _handleBusinessSearch(BuildContext context) async {
     final selectedVendor = await showModalBottomSheet<VendorSummary>(
       context: context,
       enableDrag: true,
@@ -60,7 +60,7 @@ class ViolatorInfoCard extends StatelessWidget {
             ),
       builder: (context) => BlocProvider(
         create: (_) => sl<InspectionBloc>(),
-        child: SearchByBusinessAccountNumberBottomSheet(),
+        child: SearchBusinessBottomSheet(),
       ),
     );
 
@@ -95,7 +95,7 @@ class ViolatorInfoCard extends StatelessWidget {
         ),
         const SizedBox(height: 5),
         const Text(
-          'Scan QR code or search vendor by stall number to begin inspection',
+          'Scan the QR code, or search by business name, stall number or account number',
           textAlign: TextAlign.center,
         ),
 
@@ -110,9 +110,9 @@ class ViolatorInfoCard extends StatelessWidget {
               onPressed: () => _handleQrScan(context),
             ),
             AutoFillBtn(
-              label: 'Search by ID',
+              label: 'Search business',
               icon: Icons.search,
-              onPressed: () => _handleSearchById(context),
+              onPressed: () => _handleBusinessSearch(context),
             ),
           ],
         ),

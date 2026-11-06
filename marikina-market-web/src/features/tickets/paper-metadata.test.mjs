@@ -44,17 +44,17 @@ const { default: Details } = await import(await load(path.join(src, 'components/
 const record = { type: 'Ticket', violations: [], categories: [], issuedAt: '2026-10-29T08:00:00Z',
   marketSectionName: 'Fish section', businessSnapshot: { marketSectionName: 'Fish section' }, description: 'Synthetic citation', paperReference: '000456', issuePlace: 'Fish aisle near F-014' };
 
-test('real ticket detail rows preserve printed reference and written place separately from section', () => {
+// The control number is shown once, in the record's top box (control-number.test.mjs), not in these rows.
+test('real ticket detail rows keep the written place separate from the section', () => {
   const html = renderToStaticMarkup(React.createElement(Details, { detail: record }));
-  assert.match(html, /PAPER REFERENCE/);
-  assert.match(html, /000456/);
+  assert.doesNotMatch(html, /PAPER REFERENCE|000456/);
   assert.match(html, /ISSUE PLACE/);
   assert.match(html, /Fish aisle near F-014/);
   assert.match(html, /Fish section/);
 });
 
-test('legacy ticket detail explicitly leaves paper reference and place unavailable', () => {
+test('legacy ticket detail explicitly leaves the place unavailable', () => {
   const html = renderToStaticMarkup(React.createElement(Details, { detail: { ...record, paperReference: null, issuePlace: null } }));
-  assert.equal((html.match(/Unavailable \(legacy record\)/g) || []).length, 2);
-  assert.doesNotMatch(html, /000456|Fish aisle near F-014/);
+  assert.equal((html.match(/Unavailable \(legacy record\)/g) || []).length, 1);
+  assert.doesNotMatch(html, /Fish aisle near F-014/);
 });
