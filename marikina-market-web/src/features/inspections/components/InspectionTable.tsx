@@ -43,7 +43,7 @@ export function InspectionTable({
             { key: "paperReference", header: "Paper reference", render: (row) => row.type === "Ticket" ? (row.paperReference || "Unavailable (legacy record)") : "—" },
             {
               key: "vendor",
-              header: "Person",
+              header: "Violator",
               render: (row) =>
                 row.type === "Ticket"
                   ? `Recorded violator: ${row.paperViolatorName || "Unconfirmed (legacy record)"}`
@@ -58,8 +58,13 @@ export function InspectionTable({
             },
             {
               key: "tradeName",
-              header: "Trade name",
+              header: "Business name",
               render: (row) => row.type === "Ticket" ? (row.businessSnapshot?.businessName || "Historical business details unavailable.") : (row.businessName || "\u2014"),
+            },
+            {
+              key: "registeredOwner",
+              header: "Registered owner",
+              render: (row) => row.type === "Ticket" ? (row.businessSnapshot?.registeredOwnerName || "Historical business details unavailable.") : (row.registeredOwnerName || "\u2014"),
             },
             {
               key: "section",
