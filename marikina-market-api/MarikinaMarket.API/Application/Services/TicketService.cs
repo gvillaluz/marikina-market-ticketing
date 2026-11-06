@@ -6,7 +6,9 @@ using System.Text.Json.Serialization;
 using System.Diagnostics;
 using System.Net;
 using System.ComponentModel.DataAnnotations;
+using MarikinaMarket.API.Application.DTOs.Person.Response;
 using MarikinaMarket.API.Application.DTOs.Ordinance.Internal;
+using MarikinaMarket.API.Application.DTOs.Ordinance.Response;
 using MarikinaMarket.API.Application.DTOs.Tickets.Internal;
 using MarikinaMarket.API.Application.DTOs.Tickets.Request;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
@@ -747,14 +749,14 @@ namespace MarikinaMarket.API.Application.Services
                 await _unitOfWork.SaveChangesAsync();
                 await _complianceScoreService.RefreshAsync(vendor.Id, DateTime.UtcNow);
                 await _notificationService.SaveNotificationAsync(newTicket.Id, newTicket.EnforcerId, newTicket.VendorId,
-                    $"A violation ticket ({newTicket.ControlNumber}) was issued for {vendor.BusinessName}.", TicketStatus.Pending);
+                    $"A violation ticket ({newTicket.ShownControlNumber}) was issued for {vendor.BusinessName}.", TicketStatus.Pending);
                 await _unitOfWork.SaveChangesAsync();
                 if (_audit?.Entry is not null) _audit.Entry.TargetId = newTicket.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 if (_auditService is not null) await _auditService.StageCurrentAsync();
                 await _unitOfWork.CommitAsync();
                 transactionCommitted = true;
                 await SendVendorPushAsync(newTicket, "inspection_submitted", "Violation ticket issued",
-                    $"A violation ticket ({newTicket.ControlNumber}) was issued for {vendor.BusinessName}.");
+                    $"A violation ticket ({newTicket.ShownControlNumber}) was issued for {vendor.BusinessName}.");
 
                 if (!string.IsNullOrEmpty(vendor.Email))
                 {
@@ -762,7 +764,7 @@ namespace MarikinaMarket.API.Application.Services
                     var lastName = WebUtility.HtmlEncode(vendor.LastName);
                     var businessName = WebUtility.HtmlEncode(vendor.BusinessName);
 
-                    string subject = $"Notice of Violation Ticket - Control No. {newTicket.ControlNumber}";
+                    string subject = WithControlNumber("Notice of Violation Ticket", " - Control No. ", newTicket);
                     var dueDate = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(newTicket.IssuedAt.AddDays(5), "Asia/Manila");
                     string body = $@"
                     <h1 style=""margin:0 0 22px;color:#0B2D5B;font-size:26px;line-height:1.3;"">Notice of Violation Ticket</h1>
@@ -772,7 +774,7 @@ namespace MarikinaMarket.API.Application.Services
 
                             <div style=""background: #E9F0F8; border-radius: 8px; padding: 16px; margin: 20px 0;"">
                                 <table style=""width: 100%; font-size: 14px; border-collapse: collapse;"">
-                                    <tr><td style=""padding: 4px 0; color: #666;"">Control No.</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{WebUtility.HtmlEncode(newTicket.ControlNumber)}</td></tr>
+                                    <tr><td style=""padding: 4px 0; color: #666;"">Control No.</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{WebUtility.HtmlEncode(ShownControlNumberText(newTicket))}</td></tr>
                                     {BuildPenaltyEmailRows(newTicket)}
                                     <tr><td style=""padding: 4px 0; color: #666;"">Due Date</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{dueDate:MMMM dd, yyyy}</td></tr>
                                 </table>
@@ -838,7 +840,7 @@ namespace MarikinaMarket.API.Application.Services
                 or InvalidOperationException { InnerException: DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_tickets_paper_reference" } } }))
             {
                 if (!transactionCommitted) await _unitOfWork.RollbackAsync();
-                throw new ConcurrencyConflictException("A citation with this paper reference already exists. Review the reference before submitting.");
+                throw new ConcurrencyConflictException("A citation with this control number already exists. Review the control number before submitting.");
             }
             catch (Exception exception) when (request.Type == ViolationType.Ticket &&
                 (exception is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure }
@@ -855,6 +857,13 @@ namespace MarikinaMarket.API.Application.Services
                 throw;
             }
         }
+
+        private static string ShownControlNumberText(Ticket ticket)
+            => ticket.ShownControlNumber ?? "Unavailable (legacy record)";
+
+        // Old tickets recorded before paper numbers have none; the number is then left out.
+        private static string WithControlNumber(string text, string separator, Ticket ticket)
+            => ticket.ShownControlNumber is { } number ? $"{text}{separator}{number}" : text;
 
         private async Task SendVendorPushAsync(Ticket ticket, string eventType, string title, string message)
         {
@@ -1193,7 +1202,7 @@ namespace MarikinaMarket.API.Application.Services
                 throw;
             }
 
-            await SendVendorPushAsync(ticket, "ticket_updated", $"Ticket #{ticket.ControlNumber} updated",
+            await SendVendorPushAsync(ticket, "ticket_updated", $"{WithControlNumber("Ticket", " ", ticket)} updated",
                 $"Your ticket status changed from {previousStatus} to {ticket.Status}.");
 
             if (!string.IsNullOrEmpty(ticket.Vendor?.Email))
@@ -1201,7 +1210,7 @@ namespace MarikinaMarket.API.Application.Services
                 var firstName = WebUtility.HtmlEncode(ticket.Vendor.OwnerFirstName);
                 var lastName = WebUtility.HtmlEncode(ticket.Vendor.OwnerLastName);
 
-                string subject = $"Ticket Status Update - Control No. {ticket.ControlNumber}";
+                string subject = WithControlNumber("Ticket Status Update", " - Control No. ", ticket);
                 string body = $@"
                     <h1 style=""margin:0 0 22px;color:#0B2D5B;font-size:26px;line-height:1.3;"">Ticket Status Update</h1>
 
@@ -1210,7 +1219,7 @@ namespace MarikinaMarket.API.Application.Services
 
                 <div style=""background: #E9F0F8; border-radius: 8px; padding: 16px; margin: 20px 0;"">
                     <table style=""width: 100%; font-size: 14px; border-collapse: collapse;"">
-                        <tr><td style=""padding: 4px 0; color: #666;"">Control No.</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{WebUtility.HtmlEncode(ticket.ControlNumber)}</td></tr>
+                        <tr><td style=""padding: 4px 0; color: #666;"">Control No.</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{WebUtility.HtmlEncode(ShownControlNumberText(ticket))}</td></tr>
                         <tr><td style=""padding: 4px 0; color: #666;"">Previous Status</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{previousStatus}</td></tr>
                         <tr><td style=""padding: 4px 0; color: #666;"">Current Status</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{ticket.Status}</td></tr>
                         <tr><td style=""padding: 4px 0; color: #666;"">Updated At</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{ticket.UpdatedAt:MMMM dd, yyyy - hh:mm tt} UTC</td></tr>
@@ -1245,7 +1254,7 @@ namespace MarikinaMarket.API.Application.Services
             {
                 await _notificationService.SendPushNotificationAsync(
                     ticket!.EnforcerId,
-                    $"Ticket #{ticket.ControlNumber} Updated",
+                    $"{WithControlNumber("Ticket", " ", ticket)} Updated",
                     $"{ticket.Vendor?.BusinessName} — status changed from {previousStatus} to {ticket.Status}."
                 );
             }
@@ -1309,6 +1318,7 @@ namespace MarikinaMarket.API.Application.Services
             var inspectionResponse = inspections.Select(t => new AdminInspectionSummaryResponse
             {
                 TicketId = t.Id,
+                ControlNumber = t.ControlNumber,
                 EnforcerId = t.EnforcerId,
                 EnforcerLastName = t.EnforcerLastName,
                 EnforcerFirstName = t.EnforcerFirstName,
@@ -1492,11 +1502,11 @@ namespace MarikinaMarket.API.Application.Services
             // External delivery failures cannot leave persisted statuses and scores out of sync.
             foreach (var ticket in newlyOverdueTickets)
             {
-                await SendVendorPushAsync(ticket, "ticket_overdue", $"Ticket #{ticket.ControlNumber} overdue",
+                await SendVendorPushAsync(ticket, "ticket_overdue", $"{WithControlNumber("Ticket", " ", ticket)} overdue",
                     "Your ticket is overdue. Please review the outstanding settlement requirements.");
                 await _notificationService.SendPushNotificationAsync(
                     ticket.EnforcerId,
-                    $"Ticket #{ticket.ControlNumber} Overdue",
+                    $"{WithControlNumber("Ticket", " ", ticket)} Overdue",
                     $"{ticket.Vendor?.BusinessName}'s ticket is now overdue. It has not been paid or settled within 5 days of issuance."
                 );
 
@@ -1505,7 +1515,7 @@ namespace MarikinaMarket.API.Application.Services
                     var firstName = WebUtility.HtmlEncode(ticket.Vendor.OwnerFirstName);
                     var lastName = WebUtility.HtmlEncode(ticket.Vendor.OwnerLastName);
 
-                    string subject = $"Overdue Notice - Control No. {ticket.ControlNumber}";
+                    string subject = WithControlNumber("Overdue Notice", " - Control No. ", ticket);
                     string body = $@"
                     <h1 style=""margin:0 0 22px;color:#0B2D5B;font-size:26px;line-height:1.3;"">Overdue Notice</h1>
 
@@ -1514,7 +1524,7 @@ namespace MarikinaMarket.API.Application.Services
 
                     <div style=""background: #E9F0F8; border-radius: 8px; padding: 16px; margin: 20px 0;"">
                         <table style=""width: 100%; font-size: 14px; border-collapse: collapse;"">
-                            <tr><td style=""padding: 4px 0; color: #666;"">Control No.</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{WebUtility.HtmlEncode(ticket.ControlNumber)}</td></tr>
+                            <tr><td style=""padding: 4px 0; color: #666;"">Control No.</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{WebUtility.HtmlEncode(ShownControlNumberText(ticket))}</td></tr>
                             {BuildPenaltyEmailRows(ticket)}
                             <tr><td style=""padding: 4px 0; color: #666;"">Original Due Date</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{ticket.IssuedAt.AddDays(5):MMMM dd, yyyy}</td></tr>
                         </table>
@@ -1695,9 +1705,9 @@ namespace MarikinaMarket.API.Application.Services
         private async Task ValidatePaperMetadataAsync(string? paperReference, string? issuePlace)
         {
             if (string.IsNullOrWhiteSpace(paperReference) || string.IsNullOrWhiteSpace(issuePlace))
-                throw new ValidationException("Enter the reviewed paper reference and issue place before verifying or submitting.");
+                throw new ValidationException("Enter the reviewed control number and issue place before verifying or submitting.");
             if (await _ticketRepository.PaperReferenceExistsAsync(paperReference))
-                throw new ConcurrencyConflictException("A citation with this paper reference already exists. Review the reference before submitting.");
+                throw new ConcurrencyConflictException("A citation with this control number already exists. Review the control number before submitting.");
         }
 
         private static void EnsureReviewedCalculation(string? reviewed, FineSummaryResponse current)
@@ -1726,6 +1736,50 @@ namespace MarikinaMarket.API.Application.Services
             await RequirePersonAsync(personId);
             var (items, total) = await _ticketRepository.GetPersonHistoryAsync(personId, offset, PAGE_SIZE);
             return new() { Items = items, Total = total, HasMore = (long)offset + items.Count < total };
+        }
+
+        // People already ticketed at this business, newest first, with their totals across all businesses.
+        public async Task<List<PersonSummaryResponse>> GetBusinessPeopleAsync(int businessId)
+        {
+            if (businessId <= 0) throw new InvalidRequestException("Business ID must be greater than zero.");
+            if (!await _vendorRepository.IsActiveBusinessAsync(businessId))
+                throw new RecordNotFoundException("Business not found.");
+            var ids = await _ticketRepository.GetPersonIdsTicketedAtBusinessAsync(businessId);
+            var people = (await (_personRepository ?? throw new InvalidOperationException("Person repository is unavailable."))
+                .GetManyAsync(ids)).ToDictionary(p => p.Id);
+            var totals = await _ticketRepository.GetPersonTicketTotalsAsync(ids);
+            return ids.Where(people.ContainsKey).Select(id => new PersonSummaryResponse
+            {
+                Id = id, FullName = people[id].FullName, Address = people[id].Address,
+                PhoneNumber = people[id].PhoneNumber, CreatedAt = people[id].CreatedAt, TicketTotals = totals[id]
+            }).ToList();
+        }
+
+        private const int OrdinanceShortcutLimit = 5;
+        private const int MostViolatedDays = 30;
+
+        public async Task<OrdinanceShortcutsResponse> GetOrdinanceShortcutsAsync(int enforcerId, int? personId)
+        {
+            if (personId is <= 0) throw new InvalidRequestException("Person ID must be greater than zero.");
+            // An ordinance is shown only in the first group it qualifies for.
+            var shown = new HashSet<int>();
+            var person = personId is null
+                ? []
+                : TakeNewShortcuts(await _ticketRepository.GetPersonRecentOrdinanceIdsAsync(personId.Value), shown);
+            var myRecent = TakeNewShortcuts(await _ticketRepository.GetEnforcerRecentOrdinanceIdsAsync(enforcerId), shown);
+            var mostViolated = TakeNewShortcuts(
+                await _ticketRepository.GetMostViolatedOrdinanceIdsAsync(DateTime.UtcNow.AddDays(-MostViolatedDays)), shown);
+            return new OrdinanceShortcutsResponse
+            {
+                PersonOrdinanceIds = person, MyRecentOrdinanceIds = myRecent, MostViolatedOrdinanceIds = mostViolated
+            };
+        }
+
+        private static List<int> TakeNewShortcuts(List<int> rankedIds, HashSet<int> shown)
+        {
+            var taken = rankedIds.Where(id => !shown.Contains(id)).Take(OrdinanceShortcutLimit).ToList();
+            shown.UnionWith(taken);
+            return taken;
         }
 
     }

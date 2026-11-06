@@ -3,8 +3,8 @@
 Precedence: roadmap rules win on scope and what may be worked on. feature-workflow.md wins on procedure. The product AGENTS.md wins on safety boundaries.
 
 **Mode:** revision implementation/verification; application changes require approval per slice.
-**Current phase:** Revision Phase — FIRST PRIORITY; the ordinance revision (slices 1–3) and Part 1 (business records, paper tickets and settlement) are closed with recorded limits. OCR items (local OCR feasibility, OCR integration) are not started.
-**Current task:** none in progress. The next Revision Phase slice needs a separate plan and approval; nothing is authorized by these closures.
+**Current phase:** Revision Phase — FIRST PRIORITY; the ordinance revision (slices 1–3) and Part 1 (business records, paper tickets and settlement) are closed with recorded limits. OCR dropped 2026-11-04 by user decision after the practice trial fell far short (best reader about 1 in 12 handwritten values exact vs the 90% target); replaced by faster in-app entry, planned separately.
+**Current task:** None in progress. New ticket flow Slice A1 (find the business and the violator), part of "Faster entry", is **complete** (closed by the user 2026-11-06): API 768 passed/2 existing skips, mobile 426 passed with clean analyze/format, and all six live V2529 checks passed on the re-created disposable `marikina_market_e2e`. Report: "A1 final report" in `docs/ticket-flow-slice-a-plan.md`. "Faster entry" stays open. A2 is split into A2a (ordinance shortcuts and title search), A2b (copy-to-paper card) and A2c (paper ticket scanner, needs package approval); the suggested next control number was dropped (2026-11-06). **A2a is complete** (closed by the user 2026-11-06: server 775 passed, phone 431 passed, four live V2529 checks passed); see "A2a" in `docs/ticket-flow-slice-a-plan.md`. A2b, A2c and Slice B are not approved. Decided 2026-11-06: a ticket's control number is the number printed on the paper ticket, and a warning's is its WRN number. **Control number Part 1 (server messages and phone) is complete** (closed by the user 2026-11-07: server 784 passed, phone 436 passed, live V2529 checks passed; notification wording noted for later); see "Control number, Part 1" in `docs/ticket-flow-slice-a-plan.md`. **Control number Part 2 (website) is complete** (closed by the user 2026-11-07): every website screen shows the shown control number and the three website-only searches match it, not the hidden app number; server 806 passed/2 existing skips, website build passed and 163 Node tests passed, 41/41 live browser checks passed on `marikina_market_e2e` (community service log covered by automated tests only: no community-service tickets in the throwaway data); see "Control number, Part 2" in `docs/ticket-flow-slice-a-plan.md` and `evidence/control-number-part2-live/results.md`. Not committed: server changes in the main folder, website changes on branch `control-number-part2-web` in worktree `C:\Users\Admin\Documents\Projects\mmt-control-number-part2-web`. Local `main` was fast-forwarded to `origin/main` (PR #1) on 2026-11-07. Business search by owner/address and the timing test are to be planned later.
 **Approved:** Part 1 criteria 1–7 and ordinance revision slices 1–3 closure within their recorded limits. Slice 3 closed 2026-11-01 by explicit user approval ("let's close the slice 3"), including its follow-up fixes and accepting the vendor-only paging stall (see [slice 3 closure](#ordinance-revision--slice-3-closed-2026-11-01)). Slice 2 closed 2026-11-01 by explicit user approval accepting the vendor-only paging stall because the vendor end of marikina-market-mobile is being removed (see [slice 2 closure](#ordinance-revision--slice-2-closed-2026-11-01)). Slice 1 evidence: API build/707 passes/two existing skips, web build/143 passes, 73 focused mobile passes after the approved cache repair, APK build/install, real API/admin-browser/V2529 catalog/selection/cache/cold-relaunch checks. Full Flutter reached 462 passes with zero assertion failures, then stalled in the vendor records paging test; accepted as incomplete, not passed, for slice 1 because vendor-user retirement is planned. Five existing analyzer infos and the isolated-storage verification limit remain documented. The user approved the final slice 2 implementation/verification scope on 2026-10-31. This does not authorize publishing, new migration execution or vendor-user/code/data removal.
 
 This roadmap organizes work; it does not authorize implementation. Preserve existing code, data and uncommitted work until each affected change is explicitly approved.
@@ -25,7 +25,7 @@ This roadmap organizes work; it does not authorize implementation. Preserve exis
 
 | Phase | Status |
 | --- | --- |
-| **Revision Phase** | **First priority.** Rules → OCR trial → registry → ticket/verification → OCR/warnings → settlement → web/reporting; separate slice approvals |
+| **Revision Phase** | **First priority.** Rules → registry → ticket/verification → faster entry/warnings → settlement → web/reporting; separate slice approvals |
 | ✓ 0 Baseline | Closed with documented limits (2026-10-15); retained evidence below |
 | 1 Core enforcement and settlement lifecycle | Waiting for Revision Phase; verify revised complete stories |
 | 2 Enforcer mobile experience | Waiting for Revision Phase; verify revised device workflow |
@@ -38,11 +38,19 @@ Previous Phase 1/2 verification was incomplete. Superseded requirements are remo
 
 Complete and verify approved revision slices before resuming Phases 1–4. Phase 0 remains a historical baseline. This priority does not authorize coding; each slice retains its approval gate.
 
-Order (separate gates): 1 confirm workflow, identity/counting rules and affected files → 2 local OCR feasibility → 3 business/person registry → 4 reviewed citation capture, calculation and verification → 5 OCR integration and warnings → 6 staff settlement → 7 affected web tables, reports and recommended actions. Split any oversized slice before approval.
+Order (separate gates): 1 confirm workflow, identity/counting rules and affected files → 2 local OCR feasibility (dropped 2026-11-04) → 3 business/person registry → 4 reviewed citation capture, calculation and verification → 5 faster entry and warnings → 6 staff settlement → 7 affected web tables, reports and recommended actions. Split any oversized slice before approval.
 
 Web/reporting revision scope: business/person administration without mandatory vendor registration; distinct business, registered owner and violator columns; scan/evidence/history retrieval; confirmed submitted records in summaries/exports; visible recommendation basis with administrator review. Phase 3 checks the resulting behavior after revision, preserving historical closure limits.
 
 Exit: each approved slice passes its automated and live acceptance checks, unresolved prerequisites are resolved or explicitly deferred, and the user approves returning to the numbered verification phases. Record implementation, automated checks and E2E separately; incomplete work is not passed.
+
+### Step 7, slice 1 — web ticket tables (COMPLETE 2026-11-06, merged as PR #1)
+
+Approved scope: website only, no API/database/mobile change. Tickets list adds Business name and Registered owner (ticket-day saved details) and renames "Recorded violator" to "Violator"; Inspections list renames "Trade name" to "Business name" and "Person" to "Violator" and adds Registered owner. Older records show the existing "Historical business details unavailable." note.
+
+Evidence ([README](evidence/revision-web-ticket-tables-2026-11-06/README.md)): new render test red→green; web 154/154 Node tests passed and build passed (existing large-bundle warning only). Live against guarded disposable `marikina_market_e2e` with the real API, 1600px and 390px: values matched hand-written expectations; reload asks to sign in again (by design); no sign-in refused (401); enforcer refused on the website; blocked list requests show "Unable to load …" with Try again, which recovers. Merged by the user (merge `62036e5`); GitHub check on `main` passed after the user's CI fix `72c42b0` (backup tests' disposable temp folder; 755 passed/2 skips; previously 22 backup tests failed on every run since at least 2026-10-30).
+
+Limits: not checked — an enforcer holding a valid session token; AdminOfficer (no test account). Remaining for the Phase 3 table criterion: ticket detail (scan, evidence, change history) and search. The GitHub check runs API tests only, not web tests. Completion does not authorize the next step 7 slice.
 
 ### Vendor-end removal — mobile only (CLOSED 2026-11-02)
 
@@ -133,19 +141,19 @@ The completed criterion-5 plan was deleted at the user's request after closure; 
 
 ### Scanning, calculation and verification
 
-Goal: Scan → Automatic check → Review/edit → Verify → Submit.
+Goal: Enter → Automatic check → Review/edit → Verify → Submit. The enforcer fills in the app, then copies to the paper ticket.
 
 Exit criteria:
-- ☐ Test pretrained local recognition separately on sanitized completed tickets, varied handwriting and target hardware; agree per-field/checkbox accuracy and timing targets before evaluation. Compare capture-plus-correction time with current/manual recording. Start with citations, then warnings. Packages/model downloads require approval; custom training is deferred.
-- ☐ Business name is handwritten in an agreed empty space on existing forms; confirm placement without adding labels or covering other fields/signatures. Scan extracts available text and marked boxes; recognition failures allow manual correction.
+- Dropped 2026-11-04 by user decision: local recognition (OCR) and handwritten business-name scanning. Practice-only trial (20 tickets): checkboxes 18/19 found, 2/71 false; handwriting exact ML Kit 1/141, TrOCR 12/141, image filters no gain; Google Cloud Vision not run (billing). The 94 test tickets were not scored. Not passed. Record: `docs/revision-ocr-feasibility-plan.md`.
+- ☐ Faster entry (replaces OCR): find a business by name, stall, owner, address or account number; place filled from the business record; a "copy to paper" summary card on the entry page, before the review page with Verify (A2b). The suggested next control number was dropped by user decision on 2026-11-06. Every business comes from office records; enforcers do not create them. Detailed criteria and the timing check are agreed in the slice plan.
 - ☐ Automatic checks flag missing fields/duplicates and suggest business and individual vendor matches for confirmation. Retrieve account number/owner from the selected business, not from guessed ticket text. Unresolved identity requires manual confirmation/search, not automatic record creation.
 - ☐ Show provisional offense position and calculated fine after vendor/violation identification. Preserve paper-recorded penalty separately, flag discrepancies and show unavailable calculations rather than zero.
-- ☐ Review shows image and editable extracted fields. Verify validates corrected details, rechecks duplicates and recalculates from current history; it does not save a final record or increase offense history.
+- ☐ Review shows the paper photo and editable fields. Verify validates corrected details, rechecks duplicates and recalculates from current history; it does not save a final record or increase offense history.
 - ☐ Submit starts disabled. Successful verification enables it; any edit to verified ticket information clears verification and disables Submit until verified again. Display: "Information changed. Verify again before submitting." Viewing images/history does not invalidate verification.
 - ☐ Counts/fines are calculated, not editable. Correct a business association through selection; registry editing is separate. Preserve the editable paper violator name alongside confirmed person identity.
 - ☐ Server repeats authorization, validation, duplicate and calculation checks at submission. Save image/record consistently; retries/concurrency cannot add duplicate offenses. A changed tier/fine requires renewed review and verification. Only successful submission contributes to history.
 
-Recognition feasibility comes before dependent implementation. Integration uses the established identity, reviewed-record and verification contracts.
+Faster entry uses the established identity, reviewed-record and verification contracts.
 
 Unsubmitted drafts are review state, not settlement status. Durable drafts/offline sync are deferred. Initially the issuing enforcer captures their own ticket; scanning on another officer's behalf requires a separate attribution decision.
 
@@ -170,8 +178,8 @@ Historical evidence: registration decisions `evidence/phase-1-registration-decis
 Goal: verify the revised mobile workflow on the target device.
 
 Exit criteria:
-- ☐ Scan, automatic checks, identity selection, editable review, Verify and Submit work on-device; edits disable submission until re-verified.
-- ☐ Provisional/final calculations, checkbox recognition, unreadable images, cancellation, permissions, duplicate/concurrent attempts and failed submission/retry behave as specified in the Revision Phase.
+- ☐ Entry, automatic checks, identity selection, editable review, Verify and Submit work on-device; edits disable submission until re-verified.
+- ☐ Provisional/final calculations, unreadable images, cancellation, permissions, duplicate/concurrent attempts and failed submission/retry behave as specified in the Revision Phase.
 - ☐ Retained enforcer navigation/profile/notifications and narrow/enlarged-text layouts pass affected checks; verify real delivery separately when retained behavior requires it.
 ## Phase 3 — Administration and reporting (HISTORICAL CLOSURE; affected revision checks planned)
 
@@ -193,7 +201,7 @@ Exit criteria:
 - ✓ Backup scheduling/retry/encrypted download/retention and local multi-instance coordination passed within recorded limits. Evidence: `evidence/phase-4-full-e2e/result.json`, `evidence/backup-retention-verification/README.md`, `evidence/backup-instance-coordination/summary.json`. Recheck compatibility after schema/storage changes.
 - ☐ User-operated restore drill and required external-service outage/restart stories pass in a disposable environment; automated restore alone is insufficient.
 - ☐ API build/tests, web build/Node tests and mobile format/analyze/tests pass for affected work; target-device/browser E2E verifies identity, offense rules, edits/re-verification, duplicates/concurrency, persistence, permissions, retry and settlement.
-- ☐ Setup/recovery instructions and beneficiary evaluation establish recognition accuracy, recording/retrieval time and practical usefulness. Separate implementation, automated checks, live E2E and acceptance evidence; record pre-existing failures separately.
+- ☐ Setup/recovery instructions and beneficiary evaluation establish recording/retrieval time and practical usefulness. Separate implementation, automated checks, live E2E and acceptance evidence; record pre-existing failures separately.
 
 Use commands in `feature-workflow.md`. Each gate names exact files/styles, contracts/errors, schema prerequisites, test expectations and time limit. Documentation-only edits require content/diff validation, not application builds.
 

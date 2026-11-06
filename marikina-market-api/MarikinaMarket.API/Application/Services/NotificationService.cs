@@ -54,7 +54,7 @@ namespace MarikinaMarket.API.Application.Services
                 Id = n.Id,
                 EnforcerId = n.EnforcerId,
                 TicketId = n.TicketId,
-                ControlNumber = n.Ticket!.ControlNumber!,
+                ControlNumber = n.Ticket!.ShownControlNumber,
                 TradeName = n.Ticket.Vendor!.BusinessName,
                 MarketSectionName = n.Ticket.MarketSection!.Name,
                 PenaltyType = n.Ticket.PenaltyType ?? PenaltyType.CashFine,

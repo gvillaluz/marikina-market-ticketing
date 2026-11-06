@@ -75,7 +75,9 @@ import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ti
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_receipt_proof_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/save_inspection_ticket_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_vendor_by_code_use_case.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_vendor_by_stall_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_businesses_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_business_people_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_ordinance_shortcuts_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/submit_community_service_log_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/submit_ticket_receipt_proof_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
@@ -185,7 +187,9 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   sl.registerLazySingleton(() => LoadInspectionListUseCase(sl()));
   sl.registerLazySingleton(() => LoadOrdinancesUseCase(sl()));
   sl.registerLazySingleton(() => SearchVendorByCodeUseCase(sl()));
-  sl.registerLazySingleton(() => SearchVendorByStallUseCase(sl()));
+  sl.registerLazySingleton(() => SearchBusinessesUseCase(sl()));
+  sl.registerLazySingleton(() => GetBusinessPeopleUseCase(sl()));
+  sl.registerLazySingleton(() => GetOrdinanceShortcutsUseCase(sl()));
   sl.registerLazySingleton(() => MatchPeopleUseCase(sl()));
   sl.registerLazySingleton(() => CreatePersonUseCase(sl()));
   sl.registerLazySingleton(() => GetPersonHistoryUseCase(sl()));
@@ -202,7 +206,9 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
       loadInspectionListUseCase: sl(),
       loadOrdinancesUseCase: sl(),
       searchVendorByCodeUseCase: sl(),
-      searchVendorByStallUseCase: sl(),
+      searchBusinessesUseCase: sl(),
+      getOrdinanceShortcutsUseCase: sl(),
+      getBusinessPeopleUseCase: sl(),
       getFineSummaryUseCase: sl(),
       checkWarningOrdinancesUseCase: sl(),
       saveInspectionTicketUseCase: sl(),

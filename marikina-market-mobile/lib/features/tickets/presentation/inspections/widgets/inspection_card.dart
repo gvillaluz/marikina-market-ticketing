@@ -90,11 +90,7 @@ class InspectionCard extends StatelessWidget {
               ),
               if (ticketSummary.ticketType == ViolationType.ticket) ...[
                 Text(
-                  'Paper reference: ${ticketSummary.paperReference ?? 'Unavailable (legacy record)'}',
-                  style: AppTheme.inspectionBodyStyle,
-                ),
-                Text(
-                  'System control: ${ticketSummary.controlNumber ?? 'Unavailable'}',
+                  'Control number: ${ticketSummary.paperReference ?? 'Unavailable (legacy record)'}',
                   style: AppTheme.inspectionBodyStyle,
                 ),
                 Text(

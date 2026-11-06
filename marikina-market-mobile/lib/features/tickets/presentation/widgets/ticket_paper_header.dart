@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'ticket_paper_field.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 
 class TicketPaperHeader extends StatelessWidget {
   final bool isTicket;
+  // The ticket's control number: the number printed on the paper ticket.
   final String? paperReference;
-  final String? controlNumber;
   const TicketPaperHeader({
     required this.isTicket,
     this.paperReference,
-    this.controlNumber,
     super.key,
   });
 
@@ -28,13 +26,6 @@ class TicketPaperHeader extends StatelessWidget {
         style: AppTheme.ticketPaperLabelStyle,
       ),
       const SizedBox(height: AppTheme.ticketSmallGap),
-      if (isTicket) ...[
-        TicketPaperField(
-          label: 'PAPER REFERENCE:',
-          value: paperReference ?? 'Unavailable (legacy record)',
-        ),
-        const SizedBox(height: AppTheme.ticketSmallGap),
-      ],
       Row(
         spacing: AppTheme.ticketSmallGap,
         children: [
@@ -65,12 +56,12 @@ class TicketPaperHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'SYSTEM CONTROL:',
+                    'CONTROL NUMBER:',
                     textAlign: TextAlign.right,
                     style: AppTheme.ticketPaperLabelStyle,
                   ),
                   Text(
-                    controlNumber == null ? 'PENDING' : '#$controlNumber',
+                    paperReference ?? 'Unavailable (legacy record)',
                     textAlign: TextAlign.right,
                     style: AppTheme.ticketPaperControlStyle,
                   ),

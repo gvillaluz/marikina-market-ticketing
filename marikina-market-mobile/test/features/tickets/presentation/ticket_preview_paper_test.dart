@@ -109,10 +109,9 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(find.text('City of Marikina'), findsOneWidget);
-          expect(
-            find.text('PENDING'),
-            isTicket ? findsOneWidget : findsNothing,
-          );
+          // The preview shows the paper ticket's control number entered on the form.
+          expect(find.text('000456'), isTicket ? findsOneWidget : findsNothing);
+          expect(find.text('PENDING'), findsNothing);
           expect(tester.takeException(), isNull);
           await tester.ensureVisible(
             find.text('Ord No. 2026-123456789, Series of 2026'),

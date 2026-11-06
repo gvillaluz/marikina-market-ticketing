@@ -34,7 +34,7 @@ public class BusinessLookupTests
             MarketSection = new() { Id = 1, Name = "Fish", Description = "Fish section" }
         }]);
         var repository = new VendorRepository(context);
-        var lookup = Assert.Single(await repository.GetVendorByBusinessAccountNumber("1842-aB"));
+        var lookup = Assert.Single((await repository.SearchActiveBusinessesAsync("1842-aB", 20)).Items);
         Assert.Equal("0001842-Ab", lookup.BusinessAccountNumber);
         Assert.Equal("Juan", lookup.FirstName); Assert.Equal("Reyes", lookup.LastName);
         Assert.Null(lookup.Username);

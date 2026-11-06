@@ -2,6 +2,8 @@
 
 Updated: 2026-10-30, Asia/Manila.
 
+> **Superseded 2026-11-06: OCR dropped.** The practice trial fell far short of the targets (best reader about 1 in 12 handwritten values exactly right, goal 9 in 10). On 2026-11-04 the user chose the "If the trial fails" path: drop OCR and make in-app entry faster. The criterion is not passed. Current status: `docs/revision-ocr-next-session.md` and `roadmap.md`. The text below is the original pre-trial plan, kept as a record.
+
 ## Read first: next-session handoff
 
 **Current result: NOT TESTED. Criterion 1 remains open.**

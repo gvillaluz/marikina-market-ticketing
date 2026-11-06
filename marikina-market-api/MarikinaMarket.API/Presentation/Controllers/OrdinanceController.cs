@@ -5,6 +5,7 @@ using MarikinaMarket.API.Domain.Enums;
 using MarikinaMarket.API.Application.DTOs.Ordinance.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace MarikinaMarket.API.Presentation.Controllers
 {
@@ -27,6 +28,16 @@ namespace MarikinaMarket.API.Presentation.Controllers
                 return NotFound("Ordinance list not found.");
 
             return Ok(ordinances);
+        }
+
+        [HttpGet("shortcuts")]
+        [Authorize(Roles = nameof(Role.MarketEnforcer))]
+        public async Task<ActionResult<OrdinanceShortcutsResponse>> GetShortcuts(
+            [FromQuery(Name = "person_id")] int? personId, [FromServices] ITicketService tickets)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var enforcerId) || enforcerId <= 0)
+                return Unauthorized();
+            return Ok(await tickets.GetOrdinanceShortcutsAsync(enforcerId, personId));
         }
 
         [HttpGet("{id}")]

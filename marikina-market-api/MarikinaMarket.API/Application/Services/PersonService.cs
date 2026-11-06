@@ -9,7 +9,7 @@ using MarikinaMarket.API.Domain.Entities;
 
 namespace MarikinaMarket.API.Application.Services;
 
-public class PersonService(IPersonRepository repository) : IPersonService
+public class PersonService(IPersonRepository repository, ITicketRepository tickets) : IPersonService
 {
     private const int PAGE_SIZE = 10;
 
@@ -59,10 +59,12 @@ public class PersonService(IPersonRepository repository) : IPersonService
         var address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim().ToLowerInvariant();
         var phone = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
         var (items, total) = await repository.MatchAsync(tokens, address, phone, request.Offset, PAGE_SIZE);
+        var totals = await tickets.GetPersonTicketTotalsAsync(items.Select(p => p.Id).ToList());
         return new() { Total = total, HasMore = (long)request.Offset + items.Count < total,
             Items = items.Select(p => new PersonCandidateResponse
             {
                 Id = p.Id, FullName = p.FullName, Address = p.Address, PhoneNumber = p.PhoneNumber, CreatedAt = p.CreatedAt,
+                TicketTotals = totals[p.Id],
                 MatchedFields = new[] {
                     tokens.All(t => p.FullName.Contains(t, StringComparison.OrdinalIgnoreCase)) ? "name" : null,
                     address != null && string.Equals(p.Address, address, StringComparison.OrdinalIgnoreCase) ? "address" : null,

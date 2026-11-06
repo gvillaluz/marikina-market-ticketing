@@ -11,15 +11,14 @@ import 'inspection_selection_sheet.dart';
 import 'selection_sheet_message.dart';
 import 'selection_sheet_tile.dart';
 
-class SearchByBusinessAccountNumberBottomSheet extends StatefulWidget {
-  const SearchByBusinessAccountNumberBottomSheet({super.key});
+class SearchBusinessBottomSheet extends StatefulWidget {
+  const SearchBusinessBottomSheet({super.key});
   @override
-  State<SearchByBusinessAccountNumberBottomSheet> createState() =>
-      _SearchByBusinessAccountNumberBottomSheetState();
+  State<SearchBusinessBottomSheet> createState() =>
+      _SearchBusinessBottomSheetState();
 }
 
-class _SearchByBusinessAccountNumberBottomSheetState
-    extends State<SearchByBusinessAccountNumberBottomSheet> {
+class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
   final _searchController = TextEditingController();
   Timer? _debouncer;
   VendorSummary? _selectedVendor;
@@ -36,7 +35,7 @@ class _SearchByBusinessAccountNumberBottomSheetState
   void _search() {
     _debouncer?.cancel();
     setState(() => _isDebouncing = false);
-    context.read<InspectionBloc>().add(SearchByStallNumberRequested(_query));
+    context.read<InspectionBloc>().add(BusinessSearchRequested(_query));
   }
 
   void _onSearchChanged(String value) {
@@ -55,28 +54,36 @@ class _SearchByBusinessAccountNumberBottomSheetState
     }
   }
 
+  static String _details(VendorSummary vendor) => [
+    if (vendor.stallNumber != null) 'Stall ${vendor.stallNumber}',
+    vendor.marketSectionName,
+    'Owner: ${vendor.ownerName}',
+  ].join(' · ');
+
   @override
   Widget build(
     BuildContext context,
   ) => BlocBuilder<InspectionBloc, InspectionState>(
     builder: (context, state) {
       final loading = _isDebouncing || state is InspectionSearchLoading;
-      final vendors =
+      final results =
           !loading && _query.isNotEmpty && state is InspectionSearchList
-          ? state.vendorList
-          : const <VendorSummary>[];
+          ? state
+          : null;
+      final vendors = results?.vendorList ?? const <VendorSummary>[];
       final selected = _selectedVendor;
       final canSelect =
           selected != null && vendors.any((vendor) => vendor.id == selected.id);
       Widget? message;
       if (_query.isEmpty) {
         message = const SelectionSheetMessage(
-          message: 'Enter a Business Account Number to find matching vendors.',
+          message:
+              'Type a business name, stall number or account number to find the business.',
           icon: Icons.storefront_outlined,
         );
       } else if (loading) {
         message = const SelectionSheetMessage(
-          message: 'Searching for vendors…',
+          message: 'Searching for businesses…',
           isLoading: true,
         );
       } else if (state is InspectionSearchError) {
@@ -87,15 +94,14 @@ class _SearchByBusinessAccountNumberBottomSheetState
         );
       } else if (vendors.isEmpty) {
         message = const SelectionSheetMessage(
-          message:
-              'No vendors found. Check the Business Account Number and try again.',
+          message: 'No businesses found. Check the spelling and try again.',
           icon: Icons.search_off,
         );
       }
       return InspectionSelectionSheet(
-        title: 'Search by Business Account Number',
+        title: 'Find business',
         description:
-            'Find the Business Account Number on the business permit, then choose a vendor.',
+            'Search by business name, stall number or account number, then choose the business.',
         slivers: [
           SliverPadding(
             padding: AppTheme.selectionSheetPadding,
@@ -104,10 +110,12 @@ class _SearchByBusinessAccountNumberBottomSheetState
                 controller: _searchController,
                 onChanged: _onSearchChanged,
                 onSubmitted: (_) => _search(),
+                maxLength: 200,
                 textInputAction: TextInputAction.search,
                 onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
-                  labelText: 'Business Account Number',
+                  labelText: 'Business name, stall number or account number',
+                  counterText: '',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _query.isEmpty
                       ? null
@@ -125,7 +133,7 @@ class _SearchByBusinessAccountNumberBottomSheetState
           ),
           if (message != null)
             SliverFillRemaining(hasScrollBody: false, child: message)
-          else
+          else ...[
             SliverPadding(
               padding: AppTheme.selectionSheetPadding,
               sliver: SliverList.builder(
@@ -135,16 +143,24 @@ class _SearchByBusinessAccountNumberBottomSheetState
                   return SelectionSheetTile(
                     key: ValueKey(vendor.id),
                     title: vendor.tradeName,
-                    subtitle: '${vendor.firstName} ${vendor.lastName}',
+                    subtitle: _details(vendor),
                     isSelected: selected?.id == vendor.id,
                     onTap: () => setState(() => _selectedVendor = vendor),
                   );
                 },
               ),
             ),
+            if (results?.hasMore == true)
+              const SliverPadding(
+                padding: AppTheme.selectionSheetPadding,
+                sliver: SliverToBoxAdapter(
+                  child: Text('Keep typing to narrow the results.'),
+                ),
+              ),
+          ],
         ],
         footer: AppPrimaryButton(
-          label: 'Select vendor',
+          label: 'Select business',
           iconData: Icons.check,
           onPressed: canSelect
               ? () {

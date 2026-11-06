@@ -5,7 +5,7 @@ class NotificationSummary {
   final int notificationId;
   final int enforcerId;
   final int ticketId;
-  final String controlNumber;
+  final String? controlNumber;
   final String tradeName;
   final String marketSection;
   final PenaltyType? penaltyType;

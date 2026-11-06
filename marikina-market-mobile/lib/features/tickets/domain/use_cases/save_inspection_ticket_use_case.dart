@@ -70,7 +70,7 @@ class SaveInspectionTicketUseCase
           params.issuePlace!.trim().length > 500) {
         return Result.failure(
           ValidationFailure(
-            'Enter the reviewed paper reference and issue place.',
+            'Enter the reviewed control number and issue place.',
           ),
         );
       }

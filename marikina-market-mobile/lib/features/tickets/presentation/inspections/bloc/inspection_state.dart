@@ -1,3 +1,5 @@
+export './business_people_error.dart';
+export './business_people_loading.dart';
 export './inspection_verification_error.dart';
 export './inspection_verification_loading.dart';
 export './person_history_error.dart';
@@ -91,7 +93,8 @@ class InspectionSearchError extends InspectionState {
 
 class InspectionSearchList extends InspectionState {
   final List<VendorSummary> vendorList;
-  InspectionSearchList(this.vendorList);
+  final bool hasMore;
+  InspectionSearchList(this.vendorList, this.hasMore);
 }
 
 class InspectionVendorSelected extends InspectionState {

@@ -168,7 +168,7 @@ class TicketDetailContent extends StatelessWidget {
         ),
         if (!isTicket)
           Text(
-            'WARNING REFERENCE: ${ticket.controlNumber ?? 'Unavailable (legacy record)'}',
+            'CONTROL NUMBER: ${ticket.controlNumber ?? 'Unavailable (legacy record)'}',
           ),
         if (isTicket && ticket.ticketStatus != null) ...[
           const SizedBox(height: AppTheme.ticketSmallGap),
@@ -188,7 +188,6 @@ class TicketDetailContent extends StatelessWidget {
                   children: [
                     TicketPaperHeader(
                       isTicket: isTicket,
-                      controlNumber: ticket.controlNumber,
                       paperReference: ticket.paperReference,
                     ),
                   ],

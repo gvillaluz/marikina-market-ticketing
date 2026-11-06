@@ -218,6 +218,8 @@ void main() {
                   });
                 case '/persons/31/tickets':
                   return reply(options, {'items': [], 'has_more': false});
+                case '/vendor/12/people':
+                  return reply(options, []);
                 case '/enforcer/tickets/verify':
                   return reply(options, {
                     'reviewed_calculation': 'reviewed-calculation',
@@ -308,8 +310,10 @@ void main() {
               loadInspectionListUseCase: templateBloc.loadInspectionListUseCase,
               loadOrdinancesUseCase: templateBloc.loadOrdinancesUseCase,
               searchVendorByCodeUseCase: templateBloc.searchVendorByCodeUseCase,
-              searchVendorByStallUseCase:
-                  templateBloc.searchVendorByStallUseCase,
+              searchBusinessesUseCase: templateBloc.searchBusinessesUseCase,
+              getOrdinanceShortcutsUseCase:
+                  templateBloc.getOrdinanceShortcutsUseCase,
+              getBusinessPeopleUseCase: templateBloc.getBusinessPeopleUseCase,
               getFineSummaryUseCase: templateBloc.getFineSummaryUseCase,
               checkWarningOrdinancesUseCase:
                   templateBloc.checkWarningOrdinancesUseCase,
@@ -364,8 +368,27 @@ void main() {
               .widget<InspectionTypeToggle>(find.byType(InspectionTypeToggle))
               .onChange(type);
           await tester.pump();
+          // The issue place starts from the business record and stays editable.
+          expect(
+            tester
+                .widget<TextField>(
+                  find.descendant(
+                    of: find.byKey(
+                      ValueKey(
+                        type == ViolationType.ticket
+                            ? 'issue-place'
+                            : 'warning-issue-place',
+                      ),
+                    ),
+                    matching: find.byType(TextField),
+                  ),
+                )
+                .controller!
+                .text,
+            'Section A, Stall A-12',
+          );
           if (type == ViolationType.ticket) {
-            expect(find.text('Paper reference'), findsOneWidget);
+            expect(find.text('Control number'), findsOneWidget);
             expect(find.text('Issue place'), findsOneWidget);
             await tester.ensureVisible(
               find.byKey(const ValueKey('paper-reference')),
@@ -399,8 +422,8 @@ void main() {
           await tester.ensureVisible(find.text('Check possible matches'));
           await tester.tap(find.text('Check possible matches'));
           await flush(tester);
-          await tester.ensureVisible(find.text('Confirm'));
-          await tester.tap(find.text('Confirm'));
+          await tester.ensureVisible(find.text('Same person – select'));
+          await tester.tap(find.text('Same person – select'));
           await tester.pump();
           await tester.ensureVisible(find.text('Select Ordinance'));
           await tester.tap(find.text('Select Ordinance'));

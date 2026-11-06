@@ -1,6 +1,7 @@
 using MarikinaMarket.API.Application.DTOs.Enforcers.Internal;
 using MarikinaMarket.API.Application.DTOs.Enforcers.Response;
 using MarikinaMarket.API.Application.DTOs.Analytics.Internal;
+using MarikinaMarket.API.Application.DTOs.Person.Response;
 using MarikinaMarket.API.Application.DTOs.Tickets.Internal;
 using MarikinaMarket.API.Application.DTOs.Tickets.Request;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
@@ -12,6 +13,7 @@ using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
 using MarikinaMarket.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace MarikinaMarket.API.Infrastructure.Repositories
 {
@@ -350,6 +352,70 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return (items, total);
         }
 
+        public async Task<List<int>> GetPersonIdsTicketedAtBusinessAsync(int businessId)
+        {
+            var people = await _context.Tickets.AsNoTracking()
+                .Where(t => t.VendorId == businessId && t.PersonId != null)
+                .GroupBy(t => t.PersonId!.Value)
+                .Select(g => new { PersonId = g.Key, LastTicketAt = g.Max(t => t.IssuedAt) })
+                .ToListAsync();
+            return people.OrderByDescending(p => p.LastTicketAt).ThenBy(p => p.PersonId).Select(p => p.PersonId).ToList();
+        }
+
+        // Same rules as person history and fine calculation: citations are offenses,
+        // unpaid means a pending or in-progress cash fine.
+        public async Task<Dictionary<int, PersonTicketTotalsResponse>> GetPersonTicketTotalsAsync(List<int> personIds)
+        {
+            var tickets = await _context.Tickets.AsNoTracking()
+                .Where(t => t.PersonId != null && personIds.Contains(t.PersonId.Value))
+                .Select(t => new
+                {
+                    PersonId = t.PersonId!.Value, t.Id, t.Type, t.Status, t.PenaltyType, t.TotalPaymentAmount, t.IssuedAt,
+                    t.Vendor!.BusinessName
+                }).ToListAsync();
+            return personIds.Distinct().ToDictionary(id => id, id =>
+            {
+                var own = tickets.Where(t => t.PersonId == id).ToList();
+                var last = own.OrderByDescending(t => t.IssuedAt).ThenByDescending(t => t.Id).FirstOrDefault();
+                return new PersonTicketTotalsResponse
+                {
+                    OffenseCount = own.Count(t => t.Type == ViolationType.Ticket),
+                    WarningCount = own.Count(t => t.Type == ViolationType.Warning),
+                    OutstandingFine = own.Where(t => t.Type == ViolationType.Ticket && t.PenaltyType == PenaltyType.CashFine
+                            && (t.Status == TicketStatus.Pending || t.Status == TicketStatus.InProgress))
+                        .Sum(t => t.TotalPaymentAmount ?? 0),
+                    LastTicketAt = last?.IssuedAt,
+                    LastBusinessName = last?.BusinessName,
+                    BusinessNames = own.Select(t => t.BusinessName).Distinct().Order().ToList()
+                };
+            });
+        }
+
+        public Task<List<int>> GetPersonRecentOrdinanceIdsAsync(int personId)
+            => RecentOrdinanceIdsAsync(v => v.Ticket!.PersonId == personId);
+
+        public Task<List<int>> GetEnforcerRecentOrdinanceIdsAsync(int enforcerId)
+            => RecentOrdinanceIdsAsync(v => v.Ticket!.EnforcerId == enforcerId);
+
+        public Task<List<int>> GetMostViolatedOrdinanceIdsAsync(DateTime sinceUtc)
+            => _context.TicketViolations.AsNoTracking()
+                .Where(v => v.Ordinance!.IsActive && v.Ticket!.IssuedAt >= sinceUtc)
+                .GroupBy(v => v.OrdinanceId)
+                .Select(g => new { OrdinanceId = g.Key, Uses = g.Count() })
+                .OrderByDescending(o => o.Uses).ThenBy(o => o.OrdinanceId)
+                .Select(o => o.OrdinanceId)
+                .ToListAsync();
+
+        private Task<List<int>> RecentOrdinanceIdsAsync(Expression<Func<TicketViolation, bool>> ticketFilter)
+            => _context.TicketViolations.AsNoTracking()
+                .Where(v => v.Ordinance!.IsActive)
+                .Where(ticketFilter)
+                .GroupBy(v => v.OrdinanceId)
+                .Select(g => new { OrdinanceId = g.Key, LastUsedAt = g.Max(v => v.Ticket!.IssuedAt) })
+                .OrderByDescending(o => o.LastUsedAt).ThenBy(o => o.OrdinanceId)
+                .Select(o => o.OrdinanceId)
+                .ToListAsync();
+
         public async Task<List<VendorInspectionSummary>> GetVendorInspectionsAsync(
             int userId, int offset, int limit, VendorInspectionFilters filters)
         {
@@ -547,6 +613,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         MarketSectionName = t.SnapshotMarketSectionName,
                         BusinessAddress = t.SnapshotBusinessAddress,
                     },
+                    ControlNumber = t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference,
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     VendorLastName = t.Vendor!.OwnerLastName!,
@@ -578,8 +645,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             {
                 var search = filters.Search.Trim();
                 query = query.Where(t =>
-                    t.ControlNumber!.Contains(search) ||
-                    (t.PaperReference != null && t.PaperReference.ToLower().Contains(search.ToLower())) ||
+                    ((t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference) ?? "").ToLower().Contains(search.ToLower()) ||
                     t.Vendor!.OwnerLastName.Contains(search) ||
                     t.Vendor.OwnerFirstName.Contains(search) ||
                     t.Vendor.BusinessName.Contains(search) ||
@@ -604,8 +670,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             {
                 var search = filters.Search.Trim().ToLower();
                 query = query.Where(t =>
-                    t.ControlNumber!.Contains(search) ||
-                    (t.PaperReference != null && t.PaperReference.ToLower().Contains(search.ToLower())) ||
+                    (t.PaperReference != null && t.PaperReference.ToLower().Contains(search)) ||
                     t.Vendor!.OwnerLastName.ToLower().Contains(search) ||
                     t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
                     t.Vendor.BusinessName.ToLower().Contains(search) ||
@@ -619,7 +684,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(t => new AdminTicketSummary
                 {
                     Id = t.Id,
-                    ControlNumber = t.ControlNumber!,
+                    ControlNumber = t.PaperReference,
                     EnforcerId = t.EnforcerId,
                     EnforcerFirstName = t.Enforcer!.FirstName,
                     EnforcerLastName = t.Enforcer.LastName,
@@ -713,7 +778,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
-                    ControlNumber = t.ControlNumber ?? null,
+                    ControlNumber = t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference,
                     Type = t.Type,
                     BusinessType = t.Vendor!.Type,
                     BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
@@ -911,6 +976,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     },
                     Id = t.Id,
                     ControlNumber = t.ControlNumber!,
+                    PaperReference = t.PaperReference,
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
@@ -969,7 +1035,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         BusinessAddress = t.SnapshotBusinessAddress,
                     },
                     TicketId = t.Id,
-                    ControlNumber = t.ControlNumber,
+                    ControlNumber = t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference,
                     Type = t.Type,
                     IssuedAt = t.IssuedAt,
                     OrdinanceNumbers = t.TicketViolations
@@ -1196,7 +1262,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(t => new AdminCommunityServiceLogSummary
                 {
                     TicketId = t.Id,
-                    ControlNumber = t.ControlNumber,
+                    ControlNumber = t.PaperReference,
                     BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
                     VendorName = t.Vendor.OwnerLastName + ", " + t.Vendor.OwnerFirstName,
                     CompletedHours = t.CommunityServiceLogs.Sum(log => (decimal?)log.HoursWorked) ?? 0,
@@ -1242,7 +1308,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             {
                 var search = filters.Search.Trim().ToLower();
                 tickets = tickets.Where(t =>
-                    (t.ControlNumber != null && t.ControlNumber.ToLower().Contains(search)) ||
+                    ((t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference) ?? "").ToLower().Contains(search) ||
                     t.TicketViolations.Any(tv => tv.Ordinance!.OrdinanceNo.ToLower().Contains(search)));
             }
 

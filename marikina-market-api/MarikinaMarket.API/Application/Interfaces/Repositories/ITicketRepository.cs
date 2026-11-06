@@ -1,6 +1,7 @@
 using MarikinaMarket.API.Application.DTOs.Enforcers.Internal;
 using MarikinaMarket.API.Application.DTOs.Enforcers.Response;
 using MarikinaMarket.API.Application.DTOs.Analytics.Internal;
+using MarikinaMarket.API.Application.DTOs.Person.Response;
 using MarikinaMarket.API.Application.DTOs.Tickets.Internal;
 using MarikinaMarket.API.Application.DTOs.Tickets.Request;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
@@ -36,6 +37,13 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task<List<DuplicateOrdinance>> GetDuplicatedTickets(int vendorId, List<int> ordinanceIds);
         Task<List<DuplicateOrdinance>> GetPersonDuplicatesAsync(int personId, List<int> ordinanceIds, DateTime nowUtc);
         Task<(List<PersonTicketHistoryResponse> Items, int Total)> GetPersonHistoryAsync(int personId, int offset, int limit);
+        Task<List<int>> GetPersonIdsTicketedAtBusinessAsync(int businessId);
+        Task<Dictionary<int, PersonTicketTotalsResponse>> GetPersonTicketTotalsAsync(List<int> personIds);
+        // Active ordinance IDs on this person's / enforcer's tickets and warnings, most recent use first.
+        Task<List<int>> GetPersonRecentOrdinanceIdsAsync(int personId);
+        Task<List<int>> GetEnforcerRecentOrdinanceIdsAsync(int enforcerId);
+        // Active ordinance IDs on tickets and warnings issued at or after sinceUtc, most uses first, ties by ID.
+        Task<List<int>> GetMostViolatedOrdinanceIdsAsync(DateTime sinceUtc);
         Task<Ticket> AddTicketAsync(Ticket ticket);
         Task<List<InspectionSummary>> GetInspectionsAsync(
             int enforcerId, 

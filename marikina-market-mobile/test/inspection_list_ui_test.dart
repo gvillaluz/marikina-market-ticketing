@@ -21,7 +21,9 @@ import 'package:marikina_market_mobile/features/tickets/data/repositories/inspec
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_inspection_list_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ordinances_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_vendor_by_code_use_case.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_vendor_by_stall_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_businesses_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_ordinance_shortcuts_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_business_people_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_fine_summary_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/check_warning_ordinances_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/save_inspection_ticket_use_case.dart';
@@ -84,7 +86,9 @@ Future<InspectionBloc> listBloc(
     loadInspectionListUseCase: LoadInspectionListUseCase(repository),
     loadOrdinancesUseCase: LoadOrdinancesUseCase(repository),
     searchVendorByCodeUseCase: SearchVendorByCodeUseCase(repository),
-    searchVendorByStallUseCase: SearchVendorByStallUseCase(repository),
+    searchBusinessesUseCase: SearchBusinessesUseCase(repository),
+    getOrdinanceShortcutsUseCase: GetOrdinanceShortcutsUseCase(repository),
+    getBusinessPeopleUseCase: GetBusinessPeopleUseCase(repository),
     getFineSummaryUseCase: GetFineSummaryUseCase(repository),
     checkWarningOrdinancesUseCase: CheckWarningOrdinancesUseCase(repository),
     saveInspectionTicketUseCase: SaveInspectionTicketUseCase(repository),

@@ -13,6 +13,9 @@ namespace MarikinaMarket.API.Domain.Entities
         public Person? Person { get; set; }
         public string? PaperViolatorName { get; set; }
         public string? PaperReference { get; set; }
+        // The control number people see: the number printed on the paper ticket, or a warning's own number.
+        // ControlNumber on tickets is the app's internal running number. Not stored (no setter).
+        public string? ShownControlNumber => Type == ViolationType.Warning ? ControlNumber : PaperReference;
         public string? SnapshotBusinessAccountNumber { get; set; }
         public string? SnapshotBusinessName { get; set; }
         public string? SnapshotRegisteredOwnerName { get; set; }

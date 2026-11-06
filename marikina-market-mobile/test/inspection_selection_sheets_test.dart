@@ -12,8 +12,9 @@ import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_mo
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/search_by_stall_bottom_sheet.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/search_business_bottom_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/select_ordinance_bottom_sheet.dart';
+import 'ordinance_shortcuts_test.dart' show withNoShortcuts;
 import 'inspection_list_ui_test.dart' show listBloc;
 import 'features/tickets/presentation/inspection_photo_controls_test.dart'
     show
@@ -103,17 +104,19 @@ void main() {
           final selected = [OrdinanceModel.fromJson(payload).toEntity()];
           final bloc = await tester.runAsync(
             () => listBloc(
-              (options) async => reply(options, [
-                payload,
-                {
-                  ...ordinanceResponse,
-                  'id': 2,
-                  'section': '70',
-                  'ordinance_no': 'Minor without warning permission',
-                  'severity': 'Minor',
-                  'warning_eligible': false,
-                },
-              ]),
+              withNoShortcuts(
+                (options) async => reply(options, [
+                  payload,
+                  {
+                    ...ordinanceResponse,
+                    'id': 2,
+                    'section': '70',
+                    'ordinance_no': 'Minor without warning permission',
+                    'severity': 'Minor',
+                    'warning_eligible': false,
+                  },
+                ]),
+              ),
             ),
           );
           await tester.runAsync(() async {
@@ -194,14 +197,14 @@ void main() {
     final states = <InspectionState>[];
     final subscription = bloc.stream.listen(states.add);
     addTearDown(subscription.cancel);
-    bloc.add(SearchByStallNumberRequested('A-12'));
+    bloc.add(BusinessSearchRequested('A-12'));
     final options = await request.future;
     final cleared = bloc.stream.firstWhere(
       (state) => state is InspectionInitial,
     );
-    bloc.add(SearchByStallNumberRequested(''));
+    bloc.add(BusinessSearchRequested(''));
     await cleared;
-    response.complete(reply(options, []));
+    response.complete(reply(options, {'items': [], 'has_more': false}));
     await Future<void>.delayed(const Duration(milliseconds: 30));
     expect(bloc.state, isA<InspectionInitial>());
     expect(states.whereType<InspectionSearchList>(), isEmpty);
@@ -213,7 +216,7 @@ void main() {
     final oldResponse = Completer<Response<Object?>>();
     final newResponse = Completer<Response<Object?>>();
     final bloc = await listBloc((options) {
-      if (options.path.endsWith('/A-12')) {
+      if (options.queryParameters['search'] == 'A-12') {
         oldRequest.complete(options);
         return oldResponse.future;
       }
@@ -225,16 +228,16 @@ void main() {
       if (state is InspectionSearchList) results.add(state);
     });
     addTearDown(subscription.cancel);
-    bloc.add(SearchByStallNumberRequested('A-12'));
+    bloc.add(BusinessSearchRequested('A-12'));
     final oldOptions = await oldRequest.future;
-    bloc.add(SearchByStallNumberRequested('A-13'));
+    bloc.add(BusinessSearchRequested('A-13'));
     final newOptions = await newRequest.future;
     final loaded = bloc.stream.firstWhere(
       (state) => state is InspectionSearchList,
     );
-    newResponse.complete(reply(newOptions, []));
+    newResponse.complete(reply(newOptions, {'items': [], 'has_more': false}));
     await loaded;
-    oldResponse.complete(reply(oldOptions, []));
+    oldResponse.complete(reply(oldOptions, {'items': [], 'has_more': false}));
     await Future<void>.delayed(const Duration(milliseconds: 30));
     expect(results, hasLength(1));
   });
@@ -262,7 +265,7 @@ void main() {
               ),
               child: const Scaffold(
                 resizeToAvoidBottomInset: false,
-                body: SearchByBusinessAccountNumberBottomSheet(),
+                body: SearchBusinessBottomSheet(),
               ),
             ),
           ),
@@ -270,7 +273,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      expect(find.text('Select vendor'), findsOneWidget);
+      expect(find.text('Select business'), findsOneWidget);
       final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
       expect(button.onPressed, isNull);
       expect(
@@ -285,7 +288,11 @@ void main() {
     (tester) async {
       final selected = [OrdinanceModel.fromJson(ordinanceResponse).toEntity()];
       final bloc = await tester.runAsync(
-        () => listBloc((options) async => reply(options, [ordinanceResponse])),
+        () => listBloc(
+          withNoShortcuts(
+            (options) async => reply(options, [ordinanceResponse]),
+          ),
+        ),
       );
       await tester.pumpWidget(
         BlocProvider<InspectionBloc>.value(
@@ -325,18 +332,20 @@ void main() {
       final release = Completer<void>();
       var checks = 0;
       final bloc = await tester.runAsync(
-        () => listBloc((options) async {
-          if (options.path == '/ordinance') {
-            return reply(options, [ordinanceResponse]);
-          }
-          checks++;
-          if (!request.isCompleted) request.complete(options);
-          await release.future;
-          throw DioException(
-            requestOptions: options,
-            type: DioExceptionType.connectionError,
-          );
-        }),
+        () => listBloc(
+          withNoShortcuts((options) async {
+            if (options.path == '/ordinance') {
+              return reply(options, [ordinanceResponse]);
+            }
+            checks++;
+            if (!request.isCompleted) request.complete(options);
+            await release.future;
+            throw DioException(
+              requestOptions: options,
+              type: DioExceptionType.connectionError,
+            );
+          }),
+        ),
       );
       addTearDown(() {
         if (!release.isCompleted) release.complete();

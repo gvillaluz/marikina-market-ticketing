@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -233,7 +234,8 @@ public class InspectionNotificationTests
         if (controlled)
         {
             var error = await Assert.ThrowsAsync<ConcurrencyConflictException>(action);
-            Assert.Contains("paper reference", error.Message);
+            Assert.Contains("control number", error.Message);
+            Assert.DoesNotContain("paper reference", error.Message);
         }
         else await Assert.ThrowsAsync<DbUpdateException>(action);
         Assert.True(fixture.RolledBack);
@@ -354,6 +356,64 @@ public class InspectionNotificationTests
         Assert.Contains(dueDate.ToString("MMMM dd, yyyy"), fixture.EmailBody);
         Assert.Contains("within 5 days of the issue date", fixture.EmailBody);
         Assert.DoesNotContain("15 days", fixture.EmailBody);
+    }
+
+    // Control number = the number printed on the paper ticket ("000456" in Request); the app's own number is 11.
+    [Fact]
+    public async Task Ticket_issuance_messages_use_the_paper_control_number()
+    {
+        using var fixture = new Fixture { VendorEmail = "vendor@example.test" };
+
+        await fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket));
+
+        Assert.Equal("A violation ticket (000456) was issued for Reyes Fresh Fish.",
+            Assert.Single(fixture.NotificationsSaved).Message);
+        Assert.Equal("Notice of Violation Ticket - Control No. 000456", fixture.EmailSubject);
+        Assert.Matches(@"Control No\.</td><td[^>]*>000456</td>", fixture.EmailBody);
+    }
+
+    [Fact]
+    public async Task Warning_issuance_keeps_its_warning_number()
+    {
+        using var fixture = new Fixture();
+
+        await fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Warning));
+
+        Assert.Equal("A warning (WRN-0011) was issued for Reyes Fresh Fish.",
+            Assert.Single(fixture.NotificationsSaved).Message);
+    }
+
+    [Theory]
+    [InlineData(false, "000456", "Ticket 000456 Updated", "Ticket Status Update - Control No. 000456", "000456")]
+    [InlineData(true, "000456", "Ticket 000456 Overdue", "Overdue Notice - Control No. 000456", "000456")]
+    // An old ticket recorded before paper numbers: the number is left out of titles and subjects.
+    [InlineData(false, null, "Ticket Updated", "Ticket Status Update", "Unavailable (legacy record)")]
+    [InlineData(true, null, "Ticket Overdue", "Overdue Notice", "Unavailable (legacy record)")]
+    public async Task Status_and_overdue_messages_use_the_paper_control_number(
+        bool overdue, string? paperNumber, string pushTitle, string emailSubject, string emailNumber)
+    {
+        using var fixture = new Fixture { EnforcerHasDevice = true };
+        await fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket));
+        var ticket = fixture.CreatedTicket!;
+        ticket.PaperReference = paperNumber;
+        ticket.Vendor = new Business
+        {
+            Id = 17, BusinessAccountNumber = "MM-17", BusinessName = "Reyes Fresh Fish", QrCodeValue = "sample",
+            Email = "vendor@example.test", OwnerFirstName = "Juan", OwnerLastName = "Reyes"
+        };
+        fixture.PushTitles.Clear();
+
+        if (overdue)
+        {
+            ticket.IssuedAt = DateTime.UtcNow.AddDays(-6);
+            await fixture.Service.CheckAndNotifyOverdueTicketsAsync();
+        }
+        else
+            await fixture.Service.UpdateTicketStatusAsync(11, new() { NewStatus = TicketStatus.Contested, Version = 7 });
+
+        Assert.Contains(pushTitle, fixture.PushTitles);
+        Assert.Equal(emailSubject, fixture.EmailSubject);
+        Assert.Matches($@"Control No\.</td><td[^>]*>{Regex.Escape(emailNumber)}</td>", fixture.EmailBody);
     }
 
     [Theory]
@@ -645,6 +705,9 @@ public class InspectionNotificationTests
         public int PushCalls;
         public int EmailCalls;
         public string EmailBody = "";
+        public string EmailSubject = "";
+        public bool EnforcerHasDevice;
+        public List<string> PushTitles { get; } = [];
         public int UploadCalls;
         public bool FailUpload;
         public Dictionary<string, string> UploadedFiles = [];
@@ -662,13 +725,16 @@ public class InspectionNotificationTests
             var vendor = new VendorRepository(this);
             var users = ReviewBoundaryProxy.Create<IUserRepository>((method, args) =>
             {
-                return Task.FromResult((int)args[0]! == 7 ? new List<string> { "sample-token" } : []);
+                var userId = (int)args[0]!;
+                return Task.FromResult(userId == 7 || (EnforcerHasDevice && userId == 8)
+                    ? new List<string> { "sample-token" } : []);
             });
             var sender = ReviewBoundaryProxy.Create<IPushNotificationService>((method, args) =>
             {
                 Assert.True(Committed);
                 Assert.NotEmpty(NotificationsSaved);
                 PushCalls++;
+                PushTitles.Add((string)args[1]!);
                 PushData = (Dictionary<string, string>)args[3]!;
                 return FailPush ? Task.FromException<bool>(new InvalidOperationException("Push unavailable")) : Task.FromResult(true);
             });
@@ -676,6 +742,7 @@ public class InspectionNotificationTests
             {
                 Assert.True(Committed);
                 EmailCalls++;
+                EmailSubject = (string)args[1]!;
                 EmailBody = (string)args[2]!;
                 return FailEmail ? Task.FromException(new InvalidOperationException("Email unavailable")) : Task.CompletedTask;
             });

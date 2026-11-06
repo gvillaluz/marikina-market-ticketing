@@ -45,15 +45,16 @@ Future<void> capturePaper(WidgetTester tester, String name) async {
 TicketDetailContent paper({
   required bool isTicket,
   required String control,
+  String paperNumber = '000456',
   PenaltyType penalty = PenaltyType.cashFine,
 }) {
   return TicketDetailContent(
     data: TicketDetailContentData(
       ticket: TicketDetail(
         ticketId: 42,
-        paperReference: isTicket ? '000456' : null,
+        paperReference: isTicket ? paperNumber : null,
         issuePlace: isTicket ? 'Fish aisle near F-014' : null,
-        controlNumber: isTicket ? control : null,
+        controlNumber: control,
         enforcerId: 7,
         vendorId: 12,
         violationType: isTicket ? ViolationType.ticket : ViolationType.warning,
@@ -184,26 +185,27 @@ void main() {
     testWidgets(
       'preview and issued headers fit at ${width}px with enlarged text',
       (tester) async {
-        for (final control in <String?>[
+        // Control number = the paper ticket's printed number; old tickets have none.
+        for (final paperNumber in <String?>[
           null,
-          'TKT-2026-00000000000000000042',
+          '000456-2026-00000000000000000042',
         ]) {
           await showPaper(
             tester,
             width,
             MediaQuery(
               data: const MediaQueryData(textScaler: TextScaler.linear(1.6)),
-              child: TicketPaperHeader(isTicket: true, controlNumber: control),
+              child: TicketPaperHeader(
+                isTicket: true,
+                paperReference: paperNumber,
+              ),
             ),
           );
-          expect(
-            find.text(control == null ? 'PENDING' : '#$control'),
-            findsOneWidget,
-          );
+          final shown = paperNumber ?? 'Unavailable (legacy record)';
+          expect(find.text('CONTROL NUMBER:'), findsOneWidget);
+          expect(find.text(shown), findsOneWidget);
           final title = tester.getRect(find.text('VIOLATION TICKET'));
-          final number = tester.getRect(
-            find.text(control == null ? 'PENDING' : '#$control'),
-          );
+          final number = tester.getRect(find.text(shown));
           expect(title.right, lessThanOrEqualTo(number.left));
           expect(title.top, lessThan(number.bottom));
           expect(number.top, lessThan(title.bottom));
@@ -294,20 +296,25 @@ void main() {
         tester.getCenter(title).dy,
         closeTo(tester.getCenter(find.byType(Image).first).dy, 1),
       );
+      // The app's own number (TKT-2026-0042) is never shown on a ticket.
+      expect(find.text('SYSTEM CONTROL:'), findsNothing);
+      expect(find.text('PAPER REFERENCE:'), findsNothing);
+      expect(find.textContaining('WARNING REFERENCE'), findsNothing);
       if (isTicket) {
-        expect(find.text('SYSTEM CONTROL:'), findsOneWidget);
-        expect(find.text('#TKT-2026-0042'), findsOneWidget);
+        expect(find.text('CONTROL NUMBER:'), findsOneWidget);
         expect(find.text('000456'), findsOneWidget);
+        expect(find.textContaining('TKT-2026-0042'), findsNothing);
         expect(find.text('Fish aisle near F-014'), findsOneWidget);
         expect(find.text('PENDING'), findsNothing);
         // 20px page padding + 20px paper padding puts the right edge at 440.
-        expect(
-          tester.getTopRight(find.text('#TKT-2026-0042')).dx,
-          closeTo(440, 1),
-        );
+        expect(tester.getTopRight(find.text('000456')).dx, closeTo(440, 1));
       } else {
-        expect(find.text('SYSTEM CONTROL:'), findsNothing);
-        expect(find.text('#TKT-2026-0042'), findsNothing);
+        // A warning has no printed number; its own number is its control number.
+        expect(find.text('CONTROL NUMBER:'), findsNothing);
+        expect(
+          find.textContaining('CONTROL NUMBER: TKT-2026-0042'),
+          findsOneWidget,
+        );
       }
       expect(tester.takeException(), isNull);
       await capturePaper(
@@ -321,21 +328,23 @@ void main() {
     testWidgets('long control number remains complete at ${width}px', (
       tester,
     ) async {
-      const control = 'TKT-2026-00000000000000000042';
-      await showPaper(tester, width, paper(isTicket: true, control: control));
-      expect(find.text('#$control'), findsOneWidget);
-      final number = tester.widget<Text>(find.text('#$control'));
+      // A long number printed on the paper ticket; the app's own number is not shown.
+      const control = '000456-2026-00000000000000000042';
+      await showPaper(
+        tester,
+        width,
+        paper(isTicket: true, control: 'TKT-2026-0042', paperNumber: control),
+      );
+      expect(find.text(control), findsOneWidget);
+      final number = tester.widget<Text>(find.text(control));
       expect(number.maxLines, isNull);
       expect(number.overflow, isNot(TextOverflow.ellipsis));
       final title = tester.getRect(find.text('VIOLATION TICKET'));
-      final controlRect = tester.getRect(find.text('#$control'));
+      final controlRect = tester.getRect(find.text(control));
       expect(title.left, lessThan(controlRect.left));
       expect(title.top, lessThan(controlRect.bottom));
       expect(controlRect.top, lessThan(title.bottom));
-      expect(
-        tester.getTopRight(find.text('#$control')).dx,
-        closeTo(width - 40, 1),
-      );
+      expect(tester.getTopRight(find.text(control)).dx, closeTo(width - 40, 1));
       expect(tester.takeException(), isNull);
       await capturePaper(tester, 'paper-long-control-${width.toInt()}');
     });

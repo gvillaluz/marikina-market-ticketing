@@ -13,6 +13,7 @@ import 'package:marikina_market_mobile/features/tickets/data/models/params/save_
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_ticket_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance_shortcuts.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/page_result.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/save_inspection_result.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_fine_summary_use_case.dart';
@@ -20,7 +21,9 @@ import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_in
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ordinances_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/save_inspection_ticket_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_vendor_by_code_use_case.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_vendor_by_stall_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_ordinance_shortcuts_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_businesses_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_business_people_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/check_warning_ordinances_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/warning_ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
@@ -35,7 +38,9 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   final LoadInspectionListUseCase loadInspectionListUseCase;
   final LoadOrdinancesUseCase loadOrdinancesUseCase;
   final SearchVendorByCodeUseCase searchVendorByCodeUseCase;
-  final SearchVendorByStallUseCase searchVendorByStallUseCase;
+  final SearchBusinessesUseCase searchBusinessesUseCase;
+  final GetOrdinanceShortcutsUseCase getOrdinanceShortcutsUseCase;
+  final GetBusinessPeopleUseCase getBusinessPeopleUseCase;
   final GetFineSummaryUseCase getFineSummaryUseCase;
   final CheckWarningOrdinancesUseCase checkWarningOrdinancesUseCase;
   final SaveInspectionTicketUseCase saveInspectionTicketUseCase;
@@ -66,6 +71,9 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
 
   List<Ordinance> _ordinances = [];
   List<Ordinance> get ordinances => _ordinances;
+  OrdinanceShortcuts? _ordinanceShortcuts;
+  int _ordinanceShortcutsRequestId = 0;
+  OrdinanceShortcuts? get ordinanceShortcuts => _ordinanceShortcuts;
   bool _hasLoadedTickets = false;
 
   InspectionBloc({
@@ -76,7 +84,9 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     required this.loadInspectionListUseCase,
     required this.loadOrdinancesUseCase,
     required this.searchVendorByCodeUseCase,
-    required this.searchVendorByStallUseCase,
+    required this.searchBusinessesUseCase,
+    required this.getOrdinanceShortcutsUseCase,
+    required this.getBusinessPeopleUseCase,
     required this.getFineSummaryUseCase,
     required this.checkWarningOrdinancesUseCase,
     required this.saveInspectionTicketUseCase,
@@ -151,7 +161,8 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     on<LoadOrdinances>(_onLoadOrdinances);
     on<LoadInspectionTickets>(_onLoadInspectionTickets);
     on<SearchByCodeRequested>(_onSearchByCodeRequested);
-    on<SearchByStallNumberRequested>(_onSearchByStallNumberRequested);
+    on<BusinessSearchRequested>(_onBusinessSearchRequested);
+    on<BusinessPeopleRequested>(_onBusinessPeopleRequested);
     on<LoadOrdinanceSelection>(_onLoadOrdinanceSelection);
     on<FineSummaryRequested>(_onFineSummaryRequested);
     on<WarningOrdinanceCheckRequested>(_onWarningOrdinanceCheckRequested);
@@ -290,27 +301,42 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     }
   }
 
-  Future<void> _onSearchByStallNumberRequested(
-    SearchByStallNumberRequested event,
+  Future<void> _onBusinessSearchRequested(
+    BusinessSearchRequested event,
     Emitter<InspectionState> emit,
   ) async {
     final requestId = ++_vendorSearchRequestId;
-    final query = event.stallNumber.trim();
+    final query = event.search.trim();
     if (query.isEmpty) {
       emit(InspectionInitial());
       return;
     }
     emit(InspectionSearchLoading());
 
-    final result = await searchVendorByStallUseCase(query);
+    final result = await searchBusinessesUseCase(query);
     if (emit.isDone || requestId != _vendorSearchRequestId) return;
 
     switch (result) {
       case Success(:final data):
-        emit(InspectionSearchList(data));
+        emit(InspectionSearchList(data.items, data.hasMore));
 
       case ResultFailure(failure: final failure):
         emit(InspectionSearchError(failure.message));
+    }
+  }
+
+  Future<void> _onBusinessPeopleRequested(
+    BusinessPeopleRequested event,
+    Emitter<InspectionState> emit,
+  ) async {
+    emit(BusinessPeopleLoading());
+    final result = await getBusinessPeopleUseCase(event.businessId);
+    if (emit.isDone) return;
+    switch (result) {
+      case Success(:final data):
+        emit(BusinessPeopleLoaded(data));
+      case ResultFailure(:final failure):
+        emit(BusinessPeopleError(failure.message));
     }
   }
 
@@ -318,21 +344,28 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     LoadOrdinanceSelection event,
     Emitter emit,
   ) async {
+    final request = ++_ordinanceShortcutsRequestId;
+    _ordinanceShortcuts = null;
     emit(OrdinanceSelectionLoading());
 
-    if (_ordinances.isNotEmpty) {
-      emit(OrdinanceSelectionLoaded(ordinances));
-      return;
+    if (_ordinances.isEmpty) {
+      final result = await loadOrdinancesUseCase();
+      if (emit.isDone) return;
+      if (result is ResultFailure<List<Ordinance>>) {
+        emit(OrdinanceSelectionError(result.failure.message));
+        return;
+      }
+      _ordinances = (result as Success<List<Ordinance>>).data;
     }
+    emit(OrdinanceSelectionLoaded(_ordinances));
 
-    final result = await loadOrdinancesUseCase();
-
-    if (emit.isDone) return;
-    if (result is Success<List<Ordinance>>) {
-      _ordinances = result.data;
+    // Shortcuts are extra: the list is already usable, and a failure just leaves them out.
+    final shortcuts = await getOrdinanceShortcutsUseCase(event.personId);
+    if (emit.isDone || request != _ordinanceShortcutsRequestId) return;
+    if (shortcuts is Success<OrdinanceShortcuts> &&
+        state is OrdinanceSelectionLoaded) {
+      _ordinanceShortcuts = shortcuts.data;
       emit(OrdinanceSelectionLoaded(_ordinances));
-    } else if (result is ResultFailure<List<Ordinance>>) {
-      emit(OrdinanceSelectionError(result.failure.message));
     }
   }
 

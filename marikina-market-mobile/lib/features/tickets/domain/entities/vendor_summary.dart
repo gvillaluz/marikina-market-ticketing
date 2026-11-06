@@ -28,4 +28,16 @@ class VendorSummary {
     required this.marketSectionId,
     required this.marketSectionName,
   });
+
+  String get ownerName => [
+    firstName,
+    middleName,
+    lastName,
+  ].whereType<String>().where((part) => part.trim().isNotEmpty).join(' ');
+
+  // Where the ticket is issued, filled in from the business record.
+  String get issuePlace => [
+    marketSectionName,
+    if (stallNumber != null) 'Stall $stallNumber',
+  ].join(', ');
 }

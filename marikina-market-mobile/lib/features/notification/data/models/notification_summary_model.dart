@@ -6,7 +6,7 @@ class NotificationSummaryModel {
   final int notificationId;
   final int enforcerId;
   final int ticketId;
-  final String controlNumber;
+  final String? controlNumber;
   final String tradeName;
   final String marketSection;
   final PenaltyType? penaltyType;
@@ -40,7 +40,7 @@ class NotificationSummaryModel {
       notificationId: json['id'] as int,
       enforcerId: json['enforcer_id'] as int,
       ticketId: json['ticket_id'] as int,
-      controlNumber: json['control_number'] as String,
+      controlNumber: json['control_number'] as String?,
       tradeName: json['trade_name'] as String,
       marketSection: json['market_section_name'] as String,
       penaltyType: json['penalty_type'] == null

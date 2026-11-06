@@ -3,7 +3,20 @@
 Plain-language notes for picking up next session. **Read "Latest" first.** The OCR trial history below it is kept as a record.
 Detailed records: `docs/revision-ocr-feasibility-plan.md` and `evidence/revision-ocr-feasibility-2026-10-30/README.md` (on this computer only).
 
-## Latest: new direction (2026-11-04)
+## Latest (2026-11-06): A1 complete
+
+New ticket flow, part A1 (find the business and the violator) is complete: all automatic tests pass, all six live checks on V2529 passed, and the user closed it on 2026-11-06. A2 has not started and needs its own plan and approval. Report: "A1 final report" in `docs/ticket-flow-slice-a-plan.md`. Nothing is committed. The throwaway database `marikina_market_e2e` was set up again on this computer (`evidence/local-e2e-database/`, files dated 2026-11-06).
+
+## Your answers (2026-11-06)
+
+1. **OCR is dropped.** Roadmap and OCR documents updated to say so. Ideas 1–4 are the first slice. A plan is still needed before any coding.
+2. **Every business is already in the system.** New businesses come with records from the higher office. Enforcers never create businesses.
+3. **The office has a list of private businesses** and will import it. The system has no import feature for business lists yet. That would be its own small slice, planned separately.
+4. **Timing test:** explained in chat. Still to confirm who can do it.
+5. **Documents updated:** roadmap (kept short, same format), `docs/revision-ocr-feasibility-plan.md`, this file and `revision-ocr-outcomes-plan.md`.
+6. **Google key file:** you said delete it. It is not on this computer: `C:\Users\berna\...` doesn't exist here. Delete it on the computer that has it. Also delete the key and the Google Cloud project online.
+
+## Recommendation (2026-11-04)
 
 ### What you told me
 

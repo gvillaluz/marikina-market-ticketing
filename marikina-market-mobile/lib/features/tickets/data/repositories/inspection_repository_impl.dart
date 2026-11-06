@@ -15,6 +15,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinanc
 import 'package:marikina_market_mobile/core/shared/domain/entities/page_result.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/save_inspection_result.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_summary.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance_shortcuts.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/warning_ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/repositories/inspection_repository.dart';
@@ -104,23 +105,27 @@ class InspectionRepositoryImpl implements InspectionRepository {
   }
 
   @override
-  Future<Result<List<VendorSummary>>> getVendorByStall(
-    String stallNumber,
-  ) async {
-    try {
-      final vendorModels = await remoteDataSource.getVendorByStall(stallNumber);
-
-      return Result.success(
-        vendorModels.map((model) => model.toEntity()).toList(),
+  Future<Result<PageResult<VendorSummary>>> searchBusinesses(String search) =>
+      _personResult(
+        () async => (await remoteDataSource.searchBusinesses(
+          search,
+        )).toEntity((m) => m.toEntity()),
       );
-    } on ValidationException catch (e) {
-      return Result.failure(ValidationFailure(e.message));
-    } on NetworkException catch (e) {
-      return Result.failure(NetworkFailure(e.message));
-    } on ServerException catch (e) {
-      return Result.failure(ServerFailure(e.message));
-    }
-  }
+
+  @override
+  Future<Result<List<PersonCandidate>>> getBusinessPeople(int businessId) =>
+      _personResult(
+        () async => (await remoteDataSource.getBusinessPeople(
+          businessId,
+        )).map((m) => m.toEntity()).toList(),
+      );
+
+  @override
+  Future<Result<OrdinanceShortcuts>> getOrdinanceShortcuts(int? personId) =>
+      _personResult(
+        () async =>
+            (await remoteDataSource.getOrdinanceShortcuts(personId)).toEntity(),
+      );
 
   @override
   Future<Result<FineSummary>> getTicketFineSummary(

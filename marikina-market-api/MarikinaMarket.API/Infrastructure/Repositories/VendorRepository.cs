@@ -43,6 +43,9 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public Task<bool> IsActiveBusinessAsync(int id)
+            => _context.Businesses.AnyAsync(v => v.Id == id && v.Status == VendorStatus.Active);
+
         public async Task<Business> CreateVendorAsync(Business vendorProfile)
         {
             await _context.Businesses.AddAsync(vendorProfile);
@@ -164,10 +167,19 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             }
         }
 
-        public async Task<List<VendorLookupResult>> GetVendorByBusinessAccountNumber(string businessAccountNumber)
+        // Exact stall or account-number matches come first, then partial matches by business name.
+        public async Task<(List<VendorLookupResult> Items, int Total)> SearchActiveBusinessesAsync(string search, int limit)
         {
-            return await _context.Businesses
-                .Where(v => v.BusinessAccountNumber.ToLower().Contains(businessAccountNumber.ToLower()) && v.Status == VendorStatus.Active)
+            var term = search.ToLower();
+            var query = _context.Businesses.Where(v => v.Status == VendorStatus.Active
+                && (v.BusinessName.ToLower().Contains(term)
+                    || v.BusinessAccountNumber.ToLower().Contains(term)
+                    || (v.StallNumber != null && v.StallNumber.ToLower().Contains(term))));
+            var total = await query.CountAsync();
+            var items = await query
+                .OrderBy(v => (v.StallNumber != null && v.StallNumber.ToLower() == term) || v.BusinessAccountNumber.ToLower() == term ? 0 : 1)
+                .ThenBy(v => v.BusinessName).ThenBy(v => v.Id)
+                .Take(limit)
                 .Select(v => new VendorLookupResult
                 {
                     VendorId = v.Id,
@@ -184,6 +196,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     MarketSectionName = v.MarketSection!.Name
                 })
                 .ToListAsync();
+            return (items, total);
         }
 
         public async Task<VendorLookupResult?> GetVendorByQrCode(string codeValue)
@@ -301,7 +314,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(t => new AdminVendorActivity
                 {
                     TicketId = t.Id,
-                    ControlNumber = t.ControlNumber,
+                    ControlNumber = t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference,
                     BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
                     FirstName = t.Vendor.OwnerFirstName,
                     MiddleName = null,
@@ -326,7 +339,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(t => new AdminPendingTicketSettlement
                 {
                     TicketId = t.Id,
-                    ControlNumber = t.ControlNumber,
+                    ControlNumber = t.PaperReference,
                     BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
                     VendorName = t.Vendor.OwnerLastName + ", " + t.Vendor.OwnerFirstName,
                     MarketSectionName = t.MarketSection!.Name,

@@ -29,6 +29,7 @@ const ticketResponse = <String, Object?>{
   'enforcer_id': 7,
   'vendor_id': 12,
   'control_number': 'TKT-2026-0042',
+  'paper_reference': '000456',
   'status': 'Pending',
   'business_name': 'Market Goods',
   'business_snapshot': {
@@ -134,7 +135,7 @@ void main() {
         expect((bloc.state as TicketsLoaded).isRefreshing, isTrue);
         expect(find.byType(SkeletonBox), findsNothing);
         expect(
-          find.text(empty ? 'No Tickets Found' : '#TKT-2026-0042'),
+          find.text(empty ? 'No Tickets Found' : '000456'),
           findsOneWidget,
         );
         expect(finished, isFalse);

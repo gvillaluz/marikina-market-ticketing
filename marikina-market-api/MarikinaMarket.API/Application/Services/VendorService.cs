@@ -18,6 +18,7 @@ namespace MarikinaMarket.API.Application.Services
 {
     public class VendorService : IVendorService
     {
+        private const int BUSINESS_SEARCH_LIMIT = 20;
         private readonly IUserRepository _userRepository;
         private readonly IVendorRepository _vendorRepository;
         private readonly IUnitOfWork _unitOfWork;
@@ -410,11 +411,17 @@ namespace MarikinaMarket.API.Application.Services
             return Convert.ToHexString(bytes).ToLowerInvariant();
         }
 
-        public async Task<List<GetVendorResponse>> GetVendorByBusinessAccountNumberAsync(string businessAccountNumber)
+        public async Task<PageResponse<GetVendorResponse>> SearchBusinessesAsync(string? search)
         {
-            var vendors = await _vendorRepository.GetVendorByBusinessAccountNumber(businessAccountNumber);
+            var term = search?.Trim();
+            if (string.IsNullOrEmpty(term))
+                throw new ValidationException("Enter a business name, stall number or account number.");
+            if (term.Length > 200)
+                throw new ValidationException("Search must be 200 characters or fewer.");
 
-            return vendors.Select(v => new GetVendorResponse
+            var (vendors, total) = await _vendorRepository.SearchActiveBusinessesAsync(term, BUSINESS_SEARCH_LIMIT);
+
+            return new() { Total = total, HasMore = vendors.Count < total, Items = vendors.Select(v => new GetVendorResponse
             {
                 VendorId = v.VendorId,
                 Username = v.Username,
@@ -428,7 +435,7 @@ namespace MarikinaMarket.API.Application.Services
                 Address = v.Address ?? "",
                 MarketSectionId = v.MarketSectionId,
                 MarketSectionName = v.MarketSectionName
-            }).ToList();
+            }).ToList() };
         }
 
         public async Task<GetVendorResponse> GetVendorByQrCode(string qrCode)

@@ -15,20 +15,20 @@ class PaperCitationFields extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      const Text('Paper reference', style: AppTheme.ticketPaperLabelStyle),
+      const Text('Control number', style: AppTheme.ticketPaperLabelStyle),
       const SizedBox(height: AppTheme.inspectionTinyGap),
       Semantics(
-        label: 'Paper reference',
+        label: 'Control number',
         child: TextFormField(
           key: const ValueKey('paper-reference'),
           controller: referenceController,
           maxLength: 200,
           textInputAction: TextInputAction.next,
           decoration: const InputDecoration(
-            hintText: 'Reference printed on the ticket',
+            hintText: 'Number printed on the paper ticket',
           ),
           validator: (value) => value == null || value.trim().isEmpty
-              ? 'Paper reference is required.'
+              ? 'Control number is required.'
               : value.trim().length > 200
               ? 'Use at most 200 characters.'
               : null,

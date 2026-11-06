@@ -15,6 +15,7 @@ import 'package:marikina_market_mobile/features/tickets/data/models/inspection_s
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_model.dart';
 import 'package:marikina_market_mobile/core/shared/data/models/page_result_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/params/save_inspection_params.dart';
+import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_shortcuts_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/save_inspection_result_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/vendor_summary_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/warning_ordinance_model.dart';
@@ -47,7 +48,9 @@ abstract class InspectionRemoteDataSource {
   );
   Future<List<OrdinanceModel>> getOrdinances();
   Future<VendorSummaryModel> getVendorByCode(String codeValue);
-  Future<List<VendorSummaryModel>> getVendorByStall(String stallNumber);
+  Future<PageResultModel<VendorSummaryModel>> searchBusinesses(String search);
+  Future<List<PersonCandidateModel>> getBusinessPeople(int businessId);
+  Future<OrdinanceShortcutsModel> getOrdinanceShortcuts(int? personId);
   Future<FineSummaryModel> getFineSummary(
     List<int> ordinanceIds,
     int vendorId, {
@@ -141,30 +144,55 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
   }
 
   @override
-  Future<List<VendorSummaryModel>> getVendorByStall(String stallNumber) async {
-    try {
-      final response = await apiClient.get('/vendor/stall/$stallNumber');
-
-      final List<dynamic> data = response.data;
-
-      if (data.isEmpty) {
-        return [];
-      }
-
-      return data.map((json) => VendorSummaryModel.fromJson(json)).toList();
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 400) {
-        throw ValidationException(
-          e.response?.data['message'] ?? 'Invalid stall number',
+  Future<PageResultModel<VendorSummaryModel>> searchBusinesses(String search) =>
+      _businessRequest(() async {
+        final response = await apiClient.get(
+          '/vendor/lookup',
+          queryParameters: {'search': search},
         );
-      }
+        return PageResultModel.fromJson(
+          response.data,
+          VendorSummaryModel.fromJson,
+        );
+      });
 
+  @override
+  Future<List<PersonCandidateModel>> getBusinessPeople(int businessId) =>
+      _businessRequest(() async {
+        final response = await apiClient.get('/vendor/$businessId/people');
+        return (response.data as List<Object?>)
+            .map(
+              (json) =>
+                  PersonCandidateModel.fromJson(json as Map<String, Object?>),
+            )
+            .toList();
+      });
+
+  @override
+  Future<OrdinanceShortcutsModel> getOrdinanceShortcuts(int? personId) =>
+      _businessRequest(() async {
+        final response = await apiClient.get(
+          '/ordinance/shortcuts',
+          queryParameters: {'person_id': ?personId},
+        );
+        return OrdinanceShortcutsModel.fromJson(
+          response.data as Map<String, Object?>,
+        );
+      });
+
+  Future<T> _businessRequest<T>(Future<T> Function() request) async {
+    try {
+      return await request();
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 400 || status == 404) {
+        throw ValidationException(_personError(e));
+      }
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.receiveTimeout) {
         throw NetworkException('No internet connection. Please try again.');
       }
-
       throw ServerException('Something went wrong. Please try again later');
     }
   }
