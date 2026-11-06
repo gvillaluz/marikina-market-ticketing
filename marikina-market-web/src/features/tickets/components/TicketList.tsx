@@ -44,8 +44,24 @@ export default function TicketList({
             "\u2014",
         },
         {
+          key: "businessName",
+          header: "Business name",
+          align: "left",
+          render: (ticket) =>
+            ticket.businessSnapshot?.businessName ||
+            "Historical business details unavailable.",
+        },
+        {
+          key: "registeredOwner",
+          header: "Registered owner",
+          align: "left",
+          render: (ticket) =>
+            ticket.businessSnapshot?.registeredOwnerName ||
+            "Historical business details unavailable.",
+        },
+        {
           key: "vendor",
-          header: "Recorded violator",
+          header: "Violator",
           align: "left",
           render: (ticket) =>
             ticket.paperViolatorName || "Unconfirmed (legacy record)",
