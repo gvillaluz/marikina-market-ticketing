@@ -412,6 +412,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                               businessSnapshot: _verification?.businessSnapshot,
                               personId: widget.formData.personId,
                               personFullName: widget.formData.personFullName,
+                              personAddress: widget.formData.personAddress,
                               paperViolatorName:
                                   widget.formData.paperViolatorName,
                               isTicket: isTicket,

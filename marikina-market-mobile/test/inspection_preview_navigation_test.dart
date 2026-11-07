@@ -378,10 +378,34 @@ void main() {
               .widget<ViolatorInfoCard>(find.byType(ViolatorInfoCard))
               .onVendorSelected(vendor);
           await tester.pump();
+          final name = find.byWidgetPredicate(
+            (widget) =>
+                widget is TextField &&
+                widget.decoration?.labelText == 'Paper violator name',
+          );
+          Future<void> selectPerson() async {
+            await tester.enterText(name, 'Juan Cruz');
+            await tester.ensureVisible(find.text('Check possible matches'));
+            await tester.tap(find.text('Check possible matches'));
+            await flush(tester);
+            await tester.ensureVisible(find.text('Same person – select'));
+            await tester.tap(find.text('Same person – select'));
+            await tester.pump();
+          }
+
+          // Switching Warning to Ticket keeps the person already chosen.
+          if (type == ViolationType.ticket) await selectPerson();
           tester
               .widget<InspectionTypeToggle>(find.byType(InspectionTypeToggle))
               .onChange(type);
           await tester.pump();
+          if (type == ViolationType.ticket) {
+            expect(find.text('Selected'), findsOneWidget);
+            expect(
+              tester.widget<TextField>(name).controller!.text,
+              'Juan Dela Cruz',
+            );
+          }
           // The issue place starts from the business record and stays editable.
           expect(
             tester
@@ -427,18 +451,7 @@ void main() {
               'Fish aisle near F-014',
             );
           }
-          final name = find.byWidgetPredicate(
-            (widget) =>
-                widget is TextField &&
-                widget.decoration?.labelText == 'Paper violator name',
-          );
-          await tester.enterText(name, 'Juan Cruz');
-          await tester.ensureVisible(find.text('Check possible matches'));
-          await tester.tap(find.text('Check possible matches'));
-          await flush(tester);
-          await tester.ensureVisible(find.text('Same person – select'));
-          await tester.tap(find.text('Same person – select'));
-          await tester.pump();
+          if (type == ViolationType.warning) await selectPerson();
           await tester.ensureVisible(find.text('Select Ordinance'));
           await tester.tap(find.text('Select Ordinance'));
           await tester.pump();

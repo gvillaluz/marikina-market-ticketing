@@ -9,7 +9,7 @@ class ViolatorInfoSection extends StatelessWidget {
   final VendorSummary vendor;
   final BusinessSnapshot? businessSnapshot;
   final bool isTicket;
-  final String? paperViolatorName, personFullName;
+  final String? paperViolatorName, personFullName, personAddress;
   final int? personId;
 
   const ViolatorInfoSection({
@@ -17,6 +17,7 @@ class ViolatorInfoSection extends StatelessWidget {
     this.businessSnapshot,
     this.paperViolatorName,
     this.personFullName,
+    this.personAddress,
     this.personId,
     required this.isTicket,
     super.key,
@@ -64,7 +65,7 @@ class ViolatorInfoSection extends StatelessWidget {
             value: businessSnapshot!.marketSectionName ?? 'Unavailable',
           ),
           TicketPaperField(
-            label: 'ADDRESS:',
+            label: 'BUSINESS ADDRESS:',
             value: businessSnapshot!.businessAddress ?? 'Unavailable',
           ),
         ] else ...[
@@ -94,7 +95,9 @@ class ViolatorInfoSection extends StatelessWidget {
           ),
           const SizedBox(height: AppTheme.inspectionSmallGap),
           if (isTicket && businessSnapshot == null)
-            TicketPaperField(label: "ADDRESS:", value: vendor.address),
+            TicketPaperField(label: 'BUSINESS ADDRESS:', value: vendor.address),
+          if (isTicket && personAddress != null)
+            TicketPaperField(label: 'VIOLATOR ADDRESS:', value: personAddress!),
         ],
       ],
     );
