@@ -17,6 +17,25 @@ class VendorNotificationTile extends StatelessWidget {
     super.key,
   });
 
+  // The server's notification list does not say whether a record is a warning,
+  // but a warning's control number is always its WRN- number.
+  bool get _isWarningRecord =>
+      notification.isWarning ||
+      (notification.controlNumber?.startsWith('WRN-') ?? false);
+
+  // A saved status-change text lacks the control number and business name,
+  // so it is rebuilt from the notification's own fields. Issued tickets and
+  // warnings (saved as Pending) keep the text the server saved.
+  String get _text {
+    final status = notification.status;
+    if (status == null || status == TicketStatus.pending) {
+      return notification.message;
+    }
+    final number = notification.controlNumber;
+    final noun = _isWarningRecord ? 'Warning' : 'Ticket';
+    return '${number == null ? 'A ${noun.toLowerCase()}' : '$noun $number'} for ${notification.tradeName} is now ${status.label}.';
+  }
+
   String get _title {
     if (notification.isWarning) return 'New written warning';
     if (notification.status == TicketStatus.paid ||
@@ -26,7 +45,9 @@ class VendorNotificationTile extends StatelessWidget {
     if (notification.status == TicketStatus.pending) {
       return 'New violation ticket';
     }
-    return 'Ticket status updated';
+    return _isWarningRecord
+        ? 'Warning status updated'
+        : 'Ticket status updated';
   }
 
   IconData get _icon {
@@ -88,7 +109,7 @@ class VendorNotificationTile extends StatelessWidget {
                     ),
                     const SizedBox(height: AppTheme.vendorNotificationTextGap),
                     Text(
-                      notification.message,
+                      _text,
                       style: AppTheme.vendorNotificationBodyStyle.copyWith(
                         color: AppTheme.vendorNotificationText,
                       ),

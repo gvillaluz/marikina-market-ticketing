@@ -516,6 +516,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
         extra: InspectionFormData(
           personId: _confirmedPerson?.id,
           personFullName: _confirmedPerson?.fullName,
+          personAddress: _confirmedPerson?.address,
           paperViolatorName: _paperName,
           paperReference: _selectedType == ViolationType.ticket
               ? _paperReferenceController.text.trim()
@@ -624,8 +625,6 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           selected: _selectedType,
                           onChange: (type) => setState(() {
                             _selectedType = type;
-                            _confirmedPerson = null;
-                            _paperName = '';
                             _selectedOrdinances = [];
                             _fineSummary = null;
                             _assessmentTexts.clear();
@@ -660,6 +659,9 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           const SizedBox(height: AppTheme.inspectionSmallGap),
                         ],
                         PersonIdentityReview(
+                          // Keeps the chosen person and typed name when the
+                          // ticket fields appear or disappear above it.
+                          key: const ValueKey('person-identity-review'),
                           vendor: _vendorSummary!,
                           onChanged: (person, paperName) => setState(() {
                             _confirmedPerson = person;

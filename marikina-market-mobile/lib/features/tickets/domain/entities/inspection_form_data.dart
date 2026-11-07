@@ -10,7 +10,10 @@ class InspectionFormData {
   final List<FineAssessment> fineAssessments;
   final String? paperReference, issuePlace;
   final int? personId;
-  final String? paperViolatorName, personFullName, reviewedCalculation;
+  final String? paperViolatorName,
+      personFullName,
+      personAddress,
+      reviewedCalculation;
   final int enforcerId;
   final VendorSummary vendorSummary;
   final FineSummary? fineSummary;
@@ -29,6 +32,7 @@ class InspectionFormData {
     this.personId,
     this.paperViolatorName,
     this.personFullName,
+    this.personAddress,
     this.reviewedCalculation,
     required this.enforcerId,
     required this.vendorSummary,
