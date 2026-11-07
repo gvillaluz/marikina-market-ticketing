@@ -184,6 +184,24 @@ A2 is split into three parts, each with its own approval and live check: **A2a**
 
 **Done when:** (1) title and section search finds the right ordinance; (2) the three groups are correct, ordered and without repeats; (3) inactive ordinances and uses older than 30 days are left out where required; (4) if the shortcuts fail, the full list still works; (5) the live check on V2529 shows the expected shortcuts. Each new test must fail first; deliberate breaks must be caught.
 
+## A2b — Copy-to-paper card (approved 2026-11-07)
+
+Status (2026-11-07): **A2b complete** (closed by the user on 2026-11-07). Phone 446 passed (10 new), analyze no issues, format clean; all six live checks on V2529 passed (`evidence/ticket-flow-a2b-live/results.md`). Committed on branch `a2b-copy-to-paper` (worktree `C:\Users\Admin\Documents\Projects\mmt-a2b-copy-to-paper`).
+
+Noted for later (user, 2026-11-07), not approved: on the review page, ADDRESS shows the business's address, while the card's ADDRESS shows the violator's own address from their person record (what the paper asks for under NAME). Not caused by A2b.
+
+**For the enforcer:** on the New Inspection page, between the description and the paper photo, a card "Copy these onto the paper ticket" (or "…paper warning") lists what to write, using the paper's own labels and order. It appears only when everything it lists is ready and follows every change on the page. It saves nothing and does not affect Verify or Submit.
+
+**User decisions (2026-11-07):** the card matches the real paper fields (not business/stall); warnings get their own card with the BABALA labels; Control No. (pre-printed), "Iba pang uri ng paglabag" and "Tinanggap" are left off.
+
+**Ticket card:** NAME (paper name), ADDRESS (the confirmed person's address), ORDINANCE ("tick OTHERS, write:" then "011 series of 2014, Sec. 12 – title" per ordinance; every ordinance in the app is 011/2014, so none of the three printed boxes applies), FINE/PENALTIES ("tick Php 1,500.00" / "tick Php 1,000.00" for those totals, otherwise "tick OTHERS, write Php …"; "tick Blood Donation"; "tick Community Service, write N hrs"), PLACE (issue place field), DATE / TIME (now), NAME & SIGNATURE OF APPREHENDING OFFICER (signed-in enforcer). Shown only with a name, address, place, at least one ordinance, and a complete cash total or community service of at least 3 hours.
+
+**Warning card:** Petsa, Pangalan, Lugar, one "Ordinansa Blg." per ordinance ("011, Serye: 2014" then "Sec. 49 – title"), Market Enforcer. Shown with a name, place and at least one ordinance.
+
+**Files:** new `copy_to_paper_card.dart` (ticket form widgets); `add_new_inspection_page.dart` (places the card); new `test/copy_to_paper_card_test.dart`; `test/inspection_preview_navigation_test.dart` gains card checks on the real page (approved by the user). No server, website or database change; no API contract change.
+
+**Checks:** new tests failed first (10 of 10 against an empty card). Deliberate breaks caught: fine box never matched, card shown before the fine was complete, later ordinances dropped, card missing from the page, place sent as the address. In the whole-page test, a failed check makes the remaining tests in that file stall until the time limit (existing test setup behaviour).
+
 ## Control number, Part 1 — server messages and phone (approved 2026-11-06)
 
 Status: **complete** (closed by the user 2026-11-07). Server 784 passed / 2 existing skips; phone 436 passed, analyze and format clean. Live V2529 checks 1, 2, 3, 4 and 6 passed. Check 5 rested on a wrong expectation and was accepted as-is by the user. Details: `evidence/control-number-part1-live/results.md`. Nothing committed.

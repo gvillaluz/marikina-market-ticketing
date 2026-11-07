@@ -32,6 +32,8 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/pages/add_new_inspection_page.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/pages/new_inspection_preview_page.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/add_photo_evidence_btn.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/copy_to_paper_card.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/inspection_type_toggle.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/violator_info_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/submit_confirmation_bottom_sheet.dart';
@@ -84,6 +86,18 @@ Future<void> flush(WidgetTester tester) async {
   }
   await tester.pumpAndSettle();
 }
+
+// Copy-to-paper card values by paper label, leaving out the date and time.
+Map<String, String> copyCard(WidgetTester tester) => {
+  for (final field in tester.widgetList<TicketPaperField>(
+    find.descendant(
+      of: find.byType(CopyToPaperCard),
+      matching: find.byType(TicketPaperField),
+    ),
+  ))
+    if (field.label != 'DATE / TIME:' && field.label != 'Petsa:')
+      field.label: field.value,
+};
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -490,6 +504,33 @@ void main() {
             }
             await flush(tester);
           }
+          // The copy-to-paper card is fed from this page: the confirmed
+          // person, the place field, the chosen ordinance, the fine and the
+          // signed-in enforcer.
+          expect(
+            copyCard(tester),
+            type == ViolationType.ticket
+                ? {
+                    'NAME:': 'Juan Dela Cruz',
+                    'ADDRESS:': '31 Synthetic Market Lane',
+                    'ORDINANCE:':
+                        'tick OTHERS, write:\n'
+                        'Ord. No. 123 Series of 2026 series of 2026, '
+                        'Sec. 69 – Proper Waste Disposal',
+                    'FINE/PENALTIES:': 'tick OTHERS, write Php 100.00',
+                    'PLACE:': 'Fish aisle near F-014',
+                    'NAME & SIGNATURE OF APPREHENDING OFFICER:':
+                        'Test Enforcer',
+                  }
+                : {
+                    'Pangalan:': 'Juan Dela Cruz',
+                    'Lugar:': 'Fish aisle near F-014',
+                    'Ordinansa Blg.:':
+                        'Ord. No. 123 Series of 2026, Serye: 2026\n'
+                        'Sec. 69 – Proper Waste Disposal',
+                    'Market Enforcer:': 'Test Enforcer',
+                  },
+          );
           await tester.ensureVisible(formAction());
           await tester.tap(formAction());
           await tester.pump();
@@ -566,6 +607,13 @@ void main() {
               final input = find.byKey(ValueKey(field));
               await tester.ensureVisible(input);
               await tester.enterText(input, value);
+              await tester.pump();
+              expect(
+                copyCard(tester)['PLACE:'],
+                field == 'issue-place'
+                    ? 'Fish aisle near F-015'
+                    : 'Fish aisle near F-014',
+              );
               await tester.ensureVisible(formAction());
               await tester.tap(formAction());
               await flush(tester);
