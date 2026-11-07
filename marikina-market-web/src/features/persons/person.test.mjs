@@ -99,6 +99,26 @@ test("registry renders loading, empty, error and distinct same-name rows as text
   assert.match(html, /2 people/);
 });
 
+test("saved person details show that person's citation history; a new person shows none", () => {
+  const Button = load("../../components/ui/Button/Button.tsx", { "react/jsx-runtime": ReactJsx(), react: React }).default;
+  const state = {
+    form: { fullName: "E2E Elena Reyes", address: "12 Market Lane, Marikina City", phoneNumber: null },
+    errors: {}, saving: false, loading: false, loadError: "", submitError: "", uncertainCreate: false,
+    createdAt: "2026-11-01T02:00:00Z", update() {}, submit() {}, retry() {}, confirmNotSaved() {},
+  };
+  const Modal = load("./components/PersonFormModal.tsx", {
+    "react/jsx-runtime": ReactJsx(), react: React,
+    "@/components/ui/Button": { default: Button },
+    "@/components/ui/Modal": { default: ({ open, children }) => open ? React.createElement("div", null, children) : null },
+    "../hooks/usePersonForm": { usePersonForm: () => state },
+    "@/features/tickets": { PersonTicketHistory: ({ personId }) => React.createElement("section", null, `Citation history for person ${personId}`) },
+  }).default;
+  const render = personId => renderToStaticMarkup(React.createElement(Modal, { open: true, personId, onClose() {}, onSaved: async () => {} }));
+  assert.match(render(17), /Citation history for person 17/);
+  assert.match(render(17), /E2E Elena Reyes/);
+  assert.doesNotMatch(render(null), /Citation history/);
+});
+
 // Use React's actual JSX runtime for production component rendering.
 import * as jsxRuntime from "react/jsx-runtime";
 function ReactJsx() { return jsxRuntime; }

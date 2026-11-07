@@ -143,15 +143,15 @@ export default function AdminVendorInspectionHistory({
       <Card className={`${styles.historyCard} motion-enter`}>
         <div className={styles.recordsHeading}>
           <h2>ACTIVITY RECORDS</h2>
-          <p>Complete activity log for this vendor.</p>
+          <p>Complete activity log for this business.</p>
         </div>
 
         <div className={styles.toolbar}>
           <label className={styles.searchBox}>
             <Search size={13} aria-hidden="true" />
             <input
-              aria-label="Search by control number or vendor"
-              placeholder="Search by control number or vendor..."
+              aria-label="Search by control number or ordinance"
+              placeholder="Search by control number or ordinance..."
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
             />

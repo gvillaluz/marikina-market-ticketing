@@ -31,7 +31,7 @@ function exportVendorPage(vendors: AdminVendorSummary[]) {
   const rows = [
     [
       "Business Account Number",
-      "Vendor Name",
+      "Registered Owner",
       "Market Section",
       "Type",
       "Compliance Score",
@@ -58,7 +58,7 @@ function exportVendorPage(vendors: AdminVendorSummary[]) {
   );
   const link = document.createElement("a");
   link.href = url;
-  link.download = "vendor-registry.csv";
+  link.download = "business-registry.csv";
   document.body.appendChild(link);
   link.click();
   link.remove();
