@@ -14,6 +14,7 @@ import 'package:marikina_market_mobile/core/router/routes.dart';
 import '../../../domain/entities/fine_assessment.dart';
 import '../../../domain/enums/fine_kind.dart';
 import '../widgets/form/assessed_fine_field.dart';
+import '../widgets/form/copy_to_paper_card.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
 import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/duplicate_ordinance.dart';
@@ -729,6 +730,29 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                             errorText: _descriptionError,
                             border: const OutlineInputBorder(),
                           ),
+                        ),
+
+                        CopyToPaperCard(
+                          isTicket: isTicket,
+                          name: _paperName,
+                          address: _confirmedPerson?.address ?? '',
+                          place: _issuePlaceController.text,
+                          officerName:
+                              [
+                                    widget.user.firstName,
+                                    widget.user.middleName,
+                                    widget.user.lastName,
+                                  ]
+                                  .whereType<String>()
+                                  .where((part) => part.trim().isNotEmpty)
+                                  .join(' '),
+                          ordinances: _selectedOrdinances,
+                          penaltyType: _selectedPenaltyType,
+                          fineTotal: _localFineSummary?.totalPaymentAmount,
+                          communityHours: int.tryParse(
+                            _communityHrsController.text.trim(),
+                          ),
+                          now: DateTime.now(),
                         ),
 
                         ...[
