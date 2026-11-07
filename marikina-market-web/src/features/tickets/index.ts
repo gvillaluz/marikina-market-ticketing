@@ -1,3 +1,4 @@
+export { default as PersonTicketHistory } from "./components/PersonTicketHistory";
 export { useTicketDetails } from "./hooks/useTicketDetails";
 export { useTicketModal } from "./hooks/useTicketModal";
 export { useTicketSettlement } from "./hooks/useTicketSettlement";

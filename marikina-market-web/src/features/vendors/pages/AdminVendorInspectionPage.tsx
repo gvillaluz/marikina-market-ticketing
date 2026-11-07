@@ -37,34 +37,34 @@ export default function AdminVendorInspectionPage() {
   if (!Number.isSafeInteger(vendorId) || vendorId < 1) {
     return (
       <div className={styles.errorPage}>
-        <h2>Vendor record unavailable</h2>
-        <p>This vendor record could not be found.</p>
+        <h2>Business record unavailable</h2>
+        <p>This business record could not be found.</p>
         <Button onClick={() => navigate("/admin/vendors")}>
-          Back to Vendors
+          Back to Businesses
         </Button>
       </div>
     );
   }
 
-  const vendorName = profile?.name || navigationState?.vendorName || "Vendor";
+  const vendorName = profile?.name || navigationState?.vendorName || "Business";
 
   return (
     <div className={styles.page}>
       <Breadcrumb
         items={[
-          { label: "Vendors", to: "/admin/vendors" },
+          { label: "Businesses", to: "/admin/vendors" },
           { label: vendorName },
         ]}
       />
 
       <PageHeader
-        title="Vendor Performance Record"
-        subtitle="Performance summary and inspection log for this vendor."
+        title="Business Record"
+        subtitle="Performance summary and inspection log for this business."
       />
 
       <section
         className={styles.summary}
-        aria-label="Vendor performance summary"
+        aria-label="Business performance summary"
       >
         {isProfileError ? (
           <AdminVendorPerformanceError
@@ -92,8 +92,8 @@ export default function AdminVendorInspectionPage() {
 
       <section className={styles.historySection}>
         <PageHeader
-          title="Vendor Inspection History"
-          subtitle="Inspection log for this vendor."
+          title="Business Inspection History"
+          subtitle="Inspection log for this business."
         />
         <AdminVendorInspectionHistory
           search={inspectionPage.search}

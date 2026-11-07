@@ -10,3 +10,4 @@
 .recovery { padding: var(--space-md); background: var(--form-error-surface); font-size: var(--form-font-body); }
 .field textarea { resize: vertical; }
 .form button { min-height: var(--form-control-height); }
+.history { padding: 0 var(--space-lg) var(--space-lg); border-top: 1px solid var(--border-default); }

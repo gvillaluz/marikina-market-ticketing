@@ -1,6 +1,7 @@
 import Button from "@/components/ui/Button";
 import { useId } from "react";
 import Modal from "@/components/ui/Modal";
+import { PersonTicketHistory } from "@/features/tickets";
 import { usePersonForm } from "../hooks/usePersonForm";
 import controls from "@/styles/FormControls.module.css";
 import styles from "./PersonFormModal.module.css";
@@ -35,6 +36,7 @@ export default function PersonFormModal({ open, personId, onClose, onSaved }: Pr
             <Button type="submit" disabled={disabled || state.uncertainCreate}>{state.saving ? "Saving…" : personId === null ? "Create person" : "Save changes"}</Button>
           </div>
         </form>}
+      {personId !== null && <div className={styles.history}><PersonTicketHistory personId={personId} /></div>}
     </Modal>
   );
 }

@@ -63,7 +63,7 @@ function load(relative, overrides = {}, globals = {}, cache = new Map()) {
 
 // React/query scheduling and HTTP are outer boundaries. Real feature hooks,
 // debounce, adapters, components and Pagination run unchanged.
-function harness(file, hookName) {
+function harness(file, hookName, extraGlobals = {}) {
   const states = [],
     effects = [],
     timers = new Map(),
@@ -156,6 +156,7 @@ function harness(file, hookName) {
       clearTimeout(id) {
         timers.delete(id);
       },
+      ...extraGlobals,
     },
   );
   return {
@@ -226,6 +227,73 @@ test("registry filter/search changes start at page one and debounce blocks pagin
   h.setQuery({ data: { items: [], total: 0, hasMore: false } });
   h.render().registry.setPage(2);
   assert.equal(h.render().registry.page, 1);
+});
+
+test("business list export names the owner column Registered Owner and the file business-registry.csv", async () => {
+  const blobs = [], links = [];
+  const h = harness("features/vendors/hooks/useAdminVendorsPage.ts", "useAdminVendorsPage", {
+    Blob: class { constructor(parts) { blobs.push(parts.join("")); } },
+    URL: { createObjectURL: () => "blob:export", revokeObjectURL() { } },
+    document: {
+      body: { appendChild() { } },
+      createElement() { const link = { click() { }, remove() { } }; links.push(link); return link; },
+    },
+    window: { setTimeout() { } },
+  });
+  h.setQuery({
+    data: {
+      items: [{
+        vendorId: 4, businessName: "Reyes Fresh Meats", businessAccountNumber: "0012345",
+        vendorName: "Juan Reyes", marketSectionName: "Meat", type: "Public",
+        complianceScore: 90, warningCount: 1, ticketCount: 2,
+      }],
+      total: 1, hasMore: false,
+    },
+  });
+  h.render().registry.exportCurrentPage();
+  assert.equal(links[0].download, "business-registry.csv");
+  const [header, row] = blobs[0].split("\r\n");
+  assert.equal(header, '"Business Account Number","Registered Owner","Market Section","Type","Compliance Score","Warnings","Tickets"');
+  assert.equal(row, '"0012345","Juan Reyes","Meat","Public","90%","1","2"');
+});
+
+test("business record page and its history never call the business a vendor", () => {
+  const visibleText = (html) => html.replace(/<[^>]*>/g, " ");
+  const stub = () => null;
+  const page = (vendorId) => renderToStaticMarkup(React.createElement(load(
+    "features/vendors/pages/AdminVendorInspectionPage.tsx",
+    {
+      "react-router-dom": {
+        useParams: () => ({ vendorId }), useNavigate: () => noop,
+        useLocation: () => ({ state: null }),
+        Link: ({ children }) => React.createElement("a", null, children),
+      },
+      "../hooks/useAdminVendorProfile": {
+        useAdminVendorProfile: () => ({ isProfileLoading: true, isScoreLoading: true }),
+      },
+      "../hooks/useAdminVendorInspectionPage": {
+        useAdminVendorInspectionPage: () => ({ selectedTicketId: 0 }),
+      },
+      "../components/AdminVendorInspectionHistory": { default: stub },
+      "@/components/ui/TicketModal/TicketModal": { TicketModal: stub },
+    },
+  ).default));
+  const missing = visibleText(page("abc"));
+  assert.match(missing, /Business record unavailable/);
+  assert.match(missing, /This business record could not be found\./);
+  assert.match(missing, /Back to Businesses/);
+  assert.doesNotMatch(missing, /vendor/i);
+  const foundHtml = page("7");
+  const found = visibleText(foundHtml);
+  assert.match(found, /Business Record/);
+  assert.match(found, /Business Inspection History/);
+  assert.doesNotMatch(found, /vendor/i);
+  assert.match(foundHtml, /aria-label="Business performance summary"/);
+  const historyHtml = renderComponent("AdminVendorInspectionHistory", historyProps);
+  assert.match(visibleText(historyHtml), /Complete activity log for this business\./);
+  assert.match(historyHtml, /placeholder="Search by control number or ordinance\.\.\."/);
+  assert.doesNotMatch(visibleText(historyHtml), /vendor/i);
+  assert.doesNotMatch(historyHtml, /(placeholder|aria-label)="[^"]*vendor/i);
 });
 
 test("inspection filters reset immediately; changing vendor drops old page and ticket selection", () => {
