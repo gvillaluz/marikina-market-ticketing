@@ -22,6 +22,9 @@ export function useUpdateStatus(ticketId: number) {
         queryClient.invalidateQueries({
           queryKey: ["ticket", "detail", ticketId],
         }),
+        queryClient.invalidateQueries({
+          queryKey: ["ticket", "history", ticketId],
+        }),
         queryClient.invalidateQueries({ queryKey: ["tickets"] }),
         queryClient.invalidateQueries({ queryKey: ["inspections"] }),
         queryClient.invalidateQueries({

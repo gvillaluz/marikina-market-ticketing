@@ -15,5 +15,6 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
             DateTime? toUtcExclusive, CancellationToken cancellationToken = default);
         Task<AuditLog?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
         Task<List<AuditLog>> GetRecentDashboardActivitiesAsync(int limit);
+        Task<List<AuditLog>> GetTicketHistoryAsync(int ticketId, CancellationToken cancellationToken = default);
     }
 }

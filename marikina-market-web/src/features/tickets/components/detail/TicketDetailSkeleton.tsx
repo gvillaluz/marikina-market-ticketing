@@ -81,7 +81,7 @@ const TicketDetailSkeleton: FC = () => {
           </div>
         </div>
 
-        {/* VENDOR SETTLEMENT VERIFICATION */}
+        {/* SETTLEMENT VERIFICATION */}
         <div className={`${styles.card} ${styles.full}`}>
           <SkeletonBlock width="45%" height="11px" />
           <div className={styles.divider} />

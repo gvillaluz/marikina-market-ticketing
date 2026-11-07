@@ -60,6 +60,21 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Take(limit)
                 .ToListAsync();
 
+        private static readonly string[] TicketHistoryActions =
+            ["SaveNewInspection", "UpdateTicketStatus", "SubmitTicketReceiptProof", "LogCommunityServiceHours", "MarkTicketOverdue"];
+
+        public Task<List<AuditLog>> GetTicketHistoryAsync(int ticketId, CancellationToken cancellationToken = default)
+        {
+            var target = ticketId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return _context.AuditLogs
+                .AsNoTracking()
+                .Where(log => log.Module == Module.Tickets && log.TargetId == target &&
+                    log.Result == LogResult.Success && TicketHistoryActions.Contains(log.Action))
+                .OrderByDescending(log => log.Timestamp)
+                .ThenByDescending(log => log.Id)
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<AuditLogCountsResponse> GetActivityCountsAsync(AuditLogFilter filters,
             DateTime? fromUtc, DateTime? toUtcExclusive, CancellationToken cancellationToken = default)
             => await Filter(filters, fromUtc, toUtcExclusive)

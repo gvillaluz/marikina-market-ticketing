@@ -13,6 +13,7 @@ import type {
   OffenseLevel,
   RecordStatus,
   Severity,
+  UserRole,
 } from "./common.types";
 
 export type TicketType = "violation" | "complaint" | "inspection" | "renewal";
@@ -151,12 +152,11 @@ export interface ExportResult {
 }
 
 export interface TicketHistoryEntry {
-  id: string;
-  ticketId: string;
   action: string;
-  note?: string;
+  details: string | null;
   performedBy: string;
-  timestamp: string;
+  role: UserRole | null;
+  occurredAt: string;
 }
 
 export type PenaltyType = "CashFine" | "BloodDonation" | "CommunityService";

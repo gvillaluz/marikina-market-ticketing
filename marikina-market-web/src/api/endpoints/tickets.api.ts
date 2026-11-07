@@ -121,9 +121,12 @@ export const ticketsApi = {
       .then((response) => response.data as TicketStatusUpdateResponse);
   },
 
-  getHistory(ticketId: string): Promise<TicketHistoryEntry[]> {
+  getHistory(ticketId: number): Promise<TicketHistoryEntry[]> {
+    if (!Number.isSafeInteger(ticketId) || ticketId <= 0) {
+      return Promise.reject(new ApiRequestError("Invalid ticket ID.", 400));
+    }
     return apiClient
-      .get(`/admin/tickets/inspections/${ticketId}/history`)
+      .get(`/admin/tickets/${ticketId}/history`)
       .then((response) => response.data as TicketHistoryEntry[]);
   },
 };

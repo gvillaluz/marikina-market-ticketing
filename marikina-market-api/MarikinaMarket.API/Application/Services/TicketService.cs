@@ -20,6 +20,7 @@ using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
 using MarikinaMarket.API.Application.DTOs.Audits.Internal;
+using MarikinaMarket.API.Application.DTOs.Audits.Response;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -1193,6 +1194,8 @@ namespace MarikinaMarket.API.Application.Services
                 await _ticketRepository.SaveChangesAsync();
                 if (ticket.Type == ViolationType.Ticket)
                     await _complianceScoreService.RefreshAsync(ticket.VendorId, DateTime.UtcNow);
+                if (_audit?.Entry is not null)
+                    _audit.Entry.Details = $"{AuditLogService.StatusChangeDetailsPrefix}{previousStatus} to {ticket.Status}.";
                 if (_auditService is not null) await _auditService.StageCurrentAsync();
                 await _unitOfWork.CommitAsync();
             }
@@ -1419,6 +1422,15 @@ namespace MarikinaMarket.API.Application.Services
                 HighSeveritiesThisMonth = rawAnalytics.HighSeveritiesThisMonth,
                 HighSeveritiesChangePercentage = CalculatePercentChange(rawAnalytics.HighSeveritiesLastMonth, rawAnalytics.HighSeveritiesThisMonth) ?? 0
             };
+        }
+
+        public async Task<List<TicketHistoryEntryResponse>> GetTicketHistoryAsync(int ticketId)
+        {
+            if (ticketId <= 0)
+                throw new InvalidRequestException("Ticket identification is invalid.");
+            if (await _ticketRepository.GetTicketByIdAsync(ticketId) is null)
+                throw new RecordNotFoundException("Ticket not found");
+            return await _auditService!.GetTicketHistoryAsync(ticketId);
         }
 
         public async Task<AdminTicketDetailResponse> GetAdminTicketDetailAsync(int ticketId)

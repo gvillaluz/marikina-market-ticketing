@@ -1,3 +1,4 @@
+using MarikinaMarket.API.Application.DTOs.Audits.Response;
 using MarikinaMarket.API.Application.DTOs.Tickets.Internal;
 using MarikinaMarket.API.Application.DTOs.Tickets.Request;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
@@ -20,6 +21,10 @@ namespace MarikinaMarket.API.Presentation.Controllers
         [HttpGet("{ticketId}")]
         public async Task<ActionResult<AdminTicketDetailResponse>> GetTicketDetailById([FromRoute] int ticketId)
             => Ok(await _service.GetAdminTicketDetailAsync(ticketId));
+
+        [HttpGet("{ticketId}/history")]
+        public async Task<ActionResult<List<TicketHistoryEntryResponse>>> GetTicketHistory([FromRoute] int ticketId)
+            => Ok(await _service.GetTicketHistoryAsync(ticketId));
 
         [HttpPatch("{ticketId}/update-status")]
         public async Task<ActionResult<UpdateStatusResponse>> UpdateTicketStatus([FromRoute] int ticketId, [FromBody] UpdateStatusRequest request)
