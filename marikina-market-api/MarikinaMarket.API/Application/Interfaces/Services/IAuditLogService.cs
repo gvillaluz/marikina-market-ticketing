@@ -12,6 +12,8 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
         Task<AuditLogDetailResponse> GetDetailsAsync(int id, CancellationToken cancellationToken = default);
         Task<AuditLogCountsResponse> GetActivityCountsAsync(AuditLogFilter filters,
             CancellationToken cancellationToken = default);
+        Task<List<TicketHistoryEntryResponse>> GetTicketHistoryAsync(int ticketId,
+            CancellationToken cancellationToken = default);
         Task RecordAsync(AuditLog log);
         Task StageCurrentAsync();
         Task AddInTransactionAsync(AuditLog log);

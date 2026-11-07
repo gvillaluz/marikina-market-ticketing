@@ -42,6 +42,7 @@ import { useTicketStatusSelection } from "../hooks/useTicketStatusSelection";
 import { useDisclosure } from "../hooks/useDisclosure";
 import { getApiErrorMessage } from "@/utils/apiErrors";
 import PersonTicketHistory from "../components/PersonTicketHistory";
+import TicketChangeHistory from "../components/detail/TicketChangeHistory";
 
 const STATUS_OPTIONS = [
   {
@@ -255,13 +256,13 @@ const TicketDetailPage: FC = () => {
         </div>
 
         <DetailCard
-          title="VENDOR SETTLEMENT VERIFICATION"
+          title="SETTLEMENT VERIFICATION"
           icon={ImageIcon}
           full
         >
           <p className={styles.cardSubtitle}>
-            Photo evidence submitted by the vendor as notification of penalty
-            settlement and basis for record update.
+            Proof of settlement submitted by the enforcer, used as the basis
+            for updating the record.
           </p>
           {receiptUrls.length === 0 ? (
             <EvidenceThumbnail caption="Media not provided" />
@@ -269,6 +270,8 @@ const TicketDetailPage: FC = () => {
             <EvidenceSection images={receiptUrls} />
           )}
         </DetailCard>
+
+        <TicketChangeHistory ticketId={ticket.ticketId} />
 
         {statusOptions.isOpen && (
           <DetailCard

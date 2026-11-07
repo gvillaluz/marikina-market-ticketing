@@ -85,6 +85,15 @@ internal sealed class MemoryAuditRepository : IAuditLogRepository
     public Task<AuditLog?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         => Task.FromResult(Logs.SingleOrDefault(x => x.Id == id));
 
+    public Task<List<AuditLog>> GetTicketHistoryAsync(int ticketId, CancellationToken cancellationToken = default)
+        => Task.FromResult(Logs
+            .Where(x => x.Module == Module.Tickets && x.TargetId == ticketId.ToString() && x.Result == LogResult.Success &&
+                x.Action is "SaveNewInspection" or "UpdateTicketStatus" or "SubmitTicketReceiptProof" or
+                    "LogCommunityServiceHours" or "MarkTicketOverdue")
+            .OrderByDescending(x => x.Timestamp)
+            .ThenByDescending(x => x.Id)
+            .ToList());
+
     public Task<List<AuditLog>> GetRecentDashboardActivitiesAsync(int limit)
         => Task.FromResult(Logs
             .Where(x => x.Module is Module.Tickets or Module.Vendors or Module.Users or Module.Security)

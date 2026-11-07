@@ -79,6 +79,36 @@ namespace MarikinaMarket.API.Application.Services
             };
         }
 
+        public const string StatusChangeDetailsPrefix = "Status changed from ";
+
+        public async Task<List<TicketHistoryEntryResponse>> GetTicketHistoryAsync(int ticketId,
+            CancellationToken cancellationToken = default)
+        {
+            var logs = await _repository.GetTicketHistoryAsync(ticketId, cancellationToken);
+            var userIds = logs.Select(log => log.UserId).OfType<int>().Distinct().ToList();
+            var names = userIds.Count > 0
+                ? await _userRepository.GetNamesByIdsAsync(userIds, cancellationToken)
+                : new Dictionary<int, UserNamesResponse>();
+            return logs.Select(log => new TicketHistoryEntryResponse
+            {
+                Action = log.Action switch
+                {
+                    "SaveNewInspection" => "Issued",
+                    "UpdateTicketStatus" => "Status changed",
+                    "SubmitTicketReceiptProof" => "Receipt proof submitted",
+                    "LogCommunityServiceHours" => "Community service hours recorded",
+                    _ => "Marked overdue"
+                },
+                // Status changes saved before this wording existed carry no old and new status.
+                Details = log.Details.StartsWith(StatusChangeDetailsPrefix, StringComparison.Ordinal) ? log.Details : null,
+                PerformedBy = !log.UserId.HasValue ? "System"
+                    : names.TryGetValue(log.UserId.Value, out var user) ? $"{user.FirstName} {user.LastName}"
+                    : "Unknown user",
+                Role = log.Role,
+                OccurredAt = log.Timestamp
+            }).ToList();
+        }
+
         public Task<AuditLogCountsResponse> GetActivityCountsAsync(AuditLogFilter filters,
             CancellationToken cancellationToken = default)
         {

@@ -1,3 +1,4 @@
+using MarikinaMarket.API.Application.DTOs.Audits.Response;
 using MarikinaMarket.API.Application.DTOs.Ordinance.Response;
 using MarikinaMarket.API.Application.DTOs.Person.Response;
 using MarikinaMarket.API.Application.DTOs.Tickets.Internal;
@@ -44,6 +45,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
         Task<PageResponse<AdminTicketSummary>> GetAdminTicketAsync(int offset, TicketSummaryFilters filters);
         Task<TicketAnalyticsResponse> GetTicketAnalyticsAsync();
         Task<AdminTicketDetailResponse> GetAdminTicketDetailAsync(int ticketId);
+        Task<List<TicketHistoryEntryResponse>> GetTicketHistoryAsync(int ticketId);
         Task<int> CheckAndNotifyOverdueTicketsAsync();
     }
 }
