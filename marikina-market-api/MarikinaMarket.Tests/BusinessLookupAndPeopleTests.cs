@@ -59,6 +59,44 @@ public class BusinessLookupAndPeopleTests
         Assert.Equal(expectedIds.Length, total);
     }
 
+    // Slice A3: owner name (either order) and address. All addresses are in "Marikina City".
+    private static Business Owned(Business business, string first, string last, string house, string street, string barangay)
+    {
+        business.OwnerFirstName = first;
+        business.OwnerLastName = last;
+        business.HouseNumber = house;
+        business.Street = street;
+        business.Barangay = barangay;
+        return business;
+    }
+
+    private static List<Business> OwnerAddressFixture() =>
+    [
+        Owned(NewBusiness(1, "Aling Nena's Store", "12", "ACC-100"), "Maria", "Santos", "12", "Shoe Ave", "Sto. Niño"),
+        Owned(NewBusiness(2, "Bert's Fish", "112", "ACC-200"), "Roberto", "Cruz", "5", "Gil Fernando Ave", "San Roque"),
+        Owned(NewBusiness(3, "Nena Bakery", "12", "ACC-300", VendorStatus.Inactive), "Maria", "Santos", "3", "Shoe Ave", "Sto. Niño"),
+        Owned(NewBusiness(4, "Carlo Hardware", null, "ACC-12X"), "Carlo", "Santos", "8", "J.P. Rizal St", "San Roque"),
+    ];
+
+    [Theory]
+    [InlineData("santos", new[] { 1, 4 })]        // last name; inactive Nena Bakery (also Santos) hidden
+    [InlineData("MARIA SANTOS", new[] { 1 })]     // first then last, any case
+    [InlineData("santos maria", new[] { 1 })]     // last then first
+    [InlineData("roberto cruz", new[] { 2 })]
+    [InlineData("cruz roberto", new[] { 2 })]
+    [InlineData("maria cruz", new int[0])]        // names of two different owners do not combine
+    [InlineData("shoe ave", new[] { 1 })]         // street; inactive Nena Bakery on the same street hidden
+    [InlineData("san roque", new[] { 2, 4 })]     // barangay, sorted by business name
+    [InlineData("sto. niño", new[] { 1 })]
+    [InlineData("marikina", new[] { 1, 2, 4 })]   // city: every active business
+    public async Task Search_matches_owner_name_in_either_order_or_address(string search, int[] expectedIds)
+    {
+        using var context = Context(OwnerAddressFixture());
+        var (items, total) = await new VendorRepository(context).SearchActiveBusinessesAsync(search, 20);
+        Assert.Equal(expectedIds, items.Select(i => i.VendorId));
+        Assert.Equal(expectedIds.Length, total);
+    }
+
     [Fact]
     public async Task Search_returns_at_most_20_and_reports_more()
     {
@@ -78,7 +116,8 @@ public class BusinessLookupAndPeopleTests
     public async Task Search_rejects_empty_text(string? search)
     {
         using var context = Context(SearchFixture());
-        await Assert.ThrowsAsync<ValidationException>(() => Service(context).SearchBusinessesAsync(search));
+        var error = await Assert.ThrowsAsync<ValidationException>(() => Service(context).SearchBusinessesAsync(search));
+        Assert.Equal("Enter a business name, stall, owner, address or account number.", error.Message);
     }
 
     [Fact]

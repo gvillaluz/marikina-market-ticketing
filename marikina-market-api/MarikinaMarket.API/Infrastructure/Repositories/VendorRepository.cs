@@ -167,14 +167,18 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             }
         }
 
-        // Exact stall or account-number matches come first, then partial matches by business name.
+        // Matches business name, account number, stall, owner name (first-last or last-first) or address.
+        // Exact stall or account-number matches come first, then the rest by business name.
         public async Task<(List<VendorLookupResult> Items, int Total)> SearchActiveBusinessesAsync(string search, int limit)
         {
             var term = search.ToLower();
             var query = _context.Businesses.Where(v => v.Status == VendorStatus.Active
                 && (v.BusinessName.ToLower().Contains(term)
                     || v.BusinessAccountNumber.ToLower().Contains(term)
-                    || (v.StallNumber != null && v.StallNumber.ToLower().Contains(term))));
+                    || (v.StallNumber != null && v.StallNumber.ToLower().Contains(term))
+                    || (v.OwnerFirstName + " " + v.OwnerLastName).ToLower().Contains(term)
+                    || (v.OwnerLastName + " " + v.OwnerFirstName).ToLower().Contains(term)
+                    || (v.HouseNumber + ", " + v.Street + ", " + v.Barangay + ", " + v.City).ToLower().Contains(term)));
             var total = await query.CountAsync();
             var items = await query
                 .OrderBy(v => (v.StallNumber != null && v.StallNumber.ToLower() == term) || v.BusinessAccountNumber.ToLower() == term ? 0 : 1)

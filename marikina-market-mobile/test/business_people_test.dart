@@ -12,6 +12,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/search_business_bottom_sheet.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/violator_info_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/person_identity_review.dart';
 
 import 'features/auth/data/login_mobile_contract_test.dart' show reply;
@@ -175,7 +176,7 @@ void main() {
   );
 
   testWidgets(
-    'business sheet shows stall, section and owner, and asks to keep typing',
+    'business sheet shows stall, section, owner and address, and asks to keep typing',
     (tester) async {
       final bloc = await tester.runAsync(
         () => listBloc(
@@ -191,7 +192,7 @@ void main() {
                 'last_name': 'Santos',
                 'first_name': 'Nena',
                 'middle_name': null,
-                'address': '1 Market Lane',
+                'address': '12, Shoe Ave, Sto. Niño, Marikina City',
                 'market_section_id': 1,
                 'market_section_name': 'Dry Goods',
               },
@@ -214,20 +215,53 @@ void main() {
         ),
       );
       expect(
-        find.text('Business name, stall number or account number'),
+        find.text('Business name, stall, owner, address or account number'),
         findsOneWidget,
       );
-      await tester.enterText(find.byType(TextField), 'nena');
+      expect(
+        find.text(
+          'Search by business name, stall, owner, address or account number, then choose the business.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'Type a business name, stall, owner, address or account number to find the business.',
+        ),
+        findsOneWidget,
+      );
+      await tester.enterText(find.byType(TextField), 'santos');
       await tester.pump(AppTheme.inspectionSearchDelay);
       await flush(tester);
       expect(find.text("Aling Nena's Store"), findsOneWidget);
       expect(
-        find.text('Stall 12 · Dry Goods · Owner: Nena Santos'),
+        find.text(
+          'Stall 12 · Dry Goods · Owner: Nena Santos · 12, Shoe Ave, Sto. Niño, Marikina City',
+        ),
         findsOneWidget,
       );
       expect(find.text('Keep typing to narrow the results.'), findsOneWidget);
     },
   );
+
+  testWidgets('entry page business card names every way to search', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: ViolatorInfoCard(onVendorSelected: (_) {}, errorMessage: null),
+        ),
+      ),
+    );
+    expect(
+      find.text(
+        'Scan the QR code, or search by business name, stall, owner, address or account number',
+      ),
+      findsOneWidget,
+    );
+  });
 
   testWidgets(
     'people list shows the owner and people ticketed here with totals; one tap selects',
