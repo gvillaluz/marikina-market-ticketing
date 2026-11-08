@@ -58,6 +58,7 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
     if (vendor.stallNumber != null) 'Stall ${vendor.stallNumber}',
     vendor.marketSectionName,
     'Owner: ${vendor.ownerName}',
+    vendor.address,
   ].join(' · ');
 
   @override
@@ -78,7 +79,7 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
       if (_query.isEmpty) {
         message = const SelectionSheetMessage(
           message:
-              'Type a business name, stall number or account number to find the business.',
+              'Type a business name, stall, owner, address or account number to find the business.',
           icon: Icons.storefront_outlined,
         );
       } else if (loading) {
@@ -101,7 +102,7 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
       return InspectionSelectionSheet(
         title: 'Find business',
         description:
-            'Search by business name, stall number or account number, then choose the business.',
+            'Search by business name, stall, owner, address or account number, then choose the business.',
         slivers: [
           SliverPadding(
             padding: AppTheme.selectionSheetPadding,
@@ -114,7 +115,8 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
                 textInputAction: TextInputAction.search,
                 onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
-                  labelText: 'Business name, stall number or account number',
+                  labelText:
+                      'Business name, stall, owner, address or account number',
                   counterText: '',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _query.isEmpty

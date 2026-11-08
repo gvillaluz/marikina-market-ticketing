@@ -415,7 +415,7 @@ namespace MarikinaMarket.API.Application.Services
         {
             var term = search?.Trim();
             if (string.IsNullOrEmpty(term))
-                throw new ValidationException("Enter a business name, stall number or account number.");
+                throw new ValidationException("Enter a business name, stall, owner, address or account number.");
             if (term.Length > 200)
                 throw new ValidationException("Search must be 200 characters or fewer.");
 

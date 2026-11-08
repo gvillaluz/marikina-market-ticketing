@@ -95,7 +95,7 @@ class ViolatorInfoCard extends StatelessWidget {
         ),
         const SizedBox(height: 5),
         const Text(
-          'Scan the QR code, or search by business name, stall number or account number',
+          'Scan the QR code, or search by business name, stall, owner, address or account number',
           textAlign: TextAlign.center,
         ),
 
