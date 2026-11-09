@@ -6,6 +6,7 @@ import 'package:marikina_market_mobile/core/errors/result.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/params/save_inspection_params.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_ticket_summary.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/market_section.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance_shortcuts.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/page_result.dart';
@@ -41,18 +42,18 @@ abstract class InspectionRepository {
   );
   Future<Result<List<Ordinance>>> loadCacheOrdinances();
   Future<Result<List<Ordinance>>> loadOrdinances();
-  Future<Result<VendorSummary>> getVendorByCode(String codeValue);
+  Future<Result<List<MarketSection>>> getMarketSections();
   Future<Result<PageResult<VendorSummary>>> searchBusinesses(String search);
   Future<Result<List<PersonCandidate>>> getBusinessPeople(int businessId);
   Future<Result<OrdinanceShortcuts>> getOrdinanceShortcuts(int? personId);
   Future<Result<FineSummary>> getTicketFineSummary(
     List<int> ordinanceIds,
-    int vendorId, {
+    int? vendorId, {
     int? personId,
   });
   Future<Result<List<WarningOrdinance>>> checkWarningOrdinances(
     List<int> ordinanceIds,
-    int vendorId, {
+    int? vendorId, {
     int? personId,
   });
   Future<Result<SaveInspectionResult>> saveNewInspection(

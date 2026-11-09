@@ -11,6 +11,7 @@ import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_hi
 import 'package:marikina_market_mobile/features/tickets/data/models/params/save_inspection_params.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_ticket_summary.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/market_section.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/page_result.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/save_inspection_result.dart';
@@ -89,20 +90,14 @@ class InspectionRepositoryImpl implements InspectionRepository {
     }
   }
 
+  // Only switched-on sections can be chosen for an unregistered vendor.
   @override
-  Future<Result<VendorSummary>> getVendorByCode(String codeValue) async {
-    try {
-      final vendorModel = await remoteDataSource.getVendorByCode(codeValue);
-
-      return Result.success(vendorModel.toEntity());
-    } on ValidationException catch (e) {
-      return Result.failure(ValidationFailure(e.message));
-    } on NetworkException catch (e) {
-      return Result.failure(NetworkFailure(e.message));
-    } on ServerException catch (e) {
-      return Result.failure(ServerFailure(e.message));
-    }
-  }
+  Future<Result<List<MarketSection>>> getMarketSections() => _personResult(
+    () async => (await remoteDataSource.getMarketSections())
+        .where((section) => section.isActive)
+        .map((section) => section.toEntity())
+        .toList(),
+  );
 
   @override
   Future<Result<PageResult<VendorSummary>>> searchBusinesses(String search) =>
@@ -130,7 +125,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<Result<FineSummary>> getTicketFineSummary(
     List<int> ordinanceIds,
-    int vendorId, {
+    int? vendorId, {
     int? personId,
   }) async {
     try {
@@ -153,7 +148,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<Result<List<WarningOrdinance>>> checkWarningOrdinances(
     List<int> ordinanceIds,
-    int vendorId, {
+    int? vendorId, {
     int? personId,
   }) async {
     try {

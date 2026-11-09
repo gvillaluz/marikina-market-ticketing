@@ -148,7 +148,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
     context.read<InspectionBloc>().add(
       InspectionVerificationRequested(
         VerifyInspectionInput(
-          vendorId: data.vendorSummary.id,
+          vendorId: data.vendorSummary?.id,
+          marketSectionId: data.unregisteredSection?.id,
           personId: data.personId!,
           paperViolatorName: data.paperViolatorName ?? '',
           paperReference: data.paperReference,
@@ -188,9 +189,9 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
         reviewedCalculation: _verification?.reviewedCalculation,
         reviewedBusinessSnapshot: _verification?.reviewedBusinessSnapshot,
         paperTicketPhoto: widget.formData.paperTicketPhoto,
-        vendorId: widget.formData.vendorSummary.id,
+        vendorId: widget.formData.vendorSummary?.id,
         enforcerId: widget.formData.enforcerId,
-        marketSectionId: widget.formData.vendorSummary.marketSectionId,
+        marketSectionId: widget.formData.marketSection.id,
         ticketType: widget.formData.ticketType,
         ordinanceIds: widget.formData.ordinances.map((o) => o.id).toList(),
         description: widget.formData.description.trim(),
@@ -438,10 +439,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                                   _verification
                                       ?.businessSnapshot
                                       ?.marketSectionName ??
-                                  widget
-                                      .formData
-                                      .vendorSummary
-                                      .marketSectionName,
+                                  widget.formData.marketSection.name,
                               description: widget.formData.description,
                             ),
                           ),
@@ -686,9 +684,14 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                                   (_verification == null ||
                                       _verification?.calculation.isAssessable !=
                                           true ||
-                                      _verification?.businessSnapshot == null ||
-                                      _verification?.reviewedBusinessSnapshot ==
-                                          null ||
+                                      // With no business there is no business
+                                      // snapshot to review.
+                                      (widget.formData.vendorSummary != null &&
+                                          (_verification?.businessSnapshot ==
+                                                  null ||
+                                              _verification
+                                                      ?.reviewedBusinessSnapshot ==
+                                                  null)) ||
                                       _verifying ||
                                       _submissionUncertain))
                           ? null

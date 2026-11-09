@@ -34,7 +34,7 @@ class SaveInspectionTicketUseCase
     if (params.ticketType == ViolationType.warning) {
       if (params.personId == null ||
           params.personId! <= 0 ||
-          params.vendorId <= 0) {
+          (params.vendorId ?? params.marketSectionId) <= 0) {
         return Result.failure(
           ValidationFailure(
             'Confirm the person and business for this warning.',

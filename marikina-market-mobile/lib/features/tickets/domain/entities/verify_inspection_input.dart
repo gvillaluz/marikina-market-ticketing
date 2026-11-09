@@ -4,7 +4,8 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dar
 class VerifyInspectionInput {
   final List<FineAssessment> fineAssessments;
   final String? paperReference, issuePlace;
-  final int vendorId, personId, evidenceCount;
+  final int? vendorId, marketSectionId;
+  final int personId, evidenceCount;
   final int paperTicketPhotoCount, supportingEvidenceCount;
   final String paperViolatorName, description;
   final List<int> ordinanceIds;
@@ -14,7 +15,8 @@ class VerifyInspectionInput {
     this.fineAssessments = const [],
     this.paperReference,
     this.issuePlace,
-    required this.vendorId,
+    this.vendorId,
+    this.marketSectionId,
     required this.personId,
     required this.paperViolatorName,
     required this.description,

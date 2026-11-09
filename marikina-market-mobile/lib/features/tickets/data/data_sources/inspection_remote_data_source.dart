@@ -12,6 +12,7 @@ import 'package:marikina_market_mobile/core/utils/file_compressor_util.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/duplicate_info_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/fine_summary_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/inspection_summary_model.dart';
+import 'package:marikina_market_mobile/features/tickets/data/models/market_section_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_model.dart';
 import 'package:marikina_market_mobile/core/shared/data/models/page_result_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/params/save_inspection_params.dart';
@@ -47,18 +48,18 @@ abstract class InspectionRemoteDataSource {
     ViolationType? type,
   );
   Future<List<OrdinanceModel>> getOrdinances();
-  Future<VendorSummaryModel> getVendorByCode(String codeValue);
+  Future<List<MarketSectionModel>> getMarketSections();
   Future<PageResultModel<VendorSummaryModel>> searchBusinesses(String search);
   Future<List<PersonCandidateModel>> getBusinessPeople(int businessId);
   Future<OrdinanceShortcutsModel> getOrdinanceShortcuts(int? personId);
   Future<FineSummaryModel> getFineSummary(
     List<int> ordinanceIds,
-    int vendorId, {
+    int? vendorId, {
     int? personId,
   });
   Future<List<WarningOrdinanceModel>> checkWarningOrdinances(
     List<int> ordinanceIds,
-    int vendorId, {
+    int? vendorId, {
     int? personId,
   });
   Future<SaveInspectionResultModel> saveInspection(SaveInspectionParams params);
@@ -115,33 +116,16 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
   }
 
   @override
-  Future<VendorSummaryModel> getVendorByCode(String codeValue) async {
-    try {
-      final response = await apiClient.get('/vendor/code/$codeValue');
-
-      return VendorSummaryModel.fromJson(response.data);
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        throw ValidationException(
-          e.response?.data['message'] ?? 'Invalid QR Code',
-        );
-      }
-
-      if (e.response?.statusCode == 400) {
-        throw ValidationException(
-          e.response?.data['message'] ?? 'Invalid QR Code.',
-        );
-      }
-
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw NetworkException('No internet connection. Please try again.');
-      }
-
-      throw ServerException('Something went wrong. Please try again later');
-    }
-  }
+  Future<List<MarketSectionModel>> getMarketSections() =>
+      _businessRequest(() async {
+        final response = await apiClient.get('/marketsection');
+        return (response.data as List<Object?>)
+            .map(
+              (json) =>
+                  MarketSectionModel.fromJson(json as Map<String, Object?>),
+            )
+            .toList();
+      });
 
   @override
   Future<PageResultModel<VendorSummaryModel>> searchBusinesses(String search) =>
@@ -221,7 +205,7 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
   @override
   Future<FineSummaryModel> getFineSummary(
     List<int> ordinanceIds,
-    int vendorId, {
+    int? vendorId, {
     int? personId,
   }) async {
     try {
@@ -254,7 +238,7 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
   @override
   Future<List<WarningOrdinanceModel>> checkWarningOrdinances(
     List<int> ordinanceIds,
-    int vendorId, {
+    int? vendorId, {
     int? personId,
   }) async {
     try {
@@ -322,7 +306,7 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
         );
       }
       final formData = FormData.fromMap({
-        "vendor_id": params.vendorId,
+        "vendor_id": ?params.vendorId,
         "person_id": params.personId,
         "paper_reference": params.paperReference?.trim(),
         "issue_place": params.issuePlace?.trim(),
@@ -491,6 +475,7 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
       '/enforcer/tickets/verify',
       data: {
         'vendor_id': input.vendorId,
+        'market_section_id': input.marketSectionId,
         'person_id': input.personId,
         'paper_reference': input.paperReference?.trim(),
         'issue_place': input.issuePlace?.trim(),

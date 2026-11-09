@@ -1,6 +1,7 @@
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/market_section.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_summary.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
@@ -15,7 +16,9 @@ class InspectionFormData {
       personAddress,
       reviewedCalculation;
   final int enforcerId;
-  final VendorSummary vendorSummary;
+  // A business, or the market section when the vendor is not registered.
+  final VendorSummary? vendorSummary;
+  final MarketSection? unregisteredSection;
   final FineSummary? fineSummary;
   final List<Ordinance> ordinances;
   final List<XFile>? evidences;
@@ -35,7 +38,8 @@ class InspectionFormData {
     this.personAddress,
     this.reviewedCalculation,
     required this.enforcerId,
-    required this.vendorSummary,
+    this.vendorSummary,
+    this.unregisteredSection,
     required this.fineSummary,
     required this.ordinances,
     required this.evidences,
@@ -44,5 +48,8 @@ class InspectionFormData {
     required this.ticketType,
     required this.penaltyType,
     required this.communityServiceHrs,
-  });
+  }) : assert(vendorSummary != null || unregisteredSection != null);
+
+  MarketSection get marketSection =>
+      vendorSummary?.marketSection ?? unregisteredSection!;
 }

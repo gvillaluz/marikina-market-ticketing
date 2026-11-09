@@ -74,7 +74,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ti
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_list_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_receipt_proof_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/save_inspection_ticket_use_case.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_vendor_by_code_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_market_sections_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_businesses_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_business_people_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_ordinance_shortcuts_use_case.dart';
@@ -186,7 +186,7 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   );
   sl.registerLazySingleton(() => LoadInspectionListUseCase(sl()));
   sl.registerLazySingleton(() => LoadOrdinancesUseCase(sl()));
-  sl.registerLazySingleton(() => SearchVendorByCodeUseCase(sl()));
+  sl.registerLazySingleton(() => GetMarketSectionsUseCase(sl()));
   sl.registerLazySingleton(() => SearchBusinessesUseCase(sl()));
   sl.registerLazySingleton(() => GetBusinessPeopleUseCase(sl()));
   sl.registerLazySingleton(() => GetOrdinanceShortcutsUseCase(sl()));
@@ -205,7 +205,7 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
       verifyInspectionUseCase: sl(),
       loadInspectionListUseCase: sl(),
       loadOrdinancesUseCase: sl(),
-      searchVendorByCodeUseCase: sl(),
+      getMarketSectionsUseCase: sl(),
       searchBusinessesUseCase: sl(),
       getOrdinanceShortcutsUseCase: sl(),
       getBusinessPeopleUseCase: sl(),

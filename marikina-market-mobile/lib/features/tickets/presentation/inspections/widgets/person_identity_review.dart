@@ -12,7 +12,8 @@ import 'person_history_sheet.dart';
 import 'person_record_tile.dart';
 
 class PersonIdentityReview extends StatefulWidget {
-  final VendorSummary vendor;
+  // Null when the vendor is not registered: there is no owner or people list.
+  final VendorSummary? vendor;
   final void Function(PersonCandidate? person, String paperName) onChanged;
   const PersonIdentityReview({
     super.key,
@@ -38,11 +39,15 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
   @override
   void initState() {
     super.initState();
-    _loadPeople();
+    if (widget.vendor == null) {
+      _peopleLoading = false;
+    } else {
+      _loadPeople();
+    }
   }
 
   void _loadPeople() => context.read<InspectionBloc>().add(
-    BusinessPeopleRequested(widget.vendor.id),
+    BusinessPeopleRequested(widget.vendor!.id),
   );
 
   @override
@@ -76,7 +81,7 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
   }
 
   void _findOwner() {
-    _name.text = widget.vendor.ownerName;
+    _name.text = widget.vendor!.ownerName;
     _changed(_name.text);
     _check();
   }
@@ -179,16 +184,17 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
     builder: (context, state) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        BusinessPeopleSection(
-          ownerName: widget.vendor.ownerName,
-          people: _people,
-          loading: _peopleLoading,
-          error: _peopleError,
-          selectedId: _confirmed?.id,
-          onFindOwner: _findOwner,
-          onRetry: _loadPeople,
-          onSelect: _select,
-        ),
+        if (widget.vendor != null)
+          BusinessPeopleSection(
+            ownerName: widget.vendor!.ownerName,
+            people: _people,
+            loading: _peopleLoading,
+            error: _peopleError,
+            selectedId: _confirmed?.id,
+            onFindOwner: _findOwner,
+            onRetry: _loadPeople,
+            onSelect: _select,
+          ),
         Text(
           'Add helper or another person',
           style: Theme.of(context).textTheme.titleMedium,

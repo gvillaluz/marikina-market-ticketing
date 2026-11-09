@@ -324,7 +324,7 @@ void main() {
               verifyInspectionUseCase: templateBloc.verifyInspectionUseCase,
               loadInspectionListUseCase: templateBloc.loadInspectionListUseCase,
               loadOrdinancesUseCase: templateBloc.loadOrdinancesUseCase,
-              searchVendorByCodeUseCase: templateBloc.searchVendorByCodeUseCase,
+              getMarketSectionsUseCase: templateBloc.getMarketSectionsUseCase,
               searchBusinessesUseCase: templateBloc.searchBusinessesUseCase,
               getOrdinanceShortcutsUseCase:
                   templateBloc.getOrdinanceShortcutsUseCase,
@@ -582,7 +582,7 @@ void main() {
               )
               .formData;
           expect(data.description, 'Keep the stall and surroundings clean.');
-          expect(data.vendorSummary.id, 12);
+          expect(data.vendorSummary?.id, 12);
           expect(data.ordinances.single.id, 1);
           expect(data.ticketType, type);
           expect(data.personId, 31);

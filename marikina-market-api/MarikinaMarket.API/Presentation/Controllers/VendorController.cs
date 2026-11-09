@@ -129,16 +129,6 @@ namespace MarikinaMarket.API.Presentation.Controllers
             [FromRoute] int businessId, [FromServices] ITicketService tickets)
             => Ok(await tickets.GetBusinessPeopleAsync(businessId));
 
-        [HttpGet("code/{code}")]
-        [Authorize(Roles = nameof(Role.MarketEnforcer))]
-        public async Task<ActionResult<GetVendorResponse>> GetVendorByQrCode([FromRoute] string code)
-        {
-            if(string.IsNullOrWhiteSpace(code))
-                return BadRequest("Code must not be empty.");
-
-            return Ok(await _service.GetVendorByQrCode(code));
-        }
-
         private bool TryGetAdminId(out int adminId)
         {
             return int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out adminId);

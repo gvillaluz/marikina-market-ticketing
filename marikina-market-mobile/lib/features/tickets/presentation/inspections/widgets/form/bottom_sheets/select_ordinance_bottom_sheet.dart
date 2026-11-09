@@ -78,9 +78,7 @@ class _SelectOrdinanceBottomSheetState
   }
 
   void _confirmSelection() {
-    if (_confirming || _selectedOrdinances.isEmpty || widget.vendorId == null) {
-      return;
-    }
+    if (_confirming || _selectedOrdinances.isEmpty) return;
     FocusScope.of(context).unfocus();
     setState(() {
       _confirming = true;
@@ -91,7 +89,7 @@ class _SelectOrdinanceBottomSheetState
       widget.isWarningTicket
           ? WarningOrdinanceCheckRequested(
               ids,
-              widget.vendorId!,
+              widget.vendorId,
               personId: widget.personId,
             )
           : FineSummaryRequested(
@@ -326,7 +324,6 @@ class _SelectOrdinanceBottomSheetState
           isLoading: _confirming,
           onPressed:
               _selectedOrdinances.isEmpty ||
-                  widget.vendorId == null ||
                   loading ||
                   state is OrdinanceSelectionError
               ? null

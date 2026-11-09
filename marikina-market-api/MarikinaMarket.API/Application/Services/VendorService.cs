@@ -438,30 +438,6 @@ namespace MarikinaMarket.API.Application.Services
             }).ToList() };
         }
 
-        public async Task<GetVendorResponse> GetVendorByQrCode(string qrCode)
-        {
-            var vendor = await _vendorRepository.GetVendorByQrCode(qrCode);
-
-            if (vendor == null)
-                throw new RecordNotFoundException("Vendor not found.");
-
-            return new GetVendorResponse
-            {
-                VendorId = vendor.VendorId,
-                Username = vendor.Username,
-                Type = vendor.Type,
-                BusinessAccountNumber = vendor.BusinessAccountNumber,
-                StallNumber = vendor.StallNumber,
-                TradeName = vendor.TradeName,
-                LastName = vendor.LastName,
-                FirstName = vendor.FirstName,
-                MiddleName = vendor.MiddleName,
-                Address = vendor.Address ?? "",
-                MarketSectionId = vendor.MarketSectionId,
-                MarketSectionName = vendor.MarketSectionName
-            };
-        }
-
         public async Task<PageResponse<AdminVendorSummaryResponse>> GetAdminVendorSummariesAsync(
             int offset,
             AdminVendorSummaryFilter filters)
