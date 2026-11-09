@@ -4,7 +4,7 @@ import {
   RecordActions,
   RecordsState,
 } from "@/components/ui/Records";
-import { formatControlNumber, formatDateTime } from "@/utils/formatters";
+import { formatControlNumber, formatDateTime, UNREGISTERED_VENDOR } from "@/utils/formatters";
 import type { InspectionSummary } from "@/api/types/ticket.types";
 import styles from "./InspectionTable.module.css";
 
@@ -63,17 +63,17 @@ export function InspectionTable({
             {
               key: "tradeName",
               header: "Business name",
-              render: (row) => row.type === "Ticket" ? (row.businessSnapshot?.businessName || "Historical business details unavailable.") : (row.businessName || "\u2014"),
+              render: (row) => row.vendorId === null ? UNREGISTERED_VENDOR : row.type === "Ticket" ? (row.businessSnapshot?.businessName || "Historical business details unavailable.") : (row.businessName || "\u2014"),
             },
             {
               key: "registeredOwner",
               header: "Registered owner",
-              render: (row) => row.type === "Ticket" ? (row.businessSnapshot?.registeredOwnerName || "Historical business details unavailable.") : (row.registeredOwnerName || "\u2014"),
+              render: (row) => row.vendorId === null ? "\u2014" : row.type === "Ticket" ? (row.businessSnapshot?.registeredOwnerName || "Historical business details unavailable.") : (row.registeredOwnerName || "\u2014"),
             },
             {
               key: "section",
               header: "Market section",
-              render: (row) => row.type === "Ticket" ? (row.businessSnapshot?.marketSectionName || "Historical business details unavailable.") : (row.marketSectionName || "\u2014"),
+              render: (row) => row.vendorId !== null && row.type === "Ticket" ? (row.businessSnapshot?.marketSectionName || "Historical business details unavailable.") : (row.marketSectionName || "\u2014"),
             },
             {
               key: "type",

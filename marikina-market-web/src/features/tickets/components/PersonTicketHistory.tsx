@@ -1,6 +1,6 @@
 import { usePersonTicketHistory } from "../hooks/usePersonTicketHistory";
 import { getApiErrorMessage } from "@/utils/apiErrors";
-import { formatControlNumber, formatCurrency, formatDateTime } from "@/utils/formatters";
+import { formatControlNumber, formatCurrency, formatDateTime, UNREGISTERED_VENDOR } from "@/utils/formatters";
 import styles from "./PersonTicketHistory.module.css";
 
 export default function PersonTicketHistory({ personId }: { personId: number }) {
@@ -17,7 +17,7 @@ export default function PersonTicketHistory({ personId }: { personId: number }) 
       {!history.isPending && !history.isError && history.items.length === 0 && <p>No citations linked to this person.</p>}
       <ol className={styles.records}>
         {history.items.map(ticket => <li key={ticket.ticketId}>
-          <strong>Control number: {formatControlNumber(ticket.paperReference)} · {ticket.businessSnapshot?.businessName || "Historical business details unavailable."}</strong>
+          <strong>Control number: {formatControlNumber(ticket.paperReference)} · {ticket.businessName === null ? UNREGISTERED_VENDOR : ticket.businessSnapshot?.businessName || "Historical business details unavailable."}</strong>
           <p>Issue place: {ticket.issuePlace || "Unavailable (legacy record)"}</p>
           <p>Recorded violator: {ticket.paperViolatorName || "Unconfirmed"}</p>
           <p>{ticket.ordinances.join("; ")}</p>

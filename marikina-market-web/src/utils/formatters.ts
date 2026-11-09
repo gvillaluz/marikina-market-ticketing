@@ -1,6 +1,9 @@
 import { APP_CONSTANTS } from './constants';
 
 /** Format a date string to a readable local format. */
+// Shown where a ticket or warning would name a business, when the vendor is not registered.
+export const UNREGISTERED_VENDOR = "Unregistered vendor";
+
 export function formatDate(value: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions): string {
   if (!value) return '—';
   const date = typeof value === 'string' ? new Date(value) : value;

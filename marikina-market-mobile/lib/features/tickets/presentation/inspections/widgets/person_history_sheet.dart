@@ -5,6 +5,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/person_t
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/unregistered_vendor.dart';
 
 class PersonHistorySheet extends StatefulWidget {
   final int personId;
@@ -84,7 +85,7 @@ class _PersonHistorySheetState extends State<PersonHistorySheet> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(
-                'Control number: ${ticket.paperReference ?? 'Unavailable (legacy record)'} · ${ticket.businessSnapshot?.businessName ?? 'Historical business details unavailable.'}',
+                'Control number: ${ticket.paperReference ?? 'Unavailable (legacy record)'} · ${ticket.isUnregistered ? unregisteredVendorLabel : ticket.businessSnapshot?.businessName ?? 'Historical business details unavailable.'}',
               ),
               subtitle: Text(
                 'Issue place: ${ticket.issuePlace ?? 'Unavailable (legacy record)'}\nRecorded violator: ${ticket.paperViolatorName ?? 'Unconfirmed'}\n${ticket.ordinances.join('; ')}\n${ticket.issuedAt.toLocal()} · ${ticket.status ?? 'Unknown'}\nOfficer: ${ticket.enforcerName}\nAssessed cash: ${ticket.assessedCashFine?.toStringAsFixed(2) ?? 'Not cash'} · Outstanding cash: ${ticket.outstandingCashFine.toStringAsFixed(2)}',

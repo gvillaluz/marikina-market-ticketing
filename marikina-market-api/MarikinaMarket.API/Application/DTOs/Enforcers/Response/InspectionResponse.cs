@@ -7,10 +7,12 @@ namespace MarikinaMarket.API.Application.DTOs.Enforcers.Response
     {
         public BusinessSnapshotResponse? BusinessSnapshot { get; set; }
         public int TicketId { get; set; }
+        // Empty for an unregistered vendor.
+        public int? VendorId { get; set; }
         public string? ControlNumber { get; set; }
         public DateTime IssuedAt { get; set; }
-        public required string VendorFirstName { get; set; }
-        public required string VendorLastName { get; set; }
+        public required string? VendorFirstName { get; set; }
+        public required string? VendorLastName { get; set; }
         public required string StallNumber { get; set; }
         public int MarketSectionId { get; set; }
         public required string MarketSectionName { get; set; }

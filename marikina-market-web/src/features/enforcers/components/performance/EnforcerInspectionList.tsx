@@ -39,7 +39,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
           key: "vendor",
           header: "Registered owner",
           render: (record) =>
-            record.type === "Ticket" ? (record.businessSnapshot?.registeredOwnerName || "Historical business details unavailable.") : (`${record.vendorLastName}, ${record.vendorFirstName}`.trim() || "—"),
+            record.vendorId === null ? "—" : record.type === "Ticket" ? (record.businessSnapshot?.registeredOwnerName || "Historical business details unavailable.") : (`${record.vendorLastName}, ${record.vendorFirstName}`.trim() || "—"),
         },
         {
           key: "stallNo",
@@ -49,7 +49,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
         {
           key: "section",
           header: "Section",
-          render: (record) => record.type === "Ticket" ? (record.businessSnapshot?.marketSectionName || "Historical business details unavailable.") : (record.marketSectionName || "—"),
+          render: (record) => record.vendorId !== null && record.type === "Ticket" ? (record.businessSnapshot?.marketSectionName || "Historical business details unavailable.") : (record.marketSectionName || "—"),
         },
         {
           key: "type",

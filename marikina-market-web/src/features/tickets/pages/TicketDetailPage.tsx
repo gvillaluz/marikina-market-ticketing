@@ -28,6 +28,7 @@ import {
   formatDate,
   formatDateTime,
   formatControlNumber,
+  UNREGISTERED_VENDOR,
 } from "@/utils/formatters";
 import TicketDetailSkeleton from "../components/detail/TicketDetailSkeleton";
 import TicketDetailError from "../components/detail/TicketDetailError";
@@ -145,20 +146,30 @@ const TicketDetailPage: FC = () => {
               label="ENFORCER / INSPECTOR"
               value={`${ticket?.enforcerLastName}, ${ticket?.enforcerFirstName}`}
             />
-            <InfoField
-              label="REGISTERED OWNER"
-              value={ticket.businessSnapshot?.registeredOwnerName || "Historical business details unavailable."}
-            />
-            <InfoField label="BUSINESS ACCOUNT NUMBER" value={ticket.businessSnapshot?.businessAccountNumber || "Unavailable"} />
-            <InfoField label="BUSINESS NAME" value={ticket.businessSnapshot?.businessName || "Unavailable"} />
-            <InfoField label="BUSINESS TYPE" value={ticket.businessSnapshot?.businessType || "Unavailable"} />
-            <InfoField label="BUSINESS ADDRESS" value={ticket.businessSnapshot?.businessAddress || "Unavailable"} />
+            {ticket.vendorId === null ? (
+              <InfoField label="VENDOR" value={UNREGISTERED_VENDOR} />
+            ) : (
+              <>
+                <InfoField
+                  label="REGISTERED OWNER"
+                  value={ticket.businessSnapshot?.registeredOwnerName || "Historical business details unavailable."}
+                />
+                <InfoField label="BUSINESS ACCOUNT NUMBER" value={ticket.businessSnapshot?.businessAccountNumber || "Unavailable"} />
+                <InfoField label="BUSINESS NAME" value={ticket.businessSnapshot?.businessName || "Unavailable"} />
+                <InfoField label="BUSINESS TYPE" value={ticket.businessSnapshot?.businessType || "Unavailable"} />
+                <InfoField label="BUSINESS ADDRESS" value={ticket.businessSnapshot?.businessAddress || "Unavailable"} />
+              </>
+            )}
             <InfoField label="RECORDED VIOLATOR" value={ticket.paperViolatorName || "Unconfirmed (legacy record)"} />
             <InfoField label="CONFIRMED PERSON" value={ticket.personId ? `${ticket.personFullName || "Person"} · Person ${ticket.personId}` : "Unconfirmed (legacy record)"} />
-            <InfoField
-              label="STALL LOCATION"
-              value={ticket.businessSnapshot ? [ticket.businessSnapshot.marketSectionName, ticket.businessSnapshot.stallNumber].filter(Boolean).join(", ") : "Historical business details unavailable."}
-            />
+            {ticket.vendorId === null ? (
+              <InfoField label="MARKET SECTION" value={ticket.marketSectionName} />
+            ) : (
+              <InfoField
+                label="STALL LOCATION"
+                value={ticket.businessSnapshot ? [ticket.businessSnapshot.marketSectionName, ticket.businessSnapshot.stallNumber].filter(Boolean).join(", ") : "Historical business details unavailable."}
+              />
+            )}
           </div>
         </DetailCard>
 

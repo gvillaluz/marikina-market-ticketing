@@ -4,7 +4,8 @@ class PersonTicketHistory {
   final BusinessSnapshot? businessSnapshot;
   final String? paperReference, issuePlace;
   final int ticketId;
-  final String businessName, enforcerName;
+  final String? businessName;
+  final String enforcerName;
   final String? paperViolatorName, status, penaltyType;
   final DateTime issuedAt;
   final double? assessedCashFine;
@@ -25,4 +26,6 @@ class PersonTicketHistory {
     required this.outstandingCashFine,
     required this.ordinances,
   });
+
+  bool get isUnregistered => businessName == null;
 }

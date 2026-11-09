@@ -6,8 +6,8 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
     {
         public int TicketId { get; set; }
         public string? ControlNumber { get; set; }
-        public required string BusinessAccountNumber { get; set; }
-        public required string VendorName { get; set; }
+        public required string? BusinessAccountNumber { get; set; }
+        public required string? VendorName { get; set; }
         public decimal CompletedHours { get; set; }
         public decimal TotalHours { get; set; }
         public DateTime LastUpdated { get; set; }

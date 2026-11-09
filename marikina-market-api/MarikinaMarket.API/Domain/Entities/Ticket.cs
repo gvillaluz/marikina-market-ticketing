@@ -7,7 +7,7 @@ namespace MarikinaMarket.API.Domain.Entities
         public int Id { get; set; }
         public string? ControlNumber { get; set; }
 
-        public int VendorId { get; set; }
+        public int? VendorId { get; set; }
         public Business? Vendor {  get; set; }
         public int? PersonId { get; set; }
         public Person? Person { get; set; }

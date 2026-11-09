@@ -9,10 +9,10 @@ class TicketSummaryModel {
   final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
   final int enforcerId;
-  final int vendorId;
+  final int? vendorId;
   final String controlNumber;
   final TicketStatus ticketStatus;
-  final String businessName;
+  final String? businessName;
   final String? stallNumber;
   final List<String> ordinance;
   final String marketSection;
@@ -52,7 +52,7 @@ class TicketSummaryModel {
 
       ticketId: json['id'] as int,
       enforcerId: json['enforcer_id'] as int,
-      vendorId: json['vendor_id'] as int,
+      vendorId: json['vendor_id'] as int?,
       personId: json['person_id'] as int?,
       personFullName: json['person_full_name'] as String?,
       paperViolatorName: json['paper_violator_name'] as String?,
@@ -61,7 +61,7 @@ class TicketSummaryModel {
       registeredOwnerName: json['registered_owner_name'] as String?,
       controlNumber: json['control_number'] as String,
       ticketStatus: TicketStatus.fromValue(json['status'] as String),
-      businessName: json['business_name'] as String,
+      businessName: json['business_name'] as String?,
       stallNumber: json['stall_number'] as String?,
       ordinance: List<String>.from(
         json['ordinance_names'] as List? ?? const <String>[],

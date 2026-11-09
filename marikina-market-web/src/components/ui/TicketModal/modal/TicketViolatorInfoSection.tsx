@@ -4,9 +4,11 @@ import TicketSectionHeader from "./TicketSectionHeader";
 import styles from "./TicketViolatorInfoSection.module.css";
 import { TicketDetail } from "@/api/types/ticket.types";
 import { getTicketBusinessType } from "@/features/tickets";
+import { UNREGISTERED_VENDOR } from "@/utils/formatters";
 
 function TicketViolationInfoSection({ detail }: { detail?: TicketDetail }) {
   const isCitation = detail?.type === "Ticket";
+  const isUnregistered = detail?.vendorId === null;
   const snapshot = detail?.businessSnapshot;
   const businessType = getTicketBusinessType(isCitation ? snapshot?.businessType : detail?.businessType);
   const vendorName =
@@ -19,8 +21,9 @@ function TicketViolationInfoSection({ detail }: { detail?: TicketDetail }) {
       <section
         className={`${styles.infoSection} ${businessType === "Private" ? styles.private : ""}`}
       >
-        {isCitation && !snapshot && <p>Historical business details unavailable.</p>}
-        {isCitation && snapshot && <>
+        {isUnregistered && <TicketInfoRow label="VENDOR:" value={UNREGISTERED_VENDOR} />}
+        {isCitation && !isUnregistered && !snapshot && <p>Historical business details unavailable.</p>}
+        {isCitation && !isUnregistered && snapshot && <>
           <TicketInfoRow label="BUSINESS ID:" value={snapshot.businessAccountNumber || "—"} />
           <TicketInfoRow label="BUSINESS TYPE:" value={snapshot.businessType || "—"} />
           <TicketInfoRow label="TRADE NAME:" value={snapshot.businessName || "—"} />
@@ -29,7 +32,7 @@ function TicketViolationInfoSection({ detail }: { detail?: TicketDetail }) {
           <TicketInfoRow label="MARKET SECTION:" value={snapshot.marketSectionName || "—"} />
           <TicketInfoRow label="ADDRESS:" value={snapshot.businessAddress || "—"} />
         </>}
-        {!isCitation && <>
+        {!isCitation && !isUnregistered && <>
           <TicketInfoRow
             label="BUSINESS ID:"
             value={
@@ -55,7 +58,7 @@ function TicketViolationInfoSection({ detail }: { detail?: TicketDetail }) {
           {isCitation && <TicketInfoRow label="RECORDED VIOLATOR:" value={detail.paperViolatorName || "Unconfirmed (legacy record)"} />}
           <TicketInfoRow label="CONFIRMED PERSON:" value={detail.personId ? `${detail.personFullName || "Person"} · Person ${detail.personId}` : "Unconfirmed (legacy record)"} />
         </>}
-        {!isCitation && <TicketInfoRow label="ADDRESS:" value={detail?.address || "\u2014"} />}
+        {!isCitation && !isUnregistered && <TicketInfoRow label="ADDRESS:" value={detail?.address || "\u2014"} />}
       </section>
     </>
   );

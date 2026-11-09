@@ -6,8 +6,8 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Response
     {
         public int TicketId { get; set; }
         public string? ControlNumber { get; set; }
-        public required string BusinessAccountNumber { get; set; }
-        public required string VendorName { get; set; }
+        public required string? BusinessAccountNumber { get; set; }
+        public required string? VendorName { get; set; }
         public required string MarketSectionName { get; set; }
         public TicketStatus Status { get; set; }
         public PenaltyType? PenaltyType { get; set; }

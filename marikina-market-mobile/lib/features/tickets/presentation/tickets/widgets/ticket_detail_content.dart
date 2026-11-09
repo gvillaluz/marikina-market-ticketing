@@ -221,7 +221,7 @@ class TicketDetailContent extends StatelessWidget {
                   penaltyType: ticket.penaltyType,
                   violations: ticket.violations,
                   description: ticket.description,
-                  marketSection: isTicket
+                  marketSection: isTicket && !ticket.isUnregistered
                       ? (ticket.businessSnapshot?.marketSectionName ??
                             'Historical business details unavailable.')
                       : ticket.marketSectionName,

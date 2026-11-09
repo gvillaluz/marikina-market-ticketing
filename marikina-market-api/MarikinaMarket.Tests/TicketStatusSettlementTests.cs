@@ -311,7 +311,7 @@ public class TicketStatusSettlementTests
         {
             Ticket = new Ticket
             {
-                Id = 1, ControlNumber = "VIO-0001", Description = "Violation", Type = ViolationType.Ticket,
+                Id = 1, ControlNumber = "VIO-0001", VendorId = 7, Description = "Violation", Type = ViolationType.Ticket,
                 Status = TicketStatus.Pending, PenaltyType = penalty, Version = 7,
                 UpdatedAt = DateTime.UnixEpoch
             };

@@ -1070,7 +1070,7 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<int>("VendorId")
+                    b.Property<int?>("VendorId")
                         .HasColumnType("integer")
                         .HasColumnName("vendor_id");
 
@@ -1904,7 +1904,6 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .WithMany("Tickets")
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("fk_tickets_businesses_vendor_id");
 
                     b.Navigation("Enforcer");

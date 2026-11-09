@@ -1,6 +1,6 @@
 import type { AdminPendingTicketSettlement } from "@/api/types/admin-vendor.types";
 import Card from "@/components/ui/Card";
-import { formatControlNumber, formatCurrency } from "@/utils/formatters";
+import { formatControlNumber, formatCurrency, UNREGISTERED_VENDOR } from "@/utils/formatters";
 import styles from "../AdminVendorCompliancePanel.module.css";
 
 export default function SettlementCard({
@@ -31,12 +31,14 @@ export default function SettlementCard({
     >
       <div className={styles.settlementTop}>
         <strong>
-          {settlement.businessAccountNumber} ·{" "}
+          {settlement.businessAccountNumber ?? UNREGISTERED_VENDOR} ·{" "}
           {formatControlNumber(settlement.controlNumber)}
         </strong>
         <span className={styles.dueLabel}>{dueLabel}</span>
       </div>
-      <span className={styles.settlementVendor}>{settlement.vendorName}</span>
+      <span className={styles.settlementVendor}>
+        {settlement.vendorName ?? settlement.marketSectionName}
+      </span>
       <span className={styles.settlementAmount}>
         {penalty}
         {settlement.totalPaymentAmount != null

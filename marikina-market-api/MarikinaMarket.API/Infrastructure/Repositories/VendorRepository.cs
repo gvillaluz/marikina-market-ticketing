@@ -294,7 +294,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         public async Task<int> GetVendorWarningCountThisWeekAsync(DateTime weekStart)
         {
             return await _context.Tickets
-                .Where(t => t.Type == ViolationType.Warning && t.IssuedAt >= weekStart)
+                .Where(t => t.Type == ViolationType.Warning && t.IssuedAt >= weekStart && t.VendorId != null)
                 .Select(t => t.VendorId)
                 .Distinct()
                 .CountAsync();
@@ -303,7 +303,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         public async Task<int> GetVendorTicketCountThisWeekAsync(DateTime weekStart)
         {
             return await _context.Tickets
-                .Where(t => t.Type == ViolationType.Ticket && t.IssuedAt >= weekStart)
+                .Where(t => t.Type == ViolationType.Ticket && t.IssuedAt >= weekStart && t.VendorId != null)
                 .Select(t => t.VendorId)
                 .Distinct()
                 .CountAsync();
@@ -313,6 +313,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         {
             return await _context.Tickets
                 .AsNoTracking()
+                .Where(t => t.VendorId != null)
                 .OrderByDescending(t => t.IssuedAt)
                 .Take(limit)
                 .Select(t => new AdminVendorActivity
@@ -344,8 +345,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     TicketId = t.Id,
                     ControlNumber = t.PaperReference,
-                    BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
-                    VendorName = t.Vendor.OwnerLastName + ", " + t.Vendor.OwnerFirstName,
+                    BusinessAccountNumber = t.Vendor == null ? null : t.Vendor.BusinessAccountNumber,
+                    VendorName = t.Vendor == null ? null : t.Vendor.OwnerLastName + ", " + t.Vendor.OwnerFirstName,
                     MarketSectionName = t.MarketSection!.Name,
                     Status = t.Status ?? TicketStatus.Pending,
                     PenaltyType = t.PenaltyType,

@@ -8,10 +8,10 @@ class TicketSummary {
   final String? personFullName, paperViolatorName, registeredOwnerName;
   final int ticketId;
   final int enforcerId;
-  final int vendorId;
+  final int? vendorId;
   final String controlNumber;
   final TicketStatus ticketStatus;
-  final String businessName;
+  final String? businessName;
   final String? stallNumber;
   final List<String> ordinance;
   final String marketSection;
@@ -40,4 +40,6 @@ class TicketSummary {
     required this.updatedAt,
     required this.overDueDate,
   });
+
+  bool get isUnregistered => vendorId == null;
 }

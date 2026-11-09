@@ -29,6 +29,7 @@ namespace MarikinaMarket.API.Application.Services
     public class TicketService : ITicketService
     {
         private readonly IPersonRepository? _personRepository;
+        private readonly IMarketSectionRepository? _marketSectionRepository;
         private readonly ITicketRepository _ticketRepository;
         private readonly IOrdinanceRepository _ordinanceRepository;
         private readonly IVendorRepository _vendorRepository;
@@ -50,7 +51,8 @@ namespace MarikinaMarket.API.Application.Services
             INotificationService notificationService,
             IVendorComplianceScoreService complianceScoreService,
             AuditLogContext? audit = null, IAuditLogService? auditService = null,
-            ILogger<TicketService>? logger = null, IPersonRepository? personRepository = null
+            ILogger<TicketService>? logger = null, IPersonRepository? personRepository = null,
+            IMarketSectionRepository? marketSectionRepository = null
             )
         {
             _ticketRepository = ticketRepository;
@@ -64,6 +66,7 @@ namespace MarikinaMarket.API.Application.Services
             _auditService = auditService;
             _logger = logger;
             _personRepository = personRepository;
+            _marketSectionRepository = marketSectionRepository;
         }
 
         public async Task<MobileDashboardSummaryResponse> GetMobileTicketCountAsync(int enforcerId)
@@ -329,10 +332,10 @@ namespace MarikinaMarket.API.Application.Services
 
         public async Task<List<WarningOrdinance>> GetWarningOrdinancesForPersonAsync(
             List<int> ordinanceIds,
-            int vendorId, int personId)
+            int? vendorId, int personId)
         {
             await RequirePersonAsync(personId);
-            if (await _vendorRepository.GetByIdAsync(vendorId) is null)
+            if (vendorId is { } businessId && await _vendorRepository.GetByIdAsync(businessId) is null)
                 throw new RecordNotFoundException("Business not found.");
             await GetWarningOrdinanceAsync(ordinanceIds, personId);
             await CheckWarningCitationConflictAsync(personId, ordinanceIds);
@@ -522,10 +525,16 @@ namespace MarikinaMarket.API.Application.Services
 
             try
             {
-                var vendor = await _vendorRepository.GetByIdAsync(request.VendorId);
-
-                if (vendor is null)
-                    throw new RecordNotFoundException("Unable to find vendor.");
+                // A registered business brings its own section; an unregistered vendor is placed in a chosen one.
+                VendorTicketSummary? vendor = null;
+                MarketSection? section = null;
+                if (request.VendorId is { } businessId)
+                    vendor = await _vendorRepository.GetByIdAsync(businessId)
+                        ?? throw new RecordNotFoundException("Unable to find vendor.");
+                else
+                    section = await RequireActiveSectionAsync(request.MarketSectionId);
+                var marketSectionId = vendor?.MarketSectionId ?? section!.Id;
+                var marketSectionName = vendor?.MarketSectionName ?? section!.Name;
 
                 var duplicateOrdinances = request.Type == ViolationType.Ticket
                     ? await _ticketRepository.GetPersonDuplicatesAsync(person!.Id, request.Ordinances, DateTime.UtcNow)
@@ -575,10 +584,10 @@ namespace MarikinaMarket.API.Application.Services
                     var warningTicket = new Ticket
                     {
                         ControlNumber = null,
-                        VendorId = vendor.Id,
+                        VendorId = vendor?.Id,
                         PersonId = person.Id,
                         IssuePlace = request.IssuePlace,
-                        MarketSectionId = vendor.MarketSectionId,
+                        MarketSectionId = marketSectionId,
                         EnforcerId = request.EnforcerId,
                         Type = request.Type,
                         Status = null,
@@ -608,18 +617,20 @@ namespace MarikinaMarket.API.Application.Services
 
                     await _unitOfWork.SaveChangesAsync();
                     newWarningTicket.ControlNumber = $"WRN-{newWarningTicket.Id:D4}";
-                    await _notificationService.SaveNotificationAsync(newWarningTicket.Id, newWarningTicket.EnforcerId,
-                        newWarningTicket.VendorId, $"A warning ({newWarningTicket.ControlNumber}) was issued for {vendor.BusinessName}.",
-                        TicketStatus.Pending);
+                    if (vendor is not null)
+                        await _notificationService.SaveNotificationAsync(newWarningTicket.Id, newWarningTicket.EnforcerId,
+                            vendor.Id, $"A warning ({newWarningTicket.ControlNumber}) was issued for {vendor.BusinessName}.",
+                            TicketStatus.Pending);
                     await _unitOfWork.SaveChangesAsync();
                     if (_audit?.Entry is not null) _audit.Entry.TargetId = warningTicket.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
                     if (_auditService is not null) await _auditService.StageCurrentAsync();
                     await _unitOfWork.CommitAsync();
                     transactionCommitted = true;
-                    await SendVendorPushAsync(newWarningTicket, "inspection_submitted", "Warning issued",
-                        $"A warning ({newWarningTicket.ControlNumber}) was issued for {vendor.BusinessName}.");
+                    if (vendor is not null)
+                        await SendVendorPushAsync(newWarningTicket, "inspection_submitted", "Warning issued",
+                            $"A warning ({newWarningTicket.ControlNumber}) was issued for {vendor.BusinessName}.");
 
-                    if (!string.IsNullOrEmpty(vendor.Email))
+                    if (!string.IsNullOrEmpty(vendor?.Email))
                     {
                         string subject = $"Notice of Issued Warning";
                         var description = WebUtility.HtmlEncode(newWarningTicket.Description)
@@ -660,15 +671,15 @@ namespace MarikinaMarket.API.Application.Services
                         VendorId = newWarningTicket.VendorId,
                         PersonId = person.Id, PersonFullName = person.FullName,
                         IssuePlace = newWarningTicket.IssuePlace,
-                        RegisteredOwnerName = $"{vendor.FirstName} {vendor.LastName}".Trim(),
-                        LastName = vendor.LastName,
-                        FirstName = vendor.FirstName,
+                        RegisteredOwnerName = vendor is null ? null : $"{vendor.FirstName} {vendor.LastName}".Trim(),
+                        LastName = vendor?.LastName,
+                        FirstName = vendor?.FirstName,
                         MarketSectionId = newWarningTicket.MarketSectionId,
-                        MarketSectionName = vendor.MarketSectionName!,
-                        BusinessType = vendor.Type,
-                        BusinessAccountNumber = vendor.BusinessAccountNumber,
-                        StallNumber = vendor.StallNumber,
-                        BusinessName = vendor.BusinessName!,
+                        MarketSectionName = marketSectionName,
+                        BusinessType = vendor?.Type,
+                        BusinessAccountNumber = vendor?.BusinessAccountNumber,
+                        StallNumber = vendor?.StallNumber,
+                        BusinessName = vendor?.BusinessName,
                         EnforcerId = newWarningTicket.EnforcerId,
                         Type = newWarningTicket.Type,
                         Severity = null,
@@ -685,8 +696,9 @@ namespace MarikinaMarket.API.Application.Services
                 ApplyFineAssessments(ordinanceFineSummary, ParseFineAssessments(request.FineAssessments));
                 ValidatePenaltyEligibility(ordinanceFineSummary, request.PenaltyType);
                 EnsureReviewedCalculation(request.ReviewedCalculation, ordinanceFineSummary);
-                var businessSnapshot = GetBusinessSnapshot(vendor);
-                EnsureReviewedBusinessSnapshot(request.ReviewedBusinessSnapshot, businessSnapshot);
+                var businessSnapshot = vendor is null ? null : GetBusinessSnapshot(vendor);
+                if (businessSnapshot is not null)
+                    EnsureReviewedBusinessSnapshot(request.ReviewedBusinessSnapshot, businessSnapshot);
                 var newControlNumber = await _ticketRepository.GetNewControlNumber();
                 var ticketEvidences = new List<TicketEvidence>();
 
@@ -711,18 +723,18 @@ namespace MarikinaMarket.API.Application.Services
 
                 var ticket = new Ticket
                 {
-                    SnapshotBusinessAccountNumber = businessSnapshot.BusinessAccountNumber,
-                    SnapshotBusinessName = businessSnapshot.BusinessName,
-                    SnapshotRegisteredOwnerName = businessSnapshot.RegisteredOwnerName,
-                    SnapshotBusinessType = businessSnapshot.BusinessType,
-                    SnapshotStallNumber = businessSnapshot.StallNumber,
-                    SnapshotMarketSectionName = businessSnapshot.MarketSectionName,
-                    SnapshotBusinessAddress = businessSnapshot.BusinessAddress,
+                    SnapshotBusinessAccountNumber = businessSnapshot?.BusinessAccountNumber,
+                    SnapshotBusinessName = businessSnapshot?.BusinessName,
+                    SnapshotRegisteredOwnerName = businessSnapshot?.RegisteredOwnerName,
+                    SnapshotBusinessType = businessSnapshot?.BusinessType,
+                    SnapshotStallNumber = businessSnapshot?.StallNumber,
+                    SnapshotMarketSectionName = marketSectionName,
+                    SnapshotBusinessAddress = businessSnapshot?.BusinessAddress,
                     PaperReference = request.PaperReference, IssuePlace = request.IssuePlace,
                     PersonId = person!.Id, PaperViolatorName = request.PaperViolatorName!.Trim(),
                     ControlNumber = newControlNumber.ToString(),
-                    VendorId = vendor.Id,
-                    MarketSectionId = vendor.MarketSectionId,
+                    VendorId = vendor?.Id,
+                    MarketSectionId = marketSectionId,
                     EnforcerId = request.EnforcerId,
                     Type = request.Type,
                     Status = TicketStatus.Pending,
@@ -748,18 +760,22 @@ namespace MarikinaMarket.API.Application.Services
                 var newTicket = await _ticketRepository.AddTicketAsync(ticket);
 
                 await _unitOfWork.SaveChangesAsync();
-                await _complianceScoreService.RefreshAsync(vendor.Id, DateTime.UtcNow);
-                await _notificationService.SaveNotificationAsync(newTicket.Id, newTicket.EnforcerId, newTicket.VendorId,
-                    $"A violation ticket ({newTicket.ShownControlNumber}) was issued for {vendor.BusinessName}.", TicketStatus.Pending);
+                if (vendor is not null)
+                {
+                    await _complianceScoreService.RefreshAsync(vendor.Id, DateTime.UtcNow);
+                    await _notificationService.SaveNotificationAsync(newTicket.Id, newTicket.EnforcerId, vendor.Id,
+                        $"A violation ticket ({newTicket.ShownControlNumber}) was issued for {vendor.BusinessName}.", TicketStatus.Pending);
+                }
                 await _unitOfWork.SaveChangesAsync();
                 if (_audit?.Entry is not null) _audit.Entry.TargetId = newTicket.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 if (_auditService is not null) await _auditService.StageCurrentAsync();
                 await _unitOfWork.CommitAsync();
                 transactionCommitted = true;
-                await SendVendorPushAsync(newTicket, "inspection_submitted", "Violation ticket issued",
-                    $"A violation ticket ({newTicket.ShownControlNumber}) was issued for {vendor.BusinessName}.");
+                if (vendor is not null)
+                    await SendVendorPushAsync(newTicket, "inspection_submitted", "Violation ticket issued",
+                        $"A violation ticket ({newTicket.ShownControlNumber}) was issued for {vendor.BusinessName}.");
 
-                if (!string.IsNullOrEmpty(vendor.Email))
+                if (!string.IsNullOrEmpty(vendor?.Email))
                 {
                     var firstName = WebUtility.HtmlEncode(vendor.FirstName);
                     var lastName = WebUtility.HtmlEncode(vendor.LastName);
@@ -805,17 +821,17 @@ namespace MarikinaMarket.API.Application.Services
                     ControlNumber = newTicket!.ControlNumber!,
                     VendorId = newTicket.VendorId,
                     PersonId = person.Id, PersonFullName = person.FullName, PaperViolatorName = newTicket.PaperViolatorName,
-                    BusinessSnapshot = businessSnapshot with { },
+                    BusinessSnapshot = businessSnapshot is null ? null : businessSnapshot with { },
                     PaperReference = newTicket.PaperReference, IssuePlace = newTicket.IssuePlace,
-                    RegisteredOwnerName = vendor.FirstName + " " + vendor.LastName,
-                    LastName = vendor.LastName,
-                    FirstName = vendor.FirstName,
+                    RegisteredOwnerName = vendor is null ? null : vendor.FirstName + " " + vendor.LastName,
+                    LastName = vendor?.LastName,
+                    FirstName = vendor?.FirstName,
                     MarketSectionId = newTicket.MarketSectionId,
-                    MarketSectionName = vendor.MarketSectionName!,
-                    BusinessType = vendor.Type,
-                    BusinessAccountNumber = vendor.BusinessAccountNumber,
-                    StallNumber = vendor.StallNumber,
-                    BusinessName = vendor.BusinessName!,
+                    MarketSectionName = marketSectionName,
+                    BusinessType = vendor?.Type,
+                    BusinessAccountNumber = vendor?.BusinessAccountNumber,
+                    StallNumber = vendor?.StallNumber,
+                    BusinessName = vendor?.BusinessName,
                     EnforcerId = newTicket.EnforcerId,
                     Type = newTicket.Type,
                     Severity = newTicket.HighestSeverity,
@@ -868,22 +884,23 @@ namespace MarikinaMarket.API.Application.Services
 
         private async Task SendVendorPushAsync(Ticket ticket, string eventType, string title, string message)
         {
+            if (ticket.VendorId is not { } vendorId) return; // an unregistered vendor has no one to notify
             var data = new Dictionary<string, string>
             {
                 ["type"] = eventType,
                 ["ticketId"] = ticket.Id.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                ["vendorId"] = ticket.VendorId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                ["vendorId"] = vendorId.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 ["inspection_type"] = ticket.Type.ToString()
             };
             if (ticket.Status.HasValue) data["status"] = ticket.Status.Value.ToString();
             try
             {
-                await _notificationService.SendPushNotificationToVendorAsync(ticket.VendorId, title, message, data);
+                await _notificationService.SendPushNotificationToVendorAsync(vendorId, title, message, data);
             }
             catch (Exception exception)
             {
                 _logger?.LogWarning("Vendor push failed for ticket {TicketId}, vendor {VendorId}. Error type: {ErrorType}",
-                    ticket.Id, ticket.VendorId, exception.GetType().Name);
+                    ticket.Id, vendorId, exception.GetType().Name);
             }
         }
 
@@ -1183,17 +1200,18 @@ namespace MarikinaMarket.API.Application.Services
                 else
                     ticket.ResolvedAt = null;
 
-                await _notificationService.SaveNotificationAsync(
-                    ticket.Id,
-                    ticket.EnforcerId,
-                    ticket.VendorId,
-                    $"{ticket.Vendor?.BusinessName} — status changed from {previousStatus} to {ticket.Status}.",
-                    ticket.Status ?? TicketStatus.Pending
-                );
+                if (ticket.VendorId is { } vendorId)
+                    await _notificationService.SaveNotificationAsync(
+                        ticket.Id,
+                        ticket.EnforcerId,
+                        vendorId,
+                        $"{ticket.Vendor?.BusinessName} — status changed from {previousStatus} to {ticket.Status}.",
+                        ticket.Status ?? TicketStatus.Pending
+                    );
                 // The calculation queries persisted tickets, so flush before refreshing within this transaction.
                 await _ticketRepository.SaveChangesAsync();
-                if (ticket.Type == ViolationType.Ticket)
-                    await _complianceScoreService.RefreshAsync(ticket.VendorId, DateTime.UtcNow);
+                if (ticket.VendorId is { } scoredVendorId && ticket.Type == ViolationType.Ticket)
+                    await _complianceScoreService.RefreshAsync(scoredVendorId, DateTime.UtcNow);
                 if (_audit?.Entry is not null)
                     _audit.Entry.Details = $"{AuditLogService.StatusChangeDetailsPrefix}{previousStatus} to {ticket.Status}.";
                 if (_auditService is not null) await _auditService.StageCurrentAsync();
@@ -1258,7 +1276,7 @@ namespace MarikinaMarket.API.Application.Services
                 await _notificationService.SendPushNotificationAsync(
                     ticket!.EnforcerId,
                     $"{WithControlNumber("Ticket", " ", ticket)} Updated",
-                    $"{ticket.Vendor?.BusinessName} — status changed from {previousStatus} to {ticket.Status}."
+                    $"{BusinessLabel(ticket)} — status changed from {previousStatus} to {ticket.Status}."
                 );
             }
             catch (Exception exception)
@@ -1483,17 +1501,18 @@ namespace MarikinaMarket.API.Application.Services
                     ticket.Status = TicketStatus.Overdue;
                     ticket.UpdatedAt = calculatedAt;
 
-                    await _notificationService.SaveNotificationAsync(
-                        ticket.Id,
-                        ticket.EnforcerId,
-                        ticket.VendorId,
-                        $"{ticket.Vendor?.BusinessName} — status changed from {previousStatus} to {ticket.Status}.",
-                        TicketStatus.Overdue
-                    );
+                    if (ticket.VendorId is { } vendorId)
+                        await _notificationService.SaveNotificationAsync(
+                            ticket.Id,
+                            ticket.EnforcerId,
+                            vendorId,
+                            $"{ticket.Vendor?.BusinessName} — status changed from {previousStatus} to {ticket.Status}.",
+                            TicketStatus.Overdue
+                        );
                 }
                 await _ticketRepository.SaveChangesAsync();
-                foreach (var vendorId in newlyOverdueTickets.Select(t => t.VendorId).Distinct())
-                    await _complianceScoreService.RefreshAsync(vendorId, calculatedAt);
+                foreach (var scoredVendorId in newlyOverdueTickets.Select(t => t.VendorId).OfType<int>().Distinct())
+                    await _complianceScoreService.RefreshAsync(scoredVendorId, calculatedAt);
                 if (_auditService is not null)
                     foreach (var ticket in newlyOverdueTickets)
                         await _auditService.AddInTransactionAsync(new AuditLog
@@ -1519,7 +1538,7 @@ namespace MarikinaMarket.API.Application.Services
                 await _notificationService.SendPushNotificationAsync(
                     ticket.EnforcerId,
                     $"{WithControlNumber("Ticket", " ", ticket)} Overdue",
-                    $"{ticket.Vendor?.BusinessName}'s ticket is now overdue. It has not been paid or settled within 5 days of issuance."
+                    $"{BusinessLabel(ticket)}'s ticket is now overdue. It has not been paid or settled within 5 days of issuance."
                 );
 
                 if (!string.IsNullOrEmpty(ticket.Vendor?.Email))
@@ -1677,17 +1696,19 @@ namespace MarikinaMarket.API.Application.Services
                 throw new InvalidRequestException("Exactly one paper ticket photo and at least one supporting photo are required for tickets.");
             if (request.PenaltyType == PenaltyType.CommunityService && request.CommunityServiceHours is null or < 3)
                 throw new ValidationException("Community service requires a minimum of 3 hours.");
-            var business = await _vendorRepository.GetByIdAsync(request.VendorId)
-                ?? throw new RecordNotFoundException("Business not found.");
+            var business = request.VendorId is { } businessId
+                ? await _vendorRepository.GetByIdAsync(businessId) ?? throw new RecordNotFoundException("Business not found.")
+                : null;
+            if (business is null) await RequireActiveSectionAsync(request.MarketSectionId);
             var calculation = await GetPersonFineSummaryAsync(request.OrdinanceIds, request.PersonId);
             if (calculation.Breakdown.Any(item => item.IsDuplicate == true))
                 throw new DuplicateOrdinanceException("This person already has an active citation for a selected ordinance today.",
                     await _ticketRepository.GetPersonDuplicatesAsync(request.PersonId, request.OrdinanceIds, DateTime.UtcNow));
             ApplyFineAssessments(calculation, request.FineAssessments);
             ValidatePenaltyEligibility(calculation, request.PenaltyType);
-            var snapshot = GetBusinessSnapshot(business);
+            var snapshot = business is null ? null : GetBusinessSnapshot(business);
             return new() { Calculation = calculation, ReviewedCalculation = JsonSerializer.Serialize(calculation, ReviewJson),
-                BusinessSnapshot = snapshot, ReviewedBusinessSnapshot = JsonSerializer.Serialize(snapshot, ReviewJson) };
+                BusinessSnapshot = snapshot, ReviewedBusinessSnapshot = snapshot is null ? null : JsonSerializer.Serialize(snapshot, ReviewJson) };
         }
 
         private static BusinessSnapshotResponse GetBusinessSnapshot(VendorTicketSummary business) => new()
@@ -1766,6 +1787,21 @@ namespace MarikinaMarket.API.Application.Services
                 PhoneNumber = people[id].PhoneNumber, CreatedAt = people[id].CreatedAt, TicketTotals = totals[id]
             }).ToList();
         }
+
+        // Without a business, the enforcer says which market section the citation happened in.
+        private async Task<MarketSection> RequireActiveSectionAsync(int? marketSectionId)
+        {
+            if (marketSectionId is null or <= 0)
+                throw new ValidationException("Choose the market section where the citation happened.");
+            var section = await (_marketSectionRepository ?? throw new InvalidOperationException("Market section repository is unavailable."))
+                .GetById(marketSectionId.Value) ?? throw new RecordNotFoundException("Market section not found.");
+            if (!section.IsActive)
+                throw new ValidationException("The selected market section is not active.");
+            return section;
+        }
+
+        private static string? BusinessLabel(Ticket ticket)
+            => ticket.VendorId is null ? "Unregistered vendor" : ticket.Vendor?.BusinessName;
 
         private const int OrdinanceShortcutLimit = 5;
         private const int MostViolatedDays = 30;

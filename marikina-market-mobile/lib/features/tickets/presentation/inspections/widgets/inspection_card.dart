@@ -7,6 +7,7 @@ import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_ticket_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_severity_badge.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/unregistered_vendor.dart';
 
 class InspectionCard extends StatelessWidget {
   final InspectionTicketSummary ticketSummary;
@@ -21,11 +22,14 @@ class InspectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final overdue = ticketSummary.status == TicketStatus.overdue;
-    final stall = (ticketSummary.ticketType == ViolationType.ticket
+    final fromSnapshot =
+        ticketSummary.ticketType == ViolationType.ticket &&
+        !ticketSummary.isUnregistered;
+    final stall = (fromSnapshot
         ? (ticketSummary.businessSnapshot?.stallNumber ?? 'Unavailable')
         : ticketSummary.stallNumber);
     final location = [
-      (ticketSummary.ticketType == ViolationType.ticket
+      (fromSnapshot
           ? (ticketSummary.businessSnapshot?.marketSectionName ?? 'Unavailable')
           : ticketSummary.marketSection),
       if (stall != null && stall.trim().isNotEmpty) stall,
@@ -64,10 +68,12 @@ class InspectionCard extends StatelessWidget {
               ),
               const SizedBox(height: AppTheme.inspectionSmallGap),
               Text(
-                (ticketSummary.ticketType == ViolationType.ticket
-                    ? (ticketSummary.businessSnapshot?.businessName ??
-                          'Historical business details unavailable.')
-                    : ticketSummary.businessName),
+                ticketSummary.isUnregistered
+                    ? unregisteredVendorLabel
+                    : (ticketSummary.ticketType == ViolationType.ticket
+                          ? (ticketSummary.businessSnapshot?.businessName ??
+                                'Historical business details unavailable.')
+                          : ticketSummary.businessName!),
                 style: AppTheme.inspectionHeadingStyle.copyWith(
                   color: colors.onSurface,
                 ),

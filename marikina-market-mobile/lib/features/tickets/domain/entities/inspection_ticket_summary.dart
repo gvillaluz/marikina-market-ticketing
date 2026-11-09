@@ -12,15 +12,15 @@ class InspectionTicketSummary {
   final int ticketId;
   final ViolationType ticketType;
   final String? controlNumber;
-  final int vendorId;
-  final String vendorFirstName;
-  final String vendorLastName;
-  final String businessName;
+  final int? vendorId;
+  final String? vendorFirstName;
+  final String? vendorLastName;
+  final String? businessName;
   final int marketSectionId;
   final String marketSection;
   final int enforcerId;
-  final BusinessType businessType;
-  final String businessAccountNumber;
+  final BusinessType? businessType;
+  final String? businessAccountNumber;
   final String? stallNumber;
   final TicketStatus? status;
   final Severity? severity;
@@ -57,4 +57,6 @@ class InspectionTicketSummary {
     required this.overDueDate,
     required this.updatedAt,
   });
+
+  bool get isUnregistered => vendorId == null;
 }

@@ -37,7 +37,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
             int offset,
             TicketStatus? status);
         Task<FineSummaryResponse> GetOffenseCountsAndPaymentBy(List<int> ordinanceIds, int vendorId);
-        Task<List<WarningOrdinance>> GetWarningOrdinancesForPersonAsync(List<int> ordinanceIds, int vendorId, int personId);
+        Task<List<WarningOrdinance>> GetWarningOrdinancesForPersonAsync(List<int> ordinanceIds, int? vendorId, int personId);
         Task<PageResponse<InspectionSummaryResponse>> GetInspectionsByEnforcerIdAsync(int enforcerId, int offset, ViolationType? type, string search);
         Task<PageResponse<TicketSummaryResponse>> GetTicketsByEnforcerIdAsync(int enforcerId, int offset, TicketStatus? status, string search);
         Task<UpdateStatusResponse> UpdateTicketStatusAsync(int ticketId, UpdateStatusRequest request);

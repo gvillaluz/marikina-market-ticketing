@@ -10,8 +10,8 @@ public class PersonTicketHistoryResponse
     public int TicketId { get; set; }
     public string? ControlNumber { get; set; }
     public string? PaperViolatorName { get; set; }
-    public required string BusinessName { get; set; }
-    public required string RegisteredOwnerName { get; set; }
+    public required string? BusinessName { get; set; }
+    public required string? RegisteredOwnerName { get; set; }
     public required string EnforcerName { get; set; }
     public DateTime IssuedAt { get; set; }
     public TicketStatus? Status { get; set; }
