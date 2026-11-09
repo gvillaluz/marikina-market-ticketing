@@ -33,6 +33,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/pages/new_inspection_preview_page.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/add_photo_evidence_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/copy_to_paper_card.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/scan_paper_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/inspection_type_toggle.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/violator_info_card.dart';
@@ -508,14 +509,27 @@ void main() {
               await precacheImage(FileImage(file), context);
               await precacheImage(FileImage(File(paper.path)), context);
             });
+            final isTicket = type == ViolationType.ticket;
+            final kind = isTicket ? 'ticket' : 'warning';
+            // The paper photo comes from the scanner; the old camera button
+            // is gone and supporting photos still use the normal camera.
+            expect(find.text('Scan paper $kind'), findsOneWidget);
+            expect(find.text('Take paper $kind photo'), findsNothing);
+            expect(
+              find.text('Add supporting photo'),
+              findsNWidgets(isTicket ? 1 : 0),
+            );
+            tester
+                .widget<ScanPaperBtn>(find.byType(ScanPaperBtn))
+                .onPhotoAdded(paper);
             for (final control in tester.widgetList<AddPhotoEvidenceBtn>(
               find.byType(AddPhotoEvidenceBtn),
             )) {
-              control.onPhotoAdded(
-                control.buttonLabel.contains('paper') ? paper : evidence,
-              );
+              control.onPhotoAdded(evidence);
             }
             await flush(tester);
+            expect(find.text('Rescan paper $kind'), findsOneWidget);
+            expect(find.text('Scan paper $kind'), findsNothing);
           }
           // The copy-to-paper card is fed from this page: the confirmed
           // person, the place field, the chosen ordinance, the fine and the
