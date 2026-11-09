@@ -31,6 +31,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/dialogs/duplicate_warning_dialog.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/inspection_type_toggle.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/payment_type_section.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/scan_paper_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/select_ordinance_bottom_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/ticket_violation_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/vendor_summary_banner.dart';
@@ -766,7 +767,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           ),
                           const SizedBox(height: 5),
 
-                          AddPhotoEvidenceBtn(
+                          ScanPaperBtn(
                             photos: _paperTicketPhoto == null
                                 ? []
                                 : [_paperTicketPhoto!],
@@ -776,14 +777,13 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                             }),
                             onPhotoRemoved: (_) =>
                                 setState(() => _paperTicketPhoto = null),
-                            isInvalid: _photoError != null,
                             buttonLabel: _paperTicketPhoto == null
                                 ? (isTicket
-                                      ? 'Take paper ticket photo'
-                                      : 'Take paper warning photo')
+                                      ? 'Scan paper ticket'
+                                      : 'Scan paper warning')
                                 : (isTicket
-                                      ? 'Replace paper ticket photo'
-                                      : 'Replace paper warning photo'),
+                                      ? 'Rescan paper ticket'
+                                      : 'Rescan paper warning'),
                           ),
                           if (isTicket) ...[
                             const SizedBox(height: AppTheme.inspectionSmallGap),
