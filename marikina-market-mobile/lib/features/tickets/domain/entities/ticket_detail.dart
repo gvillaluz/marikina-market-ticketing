@@ -16,14 +16,14 @@ class TicketDetail {
   final int ticketId;
   final String? controlNumber;
   final int enforcerId;
-  final int vendorId;
+  final int? vendorId;
   final ViolationType violationType;
-  final BusinessType businessType;
-  final String businessAccountNumber;
+  final BusinessType? businessType;
+  final String? businessAccountNumber;
   final String? stallNumber;
-  final String tradeName;
-  final String lastName;
-  final String firstName;
+  final String? tradeName;
+  final String? lastName;
+  final String? firstName;
   final String? address;
   final List<ViolationSummary> violations;
   final DateTime issuedAt;
@@ -73,4 +73,6 @@ class TicketDetail {
     this.evidenceUrls,
     this.evidenceItems = const [],
   });
+
+  bool get isUnregistered => vendorId == null;
 }

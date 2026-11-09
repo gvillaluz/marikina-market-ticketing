@@ -703,6 +703,8 @@ public class InspectionNotificationTests
         public bool ExistingPaperReference;
         public string? UniqueConstraint;
         public int PushCalls;
+        public int ComplianceCalls;
+        public bool PersonHasDuplicate;
         public int EmailCalls;
         public string EmailBody = "";
         public string EmailSubject = "";
@@ -750,7 +752,8 @@ public class InspectionNotificationTests
             var tickets = ReviewBoundaryProxy.Create<ITicketRepository>((method, args) => method.Name switch
             {
                 "GetDuplicatedTickets" => Task.FromResult(new List<DuplicateOrdinance>()),
-                "GetPersonDuplicatesAsync" => Task.FromResult(new List<DuplicateOrdinance>()),
+                "GetPersonDuplicatesAsync" => Task.FromResult(PersonHasDuplicate
+                    ? new List<DuplicateOrdinance> { new() { OrdinanceId = 1, OrdinanceNo = "011", Section = "12" } } : []),
                 "GetWarningOrdinancesForPerson" => WarningLookup((int)args[0]!),
                 "GetPersonPendingWarningConflictsAsync" => WarningCitationLookup((int)args[0]!),
                 "GetNewControlNumber" => Task.FromResult(11),
@@ -762,7 +765,9 @@ public class InspectionNotificationTests
                 "SaveChangesAsync" => SaveChangesAsync(),
                 _ => throw new InvalidOperationException(method.Name)
             });
-            var vendorLookup = ReviewBoundaryProxy.Create<IVendorRepository>((method, args) => Task.FromResult<VendorTicketSummary?>(new()
+            var vendorLookup = ReviewBoundaryProxy.Create<IVendorRepository>((method, args) => args.Length > 0 && args[0] is int id && id != 17
+                ? Task.FromResult<VendorTicketSummary?>(null)
+                : Task.FromResult<VendorTicketSummary?>(new()
             {
                 Id = 17, FirstName = Snapshot.RegisteredOwnerName![..Snapshot.RegisteredOwnerName.LastIndexOf(' ')],
                 LastName = Snapshot.RegisteredOwnerName[(Snapshot.RegisteredOwnerName.LastIndexOf(' ') + 1)..],
@@ -780,10 +785,22 @@ public class InspectionNotificationTests
                 if (method.Name == "RollbackAsync") { RolledBack = true; NotificationsSaved.Clear(); return Task.CompletedTask; }
                 return Task.CompletedTask;
             });
-            var compliance = ReviewBoundaryProxy.Create<IVendorComplianceScoreService>((method, args) => Task.FromResult(new VendorComplianceScoreResponse
+            var compliance = ReviewBoundaryProxy.Create<IVendorComplianceScoreService>((method, args) =>
             {
-                Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low"
-            }));
+                ComplianceCalls++;
+                return Task.FromResult(new VendorComplianceScoreResponse
+                {
+                    Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low"
+                });
+            });
+            // Section 3 is active, section 9 is switched off, anything else does not exist.
+            var sections = ReviewBoundaryProxy.Create<IMarketSectionRepository>((method, args) =>
+                Task.FromResult<MarketSection?>((int)args[0]! switch
+                {
+                    3 => new() { Id = 3, Name = "Meat and Poultry", Description = "Synthetic" },
+                    9 => new() { Id = 9, Name = "Closed section", Description = "Synthetic", IsActive = false },
+                    _ => null
+                }));
             var storage = ReviewBoundaryProxy.Create<IStorageService>((method, args) =>
             {
                 if (method.Name != "UploadEvidencesAsync") throw new InvalidOperationException(method.Name);
@@ -794,7 +811,7 @@ public class InspectionNotificationTests
                     : Task.FromResult(uploads.Values.Reverse().ToList());
             });
             Service = new TicketService(tickets, ordinances, vendorLookup, unit, storage, notifications, compliance,
-                personRepository: new PersonRepository(this));
+                personRepository: new PersonRepository(this), marketSectionRepository: sections);
         }
         private List<OrdinanceOffenseSummary> GetOrdinances()
         {

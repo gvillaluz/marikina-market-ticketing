@@ -3,6 +3,7 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/unregistered_vendor.dart';
 
 class ViolatorDetailSection extends StatelessWidget {
   final TicketDetail ticket;
@@ -24,9 +25,18 @@ class ViolatorDetailSection extends StatelessWidget {
           title: 'VIOLATOR DETAILS',
         ),
         const SizedBox(height: AppTheme.ticketSmallGap),
-        if (isTicket && ticket.businessSnapshot == null)
+        if (ticket.isUnregistered)
+          const TicketPaperField(
+            label: 'VENDOR:',
+            value: unregisteredVendorLabel,
+          ),
+        if (!ticket.isUnregistered &&
+            isTicket &&
+            ticket.businessSnapshot == null)
           const Text('Historical business details unavailable.'),
-        if (isTicket && ticket.businessSnapshot != null) ...[
+        if (!ticket.isUnregistered &&
+            isTicket &&
+            ticket.businessSnapshot != null) ...[
           TicketPaperField(
             label: 'BUSINESS ID:',
             value:
@@ -62,10 +72,10 @@ class ViolatorDetailSection extends StatelessWidget {
                 : 'Address is unavailable.',
           ),
         ],
-        if (!isTicket) ...[
+        if (!ticket.isUnregistered && !isTicket) ...[
           TicketPaperField(
             label: "BUSINESS ID:",
-            value: ticket.businessAccountNumber,
+            value: ticket.businessAccountNumber ?? 'Unavailable',
           ),
           const SizedBox(height: AppTheme.ticketSmallGap),
           TicketPaperField(
@@ -73,11 +83,14 @@ class ViolatorDetailSection extends StatelessWidget {
             value: ticket.stallNumber ?? 'N/A',
           ),
           const SizedBox(height: AppTheme.ticketSmallGap),
-          TicketPaperField(label: "TRADE NAME:", value: ticket.tradeName),
+          TicketPaperField(
+            label: "TRADE NAME:",
+            value: ticket.tradeName ?? 'Unavailable',
+          ),
           const SizedBox(height: AppTheme.ticketSmallGap),
           TicketPaperField(
             label: "REGISTERED OWNER:",
-            value: '${ticket.lastName}, ${ticket.firstName}',
+            value: '${ticket.lastName ?? ''}, ${ticket.firstName ?? ''}',
           ),
         ],
         ...[

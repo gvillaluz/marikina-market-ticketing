@@ -6,6 +6,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.da
 import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_status_badge.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/unregistered_vendor.dart';
 
 class TicketCard extends StatelessWidget {
   final TicketSummary ticketSummary;
@@ -59,14 +60,18 @@ class TicketCard extends StatelessWidget {
             ),
             const SizedBox(height: AppTheme.ticketSmallGap),
             Text(
-              (ticketSummary.businessSnapshot?.businessName ??
-                  'Historical business details unavailable.'),
+              ticketSummary.isUnregistered
+                  ? unregisteredVendorLabel
+                  : (ticketSummary.businessSnapshot?.businessName ??
+                        'Historical business details unavailable.'),
               style: AppTheme.ticketHeadingStyle,
             ),
             Text(
               [
-                (ticketSummary.businessSnapshot?.marketSectionName ??
-                    'Unavailable'),
+                ticketSummary.isUnregistered
+                    ? ticketSummary.marketSection
+                    : (ticketSummary.businessSnapshot?.marketSectionName ??
+                          'Unavailable'),
                 if (ticketSummary.businessSnapshot?.stallNumber
                         ?.trim()
                         .isNotEmpty ==

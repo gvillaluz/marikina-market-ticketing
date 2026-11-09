@@ -13,15 +13,15 @@ class InspectionSummaryModel {
   final int ticketId;
   final ViolationType ticketType;
   final String? controlNumber;
-  final int vendorId;
-  final String vendorFirstName;
-  final String vendorLastName;
-  final String businessName;
+  final int? vendorId;
+  final String? vendorFirstName;
+  final String? vendorLastName;
+  final String? businessName;
   final int marketSectionId;
   final String marketSection;
   final int enforcerId;
-  final BusinessType businessType;
-  final String businessAccountNumber;
+  final BusinessType? businessType;
+  final String? businessAccountNumber;
   final String? stallNumber;
   final TicketStatus? status;
   final Severity? severity;
@@ -72,21 +72,23 @@ class InspectionSummaryModel {
       controlNumber: json['control_number'] != null
           ? json['control_number'] as String
           : null,
-      vendorId: json['vendor_id'] as int,
+      vendorId: json['vendor_id'] as int?,
       personId: json['person_id'] as int?,
       personFullName: json['person_full_name'] as String?,
       paperViolatorName: json['paper_violator_name'] as String?,
       paperReference: json['paper_reference'] as String?,
       issuePlace: json['issue_place'] as String?,
       registeredOwnerName: json['registered_owner_name'] as String?,
-      vendorFirstName: json['first_name'] as String,
-      vendorLastName: json['last_name'] as String,
-      businessName: json['business_name'] as String,
+      vendorFirstName: json['first_name'] as String?,
+      vendorLastName: json['last_name'] as String?,
+      businessName: json['business_name'] as String?,
       marketSectionId: json['market_section_id'] as int,
       marketSection: json['market_section_name'] as String,
       enforcerId: json['enforcer_id'] as int,
-      businessType: BusinessType.fromValue(json['business_type'] as String),
-      businessAccountNumber: json['business_account_number'] as String,
+      businessType: json['business_type'] == null
+          ? null
+          : BusinessType.fromValue(json['business_type'] as String),
+      businessAccountNumber: json['business_account_number'] as String?,
       stallNumber: json['stall_number'] != null
           ? json['stall_number'] as String
           : null,

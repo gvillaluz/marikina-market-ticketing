@@ -122,12 +122,12 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             var ids = vendorIds.ToArray();
             return await _context.Tickets
                 .AsNoTracking()
-                .Where(t => ids.Contains(t.VendorId) &&
+                .Where(t => t.VendorId != null && ids.Contains(t.VendorId.Value) &&
                     t.Type == ViolationType.Ticket &&
                     t.IssuedAt >= windowStart && t.IssuedAt <= calculatedAt)
                 .Select(t => new VendorComplianceTicket
                 {
-                    VendorId = t.VendorId,
+                    VendorId = t.VendorId!.Value,
                     IssuedAt = t.IssuedAt,
                     HighestSeverity = t.HighestSeverity,
                     PenaltyType = t.PenaltyType,
@@ -183,16 +183,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         BusinessAddress = t.SnapshotBusinessAddress,
                     },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
-                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    RegisteredOwnerName = t.Vendor == null ? null : t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
                     ControlNumber = t.ControlNumber ?? null,
                     Type = t.Type,
-                    BusinessType = t.Vendor!.Type,
-                    BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
-                    StallNumber = t.Vendor!.StallNumber,
-                    BusinessName = t.Vendor.BusinessName,
-                    LastName = t.Vendor.OwnerLastName,
-                    FirstName = t.Vendor.OwnerFirstName,
+                    BusinessType = t.Vendor == null ? null : (BusinessType?)t.Vendor.Type,
+                    BusinessAccountNumber = t.Vendor == null ? null : t.Vendor.BusinessAccountNumber,
+                    StallNumber = t.Vendor == null ? null : t.Vendor.StallNumber,
+                    BusinessName = t.Vendor == null ? null : t.Vendor.BusinessName,
+                    LastName = t.Vendor == null ? null : t.Vendor.OwnerLastName,
+                    FirstName = t.Vendor == null ? null : t.Vendor.OwnerFirstName,
                     Address = "",
                     Violations = t.TicketViolations.Select(tv => new TicketViolationSummary
                     {
@@ -339,8 +339,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         BusinessAddress = t.SnapshotBusinessAddress,
                     },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
-                    BusinessName = t.Vendor!.BusinessName,
-                    RegisteredOwnerName = t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    BusinessName = t.Vendor == null ? null : t.Vendor.BusinessName,
+                    RegisteredOwnerName = t.Vendor == null ? null : t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerName = t.Enforcer!.FirstName + " " + t.Enforcer.LastName,
                     IssuedAt = t.IssuedAt, Status = t.Status, PenaltyType = t.PenaltyType,
                     AssessedCashFine = t.TotalPaymentAmount,
@@ -371,7 +371,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(t => new
                 {
                     PersonId = t.PersonId!.Value, t.Id, t.Type, t.Status, t.PenaltyType, t.TotalPaymentAmount, t.IssuedAt,
-                    t.Vendor!.BusinessName
+                    BusinessName = t.Vendor == null ? null : t.Vendor.BusinessName
                 }).ToListAsync();
             return personIds.Distinct().ToDictionary(id => id, id =>
             {
@@ -386,7 +386,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         .Sum(t => t.TotalPaymentAmount ?? 0),
                     LastTicketAt = last?.IssuedAt,
                     LastBusinessName = last?.BusinessName,
-                    BusinessNames = own.Select(t => t.BusinessName).Distinct().Order().ToList()
+                    BusinessNames = own.Select(t => t.BusinessName).OfType<string>().Distinct().Order().ToList()
                 };
             });
         }
@@ -476,9 +476,9 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 query = query.Where(t =>
                     t.ControlNumber!.ToLower().Contains(search) ||
                     (t.PaperReference != null && t.PaperReference.ToLower().Contains(search.ToLower())) ||
-                    t.Vendor!.BusinessName.ToLower().Contains(search) ||
-                    t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
-                    t.Vendor.OwnerLastName.ToLower().Contains(search));
+                    (t.Vendor != null && t.Vendor.BusinessName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.OwnerFirstName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.OwnerLastName.ToLower().Contains(search)));
             }
 
             return await query
@@ -503,15 +503,15 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         BusinessAddress = t.SnapshotBusinessAddress,
                     },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
-                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
-                    LastName = t.Vendor!.OwnerLastName,
-                    FirstName = t.Vendor.OwnerFirstName,
-                    BusinessAccountNumber = t.Vendor.BusinessAccountNumber,
-                    BusinessName = t.Vendor.BusinessName,
+                    RegisteredOwnerName = t.Vendor == null ? null : t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    LastName = t.Vendor == null ? null : t.Vendor.OwnerLastName,
+                    FirstName = t.Vendor == null ? null : t.Vendor.OwnerFirstName,
+                    BusinessAccountNumber = t.Vendor == null ? null : t.Vendor.BusinessAccountNumber,
+                    BusinessName = t.Vendor == null ? null : t.Vendor.BusinessName,
                     MarketSectionId = t.MarketSectionId,
                     MarketSectionName = t.MarketSection!.Name,
-                    BusinessType = t.Vendor.Type,
-                    StallNumber = t.Vendor.StallNumber,
+                    BusinessType = t.Vendor == null ? null : (BusinessType?)t.Vendor.Type,
+                    StallNumber = t.Vendor == null ? null : t.Vendor.StallNumber,
                     EnforcerId = t.EnforcerId,
                     Type = t.Type,
                     Status = t.Status,
@@ -544,9 +544,9 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 query = query.Where(t =>
                     t.ControlNumber!.ToLower().Contains(search) ||
                     (t.PaperReference != null && t.PaperReference.ToLower().Contains(search.ToLower())) ||
-                    t.Vendor!.BusinessName.ToLower().Contains(search) ||
-                    t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
-                    t.Vendor.OwnerLastName.ToLower().Contains(search));
+                    (t.Vendor != null && t.Vendor.BusinessName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.OwnerFirstName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.OwnerLastName.ToLower().Contains(search)));
             }
 
             return await query
@@ -571,12 +571,12 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         BusinessAddress = t.SnapshotBusinessAddress,
                     },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
-                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
-                    BusinessName = t.Vendor!.BusinessName,
+                    RegisteredOwnerName = t.Vendor == null ? null : t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    BusinessName = t.Vendor == null ? null : t.Vendor.BusinessName,
                     MarketSectionName = t.MarketSection!.Name,
-                    BusinessType = t.Vendor.Type,
-                    BusinessAccountNumber = t.Vendor.BusinessAccountNumber,
-                    StallNumber = t.Vendor.StallNumber,
+                    BusinessType = t.Vendor == null ? null : (BusinessType?)t.Vendor.Type,
+                    BusinessAccountNumber = t.Vendor == null ? null : t.Vendor.BusinessAccountNumber,
+                    StallNumber = t.Vendor == null ? null : t.Vendor.StallNumber,
                     OrdinanceNames = t.TicketViolations.OrderBy(tv => tv.Id)
                         .Select(tv => "Ord No. " + tv.Ordinance!.OrdinanceNo + ", Series of " + tv.Ordinance.Series).ToList(),
                     EnforcerId = t.EnforcerId,
@@ -615,11 +615,11 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     },
                     ControlNumber = t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference,
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
-                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
-                    VendorLastName = t.Vendor!.OwnerLastName!,
-                    VendorFirstName = t.Vendor.OwnerFirstName!,
-                    StallNumber = t.Vendor.StallNumber!,
-                    BusinessName = t.Vendor.BusinessName,
+                    RegisteredOwnerName = t.Vendor == null ? null : t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    VendorLastName = t.Vendor == null ? null : t.Vendor.OwnerLastName,
+                    VendorFirstName = t.Vendor == null ? null : t.Vendor.OwnerFirstName,
+                    StallNumber = t.Vendor == null ? null : t.Vendor.StallNumber,
+                    BusinessName = t.Vendor == null ? null : t.Vendor.BusinessName,
                     MarketSectionId = t.MarketSectionId,
                     MarketSectionName = t.MarketSection!.Name,
                     Type = t.Type,
@@ -646,10 +646,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 var search = filters.Search.Trim();
                 query = query.Where(t =>
                     ((t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference) ?? "").ToLower().Contains(search.ToLower()) ||
-                    t.Vendor!.OwnerLastName.Contains(search) ||
-                    t.Vendor.OwnerFirstName.Contains(search) ||
-                    t.Vendor.BusinessName.Contains(search) ||
-                    t.Vendor.BusinessAccountNumber.Contains(search));
+                    (t.Vendor != null && t.Vendor.OwnerLastName.Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.OwnerFirstName.Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.BusinessName.Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.BusinessAccountNumber.Contains(search)));
             }
 
             return query;
@@ -671,10 +671,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 var search = filters.Search.Trim().ToLower();
                 query = query.Where(t =>
                     (t.PaperReference != null && t.PaperReference.ToLower().Contains(search)) ||
-                    t.Vendor!.OwnerLastName.ToLower().Contains(search) ||
-                    t.Vendor.OwnerFirstName.ToLower().Contains(search) ||
-                    t.Vendor.BusinessName.ToLower().Contains(search) ||
-                    t.Vendor.BusinessAccountNumber.ToLower().Contains(search));
+                    (t.Vendor != null && t.Vendor.OwnerLastName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.OwnerFirstName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.BusinessName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.BusinessAccountNumber.ToLower().Contains(search)));
             }
 
             return await query
@@ -702,11 +702,11 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         BusinessAddress = t.SnapshotBusinessAddress,
                     },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
-                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
-                    VendorFirstName = t.Vendor!.OwnerFirstName,
-                    VendorLastName = t.Vendor.OwnerLastName,
-                    BusinessAccountNumber = t.Vendor.BusinessAccountNumber,
-                    StallNumber = t.Vendor.StallNumber,
+                    RegisteredOwnerName = t.Vendor == null ? null : t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    VendorFirstName = t.Vendor == null ? null : t.Vendor.OwnerFirstName,
+                    VendorLastName = t.Vendor == null ? null : t.Vendor.OwnerLastName,
+                    BusinessAccountNumber = t.Vendor == null ? null : t.Vendor.BusinessAccountNumber,
+                    StallNumber = t.Vendor == null ? null : t.Vendor.StallNumber,
                     MarketSectionId = t.MarketSectionId,
                     MarketSectionName = t.MarketSection!.Name,
                     Status = t.Status ?? TicketStatus.Pending,
@@ -776,16 +776,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         BusinessAddress = t.SnapshotBusinessAddress,
                     },
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
-                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    RegisteredOwnerName = t.Vendor == null ? null : t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
                     ControlNumber = t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference,
                     Type = t.Type,
-                    BusinessType = t.Vendor!.Type,
-                    BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
-                    StallNumber = t.Vendor!.StallNumber,
-                    BusinessName = t.Vendor.BusinessName,
-                    LastName = t.Vendor.OwnerLastName,
-                    FirstName = t.Vendor.OwnerFirstName,
+                    BusinessType = t.Vendor == null ? null : (BusinessType?)t.Vendor.Type,
+                    BusinessAccountNumber = t.Vendor == null ? null : t.Vendor.BusinessAccountNumber,
+                    StallNumber = t.Vendor == null ? null : t.Vendor.StallNumber,
+                    BusinessName = t.Vendor == null ? null : t.Vendor.BusinessName,
+                    LastName = t.Vendor == null ? null : t.Vendor.OwnerLastName,
+                    FirstName = t.Vendor == null ? null : t.Vendor.OwnerFirstName,
                     Address = "",
                     Violations = t.TicketViolations.Select(tv => new TicketViolationSummary
                     {
@@ -980,14 +980,14 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     VendorId = t.VendorId,
                     PersonId = t.PersonId, PersonFullName = t.Person != null ? t.Person.FullName : null,
                     PaperViolatorName = t.PaperViolatorName,
-                    RegisteredOwnerName = t.Vendor!.OwnerFirstName + " " + t.Vendor.OwnerLastName,
-                    LastName = t.Vendor!.OwnerLastName,
-                    FirstName = t.Vendor.OwnerFirstName,
-                    BusinessName = t.Vendor.BusinessName,
+                    RegisteredOwnerName = t.Vendor == null ? null : t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
+                    LastName = t.Vendor == null ? null : t.Vendor.OwnerLastName,
+                    FirstName = t.Vendor == null ? null : t.Vendor.OwnerFirstName,
+                    BusinessName = t.Vendor == null ? null : t.Vendor.BusinessName,
                     MarketSectionId = t.MarketSectionId,
                     MarketSectionName = t.MarketSection!.Name,
-                    BusinessAccountNumber = t.Vendor.BusinessAccountNumber,
-                    StallNumber = t.Vendor.StallNumber,
+                    BusinessAccountNumber = t.Vendor == null ? null : t.Vendor.BusinessAccountNumber,
+                    StallNumber = t.Vendor == null ? null : t.Vendor.StallNumber,
                     EnforcerId = t.EnforcerId,
                     Type = t.Type,
                     Status = t.Status,
@@ -1263,8 +1263,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     TicketId = t.Id,
                     ControlNumber = t.PaperReference,
-                    BusinessAccountNumber = t.Vendor!.BusinessAccountNumber,
-                    VendorName = t.Vendor.OwnerLastName + ", " + t.Vendor.OwnerFirstName,
+                    BusinessAccountNumber = t.Vendor == null ? null : t.Vendor.BusinessAccountNumber,
+                    VendorName = t.Vendor == null ? null : t.Vendor.OwnerLastName + ", " + t.Vendor.OwnerFirstName,
                     CompletedHours = t.CommunityServiceLogs.Sum(log => (decimal?)log.HoursWorked) ?? 0,
                     TotalHours = t.CommunityServiceHours ?? 0,
                     LastUpdated = t.CommunityServiceLogs

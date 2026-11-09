@@ -171,6 +171,7 @@ namespace MarikinaMarket.API.Application.Services
                 TicketId = i.Id,
                 ControlNumber = i.Type == ViolationType.Warning ? i.ControlNumber : i.PaperReference,
                 IssuedAt = i.IssuedAt,
+                VendorId = i.VendorId,
                 VendorFirstName = i.FirstName,
                 VendorLastName = i.LastName,
                 StallNumber = i.StallNumber ?? "",

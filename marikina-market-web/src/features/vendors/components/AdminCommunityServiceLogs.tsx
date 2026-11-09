@@ -4,7 +4,7 @@ import Card from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
 import Table, { type Column } from "@/components/ui/Table";
-import { formatControlNumber, formatDate } from "@/utils/formatters";
+import { formatControlNumber, formatDate, UNREGISTERED_VENDOR } from "@/utils/formatters";
 import type { CommunityServiceStatusFilter } from "../hooks/useAdminCommunityServiceLogs";
 import styles from "./AdminCommunityServiceLogs.module.css";
 
@@ -81,7 +81,7 @@ export default function AdminCommunityServiceLogs({
       header: "Business Account Number",
       width: "20%",
       render: (log) => (
-        <span className={styles.businessAccountNumber}>{log.businessAccountNumber}</span>
+        <span className={styles.businessAccountNumber}>{log.businessAccountNumber ?? "\u2014"}</span>
       ),
     },
     {
@@ -89,7 +89,7 @@ export default function AdminCommunityServiceLogs({
       header: "Vendor Name",
       width: "18%",
       render: (log) => (
-        <strong className={styles.vendorName}>{log.vendorName}</strong>
+        <strong className={styles.vendorName}>{log.vendorName ?? UNREGISTERED_VENDOR}</strong>
       ),
     },
     {
@@ -113,7 +113,7 @@ export default function AdminCommunityServiceLogs({
             <div
               className={styles.progressTrack}
               role="progressbar"
-              aria-label={`${log.vendorName} community service hours completed`}
+              aria-label={`${log.vendorName ?? UNREGISTERED_VENDOR} community service hours completed`}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Math.round(progress)}

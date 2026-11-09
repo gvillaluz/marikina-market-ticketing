@@ -7,10 +7,10 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
 {
     public class CreateTicketRequest
     {
+        // Missing for an unregistered vendor, who is placed in a market section instead.
         [FromForm(Name = "vendor_id")]
-        [Required(ErrorMessage = "Vendor's information is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "Vendor's information is required.")]
-        public int VendorId { get; set; }
+        public int? VendorId { get; set; }
 
         [FromForm(Name = "person_id"), Range(1, int.MaxValue)]
         public int? PersonId { get; set; }
@@ -27,9 +27,9 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
         [FromForm(Name = "fine_assessments"), StringLength(20000)]
         public string? FineAssessments { get; set; }
 
+        // Used only for an unregistered vendor; a registered business brings its own section.
         [FromForm(Name = "market_section_id")]
-        [Required(ErrorMessage = "Market section is required.")]
-        public int MarketSectionId { get; set; }
+        public int? MarketSectionId { get; set; }
 
         [FromForm(Name = "enforcer_id")]
         [Required(ErrorMessage = "Enforcer's information is required.")]

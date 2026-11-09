@@ -13,7 +13,7 @@ class PersonTicketHistoryModel {
             _json['business_snapshot'] as Map<String, Object?>,
           ).toEntity(),
     ticketId: _json['ticket_id'] as int,
-    businessName: _json['business_name'] as String,
+    businessName: _json['business_name'] as String?,
     enforcerName: _json['enforcer_name'] as String,
     paperViolatorName: _json['paper_violator_name'] as String?,
     paperReference: _json['paper_reference'] as String?,

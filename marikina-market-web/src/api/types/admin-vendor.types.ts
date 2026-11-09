@@ -55,8 +55,8 @@ export interface AdminVendorComplianceOverview {
 export interface AdminPendingTicketSettlement {
   ticketId: number;
   controlNumber: string | null;
-  businessAccountNumber: string;
-  vendorName: string;
+  businessAccountNumber: string | null;
+  vendorName: string | null;
   marketSectionName: string;
   status: string | number;
   penaltyType: string | number | null;
@@ -125,8 +125,8 @@ export interface AdminVendorInspectionFilters {
 export interface AdminCommunityServiceLog {
   ticketId: number;
   controlNumber: string | null;
-  businessAccountNumber: string;
-  vendorName: string;
+  businessAccountNumber: string | null;
+  vendorName: string | null;
   completedHours: number;
   totalHours: number;
   lastUpdated: string;

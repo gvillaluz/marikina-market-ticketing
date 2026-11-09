@@ -61,9 +61,10 @@ export interface InspectionHistorySummary {
   ticketId: number;
   controlNumber: string | null;
   issuedAt: Date;
-  vendorFirstName: string;
-  vendorLastName: string;
-  stallNumber: string;
+  vendorId: number | null;
+  vendorFirstName: string | null;
+  vendorLastName: string | null;
+  stallNumber: string | null;
   marketSectionId: number;
   marketSectionName: string;
   type: "Ticket" | "Warning";

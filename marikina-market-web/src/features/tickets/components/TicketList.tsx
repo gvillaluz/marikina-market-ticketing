@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Table from "@/components/ui/Table";
 import { RecordBadge, RecordActions } from "@/components/ui/Records";
 import type { TicketSummary } from "@/api/types/ticket.types";
-import { formatDateTime, formatControlNumber } from "@/utils/formatters";
+import { formatDateTime, formatControlNumber, UNREGISTERED_VENDOR } from "@/utils/formatters";
 import styles from "./TicketList.module.css";
 import { formatPenaltyType } from "../tickets.utils";
 
@@ -45,16 +45,20 @@ export default function TicketList({
           header: "Business name",
           align: "left",
           render: (ticket) =>
-            ticket.businessSnapshot?.businessName ||
-            "Historical business details unavailable.",
+            ticket.vendorId === null
+              ? UNREGISTERED_VENDOR
+              : ticket.businessSnapshot?.businessName ||
+                "Historical business details unavailable.",
         },
         {
           key: "registeredOwner",
           header: "Registered owner",
           align: "left",
           render: (ticket) =>
-            ticket.businessSnapshot?.registeredOwnerName ||
-            "Historical business details unavailable.",
+            ticket.vendorId === null
+              ? "—"
+              : ticket.businessSnapshot?.registeredOwnerName ||
+                "Historical business details unavailable.",
         },
         {
           key: "vendor",
@@ -67,7 +71,10 @@ export default function TicketList({
           key: "section",
           header: "Market section",
           align: "left",
-          render: (ticket) => ticket.businessSnapshot?.marketSectionName || "Historical business details unavailable.",
+          render: (ticket) =>
+            ticket.vendorId === null
+              ? ticket.marketSectionName
+              : ticket.businessSnapshot?.marketSectionName || "Historical business details unavailable.",
         },
         {
           key: "status",
