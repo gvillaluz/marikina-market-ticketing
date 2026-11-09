@@ -203,28 +203,6 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return (items, total);
         }
 
-        public async Task<VendorLookupResult?> GetVendorByQrCode(string codeValue)
-        {
-            return await _context.Businesses
-                .Where(v => v.QrCodeValue == codeValue && v.Status == VendorStatus.Active)
-                .Select(v => new VendorLookupResult
-                {
-                    VendorId = v.Id,
-                    Username = null,
-                    Type = v.Type,
-                    BusinessAccountNumber = v.BusinessAccountNumber,
-                    StallNumber = v.StallNumber,
-                    TradeName = v.BusinessName,
-                    LastName = v.OwnerLastName,
-                    FirstName = v.OwnerFirstName,
-                    MiddleName = null,
-                    Address = v.HouseNumber + ", " + v.Street + ", " + v.Barangay + ", " + v.City,
-                    MarketSectionId = v.MarketSectionId,
-                    MarketSectionName = v.MarketSection!.Name
-                })
-                .FirstOrDefaultAsync();
-        }
-
         public async Task<VendorProfileDetails?> GetVendorProfileDetailsAsync(int vendorId)
         {
             return await _context.Businesses

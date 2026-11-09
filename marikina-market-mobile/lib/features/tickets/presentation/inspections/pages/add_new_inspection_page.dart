@@ -20,6 +20,7 @@ import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/duplicate_ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_form_data.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/market_section.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/warning_ordinance.dart';
@@ -34,6 +35,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/scan_paper_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/select_ordinance_bottom_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/ticket_violation_card.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/unregistered_section_banner.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/vendor_summary_banner.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/violator_info_card.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -66,12 +68,18 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   ViolationType _selectedType = ViolationType.warning;
 
   VendorSummary? _vendorSummary;
+  // Set instead of a business when the vendor is not registered.
+  MarketSection? _unregisteredSection;
+  bool _isUnregistered = false;
+  bool get _hasBusinessOrSection =>
+      _vendorSummary != null || _unregisteredSection != null;
   PersonCandidate? _confirmedPerson;
   String _paperName = '';
   bool _hasOpenedReview = false;
   int? _reviewInformation;
   int get _currentInformation => Object.hashAll([
     _vendorSummary?.id,
+    _unregisteredSection?.id,
     _confirmedPerson?.id,
     _paperName,
     _paperReferenceController.text,
@@ -176,7 +184,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
   bool get _isFormEmpty {
     final hasVendorOrOrdinances =
-        _vendorSummary != null || _selectedOrdinances.isNotEmpty;
+        _hasBusinessOrSection || _selectedOrdinances.isNotEmpty;
     final hasEvidences =
         _paperTicketPhoto != null || _capturedEvidences.isNotEmpty;
     return !hasVendorOrOrdinances && !hasEvidences && !_hasTextDraft;
@@ -238,7 +246,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   }
 
   Future<void> _handleOrdinanceSelect(BuildContext context) async {
-    if (_vendorSummary == null) {
+    if (!_hasBusinessOrSection) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: AppColors.primary,
@@ -437,6 +445,24 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     });
   }
 
+  // The place stays empty: the enforcer types where it happened.
+  void _populateSection(MarketSection section) {
+    setState(() {
+      _vendorError = null;
+      _unregisteredSection = section;
+    });
+  }
+
+  // The place that came from the business record goes with the business.
+  void _clearVendor() {
+    setState(() {
+      if (_issuePlaceController.text == _vendorSummary?.issuePlace) {
+        _issuePlaceController.clear();
+      }
+      _vendorSummary = null;
+    });
+  }
+
   void _onChangePenaltyType(PenaltyType value) {
     setState(() => _selectedPenaltyType = value);
   }
@@ -447,7 +473,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     final isTextValid = _formKey.currentState?.validate() ?? false;
 
     setState(() {
-      _vendorError = _vendorSummary == null
+      _vendorError = !_hasBusinessOrSection
           ? 'Please select a registered vendor or enter stall info.'
           : null;
 
@@ -524,7 +550,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
               : null,
           issuePlace: _issuePlaceController.text.trim(),
           enforcerId: widget.user.userId,
-          vendorSummary: _vendorSummary!,
+          vendorSummary: _vendorSummary,
+          unregisteredSection: _unregisteredSection,
           fineSummary: _localFineSummary,
           fineAssessments: _assessedAmounts.entries
               .map(
@@ -595,8 +622,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _vendorSummary == null
-                            ? 'Select a registered vendor or enter the stall information to begin.'
+                        !_hasBusinessOrSection
+                            ? 'Choose Registered or Unregistered, then find the vendor or pick the market section to begin.'
                             : 'Complete the inspection details, then review them before submitting.',
                         style: const TextStyle(
                           color: AppColors.mediumGrey,
@@ -605,20 +632,30 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      if (_vendorSummary == null) ...[
+                      if (!_hasBusinessOrSection) ...[
                         ViolatorInfoCard(
+                          isUnregistered: _isUnregistered,
+                          onKindChanged: (value) =>
+                              setState(() => _isUnregistered = value),
                           onVendorSelected: _populateVendorInfo,
+                          onSectionSelected: _populateSection,
                           errorMessage: _vendorError,
                         ),
                         const SizedBox(height: 20),
                       ],
 
-                      if (_vendorSummary != null) ...[
-                        VendorSummaryBanner(
-                          vendor: _vendorSummary!,
-                          onChangeVendor: () =>
-                              setState(() => _vendorSummary = null),
-                        ),
+                      if (_hasBusinessOrSection) ...[
+                        if (_vendorSummary != null)
+                          VendorSummaryBanner(
+                            vendor: _vendorSummary!,
+                            onChangeVendor: _clearVendor,
+                          )
+                        else
+                          UnregisteredSectionBanner(
+                            section: _unregisteredSection!,
+                            onChangeSection: () =>
+                                setState(() => _unregisteredSection = null),
+                          ),
 
                         const SizedBox(height: 20),
 
@@ -663,7 +700,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           // Keeps the chosen person and typed name when the
                           // ticket fields appear or disappear above it.
                           key: const ValueKey('person-identity-review'),
-                          vendor: _vendorSummary!,
+                          vendor: _vendorSummary,
                           onChanged: (person, paperName) => setState(() {
                             _confirmedPerson = person;
                             _paperName = paperName;

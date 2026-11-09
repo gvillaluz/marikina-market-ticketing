@@ -39,8 +39,6 @@ public class BusinessLookupTests
         Assert.Equal("Juan", lookup.FirstName); Assert.Equal("Reyes", lookup.LastName);
         Assert.Null(lookup.Username);
         Assert.Contains("Sta. Elena", lookup.Address);
-        var qr = await repository.GetVendorByQrCode("business-only-70");
-        Assert.Equal(lookup.VendorId, qr!.VendorId);
         Assert.Null(await repository.GetVendorIdByUserIdAsync(70));
         Assert.Null(await repository.GetVendorUserIdAsync(70));
     }

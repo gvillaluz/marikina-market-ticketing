@@ -12,7 +12,7 @@ class GetFineSummaryUseCase {
     int? vendorId, {
     int? personId,
   }) async {
-    if (vendorId == null || personId == null) {
+    if (personId == null) {
       return Result.failure(
         ValidationFailure(
           "Confirm a person before calculating citation offenses.",

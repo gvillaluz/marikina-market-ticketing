@@ -50,8 +50,6 @@ dependencies:
 
   wakelock_plus:
 
-  mobile_scanner:
-
   cunning_document_scanner: 3.0.4
 
   hive:

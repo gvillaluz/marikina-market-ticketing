@@ -1,12 +1,14 @@
 import 'package:marikina_market_mobile/features/tickets/domain/entities/business_snapshot.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/unregistered_vendor.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class ViolatorInfoSection extends StatelessWidget {
-  final VendorSummary vendor;
+  // Null when the vendor is not registered.
+  final VendorSummary? vendor;
   final BusinessSnapshot? businessSnapshot;
   final bool isTicket;
   final String? paperViolatorName, personFullName, personAddress;
@@ -25,6 +27,7 @@ class ViolatorInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vendor = this.vendor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -33,13 +36,18 @@ class ViolatorInfoSection extends StatelessWidget {
           title: 'VIOLATOR DETAILS',
         ),
         const SizedBox(height: AppTheme.ticketSmallGap),
-        if (isTicket)
+        if (isTicket && vendor != null)
           Text(
             businessSnapshot == null
                 ? 'Current registry details. Verify to review the business details for this citation.'
                 : 'Business details reviewed for this citation.',
           ),
-        if (businessSnapshot != null) ...[
+        if (vendor == null)
+          const TicketPaperField(
+            label: 'BUSINESS:',
+            value: unregisteredVendorLabel,
+          )
+        else if (businessSnapshot != null) ...[
           TicketPaperField(
             label: 'BUSINESS ID:',
             value: businessSnapshot!.businessAccountNumber ?? 'Unavailable',
@@ -94,7 +102,7 @@ class ViolatorInfoSection extends StatelessWidget {
                 : '${personFullName ?? 'Person'} · Person $personId',
           ),
           const SizedBox(height: AppTheme.inspectionSmallGap),
-          if (isTicket && businessSnapshot == null)
+          if (isTicket && vendor != null && businessSnapshot == null)
             TicketPaperField(label: 'BUSINESS ADDRESS:', value: vendor.address),
           if (isTicket && personAddress != null)
             TicketPaperField(label: 'VIOLATOR ADDRESS:', value: personAddress!),

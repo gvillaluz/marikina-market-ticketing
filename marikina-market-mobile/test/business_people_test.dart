@@ -251,13 +251,19 @@ void main() {
       MaterialApp(
         theme: AppTheme.light,
         home: Scaffold(
-          body: ViolatorInfoCard(onVendorSelected: (_) {}, errorMessage: null),
+          body: ViolatorInfoCard(
+            isUnregistered: false,
+            onKindChanged: (_) {},
+            onVendorSelected: (_) {},
+            onSectionSelected: (_) {},
+            errorMessage: null,
+          ),
         ),
       ),
     );
     expect(
       find.text(
-        'Scan the QR code, or search by business name, stall, owner, address or account number',
+        'Search by business name, stall, owner, address or account number',
       ),
       findsOneWidget,
     );

@@ -20,7 +20,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_fin
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_inspection_list_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ordinances_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/save_inspection_ticket_use_case.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_vendor_by_code_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_market_sections_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_ordinance_shortcuts_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_businesses_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_business_people_use_case.dart';
@@ -37,7 +37,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   final VerifyInspectionUseCase verifyInspectionUseCase;
   final LoadInspectionListUseCase loadInspectionListUseCase;
   final LoadOrdinancesUseCase loadOrdinancesUseCase;
-  final SearchVendorByCodeUseCase searchVendorByCodeUseCase;
+  final GetMarketSectionsUseCase getMarketSectionsUseCase;
   final SearchBusinessesUseCase searchBusinessesUseCase;
   final GetOrdinanceShortcutsUseCase getOrdinanceShortcutsUseCase;
   final GetBusinessPeopleUseCase getBusinessPeopleUseCase;
@@ -83,7 +83,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     required this.verifyInspectionUseCase,
     required this.loadInspectionListUseCase,
     required this.loadOrdinancesUseCase,
-    required this.searchVendorByCodeUseCase,
+    required this.getMarketSectionsUseCase,
     required this.searchBusinessesUseCase,
     required this.getOrdinanceShortcutsUseCase,
     required this.getBusinessPeopleUseCase,
@@ -160,7 +160,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     });
     on<LoadOrdinances>(_onLoadOrdinances);
     on<LoadInspectionTickets>(_onLoadInspectionTickets);
-    on<SearchByCodeRequested>(_onSearchByCodeRequested);
+    on<MarketSectionsRequested>(_onMarketSectionsRequested);
     on<BusinessSearchRequested>(_onBusinessSearchRequested);
     on<BusinessPeopleRequested>(_onBusinessPeopleRequested);
     on<LoadOrdinanceSelection>(_onLoadOrdinanceSelection);
@@ -283,21 +283,18 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     }
   }
 
-  Future<void> _onSearchByCodeRequested(
-    SearchByCodeRequested event,
-    Emitter emit,
+  Future<void> _onMarketSectionsRequested(
+    MarketSectionsRequested event,
+    Emitter<InspectionState> emit,
   ) async {
-    emit(InspectionSearchLoading());
-
-    final result = await searchVendorByCodeUseCase(event.codeValue);
-
+    emit(MarketSectionsLoading());
+    final result = await getMarketSectionsUseCase();
     if (emit.isDone) return;
     switch (result) {
       case Success(:final data):
-        emit(InspectionVendorSelected(data));
-
-      case ResultFailure(failure: final failure):
-        emit(InspectionSearchError(failure.message));
+        emit(MarketSectionsLoaded(data));
+      case ResultFailure(:final failure):
+        emit(MarketSectionsError(failure.message));
     }
   }
 
@@ -373,11 +370,6 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     FineSummaryRequested event,
     Emitter emit,
   ) async {
-    if (event.vendorId == null) {
-      emit(FineSummaryError('Vendor is required to calculate fines.'));
-      return;
-    }
-
     emit(FineSummaryLoading());
 
     final result = await getFineSummaryUseCase(

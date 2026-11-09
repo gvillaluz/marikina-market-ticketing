@@ -20,7 +20,7 @@ import 'package:marikina_market_mobile/features/tickets/data/models/inspection_s
 import 'package:marikina_market_mobile/features/tickets/data/repositories/inspection_repository_impl.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_inspection_list_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ordinances_use_case.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_vendor_by_code_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_market_sections_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_businesses_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_ordinance_shortcuts_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_business_people_use_case.dart';
@@ -85,7 +85,7 @@ Future<InspectionBloc> listBloc(
     verifyInspectionUseCase: VerifyInspectionUseCase(repository),
     loadInspectionListUseCase: LoadInspectionListUseCase(repository),
     loadOrdinancesUseCase: LoadOrdinancesUseCase(repository),
-    searchVendorByCodeUseCase: SearchVendorByCodeUseCase(repository),
+    getMarketSectionsUseCase: GetMarketSectionsUseCase(repository),
     searchBusinessesUseCase: SearchBusinessesUseCase(repository),
     getOrdinanceShortcutsUseCase: GetOrdinanceShortcutsUseCase(repository),
     getBusinessPeopleUseCase: GetBusinessPeopleUseCase(repository),

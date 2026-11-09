@@ -34,7 +34,6 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
         public Task<VendorRegistrationDetailsResponse> GetVendorRegistrationDetailsAsync(int registrationId);
         public Task<List<VendorRegistrationDocumentResponse>> GetVendorRegistrationDocumentsAsync(int registrationId);
         public Task<PageResponse<GetVendorResponse>> SearchBusinessesAsync(string? search);
-        public Task<GetVendorResponse> GetVendorByQrCode(string qrCode);
         public Task<PageResponse<AdminVendorSummaryResponse>> GetAdminVendorSummariesAsync(
             int offset,
             AdminVendorSummaryFilter filters);

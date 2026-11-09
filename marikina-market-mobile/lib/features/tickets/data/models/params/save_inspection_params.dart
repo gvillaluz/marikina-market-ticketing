@@ -9,7 +9,7 @@ class SaveInspectionParams {
   final String? reviewedBusinessSnapshot;
   final int? personId;
   final String? paperViolatorName, personFullName, reviewedCalculation;
-  final int vendorId;
+  final int? vendorId;
   final int marketSectionId;
   final int enforcerId;
   final ViolationType ticketType;

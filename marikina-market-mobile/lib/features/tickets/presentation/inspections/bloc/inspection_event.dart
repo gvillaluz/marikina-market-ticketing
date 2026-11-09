@@ -1,5 +1,6 @@
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
 export './business_people_requested.dart';
+export './market_sections_requested.dart';
 export './inspection_verification_requested.dart';
 export './person_history_requested.dart';
 export './person_creation_requested.dart';
@@ -26,11 +27,6 @@ class LoadInspectionTickets extends InspectionEvent {
   LoadInspectionTickets({this.search = '', this.offset = 0, this.type});
 }
 
-class SearchByCodeRequested extends InspectionEvent {
-  final String codeValue;
-  SearchByCodeRequested(this.codeValue);
-}
-
 class BusinessSearchRequested extends InspectionEvent {
   final String search;
   BusinessSearchRequested(this.search);
@@ -45,7 +41,7 @@ class FineSummaryRequested extends InspectionEvent {
 
 class WarningOrdinanceCheckRequested extends InspectionEvent {
   final List<int> ordinanceIds;
-  final int vendorId;
+  final int? vendorId;
 
   final int? personId;
   WarningOrdinanceCheckRequested(
@@ -99,7 +95,7 @@ class NewInspectionSubmitted extends InspectionEvent {
   final String? reviewedBusinessSnapshot;
   final int? personId;
   final String? paperViolatorName, reviewedCalculation;
-  final int vendorId;
+  final int? vendorId;
   final int enforcerId;
   final int marketSectionId;
   final ViolationType ticketType;

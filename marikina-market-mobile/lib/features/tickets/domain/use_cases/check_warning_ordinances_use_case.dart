@@ -10,7 +10,7 @@ class CheckWarningOrdinancesUseCase {
 
   Future<Result<List<WarningOrdinance>>> call(
     List<int> ordinanceIds,
-    int vendorId, {
+    int? vendorId, {
     int? personId,
   }) {
     if (ordinanceIds.length != 1 || ordinanceIds.any((id) => id <= 0)) {
@@ -20,7 +20,7 @@ class CheckWarningOrdinancesUseCase {
         ),
       );
     }
-    if (vendorId <= 0) {
+    if (vendorId != null && vendorId <= 0) {
       return Future.value(
         Result.failure(ValidationFailure('Vendor must be valid.')),
       );

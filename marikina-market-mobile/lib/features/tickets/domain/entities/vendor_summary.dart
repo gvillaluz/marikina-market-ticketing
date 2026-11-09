@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/market_section.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 
 class VendorSummary {
@@ -34,6 +35,9 @@ class VendorSummary {
     middleName,
     lastName,
   ].whereType<String>().where((part) => part.trim().isNotEmpty).join(' ');
+
+  MarketSection get marketSection =>
+      MarketSection(id: marketSectionId, name: marketSectionName);
 
   // Where the ticket is issued, filled in from the business record.
   String get issuePlace => [
