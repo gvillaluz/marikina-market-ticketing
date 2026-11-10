@@ -23,7 +23,7 @@ public class VendorDashboardTests
     {
         using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);
         var repository = new VendorRepository(context);
-        var service = new VendorService(null!, repository, null!, null!, null!, null!, null!, null!, NullLogger<VendorService>.Instance);
+        var service = new VendorService(repository, null!, null!, null!);
         await Assert.ThrowsAsync<RecordNotFoundException>(() => service.GetOwnDashboardAsync(7));
         await Assert.ThrowsAsync<RecordNotFoundException>(() => service.GetOwnDashboardAsync(70));
     }

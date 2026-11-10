@@ -1,10 +1,8 @@
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/ui/PageHeader';
-import Button from '@/components/ui/Button';
 import useVendors from '@/features/vendors/hooks/useVendors';
 import useDebounce from '@/hooks/useDebounce';
-import { useAuth } from '@/context/AuthContext';
 import { CATEGORY_LABELS } from '@/utils/constants';
 import { formatDate } from '@/utils/formatters';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -16,7 +14,6 @@ const FILTERS: (Status | 'all')[] = ['all', 'pending', 'active', 'suspended'];
 
 const VendorsPage: FC = () => {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
   const [status, setStatus] = useState<Status | 'all'>('all');
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 400);
@@ -34,19 +31,6 @@ const VendorsPage: FC = () => {
       <PageHeader
         title="Vendors"
         subtitle="Registered businesses and their compliance status."
-        actions={
-          isAdmin && (
-            <Button
-              onClick={() =>
-                navigate('/vendor/register', {
-                  state: { returnTo: '/vendors' },
-                })
-              }
-            >
-              + Add Vendor
-            </Button>
-          )
-        }
       />
 
       <div className={styles.toolbar}>

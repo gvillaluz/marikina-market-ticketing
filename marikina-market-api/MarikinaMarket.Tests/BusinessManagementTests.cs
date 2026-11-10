@@ -107,9 +107,8 @@ public class BusinessManagementTests
                 SectionExists ? new() { Id = 1, Name = "Fish", Description = "Fish section", IsActive = true } : null));
             var unit = ReviewBoundaryProxy.Create<IUnitOfWork>((method, _) => method.Name == "SaveChangesAsync"
                 ? Task.FromResult(1) : Task.CompletedTask);
-            Service = new VendorService(Reject<IUserRepository>(), vendors, unit, sections,
-                Reject<IVendorComplianceScoreService>(), Reject<IStorageService>(), Reject<IEmailService>(),
-                Reject<INotificationService>(), NullLogger<VendorService>.Instance);
+            Service = new VendorService(vendors, unit, sections,
+                Reject<IVendorComplianceScoreService>());
         }
         private Task Save() { Saves++; if (Saved is not null && Saved.Id == 0) Saved.Id = 12; return Task.CompletedTask; }
         private static T Reject<T>() where T : class => ReviewBoundaryProxy.Create<T>((method, _) =>

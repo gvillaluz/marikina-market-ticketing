@@ -28,15 +28,13 @@ export function useTwoFactorLogin() {
     state && typeof state === "object"
       ? (state as Record<string, unknown>)
       : {};
-  const access = routeState.access === "staff" ? "staff" : "vendor";
-  const loginPath = access === "staff" ? ROUTES.adminLogin : ROUTES.login;
   const requestedPath = routeState.redirectTo;
   const redirectTo =
     typeof requestedPath === "string" &&
     requestedPath.startsWith("/") &&
     !requestedPath.startsWith("//") &&
     !requestedPath.includes("\\") &&
-    ![ROUTES.login, ROUTES.adminLogin, ROUTES.loginVerification].some(
+    ![ROUTES.adminLogin, ROUTES.loginVerification].some(
       (path) => path === requestedPath,
     )
       ? requestedPath
@@ -72,14 +70,12 @@ export function useTwoFactorLogin() {
     loginChallenge?.expiresAt,
   );
   function destination(role: UserRole | null | undefined, mustChange: boolean) {
-    if (!role) return loginPath;
+    if (!role) return ROUTES.adminLogin;
     if (mustChange && STAFF_ROLES.includes(role)) return ROUTES.changePassword;
     return redirectTo ?? roleHomePath(role);
   }
   return {
     loginChallenge,
-    access,
-    loginPath,
     isAuthenticated,
     authenticatedPath: destination(user?.role, mustChangePassword),
     otp,
@@ -96,7 +92,7 @@ export function useTwoFactorLogin() {
     canVerify: Boolean(loginChallenge) && !verifying && !resending && !expired,
     cancel() {
       cancelLogin();
-      navigate(loginPath, { replace: true });
+      navigate(ROUTES.adminLogin, { replace: true });
     },
     async resend() {
       if (

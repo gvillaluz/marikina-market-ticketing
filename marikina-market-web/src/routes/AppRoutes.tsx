@@ -8,7 +8,6 @@ import {
   HEAD_ADMIN_ROLES,
 } from "@/api/types/common.types";
 import LandingPage from "@/features/landing/pages/LandingPage";
-import LoginPage from "@/features/auth/pages/LoginPage";
 import AdminLoginPage from "@/features/auth/pages/AdminLoginPage";
 import LoginVerificationPage from "@/features/auth/pages/LoginVerificationPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
@@ -18,17 +17,11 @@ import TicketsPage from "@/features/tickets/pages/TicketsPage";
 import TicketDetailPage from "@/features/tickets/pages/TicketDetailPage";
 import VendorsPage from "@/features/vendors/pages/VendorPage";
 import VendorDetailPage from "@/features/vendors/pages/VendorDetailPage";
-import VendorRegistrationPage from "@/features/vendors/pages/VendorRegistrationPage";
 import { InspectionsPage } from "../features/inspections/pages/InspectionsPage";
 import EnforcersPage from "@/features/enforcers/pages/EnforcersPage";
 import EnforcerPerformancePage from "@/features/enforcers/pages/EnforcerPerformancePage";
 import AdminVendorsPage from "@/features/vendors/pages/AdminVendorsPage";
 import AdminVendorInspectionPage from "@/features/vendors/pages/AdminVendorInspectionPage";
-import AdminVendorRegistrationsPage from "@/features/vendors/pages/AdminVendorRegistrationsPage";
-import AdminVendorRegistrationReviewPage from "@/features/vendors/pages/AdminVendorRegistrationReviewPage";
-import AdminVendorRegistrationApprovePage from "@/features/vendors/pages/AdminVendorRegistrationApprovePage";
-import AdminVendorRegistrationDeclinePage from "@/features/vendors/pages/AdminVendorRegistrationDeclinePage";
-import AdminVendorRegistrationInformationPage from "@/features/vendors/pages/AdminVendorRegistrationInformationPage";
 import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
 import SystemConfigurationPage from "@/features/configuration/pages/SystemConfigurationPage";
 import MarketSectionPage from "@/features/market-section/pages/MarketSectionPage";
@@ -45,21 +38,15 @@ const AppRoutes = () => {
     <Routes>
       {/* Public routes — kept unwrapped so they never require auth */}
       <Route path={ROUTES.home} element={<LandingPage />} />
-      <Route path={ROUTES.login} element={<LoginPage />} />
       <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
       <Route
         path={ROUTES.loginVerification}
         element={<LoginVerificationPage />}
       />
       <Route
-        path={`${ROUTES.forgotPassword("vendor")}/:step?`}
+        path={`${ROUTES.forgotPassword}/:step?`}
         element={<ForgotPasswordPage />}
       />
-      <Route
-        path={`${ROUTES.forgotPassword("staff")}/:step?`}
-        element={<ForgotPasswordPage />}
-      />
-      <Route path={ROUTES.register} element={<VendorRegistrationPage />} />
 
       {/* Standalone change-password route — NOT nested in DashboardLayout,
           so it renders full-screen without the sidebar, like the login pages */}
@@ -135,46 +122,6 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path={ROUTES.adminVendorRegistrations}
-          element={
-            <ProtectedRoute roles={ADMIN_ROLES}>
-              <AdminVendorRegistrationsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.adminVendorRegistration(":registrationId")}
-          element={
-            <ProtectedRoute roles={ADMIN_ROLES}>
-              <AdminVendorRegistrationReviewPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.adminVendorRegistrationApprove(":registrationId")}
-          element={
-            <ProtectedRoute roles={ADMIN_ROLES}>
-              <AdminVendorRegistrationApprovePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.adminVendorRegistrationDecline(":registrationId")}
-          element={
-            <ProtectedRoute roles={ADMIN_ROLES}>
-              <AdminVendorRegistrationDeclinePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.adminVendorRegistrationInformation(":registrationId")}
-          element={
-            <ProtectedRoute roles={ADMIN_ROLES}>
-              <AdminVendorRegistrationInformationPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path={ROUTES.adminVendorInspections(":vendorId")}
           element={
             <ProtectedRoute roles={ADMIN_ROLES}>
@@ -242,10 +189,6 @@ const AppRoutes = () => {
         <Route
           path={ROUTES.vendorDetail(":id")}
           element={<VendorDetailPage />}
-        />
-        <Route
-          path={ROUTES.vendorRegister}
-          element={<VendorRegistrationPage />}
         />
       </Route>
 

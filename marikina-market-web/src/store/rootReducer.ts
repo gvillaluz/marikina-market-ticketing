@@ -1,3 +1,0 @@
-
-export { useAuthStore } from './store';
-

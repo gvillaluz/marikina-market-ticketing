@@ -1,4 +1,4 @@
-import { Plus, ShieldCheck } from "lucide-react";
+import { Plus } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 import { useAccounts } from "../hooks/useAccounts";
 import AccountOverview from "../components/AccountOverview";
@@ -39,14 +39,6 @@ export default function AccountsPage() {
         <CurrentAccountCard user={accounts.currentUser} />
       )}
       <AccountDirectory model={accounts} onManage={manage.show} />
-      <aside className={styles.notice}>
-        <ShieldCheck size={18} aria-hidden="true" />
-        <p>
-          Vendor accounts should only be created after registration documents
-          are verified and approved. Vendor provisioning is handled through the
-          registration workflow, not from this page.
-        </p>
-      </aside>
       <AddStaffAccountModal model={staff} />
       <AddStaffAccountModal model={manage} />
     </div>

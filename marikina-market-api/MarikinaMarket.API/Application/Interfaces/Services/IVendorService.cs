@@ -14,25 +14,6 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
         Task<VendorDashboardResponse> GetOwnDashboardAsync(int userId);
         public Task<VendorSelfProfileResponse> GetOwnProfileAsync(int userId);
         public Task<VendorSelfProfileResponse> UpdateOwnProfileAsync(int userId, EditUserRequest request);
-        public Task<RegisterVendorResponse> CreateVendorRegistryAsync(RegisterVendorRequest request);
-        public Task<RegistrationApprovalResponse> CreateAdminVendorRegistrationAsync(
-            AdminRegisterVendorRequest request,
-            int adminId);
-        public Task<RegistrationApprovalResponse> ApproveVendorRegistration(
-            int registrationId,
-            RegistrationAdminAction request);
-        public Task<RegistrationDeclinedResponse> DeclineVendorRegistration(
-            int registrationId,
-            RegistrationAdminAction request);
-        public Task<RegistrationDeclinedResponse> RequestMoreInformation(
-            int registrationId,
-            RegistrationAdminAction request);
-        public Task<VendorRegistrationStatusCountsResponse> GetVendorRegistrationStatusCountsAsync();
-        public Task<PageResponse<VendorRegistrationSummaryResponse>> GetVendorRegistrationSummariesAsync(
-            int offset,
-            VendorRegistrationRequestFilters filters);
-        public Task<VendorRegistrationDetailsResponse> GetVendorRegistrationDetailsAsync(int registrationId);
-        public Task<List<VendorRegistrationDocumentResponse>> GetVendorRegistrationDocumentsAsync(int registrationId);
         public Task<PageResponse<GetVendorResponse>> SearchBusinessesAsync(string? search);
         public Task<PageResponse<AdminVendorSummaryResponse>> GetAdminVendorSummariesAsync(
             int offset,

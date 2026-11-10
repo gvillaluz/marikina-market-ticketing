@@ -1,6 +1,4 @@
-import type { AuthAccess } from "@/api/types/common.types";
 import type { FC } from "react";
-import { Link } from "react-router-dom";
 import {
   Eye,
   EyeOff,
@@ -14,20 +12,12 @@ import { useLoginForm } from "../hooks/useLoginForm";
 import styles from "./LoginForm.module.css";
 
 interface LoginFormProps {
-  showRegisterLink?: boolean;
-  access?: AuthAccess;
   submit: (values: LoginFormValues) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
-const LoginForm: FC<LoginFormProps> = ({
-  showRegisterLink = true,
-  access,
-  submit,
-  loading,
-  error,
-}) => {
-  const model = useLoginForm(access, submit, loading);
+const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
+  const model = useLoginForm(submit, loading);
   return (
     <div className={styles.formWrapper}>
       <h2 className={styles.heading}>LOGIN</h2>
@@ -59,11 +49,7 @@ const LoginForm: FC<LoginFormProps> = ({
               className={styles.input}
               value={model.username}
               onChange={(event) => model.changeUsername(event.target.value)}
-              placeholder={
-                access === "staff"
-                  ? "Enter your username"
-                  : "Enter your username or email"
-              }
+              placeholder="Enter your username"
               autoComplete="username"
               maxLength={200}
               disabled={loading}
@@ -153,18 +139,6 @@ const LoginForm: FC<LoginFormProps> = ({
       >
         Forgot password?
       </button>
-      {showRegisterLink && (
-        <p className={styles.registerPrompt}>
-          Don&apos;t have an account?{" "}
-          <Link
-            to="/register"
-            state={{ returnTo: "/login" }}
-            className={styles.registerLink}
-          >
-            Create one
-          </Link>
-        </p>
-      )}
     </div>
   );
 };

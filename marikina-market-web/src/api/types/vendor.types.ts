@@ -25,27 +25,3 @@ export interface Vendor {
   qrCode: string;
   ownerId?: string;
 }
-
-export interface VendorRegistrationForm {
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  dateOfBirth: string;
-  phoneNumber: string;
-  houseNumber: string;
-  street: string;
-  barangay: string;
-  city: string;
-  businessAccountNumber: string;
-  businessName: string;
-  natureOfBusiness: string;
-  businessType: string;
-  stallNumber: string;
-  marketSectionId: string;
-  governmentIdType: string;
-  governmentIdPhoto: File | null;
-  businessDocumentPhoto: File | null;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
