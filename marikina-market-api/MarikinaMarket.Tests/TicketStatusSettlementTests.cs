@@ -132,14 +132,38 @@ public class TicketStatusSettlementTests
         fixture.AssertRejectedWithoutMutation();
     }
 
-    [Fact]
-    public async Task Warning_cannot_be_resolved_as_a_settled_violation()
+    [Theory]
+    [InlineData(TicketStatus.Pending)]
+    [InlineData(TicketStatus.Paid)]
+    [InlineData(TicketStatus.Waived)]
+    [InlineData(TicketStatus.Contested)]
+    [InlineData(TicketStatus.Overdue)]
+    [InlineData(TicketStatus.Cleared)]
+    [InlineData(TicketStatus.InProgress)]
+    public async Task Warning_status_cannot_be_changed(TicketStatus status)
     {
         var fixture = new Fixture(PenaltyType.CashFine);
         fixture.Ticket.Type = ViolationType.Warning;
+        fixture.Ticket.Status = null;
         fixture.Ticket.ProofUrls = ["receipt.png"];
-        await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.UpdateAsync(TicketStatus.Cleared));
-        fixture.AssertRejectedWithoutMutation();
+        var error = await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.UpdateAsync(status));
+        Assert.Equal("Warnings have no status and cannot be changed.", error.Message);
+        fixture.AssertRejectedWithoutMutation(expectedStatus: null);
+    }
+
+    [Fact]
+    public async Task Status_endpoint_returns_400_for_a_warning()
+    {
+        var fixture = new Fixture(PenaltyType.CashFine);
+        fixture.Ticket.Type = ViolationType.Warning;
+        fixture.Ticket.Status = null;
+        await using var host = await AuditHost.CreateAsync(services => services.AddSingleton<ITicketService>(fixture.Service));
+        var response = await host.SendAsync(HttpMethod.Patch, "/api/admin/tickets/1/update-status", "HeadAdmin",
+            "{\"new_status\":\"Waived\",\"version\":7}");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var error = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("Warnings have no status and cannot be changed.", error.RootElement.GetProperty("message").GetString());
+        fixture.AssertRejectedWithoutMutation(expectedStatus: null);
     }
 
     [Theory]
@@ -360,9 +384,9 @@ public class TicketStatusSettlementTests
         public Task<MarikinaMarket.API.Application.DTOs.Tickets.Internal.UpdateStatusResponse> UpdateAsync(TicketStatus status)
             => Service.UpdateTicketStatusAsync(1, new UpdateStatusRequest { NewStatus = status, Version = 7 });
 
-        public void AssertRejectedWithoutMutation()
+        public void AssertRejectedWithoutMutation(TicketStatus? expectedStatus = TicketStatus.Pending)
         {
-            Assert.Equal(TicketStatus.Pending, Ticket.Status);
+            Assert.Equal(expectedStatus, Ticket.Status);
             Assert.Equal(DateTime.UnixEpoch, Ticket.UpdatedAt);
             Assert.Null(Ticket.ResolvedAt);
             Assert.Equal(7u, Ticket.Version);

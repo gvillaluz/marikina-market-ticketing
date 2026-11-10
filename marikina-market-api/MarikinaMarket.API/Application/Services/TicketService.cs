@@ -1187,6 +1187,8 @@ namespace MarikinaMarket.API.Application.Services
                     ?? throw new RecordNotFoundException("Ticket not found.");
                 if (ticket.Version != request.Version)
                     throw new ConcurrencyConflictException("This ticket was updated by another user. Please refresh and try again.");
+                if (ticket.Type == ViolationType.Warning)
+                    throw new InvalidRequestException("Warnings have no status and cannot be changed.");
                 ValidateTicketSettlement(ticket, request.NewStatus);
                 previousStatus = ticket.Status;
 
@@ -1299,9 +1301,6 @@ namespace MarikinaMarket.API.Application.Services
         {
             if (newStatus is not (TicketStatus.Paid or TicketStatus.Cleared))
                 return;
-
-            if (ticket.Type != ViolationType.Ticket)
-                throw new InvalidRequestException("Only violation tickets with completed settlement can be marked Paid or Cleared.");
 
             if (ticket.PenaltyType is PenaltyType.CashFine or PenaltyType.BloodDonation)
             {

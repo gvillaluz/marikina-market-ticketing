@@ -7,7 +7,7 @@ import { formatControlNumber } from '@/utils/formatters';
 
 interface TicketDetailHeaderProps {
   controlNo: string | null | undefined;
-  status: RecordStatus;
+  status?: RecordStatus;
   lastUpdated: string;
 }
 
@@ -16,7 +16,7 @@ const TicketDetailHeader: FC<TicketDetailHeaderProps> = ({ controlNo, status, la
     <div className={styles.header}>
       <div className={styles.titleRow}>
         <h2 className={styles.title}>{formatControlNumber(controlNo)}</h2>
-        <StatusPill variant={status} dot>{status}</StatusPill>
+        {status && <StatusPill variant={status} dot>{status}</StatusPill>}
       </div>
       <span className={styles.lastUpdated}>Last updated {lastUpdated}</span>
     </div>
