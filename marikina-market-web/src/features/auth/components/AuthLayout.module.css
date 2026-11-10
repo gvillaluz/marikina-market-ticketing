@@ -4,29 +4,6 @@
   flex-direction: column;
   background: radial-gradient(circle at 50% 0, #f8fbff 0, var(--bg-page) 55%);
 }
-.backHomeWrapper {
-  padding: 1.5rem 2.5rem 0;
-}
-.backHome {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 0.9rem;
-  border: 1px solid rgba(11, 45, 91, 0.12);
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--button-primary);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(11, 45, 91, 0.05);
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
-}
-.backHome:hover {
-  background: var(--button-primary-hover);
-  color: #fff;
-}
 .cardArea {
   display: flex;
   flex: 1;
@@ -94,20 +71,7 @@
   min-width: 0;
   padding: 2.5rem;
 }
-.backHome:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 3px;
-}
-.backHome svg {
-  transition: transform 160ms ease;
-}
-.backHome:hover svg {
-  transform: translateX(-2px);
-}
 @media (max-width: 768px) {
-  .backHomeWrapper {
-    padding: 1.25rem 1.5rem 0;
-  }
   .card {
     flex-direction: column;
   }
@@ -120,14 +84,5 @@
   }
   .formPanel {
     padding: 2.5rem 1.5rem;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .backHome,
-  .backHome svg {
-    transition: none;
-  }
-  .backHome:hover svg {
-    transform: none;
   }
 }

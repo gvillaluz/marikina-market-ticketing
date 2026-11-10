@@ -1,30 +1,15 @@
-import { ArrowLeft } from "lucide-react";
 import { FC, ReactNode } from "react";
-import { Link } from "react-router-dom";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./AuthLayout.module.css";
 
 interface AuthLayoutProps {
   subtext: string;
-  showBackHome?: boolean;
   children: ReactNode;
 }
 
-const AuthLayout: FC<AuthLayoutProps> = ({
-  subtext,
-  showBackHome = true,
-  children,
-}) => {
+const AuthLayout: FC<AuthLayoutProps> = ({ subtext, children }) => {
   return (
     <div className={styles.page}>
-      {showBackHome && (
-        <div className={styles.backHomeWrapper}>
-          <Link to="/" className={styles.backHome}>
-            <ArrowLeft size={16} aria-hidden="true" /> Back Home
-          </Link>
-        </div>
-      )}
-
       <div className={styles.cardArea}>
         <div className={styles.card}>
           <div className={styles.brandPanel}>

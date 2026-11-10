@@ -39,10 +39,8 @@ export function usePasswordRecovery() {
   const location = useLocation();
   const navigate = useNavigate();
   const flow = readFlow(location.state);
-  const access = location.pathname.startsWith("/admin/") ? "staff" : "vendor";
-  const role = access === "staff" ? "Admin" : "Vendor";
-  const basePath = ROUTES.forgotPassword(access);
-  const loginPath = access === "staff" ? ROUTES.adminLogin : ROUTES.login;
+  const basePath = ROUTES.forgotPassword;
+  const loginPath = ROUTES.adminLogin;
   const step: RecoveryStep =
     routeStep === "options" || routeStep === "verify" || routeStep === "reset"
       ? routeStep
@@ -78,7 +76,6 @@ export function usePasswordRecovery() {
     navigate(`${basePath}/${nextStep}`, { state });
   return {
     flow,
-    role,
     basePath,
     loginPath,
     step,

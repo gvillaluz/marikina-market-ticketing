@@ -15,8 +15,8 @@ const AdminLoginPage: FC = () => {
   }
 
   return (
-    <AuthLayout subtext="Admin Access" showBackHome={false}>
-      <LoginForm access="staff" showRegisterLink={false} {...login} />
+    <AuthLayout subtext="Admin Access">
+      <LoginForm {...login} />
     </AuthLayout>
   );
 };

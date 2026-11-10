@@ -15,17 +15,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         public Task<int?> GetVendorIdByUserIdAsync(int userId);
         public Task<int?> GetVendorUserIdAsync(int vendorId);
         public Task<Business> CreateVendorAsync(Business vendorProfile);
-        public Task<VendorRegistrationRequest> AddVendorRegistryAsync(VendorRegistrationRequest vendor);
-        public Task<VendorRegistrationRequest?> GetRegistrationById(int registrationId);
-        public Task<bool> RegistrationEmailExistsAsync(string email);
-        public Task<bool> RegistrationBusinessAccountNumberExistsAsync(string businessAccountNumber);
-        public Task<VendorRegistrationStatusCounts> GetVendorRegistrationStatusCountsAsync();
         public Task<int> GetActiveBusinessCountAsync();
-        public Task<List<VendorRegistrationSummary>> GetVendorRegistrationSummariesAsync(
-            int offset,
-            int pageSize,
-            VendorRegistrationRequestFilters filters);
-        public Task<int> GetVendorRegistrationSummaryCountAsync(VendorRegistrationRequestFilters filters);
         public Task<(List<VendorLookupResult> Items, int Total)> SearchActiveBusinessesAsync(string search, int limit);
         public Task<VendorProfileDetails?> GetVendorProfileDetailsAsync(int vendorId);
         public Task<List<Business>> GetVendorProfilesForComplianceUpdateAsync();
@@ -40,7 +30,6 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         public Task<List<AdminVendorActivity>> GetRecentVendorActivitiesAsync(int limit);
         public Task<List<AdminPendingTicketSettlement>> GetPendingTicketSettlementsAsync(int offset, int pageSize);
         public Task<int> GetPendingTicketSettlementCountAsync();
-        public void SetOriginalVersion(VendorRegistrationRequest request, uint version);
         public Task SaveChangesAsync();
     }
 }

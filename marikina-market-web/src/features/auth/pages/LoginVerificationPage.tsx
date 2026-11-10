@@ -1,5 +1,6 @@
 import { ArrowLeft, LoaderCircle, ShieldCheck } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { ROUTES } from "@/routes/routePaths";
 import AuthLayout from "../components/AuthLayout";
 import OtpCodeInput from "../components/OtpCodeInput";
 import { useTwoFactorLogin } from "../hooks/useTwoFactorLogin";
@@ -12,16 +13,13 @@ export default function LoginVerificationPage() {
   if (!model.loginChallenge)
     return (
       <Navigate
-        to={model.loginPath}
+        to={ROUTES.adminLogin}
         replace
         state={{ verificationExpired: true }}
       />
     );
   return (
-    <AuthLayout
-      subtext={model.access === "staff" ? "Admin Access" : "Vendor Access"}
-      showBackHome={false}
-    >
+    <AuthLayout subtext="Admin Access">
       <button
         className={styles.back}
         type="button"

@@ -17,8 +17,6 @@ export interface PaginationParams {
 export type UserRole =
   "HeadAdmin" | "AdminOfficer" | "MarketEnforcer" | "MarketVendor";
 
-export type AuthAccess = "staff" | "vendor";
-
 export const USER_ROLES: readonly UserRole[] = [
   "HeadAdmin",
   "AdminOfficer",

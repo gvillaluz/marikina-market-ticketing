@@ -29,19 +29,6 @@ export interface LoginInput {
   password: string;
 }
 
-export interface RegisterInput {
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-}
-
-export interface AuthResponse {
-  user: User;
-  mustChangePassword: boolean;
-  accessToken: string;
-}
-
 export interface LoginResponse {
   message: string;
   maskedEmail: string;

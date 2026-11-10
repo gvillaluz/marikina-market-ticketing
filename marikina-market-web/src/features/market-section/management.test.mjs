@@ -230,7 +230,6 @@ test("both administrators reach market sections through Configurations without b
           logout() {},
         }),
       },
-      "@/features/vendors": { RegistrationCountBadge: () => null },
     }).default;
     const html = renderToStaticMarkup(
       React.createElement(

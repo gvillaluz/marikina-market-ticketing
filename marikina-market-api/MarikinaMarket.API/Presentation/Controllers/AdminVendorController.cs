@@ -31,36 +31,6 @@ namespace MarikinaMarket.API.Presentation.Controllers
             [FromQuery, Range(0, int.MaxValue)] int offset = 0)
             => Ok(await _service.GetAdminVendorSummariesAsync(offset, filters));
 
-        [HttpPost("register")]
-        public async Task<ActionResult<RegistrationApprovalResponse>> RegisterVendor(
-            [FromBody] AdminRegisterVendorRequest request)
-        {
-            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var adminId))
-                return Unauthorized();
-
-            return Ok(await _service.CreateAdminVendorRegistrationAsync(request, adminId));
-        }
-
-        [HttpGet("registration-status-counts")]
-        public async Task<ActionResult<VendorRegistrationStatusCountsResponse>> GetVendorRegistrationStatusCounts()
-            => Ok(await _service.GetVendorRegistrationStatusCountsAsync());
-
-        [HttpGet("registration-requests")]
-        public async Task<ActionResult<PageResponse<VendorRegistrationSummaryResponse>>> GetVendorRegistrationRequests(
-            [FromQuery] VendorRegistrationRequestFilters filters,
-            [FromQuery, Range(0, int.MaxValue)] int offset = 0)
-            => Ok(await _service.GetVendorRegistrationSummariesAsync(offset, filters));
-
-        [HttpGet("registration-requests/{registrationId:int}")]
-        public async Task<ActionResult<VendorRegistrationDetailsResponse>> GetVendorRegistrationDetails(
-            [FromRoute, Range(1, int.MaxValue)] int registrationId)
-            => Ok(await _service.GetVendorRegistrationDetailsAsync(registrationId));
-
-        [HttpGet("registration-requests/{registrationId:int}/documents")]
-        public async Task<ActionResult<List<VendorRegistrationDocumentResponse>>> GetVendorRegistrationDocuments(
-            [FromRoute, Range(1, int.MaxValue)] int registrationId)
-            => Ok(await _service.GetVendorRegistrationDocumentsAsync(registrationId));
-
         [HttpGet("compliance-overview")]
         public async Task<ActionResult<AdminVendorComplianceOverviewResponse>> GetComplianceOverview()
             => Ok(await _service.GetAdminVendorComplianceOverviewAsync());

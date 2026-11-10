@@ -128,7 +128,7 @@ public class BusinessLookupAndPeopleTests
     }
 
     private static VendorService Service(AppDbContext context) =>
-        new(null!, new VendorRepository(context), null!, null!, null!, null!, null!, null!, null!);
+        new(new VendorRepository(context), null!, null!, null!);
 
     // People fixture: Juan (1) ticketed at Store X then Store Y; Maria (2) only warned at Store X;
     // Pedro (3) cited at Store Y for community service; Ana (4) has no tickets; one legacy ticket has no person.

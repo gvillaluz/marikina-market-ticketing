@@ -67,12 +67,7 @@ export function useLogin(options: UseLoginOptions = {}) {
         !from.includes("\\")
           ? from
           : undefined;
-      navigate(ROUTES.loginVerification, {
-        state: {
-          redirectTo,
-          access: location.pathname.startsWith("/admin/") ? "staff" : "vendor",
-        },
-      });
+      navigate(ROUTES.loginVerification, { state: { redirectTo } });
     } catch (err) {
       if (mounted.current) setError(getApiErrorMessage(err, "Login failed."));
     } finally {

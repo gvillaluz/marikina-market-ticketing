@@ -293,7 +293,6 @@ test("both administrators reach ordinances through Configurations without backup
           logout() { },
         }),
       },
-      "@/features/vendors": { RegistrationCountBadge: () => null },
     }).default;
     const html = renderToStaticMarkup(
       React.createElement(

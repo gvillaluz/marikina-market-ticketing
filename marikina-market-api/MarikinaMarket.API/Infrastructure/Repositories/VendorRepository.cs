@@ -52,96 +52,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return vendorProfile;
         }
 
-        public async Task<VendorRegistrationRequest> AddVendorRegistryAsync(VendorRegistrationRequest vendor)
-        {
-            await _context.VendorRegistrationRequests.AddAsync(vendor);
-            return vendor;
-        }
-
-        public async Task<VendorRegistrationRequest?> GetRegistrationById(int registrationId)
-        {
-            return await _context.VendorRegistrationRequests
-                .Include(v => v.MarketSection)
-                .Include(v => v.ReviewedByUser)
-                .FirstOrDefaultAsync(v => v.Id == registrationId);
-        }
-
-        public async Task<bool> RegistrationEmailExistsAsync(string email)
-        {
-            var normalizedEmail = email.Trim().ToLowerInvariant();
-            return await _context.VendorRegistrationRequests.AnyAsync(request =>
-                request.Email.Trim().ToLower() == normalizedEmail);
-        }
-
-        public async Task<bool> RegistrationBusinessAccountNumberExistsAsync(string businessAccountNumber)
-        {
-            var normalizedAccountNumber = businessAccountNumber.Trim().ToLowerInvariant();
-            return await _context.VendorRegistrationRequests.AnyAsync(request =>
-                    request.BusinessAccountNumber.Trim().ToLower() == normalizedAccountNumber)
-                || await _context.Businesses.AnyAsync(vendor =>
-                    vendor.BusinessAccountNumber.Trim().ToLower() == normalizedAccountNumber);
-        }
-
-        public async Task<VendorRegistrationStatusCounts> GetVendorRegistrationStatusCountsAsync()
-        {
-            var counts = await _context.VendorRegistrationRequests
-                .AsNoTracking()
-                .GroupBy(request => 1)
-                .Select(group => new VendorRegistrationStatusCounts
-                {
-                    PendingReview = group.Count(request => request.Status == RequestStatus.Pending),
-                    NeedsInformation = group.Count(request => request.Status == RequestStatus.NeedsInformation),
-                    Approved = group.Count(request => request.Status == RequestStatus.Approved),
-                    Rejected = group.Count(request => request.Status == RequestStatus.Rejected)
-                })
-                .FirstOrDefaultAsync();
-
-            return counts ?? new VendorRegistrationStatusCounts();
-        }
-
         public Task<int> GetActiveBusinessCountAsync()
             => _context.Businesses
                 .AsNoTracking()
                 .CountAsync(business => business.Status == VendorStatus.Active);
-
-        public async Task<List<VendorRegistrationSummary>> GetVendorRegistrationSummariesAsync(
-            int offset,
-            int pageSize,
-            VendorRegistrationRequestFilters filters)
-        {
-            var requests = ApplyVendorRegistrationFilters(
-                _context.VendorRegistrationRequests.AsNoTracking(),
-                filters);
-
-            return await requests
-                .OrderByDescending(request => request.RequestedAt)
-                .ThenByDescending(request => request.Id)
-                .Skip(offset)
-                .Take(pageSize)
-                .Select(request => new VendorRegistrationSummary
-                {
-                    RegistrationId = request.Id,
-                    BusinessAccountNumber = request.BusinessAccountNumber,
-                    BusinessName = request.BusinessName,
-                    VendorName = request.LastName + ", " + request.FirstName,
-                    BusinessType = request.Type,
-                    MarketSectionName = request.MarketSection!.Name,
-                    StallNumber = request.StallNumber,
-                    RequestedAt = request.RequestedAt,
-                    Status = request.Status,
-                    Version = request.Version
-                })
-                .ToListAsync();
-        }
-
-        public async Task<int> GetVendorRegistrationSummaryCountAsync(
-            VendorRegistrationRequestFilters filters)
-        {
-            return await ApplyVendorRegistrationFilters(
-                    _context.VendorRegistrationRequests.AsNoTracking(),
-                    filters)
-                .CountAsync();
-        }
 
         public async Task SaveChangesAsync()
         {
@@ -363,26 +277,6 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             }
 
             return vendors;
-        }
-
-        private static IQueryable<VendorRegistrationRequest> ApplyVendorRegistrationFilters(
-            IQueryable<VendorRegistrationRequest> requests,
-            VendorRegistrationRequestFilters filters)
-        {
-            if (filters.Status.HasValue)
-                requests = requests.Where(request => request.Status == filters.Status.Value);
-
-            if (filters.BusinessType.HasValue)
-                requests = requests.Where(request => request.Type == filters.BusinessType.Value);
-
-            return requests;
-        }
-
-        public void SetOriginalVersion(VendorRegistrationRequest registration, uint version)
-        {
-            _context.Entry(registration)
-                .Property(r => r.Version)
-                .OriginalValue = version;
         }
 
         public Task<List<Business>> GetBusinessesAsync(int offset, int pageSize, AdminVendorSummaryFilter filters)

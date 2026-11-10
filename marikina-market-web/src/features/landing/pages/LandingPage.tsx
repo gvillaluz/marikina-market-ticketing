@@ -73,15 +73,8 @@ function Navbar() {
         </nav>
 
         <div className={styles.navActions}>
-          <Link to="/login" className={styles.loginLink}>
+          <Link to="/admin/login" className={styles.loginLink}>
             Login
-          </Link>
-          <Link
-            to="/register"
-            state={{ returnTo: "/" }}
-            className={styles.registerLink}
-          >
-            Vendor Registration
           </Link>
         </div>
       </div>
@@ -102,18 +95,10 @@ function Hero() {
             A Smarter Public Market for a Better Marikina.
           </h1>
           <p className={styles.heroCopy}>
-            Bringing vendors, market enforcers, and administrators together
-            through clearer inspections, accessible records, and accountable
-            service.
+            Bringing market enforcers and administrators together through
+            clearer inspections, accessible records, and accountable service.
           </p>
           <div className={styles.heroActions}>
-            <Link
-              to="/register"
-              state={{ returnTo: "/" }}
-              className={styles.heroPrimary}
-            >
-              Register as a vendor
-            </Link>
             <Link to="/admin/login" className={styles.heroSecondary}>
               Administrator login <span aria-hidden>→</span>
             </Link>
@@ -139,14 +124,6 @@ function Hero() {
             <span className={styles.panelCaption}>
               BUILT FOR EVERY MARKET ROLE
             </span>
-            <div className={styles.roleRow}>
-              <span className={styles.roleIcon}>V</span>
-              <span>
-                <strong>Vendors</strong>
-                <small>Track tickets and compliance</small>
-              </span>
-              <span className={styles.roleArrow}>↗</span>
-            </div>
             <div className={styles.roleRow}>
               <span className={styles.roleIcon}>E</span>
               <span>
@@ -372,19 +349,9 @@ const roles = [
     name: "Market Enforcer",
     platform: "Mobile",
     bullets: [
-      "Scan a vendor's QR code or search the registry mid-inspection",
+      "Search the business records mid-inspection",
       "Issue a Warning or Violation ticket with photo evidence",
       "Real-time notification when a submitted ticket is reviewed",
-    ],
-  },
-  {
-    name: "Market Vendor",
-    platform: "Portal",
-    bullets: [
-      "View every ticket issued against your stall, with evidence",
-      "Track your compliance score and unpaid penalties",
-      "Upload a payment receipt for Administrator review",
-      "Download tickets and your QR code",
     ],
   },
   {
@@ -405,10 +372,10 @@ function WhoItsFor() {
       <div className={styles.container}>
         <SectionHeading
           eyebrow="WHO IT'S FOR"
-          title="Three roles, one centralized system"
+          title="Two roles, one centralized system"
           subtext="Every account is role-based — each user only sees the functions relevant to their responsibilities."
         />
-        <div className={`${styles.cardGrid} ${styles.threeColumns}`}>
+        <div className={`${styles.cardGrid} ${styles.twoColumns}`}>
           {roles.map((r) => (
             <div
               key={r.name}
@@ -438,15 +405,12 @@ function ClosingCta() {
   return (
     <section id="contact" className={styles.ctaSection}>
       <div className={`${styles.container} ${styles.centered}`}>
-        <h2 className={styles.ctaTitle}>Register your stall today.</h2>
+        <h2 className={styles.ctaTitle}>Business records</h2>
         <p className={styles.ctaCopy}>
-          Submit a valid ID and business registration document — the
-          Administrator reviews and approves your account against the existing
-          vendor registry.
+          Businesses and their owners do not have system login accounts.
+          Contact the market office to register or update your business
+          details.
         </p>
-        <Link to="/register" className={styles.ctaButton}>
-          Vendor Registration
-        </Link>
       </div>
     </section>
   );

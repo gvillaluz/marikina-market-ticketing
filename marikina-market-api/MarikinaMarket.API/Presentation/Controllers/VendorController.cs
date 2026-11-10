@@ -48,76 +48,6 @@ namespace MarikinaMarket.API.Presentation.Controllers
             return Ok(await _service.UpdateOwnProfileAsync(userId, request));
         }
 
-        [AllowAnonymous]
-        [HttpPost("register")]
-        [Consumes("multipart/form-data")]
-        public async Task<ActionResult<RegisterVendorResponse>> RegisterVendor([FromForm] RegisterVendorRequest request)
-        {
-            var vendorRegistry = await _service.CreateVendorRegistryAsync(request);
-            return Accepted(vendorRegistry);
-        }
-
-        [HttpPost("approve-registry")]
-        [Authorize(Roles = $"{nameof(Role.HeadAdmin)},{nameof(Role.AdminOfficer)}")]
-        public async Task<ActionResult<RegistrationApprovalResponse>> ApproveRegistration(
-            [FromBody] RegistrationApprovalRequest request)
-        {
-            if (!TryGetAdminId(out var adminId))
-                return Unauthorized();
-
-            var action = new RegistrationAdminAction
-            {
-                VendorRegistrationId = request.VendorRegistrationId,
-                RequestStatus = RequestStatus.Approved,
-                Version = request.Version,
-                AdminId = adminId
-            };
-
-            return Ok(await _service.ApproveVendorRegistration(request.VendorRegistrationId, action));
-        }
-
-        [HttpPost("decline-registry")]
-        [Authorize(Roles = $"{nameof(Role.HeadAdmin)},{nameof(Role.AdminOfficer)}")]
-        public async Task<ActionResult<RegistrationDeclinedResponse>> DeclineRegistration(
-            [FromBody] RegistrationDeclineRequest request)
-        {
-            if (!TryGetAdminId(out var adminId))
-                return Unauthorized();
-
-            var action = new RegistrationAdminAction
-            {
-                VendorRegistrationId = request.VendorRegistrationId,
-                RequestStatus = RequestStatus.Rejected,
-                ReviewReason = request.ReviewReason,
-                ReviewRemarks = request.ReviewRemarks,
-                Version = request.Version,
-                AdminId = adminId
-            };
-
-            return Ok(await _service.DeclineVendorRegistration(request.VendorRegistrationId, action));
-        }
-
-        [HttpPost("request-more-information")]
-        [Authorize(Roles = $"{nameof(Role.HeadAdmin)},{nameof(Role.AdminOfficer)}")]
-        public async Task<ActionResult<RegistrationDeclinedResponse>> RequestMoreInformation(
-            [FromBody] RegistrationInformationRequest request)
-        {
-            if (!TryGetAdminId(out var adminId))
-                return Unauthorized();
-
-            var action = new RegistrationAdminAction
-            {
-                VendorRegistrationId = request.VendorRegistrationId,
-                RequestStatus = RequestStatus.NeedsInformation,
-                ReviewReason = request.ReviewReason,
-                ReviewRemarks = request.ReviewRemarks,
-                Version = request.Version,
-                AdminId = adminId
-            };
-
-            return Ok(await _service.RequestMoreInformation(request.VendorRegistrationId, action));
-        }
-
         [HttpGet("lookup")]
         [Authorize(Roles = nameof(Role.MarketEnforcer))]
         public async Task<ActionResult<PageResponse<GetVendorResponse>>> SearchBusinesses([FromQuery] string? search)
@@ -128,10 +58,5 @@ namespace MarikinaMarket.API.Presentation.Controllers
         public async Task<ActionResult<List<PersonSummaryResponse>>> GetBusinessPeople(
             [FromRoute] int businessId, [FromServices] ITicketService tickets)
             => Ok(await tickets.GetBusinessPeopleAsync(businessId));
-
-        private bool TryGetAdminId(out int adminId)
-        {
-            return int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out adminId);
-        }
     }
 }

@@ -11,7 +11,6 @@ import { usePasswordRecovery } from "../hooks/usePasswordRecovery";
 const ForgotPasswordPage = () => {
   const {
     flow,
-    role,
     basePath,
     loginPath,
     step,
@@ -52,7 +51,7 @@ const ForgotPasswordPage = () => {
             <h1 className={styles.brandTitle}>
               Marikina Public Market Inspection System
             </h1>
-            <p className={styles.brandSubtitle}>{role} Access</p>
+            <p className={styles.brandSubtitle}>Admin Access</p>
           </aside>
           <div className={styles.content}>
             <Link to={loginPath} className={styles.backLink}>

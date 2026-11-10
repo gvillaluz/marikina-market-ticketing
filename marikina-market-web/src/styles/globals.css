@@ -89,21 +89,9 @@
     var(--button-primary) 7%,
     var(--bg-surface)
   );
-  --registration-sidebar-width: 19rem;
-  --registration-avatar-size: 3rem;
-  --registration-document-height: 12rem;
-  --registration-control-height: 2.5rem;
-  --registration-remarks-height: 10rem;
-  --registration-empty-height: 18rem;
-  --registration-error-width: 42rem;
   --registration-info-surface: color-mix(
     in srgb,
     var(--primary) 7%,
-    var(--bg-surface)
-  );
-  --registration-danger-surface: color-mix(
-    in srgb,
-    var(--danger) 5%,
     var(--bg-surface)
   );
   --registration-warning-surface: color-mix(

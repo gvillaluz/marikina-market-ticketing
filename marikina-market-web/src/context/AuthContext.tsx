@@ -11,15 +11,12 @@ import {
 } from "react";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
-import { logoutBrowserPushNotifications } from "@/features/notifications";
 import { useAuthStore } from "@/store/store";
-import { getApiErrorMessage } from "@/utils/apiErrors";
 import { useToast } from "@/components/ui/Toast/useToast";
 import type {
   User,
   LoginInput,
   LoginChallenge,
-  RegisterInput,
 } from "@/features/auth/auth.types";
 import { authApi } from "@/api/endpoints/auth.api";
 import {
@@ -63,7 +60,6 @@ interface AuthContextValue {
   ) => Promise<{ user: User; mustChangePassword: boolean }>;
   resendLogin: () => Promise<LoginChallenge>;
   cancelLogin: () => void;
-  register: (input: RegisterInput) => Promise<void>;
   logout: () => void;
   clearMustChangePassword: () => void;
 }
@@ -98,55 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { login, loginChallenge, verifyLogin, resendLogin, cancelLogin } =
     useLoginChallenge(completeLogin, challengeReady);
 
-  const register = useCallback(
-    async (input: RegisterInput) => {
-      const response = await authApi.register(input);
-      const accessTokenExpiration = getAccessTokenExpiration(
-        response.accessToken,
-      );
-      if (!accessTokenExpiration || accessTokenExpiration <= Date.now()) {
-        throw new Error("The server returned an invalid access token.");
-      }
-
-      clearAuthSession();
-      storeAuthSession(response.accessToken);
-
-      try {
-        const profile = await authApi.getMe(response.accessToken);
-        const authenticatedUser: User = {
-          ...profile,
-          role: normalizeUserRole(profile.role),
-        };
-        setAuth(authenticatedUser, response.accessToken);
-        setMustChangePassword(
-          profile.mustChangedPassword || response.mustChangePassword,
-        );
-        setIsAuthReady(true);
-      } catch (error) {
-        clearAuthSession();
-        throw error;
-      }
-    },
-    [setAuth, setMustChangePassword],
-  );
-
   const logout = useCallback(() => {
     cancelLogin();
     invalidateAuthSession();
-    const notificationLogout = logoutBrowserPushNotifications();
     void queryClient.cancelQueries();
     queryClient.clear();
-    void notificationLogout.catch((error: unknown) => {
-      showToast({
-        title: "Signed out; notification cleanup failed",
-        description: getApiErrorMessage(
-          error,
-          "We couldn't revoke this browser's notifications. Please sign in and try logging out again.",
-        ),
-        variant: "warning",
-      });
-    });
-  }, [cancelLogin, queryClient, showToast]);
+  }, [cancelLogin, queryClient]);
 
   const clearMustChangePassword = useCallback(() => {
     setMustChangePassword(false);
@@ -299,7 +252,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       verifyLogin,
       resendLogin,
       cancelLogin,
-      register,
       logout,
       clearMustChangePassword,
     }),
@@ -313,7 +265,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       verifyLogin,
       resendLogin,
       cancelLogin,
-      register,
       logout,
       clearMustChangePassword,
     ],

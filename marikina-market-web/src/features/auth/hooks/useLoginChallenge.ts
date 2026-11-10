@@ -62,7 +62,7 @@ export function useLoginChallenge(
   }, []);
   useEffect(() => {
     const leftLogin =
-      [ROUTES.login, ROUTES.adminLogin].some(
+      [ROUTES.adminLogin].some(
         (path) => path === previousPath.current,
       ) &&
       location.pathname !== previousPath.current &&

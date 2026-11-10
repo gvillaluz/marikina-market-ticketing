@@ -47,17 +47,3 @@
   outline: 2px solid var(--market-action);
   outline-offset: 2px;
 }
-.notice {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-md);
-  padding: var(--space-lg);
-  border: 1px solid var(--ordinance-action-border);
-  border-radius: var(--market-radius-notice);
-  font-size: var(--market-font-size-caption);
-  color: var(--market-action);
-  background: var(--ordinance-info-surface);
-}
-.notice svg {
-  flex-shrink: 0;
-}

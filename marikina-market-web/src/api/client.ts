@@ -23,14 +23,11 @@ type RetriableRequestConfig = InternalAxiosRequestConfig & {
 const PUBLIC_AUTH_PATHS = [
   "/auth/login",
   "/auth/verify-login",
-  "/auth/register",
-  "/auth/logout",
   "/auth/find-account",
   "/auth/send-otp",
   "/auth/verify-otp",
   "/auth/reset-password",
   "/auth/refresh-web",
-  "/vendor/register",
 ];
 
 function isPublicAuthRequest(url?: string): boolean {

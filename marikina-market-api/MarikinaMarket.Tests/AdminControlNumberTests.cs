@@ -65,7 +65,7 @@ public class AdminControlNumberTests
         new(new TicketRepository(context), null!, new VendorRepository(context), null!, null!, null!, null!);
 
     private static VendorService VendorService(AppDbContext context) =>
-        new(null!, new VendorRepository(context), null!, null!, null!, null!, null!, null!, null!);
+        new(new VendorRepository(context), null!, null!, null!);
 
     private static readonly (int Id, string? Number)[] AllThree = [(1, "000456"), (2, "WRN-0011"), (3, null)];
     private static readonly (int Id, string? Number)[] TicketsOnly = [(1, "000456"), (3, null)];

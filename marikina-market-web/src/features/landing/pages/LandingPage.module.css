@@ -31,10 +31,6 @@
   animation-delay: 260ms;
 }
 
-.roleRow:nth-of-type(3) {
-  animation-delay: 340ms;
-}
-
 .navbar {
   position: sticky;
   top: 0;
@@ -123,8 +119,6 @@
 }
 
 .loginLink,
-.registerLink,
-.heroPrimary,
 .heroSecondary {
   display: inline-flex;
   min-height: 42px;
@@ -146,28 +140,13 @@
   color: var(--button-primary);
 }
 
-.registerLink {
-  padding: 0 1rem;
-  background: var(--button-primary);
-  color: #fff;
-  box-shadow: 0 4px 10px rgba(11, 45, 91, 0.15);
-}
-
 .loginLink:hover,
-.registerLink:hover,
-.heroPrimary:hover,
 .heroSecondary:hover {
   transform: translateY(-1px);
 }
 
 .loginLink:hover {
   background: #f6f9fd;
-}
-
-.registerLink:hover,
-.heroPrimary:hover {
-  background: var(--button-primary-hover);
-  color: #fff;
 }
 
 .hero {
@@ -263,13 +242,6 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 2rem;
-}
-
-.heroPrimary {
-  padding: 0 1.25rem;
-  background: var(--button-primary);
-  color: #fff;
-  box-shadow: 0 6px 16px rgba(11, 45, 91, 0.2);
 }
 
 .heroSecondary {
@@ -528,6 +500,9 @@
   gap: 1.5rem;
   margin-top: 3.5rem;
 }
+.twoColumns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .threeColumns {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -746,30 +721,9 @@
   color: #e5e7eb;
   font-size: 1.125rem;
 }
-.ctaButton {
-  display: inline-block;
-  margin-top: 2rem;
-  padding: 0.875rem 2rem;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
-  transition:
-    opacity 220ms ease,
-    transform 220ms var(--form-motion-ease);
-}
-.ctaButton:hover {
-  color: #fff;
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
 
 .loginLink:active,
-.registerLink:active,
-.heroPrimary:active,
-.heroSecondary:active,
-.ctaButton:active {
+.heroSecondary:active {
   transform: translateY(0) scale(0.98);
 }
 @media (min-width: 768px) {
@@ -783,6 +737,7 @@
   }
 }
 @media (max-width: 700px) {
+  .twoColumns,
   .threeColumns,
   .fourColumns,
   .analyticsBody {
@@ -894,8 +849,7 @@
     gap: 0.4rem;
   }
 
-  .loginLink,
-  .registerLink {
+  .loginLink {
     min-height: 38px;
     padding: 0 0.65rem;
     font-size: 0.72rem;
@@ -956,10 +910,6 @@
   }
 
   .loginLink {
-    display: none;
-  }
-
-  .registerLink {
     min-height: 35px;
     padding: 0 0.6rem;
     font-size: 0.65rem;
@@ -974,7 +924,6 @@
     flex-direction: column;
   }
 
-  .heroPrimary,
   .heroSecondary {
     width: 100%;
   }
