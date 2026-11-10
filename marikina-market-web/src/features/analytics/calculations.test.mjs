@@ -213,3 +213,40 @@ test("every analytics query sends the selected year and separates years in its c
     [...Array(8).fill(2025), ...Array(8).fill(2024)],
   );
 });
+
+test("market sections and hotspots show warnings and tickets apart, not one inspection count", () => {
+  const sections = render("MarketSectionAggregationChart", {
+    data: [
+      { marketSectionId: 3, marketSectionName: "Meat", warningCount: 0, ticketCount: 1, totalInspectionCount: 1 },
+      { marketSectionId: 2, marketSectionName: "Produce", warningCount: 2, ticketCount: 3, totalInspectionCount: 5 },
+    ],
+  });
+  assert.match(sections, /2 warnings · 3 tickets/);
+  assert.match(sections, /0 warnings · 1 ticket(?!s)/);
+  assert.doesNotMatch(sections, /inspection/i);
+  const hotspots = render("HotspotRankingTable", {
+    data: [
+      {
+        rank: 1, marketSectionId: 2, marketSectionName: "Produce", warningCount: 2, ticketCount: 3,
+        totalInspectionCount: 5, previousPeriodCount: 0, trend: "Rising",
+      },
+    ],
+  });
+  assert.match(hotspots, /<th[^>]*>Warnings<\/th><th[^>]*>Tickets<\/th>/);
+  assert.match(hotspots, /<td>Produce<\/td><td>2<\/td><td>3<\/td>/);
+  assert.doesNotMatch(hotspots, /<th[^>]*>Count<\/th>|inspection/i);
+});
+
+test("the ratio card says warnings and tickets instead of inspections", () => {
+  const html = render("InspectionRatioCard", {
+    data: { warningCount: 2, ticketCount: 4, totalInspectionCount: 6, warningPercentage: 33.3, ticketPercentage: 66.7 },
+  });
+  assert.match(html, /6 warnings and tickets in total/);
+  assert.doesNotMatch(html, /inspection/i);
+});
+
+test("the trend and time charts say they count tickets only", () => {
+  for (const name of ["ViolationTrendChart", "PeakViolationHeatmap"]) {
+    assert.match(render(name, { data: [] }), /Tickets only; warnings are not included\./);
+  }
+});

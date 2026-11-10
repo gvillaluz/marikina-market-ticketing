@@ -77,3 +77,14 @@
     grid-column: span 12;
   }
 }
+
+@media (max-width: 520px) {
+  .table th,
+  .table td {
+    padding: 7px 4px;
+  }
+
+  .table td {
+    white-space: normal;
+  }
+}

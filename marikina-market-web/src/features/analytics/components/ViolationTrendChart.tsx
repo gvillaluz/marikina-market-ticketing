@@ -54,7 +54,7 @@ export default function ViolationTrendChart({
   return (
     <AnalyticsPanel
       title="Violation Trend Over Time"
-      subtitle="Monthly violation counts by severity level."
+      subtitle="Monthly ticket counts by severity level. Tickets only; warnings are not included."
       skeletonVariant="chart"
       isLoading={isLoading}
       isError={isError}

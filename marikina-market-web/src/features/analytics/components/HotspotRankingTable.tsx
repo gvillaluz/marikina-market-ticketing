@@ -35,7 +35,7 @@ export default function HotspotRankingTable({
   return (
     <AnalyticsPanel
       title="Hotspot Ranking"
-      subtitle={`Market sections with the highest violation activity. ${comparisonLabel}`}
+      subtitle={`Market sections with the most warnings and tickets. Ranking and trend use warnings plus tickets. ${comparisonLabel}`}
       skeletonVariant="table"
       isLoading={isLoading}
       isError={isError}
@@ -49,7 +49,8 @@ export default function HotspotRankingTable({
             <tr>
               <th scope="col">Rank</th>
               <th scope="col">Market Section</th>
-              <th scope="col">Count</th>
+              <th scope="col">Warnings</th>
+              <th scope="col">Tickets</th>
               <th scope="col">Trend</th>
             </tr>
           </thead>
@@ -66,7 +67,8 @@ export default function HotspotRankingTable({
                 <tr key={hotspot.marketSectionId}>
                   <td>#{hotspot.rank}</td>
                   <td>{hotspot.marketSectionName}</td>
-                  <td>{hotspot.totalInspectionCount}</td>
+                  <td>{hotspot.warningCount}</td>
+                  <td>{hotspot.ticketCount}</td>
                   <td>
                     <span
                       className={`${styles.trend} ${styles[direction]}`}
@@ -82,7 +84,7 @@ export default function HotspotRankingTable({
             })}
             {data.length === 0 && (
               <tr>
-                <td className={styles.empty} colSpan={4}>
+                <td className={styles.empty} colSpan={5}>
                   No hotspot rankings available.
                 </td>
               </tr>

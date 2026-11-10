@@ -19,7 +19,7 @@ export default function InspectionRatioCard({
 }: InspectionRatioCardProps) {
   return (
     <AnalyticsPanel
-      title="Inspection Ratio"
+      title="Warning and Ticket Ratio"
       skeletonVariant="summary"
       isLoading={isLoading}
       isError={isError}
@@ -54,7 +54,7 @@ export default function InspectionRatioCard({
           </div>
           <div className={styles.metricFooter}>
             <p className={styles.ratioTotal}>
-              {data.totalInspectionCount.toLocaleString()} total inspections
+              {data.totalInspectionCount.toLocaleString()} warnings and tickets in total
             </p>
             <span className={styles.metricHint}>
               Warnings and tickets recorded
