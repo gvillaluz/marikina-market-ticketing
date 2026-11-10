@@ -11,13 +11,8 @@ interface DashboardAttentionItemProps {
 export default function DashboardAttentionItem({
   item,
 }: DashboardAttentionItemProps) {
-  const to =
-    item.type === "OpenTickets"
-      ? ROUTES.tickets
-      : ROUTES.adminVendorRegistrations;
-
   return (
-    <Link className={styles.item} to={to}>
+    <Link className={styles.item} to={ROUTES.tickets}>
       <span className={styles.count}>{item.count.toLocaleString()}</span>
       <span className={styles.title}>{item.title}</span>
       <ArrowUpRight size={17} aria-hidden="true" />

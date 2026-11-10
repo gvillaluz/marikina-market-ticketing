@@ -5,15 +5,17 @@ using MarikinaMarket.API.Application.DTOs.Analytics.Internal;
 using MarikinaMarket.API.Application.DTOs.Analytics.Response;
 using MarikinaMarket.API.Application.DTOs.Audits.Internal;
 using MarikinaMarket.API.Application.DTOs.User.Response;
-using MarikinaMarket.API.Application.DTOs.Vendor.Internal;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Application.Services;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
+using MarikinaMarket.API.Infrastructure.Persistence;
+using MarikinaMarket.API.Infrastructure.Repositories;
 using MarikinaMarket.API.Presentation.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Module = MarikinaMarket.API.Domain.Enums.Module;
@@ -28,15 +30,12 @@ public class DashboardSummaryTests
         var tickets = DashboardTicketRepositoryStub.Create();
         ((DashboardTicketRepositoryStub)(object)tickets).Counts = new DashboardTicketCounts
         {
-            InspectionsToday = 12,
+            WarningsToday = 5,
+            TicketsToday = 7,
             OpenTickets = 8
         };
         var vendors = DashboardVendorRepositoryStub.Create();
-        ((DashboardVendorRepositoryStub)(object)vendors).Counts = new DashboardVendorCounts
-        {
-            ActiveVendors = 247,
-            PendingRegistrations = 4
-        };
+        ((DashboardVendorRepositoryStub)(object)vendors).ActiveBusinesses = 247;
         var auditLogs = DashboardAuditRepositoryStub.Create();
         ((DashboardAuditRepositoryStub)(object)auditLogs).Activities =
         [
@@ -56,14 +55,13 @@ public class DashboardSummaryTests
 
         var result = await service.GetSummaryAsync();
 
-        Assert.Equal(12, result.Metrics.InspectionsToday);
+        Assert.Equal(5, result.Metrics.WarningsToday);
+        Assert.Equal(7, result.Metrics.TicketsToday);
         Assert.Equal(8, result.Metrics.OpenTickets);
-        Assert.Equal(247, result.Metrics.ActiveVendors);
-        Assert.Equal(4, result.Metrics.PendingRegistrations);
+        Assert.Equal(247, result.Metrics.ActiveBusinesses);
         Assert.Equal(DateTimeKind.Utc, result.AsOf.Kind);
-        Assert.Equal(2, result.AttentionItems.Count);
-        Assert.Equal("open-tickets", result.AttentionItems[0].Id);
-        Assert.Equal("pending-registrations", result.AttentionItems[1].Id);
+        var attention = Assert.Single(result.AttentionItems);
+        Assert.Equal("open-tickets", attention.Id);
         var activity = Assert.Single(result.RecentActivity);
         Assert.Equal("Inspection", activity.Category);
         Assert.Equal("Inspection completed", activity.Title);
@@ -74,7 +72,91 @@ public class DashboardSummaryTests
         Assert.Equal(TimeSpan.FromDays(1), ticketStub.EndUtc - ticketStub.StartUtc);
         Assert.Equal(DateTimeKind.Utc, ticketStub.StartUtc.Kind);
         Assert.Equal(DateTimeKind.Utc, ticketStub.EndUtc.Kind);
+        var manila = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+        Assert.Equal(TimeSpan.Zero, TimeZoneInfo.ConvertTimeFromUtc(ticketStub.StartUtc, manila).TimeOfDay);
+        Assert.InRange(result.AsOf, ticketStub.StartUtc, ticketStub.EndUtc.AddTicks(-1));
     }
+
+    [Fact]
+    public async Task Dashboard_counts_match_the_hand_worked_example()
+    {
+        // Manila "today" is 7 Nov 2026: 6 Nov 16:00 UTC up to 7 Nov 16:00 UTC.
+        var startUtc = Utc(2026, 11, 6, 16);
+        var endUtc = Utc(2026, 11, 7, 16);
+        using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options)
+        {
+            Tickets = new AccountDatabaseSet<Ticket>(
+            [
+                Record(1, Utc(2026, 11, 7, 1), ViolationType.Warning, null),          // today 9:00 am
+                Record(2, Utc(2026, 11, 7, 15, 59), ViolationType.Warning, null),     // today 11:59 pm
+                Record(3, Utc(2026, 11, 6, 16), ViolationType.Ticket, TicketStatus.Paid),        // today 12:00 am
+                Record(4, Utc(2026, 11, 7, 3), ViolationType.Ticket, TicketStatus.Pending),
+                Record(5, Utc(2026, 11, 7, 5), ViolationType.Ticket, TicketStatus.Contested),
+                Record(6, Utc(2026, 11, 6, 15, 59), ViolationType.Ticket, TicketStatus.Pending), // yesterday 11:59 pm
+                Record(7, Utc(2026, 10, 31, 2), ViolationType.Ticket, TicketStatus.Overdue),
+                Record(8, Utc(2026, 11, 1, 2), ViolationType.Ticket, TicketStatus.Cleared)
+            ]),
+            Businesses = new AccountDatabaseSet<Business>(
+            [
+                Shop(1, VendorStatus.Active), Shop(2, VendorStatus.Active),
+                Shop(3, VendorStatus.Active), Shop(4, VendorStatus.Inactive)
+            ])
+        };
+
+        var counts = await new TicketRepository(context).GetDashboardTicketCountsAsync(startUtc, endUtc);
+        var activeBusinesses = await new VendorRepository(context).GetActiveBusinessCountAsync();
+
+        Assert.Equal(2, counts.WarningsToday);
+        Assert.Equal(3, counts.TicketsToday);
+        Assert.Equal(4, counts.OpenTickets); // 4 waiting, 5 contested, 6 waiting, 7 overdue.
+        Assert.Equal(3, activeBusinesses);
+    }
+
+    [Fact]
+    public async Task Dashboard_counts_tickets_and_warnings_for_unregistered_vendors()
+    {
+        // Manila "today" is 7 Nov 2026. Today: a warning and a waiting ticket for a registered business,
+        // a warning, a waiting ticket and a paid ticket for unregistered vendors (a person, no business).
+        var registeredWarning = Record(1, Utc(2026, 11, 7, 1), ViolationType.Warning, null);
+        var registeredTicket = Record(2, Utc(2026, 11, 7, 2), ViolationType.Ticket, TicketStatus.Pending);
+        registeredWarning.VendorId = 1;
+        registeredTicket.VendorId = 1;
+        var unregisteredWarning = Record(3, Utc(2026, 11, 7, 3), ViolationType.Warning, null);
+        var unregisteredWaiting = Record(4, Utc(2026, 11, 7, 4), ViolationType.Ticket, TicketStatus.Pending);
+        var unregisteredPaid = Record(5, Utc(2026, 11, 7, 5), ViolationType.Ticket, TicketStatus.Paid);
+        foreach (var record in new[] { unregisteredWarning, unregisteredWaiting, unregisteredPaid })
+        {
+            record.PersonId = 1;
+            record.PaperViolatorName = "Synthetic Vendor";
+        }
+        using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options)
+        {
+            Tickets = new AccountDatabaseSet<Ticket>(
+                [registeredWarning, registeredTicket, unregisteredWarning, unregisteredWaiting, unregisteredPaid])
+        };
+
+        var counts = await new TicketRepository(context)
+            .GetDashboardTicketCountsAsync(Utc(2026, 11, 6, 16), Utc(2026, 11, 7, 16));
+
+        Assert.Equal(2, counts.WarningsToday);
+        Assert.Equal(3, counts.TicketsToday);
+        Assert.Equal(2, counts.OpenTickets); // the two waiting tickets, one of each kind.
+    }
+
+    private static DateTime Utc(int year, int month, int day, int hour, int minute = 0)
+        => new(year, month, day, hour, minute, 0, DateTimeKind.Utc);
+
+    private static Ticket Record(int id, DateTime issuedAt, ViolationType type, TicketStatus? status) => new()
+    {
+        Id = id, IssuedAt = issuedAt, UpdatedAt = issuedAt, Type = type, Status = status,
+        Description = "Synthetic dashboard record", MarketSectionId = 1
+    };
+
+    private static Business Shop(int id, VendorStatus status) => new()
+    {
+        Id = id, BusinessAccountNumber = $"BA-{id:0000}", BusinessName = $"Synthetic shop {id}",
+        QrCodeValue = $"synthetic-{id}", Status = status, MarketSectionId = 1
+    };
 
     [Fact]
     public async Task GetSummaryAsync_ReturnsEmptyAttentionAndActivityForZeroCounts()
@@ -89,10 +171,10 @@ public class DashboardSummaryTests
 
         Assert.Empty(result.AttentionItems);
         Assert.Empty(result.RecentActivity);
-        Assert.Equal(0, result.Metrics.InspectionsToday);
+        Assert.Equal(0, result.Metrics.WarningsToday);
+        Assert.Equal(0, result.Metrics.TicketsToday);
         Assert.Equal(0, result.Metrics.OpenTickets);
-        Assert.Equal(0, result.Metrics.ActiveVendors);
-        Assert.Equal(0, result.Metrics.PendingRegistrations);
+        Assert.Equal(0, result.Metrics.ActiveBusinesses);
         Assert.Empty(((AuditUserRepositoryStub)(object)users).NameRequests);
     }
 
@@ -126,7 +208,10 @@ public class DashboardSummaryTests
         if (expected == HttpStatusCode.OK)
         {
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            Assert.True(json.RootElement.TryGetProperty("metrics", out _));
+            var metrics = json.RootElement.GetProperty("metrics");
+            Assert.Equal(
+                ["warnings_today", "tickets_today", "open_tickets", "active_businesses"],
+                metrics.EnumerateObject().Select(property => property.Name).ToArray());
             Assert.True(json.RootElement.TryGetProperty("recent_activity", out _));
             Assert.True(json.RootElement.TryGetProperty("attention_items", out _));
         }
@@ -177,15 +262,15 @@ public class DashboardTicketRepositoryStub : DispatchProxy
 
 public class DashboardVendorRepositoryStub : DispatchProxy
 {
-    public DashboardVendorCounts Counts { get; set; } = new();
+    public int ActiveBusinesses { get; set; }
 
     public static IVendorRepository Create()
         => DispatchProxy.Create<IVendorRepository, DashboardVendorRepositoryStub>();
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
-        if (targetMethod?.Name == nameof(IVendorRepository.GetDashboardVendorCountsAsync))
-            return Task.FromResult(Counts);
+        if (targetMethod?.Name == nameof(IVendorRepository.GetActiveBusinessCountAsync))
+            return Task.FromResult(ActiveBusinesses);
         throw new InvalidOperationException($"Unexpected vendor repository call: {targetMethod?.Name}");
     }
 }

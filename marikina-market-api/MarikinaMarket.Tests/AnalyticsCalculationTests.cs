@@ -161,7 +161,8 @@ public class AnalyticsCalculationTests
         Assert.Equal(4, section.TotalInspectionCount);
         records.Add(Record(6, Utc(2026, 2, 20, 10), ViolationType.Warning));
         var current = await repository.GetDashboardTicketCountsAsync(Utc(2026, 2, 19, 16), Utc(2026, 2, 20, 16));
-        Assert.Equal(1, current.InspectionsToday);
+        Assert.Equal(1, current.WarningsToday);
+        Assert.Equal(0, current.TicketsToday);
         Assert.Equal(2, current.OpenTickets); // Includes the unresolved ticket from the prior year.
         var annual = await service.GetInspectionRatioAsync();
         Assert.Equal(5, annual.TotalInspectionCount);

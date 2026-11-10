@@ -1,5 +1,6 @@
 import {
   Activity,
+  AlertTriangle,
   ClipboardCheck,
   FileClock,
   History,
@@ -25,9 +26,7 @@ import DashboardAttentionItem from "../components/DashboardAttentionItem";
 import DashboardEmptyPanel from "../components/DashboardEmptyPanel";
 import DashboardMetricCard from "../components/DashboardMetricCard";
 import DashboardQuickLink from "../components/DashboardQuickLink";
-import DashboardRegistrationPipeline from "../components/DashboardRegistrationPipeline";
 import { formatDashboardUpdatedAt } from "../dashboard.utils";
-import { useDashboardRegistrationStatus } from "../hooks/useDashboardRegistrationStatus";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
 import styles from "./DashboardPage.module.css";
 
@@ -55,15 +54,8 @@ const QUICK_LINKS: QuickLink[] = [
     roles: ADMIN_ROLES,
   },
   {
-    label: "Vendor registrations",
-    description: "Review applications",
-    to: ROUTES.adminVendorRegistrations,
-    icon: Store,
-    roles: ADMIN_ROLES,
-  },
-  {
-    label: "Vendor directory",
-    description: "View registered vendors",
+    label: "Businesses",
+    description: "Manage business records",
     to: ROUTES.adminVendors,
     icon: Store,
     roles: ADMIN_ROLES,
@@ -100,39 +92,38 @@ const QUICK_LINKS: QuickLink[] = [
 
 const METRICS = [
   {
-    key: "inspectionsToday",
-    label: "Inspections today",
-    description: "Field activity recorded today",
-    icon: ClipboardCheck,
+    key: "warningsToday",
+    label: "Warnings today",
+    description: "Warnings recorded today",
+    icon: AlertTriangle,
+    tone: "info",
+  },
+  {
+    key: "ticketsToday",
+    label: "Tickets today",
+    description: "Tickets recorded today",
+    icon: Ticket,
     tone: "primary",
   },
   {
     key: "openTickets",
     label: "Open tickets",
     description: "Cases awaiting resolution",
-    icon: Ticket,
+    icon: FileClock,
     tone: "warning",
   },
   {
-    key: "activeVendors",
-    label: "Active vendors",
-    description: "Vendors currently registered",
+    key: "activeBusinesses",
+    label: "Active businesses",
+    description: "Businesses marked active",
     icon: Store,
     tone: "success",
-  },
-  {
-    key: "pendingRegistrations",
-    label: "Pending applications",
-    description: "Registrations awaiting review",
-    icon: FileClock,
-    tone: "info",
   },
 ] as const;
 
 export function DashboardPage() {
   const { user } = useAuth();
   const { summary, isLoading, error, retry } = useDashboardSummary();
-  const registrationStatus = useDashboardRegistrationStatus();
   const firstName = user?.firstName?.trim();
   const quickLinks = QUICK_LINKS.filter((link) =>
     user?.role ? link.roles.includes(user.role) : false,
@@ -209,29 +200,21 @@ export function DashboardPage() {
           </DashboardEmptyPanel>
         </div>
 
-        <div className={styles.rightColumn}>
-          <div className={styles.attentionPanel}>
-            <DashboardEmptyPanel
-              title="Needs attention"
-              description="There are no open queues that need review."
-              icon={ShieldCheck}
-              iconLabel="You're all caught up"
-              tone={summary?.attentionItems.length ? "warning" : "success"}
-              isLoading={isLoading}
-              error={error}
-              onRetry={retry}
-            >
-              {summary?.attentionItems.map((item) => (
-                <DashboardAttentionItem key={item.id} item={item} />
-              ))}
-            </DashboardEmptyPanel>
-          </div>
-          <DashboardRegistrationPipeline
-            counts={registrationStatus.counts}
-            isLoading={registrationStatus.isLoading}
-            error={registrationStatus.error}
-            onRetry={registrationStatus.retry}
-          />
+        <div className={styles.attentionPanel}>
+          <DashboardEmptyPanel
+            title="Needs attention"
+            description="There are no open queues that need review."
+            icon={ShieldCheck}
+            iconLabel="You're all caught up"
+            tone={summary?.attentionItems.length ? "warning" : "success"}
+            isLoading={isLoading}
+            error={error}
+            onRetry={retry}
+          >
+            {summary?.attentionItems.map((item) => (
+              <DashboardAttentionItem key={item.id} item={item} />
+            ))}
+          </DashboardEmptyPanel>
         </div>
       </section>
 
