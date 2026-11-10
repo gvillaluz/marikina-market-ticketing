@@ -245,16 +245,18 @@ const TicketDetailPage: FC = () => {
                   }
                 />
               )}
-              <div className={styles.fieldFlex}>
-                <InfoRowField
-                  label="DUE DATE"
-                  value={
-                    <span
-                      className={styles.dueDate}
-                    >{`${formatDateTime(ticket?.dueDate || "")} (${daysLeft(ticket?.dueDate || "")})`}</span>
-                  }
-                />
-              </div>
+              {ticket.dueDate && (
+                <div className={styles.fieldFlex}>
+                  <InfoRowField
+                    label="DUE DATE"
+                    value={
+                      <span
+                        className={styles.dueDate}
+                      >{`${formatDateTime(ticket.dueDate)} (${daysLeft(ticket.dueDate)})`}</span>
+                    }
+                  />
+                </div>
+              )}
               {ticket.penaltyType === "CashFine" && (
                 <div className={styles.noteBox}>
                   <HelpCircle className={styles.helpIcon} />

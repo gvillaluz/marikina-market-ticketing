@@ -813,6 +813,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     EvidenceItems = t.TicketEvidences!.OrderBy(e => e.Role).ThenBy(e => e.SortOrder).ThenBy(e => e.Id)
                         .Select(e => new TicketEvidenceResponse { Id = e.Id, Role = e.Role, SortOrder = e.SortOrder, Url = e.FileKey }).ToList(),
                     Status = t.Status,
+                    UpdatedAt = t.UpdatedAt,
                     EnforcerFirstName = t.Enforcer!.FirstName,
                     EnforcerLastName = t.Enforcer.LastName,
                     TicketReceipts = t.ProofUrls ?? new List<string>(),
