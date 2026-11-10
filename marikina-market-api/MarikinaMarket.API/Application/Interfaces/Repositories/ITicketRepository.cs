@@ -26,7 +26,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task<Ticket?> GetVendorTicketByIdAsync(int ticketId, int userId);
         Task<List<VendorComplianceTicket>> GetVendorComplianceTicketsAsync(
             IReadOnlyCollection<int> vendorIds, DateTime windowStart, DateTime calculatedAt);
-        Task<DashboardTicketCount> GetTicketCountAsync(int enforcerId);
+        Task<DashboardTicketCount> GetTicketCountAsync(int enforcerId, DateTime startUtc, DateTime endUtc);
         Task<List<DailyTicketCount>> GetTicketsWithDateAsync(DateTime startOfThisMonth);
         Task<TicketDetailResponse?> GetTicketDetailAsync(int ticketId);
         Task<TicketDetailResponse?> GetVendorTicketDetailAsync(int ticketId, int userId);

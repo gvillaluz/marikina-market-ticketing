@@ -41,6 +41,7 @@ namespace MarikinaMarket.API.Application.Services
         private readonly AuditLogContext? _audit;
         private readonly IAuditLogService? _auditService;
         private readonly ILogger<TicketService>? _logger;
+        private readonly TimeProvider _clock;
 
         public TicketService(
             ITicketRepository ticketRepository,
@@ -52,7 +53,8 @@ namespace MarikinaMarket.API.Application.Services
             IVendorComplianceScoreService complianceScoreService,
             AuditLogContext? audit = null, IAuditLogService? auditService = null,
             ILogger<TicketService>? logger = null, IPersonRepository? personRepository = null,
-            IMarketSectionRepository? marketSectionRepository = null
+            IMarketSectionRepository? marketSectionRepository = null,
+            TimeProvider? clock = null
             )
         {
             _ticketRepository = ticketRepository;
@@ -67,11 +69,13 @@ namespace MarikinaMarket.API.Application.Services
             _logger = logger;
             _personRepository = personRepository;
             _marketSectionRepository = marketSectionRepository;
+            _clock = clock ?? TimeProvider.System;
         }
 
         public async Task<MobileDashboardSummaryResponse> GetMobileTicketCountAsync(int enforcerId)
         {
-            var ticketCount = await _ticketRepository.GetTicketCountAsync(enforcerId);
+            var (weekStart, weekEnd) = GetManilaWeekRange(_clock.GetUtcNow().UtcDateTime);
+            var ticketCount = await _ticketRepository.GetTicketCountAsync(enforcerId, weekStart, weekEnd);
 
             return new MobileDashboardSummaryResponse
             {
@@ -79,6 +83,16 @@ namespace MarikinaMarket.API.Application.Services
                 WarningRecorded = ticketCount.WarningRecorded,
                 TotalRecorded = ticketCount.TotalRecorded
             };
+        }
+
+        // The calendar week in Manila time, Monday 00:00 to the next Monday 00:00, as UTC.
+        private static (DateTime Start, DateTime End) GetManilaWeekRange(DateTime utcNow)
+        {
+            var manila = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            var today = TimeZoneInfo.ConvertTimeFromUtc(utcNow, manila).Date;
+            var monday = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
+            var start = TimeZoneInfo.ConvertTimeToUtc(monday, manila);
+            return (start, start.AddDays(7));
         }
 
         public async Task<TicketReceiptProofResponse> GetTicketReceiptProofAsync(int ticketId, int enforcerId)
