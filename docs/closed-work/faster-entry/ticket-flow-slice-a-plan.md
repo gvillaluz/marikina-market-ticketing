@@ -1,6 +1,8 @@
 # New ticket flow — Slice A plan (registered businesses)
 
-Status (2026-11-06): **A1 complete** (closed by the user on 2026-11-06 after automated checks and all six live phone checks on V2529 passed). A2 not started and not approved. Nothing is committed.
+Status (2026-11-07): **A1, A2a and A2b complete** and merged into `main` (pull requests #2 and #3). A2c (paper ticket scanner) was a decision for later (noted by the user 2026-11-07); approved and **closed 2026-11-09** (see the A2c section). Slice B is not approved.
+
+A1 (2026-11-06): closed by the user after automated checks and all six live phone checks on V2529 passed.
 
 ## A1 final report (2026-11-06)
 
@@ -25,7 +27,7 @@ Expected results were written first (`evidence/ticket-flow-a1-live/expected.md`)
 
 ### API contract (as built)
 
-- `GET /api/vendor/lookup?search=` (MarketEnforcer). Replaces `GET /api/vendor/stall/{businessAccountNumber}` (removed). Matches business name, stall number or account number; active businesses only; at most 20; exact stall first, then by name. Response: the business list plus `has_more` and `total`. Errors: 400 empty or over 200 characters; 401/403.
+- `GET /api/vendor/lookup?search=` (MarketEnforcer). Replaces `GET /api/vendor/stall/{businessAccountNumber}` (removed). Matches business name, stall number, account number, owner or address; active businesses only; at most 20; exact stall first, then by name. Response: the business list plus `has_more` and `total`. Errors: 400 empty or over 200 characters; 401/403.
 - `GET /api/vendor/{businessId}/people` (MarketEnforcer). New. People with submitted tickets or warnings at this business: `id`, `full_name`, `address`, `phone_number`, `created_at`, `ticket_totals` (`offense_count`, `warning_count`, `outstanding_fine`, `last_ticket_at`, `last_business_name`, `business_names`). Errors: 404 missing or inactive business; 400 bad ID; 401/403.
 - `POST /api/persons/matches`: request unchanged; each match gains `ticket_totals` (same fields).
 - Consumers: phone app only. No web change, no database change, no migration.
@@ -109,7 +111,7 @@ Juan was ticketed at Store X. Now he is caught at Store Y. He isn't on Store Y's
 
 | Route | Change |
 | --- | --- |
-| `GET /api/vendor/lookup?search=` (MarketEnforcer) | **Replaces** `GET /api/vendor/stall/{businessAccountNumber}`, which is removed (its only user is mobile). It matches business name, stall number or account number, case-insensitive. Only active businesses, at most 20, sorted by business name. The response is the same list shape as today (`GetVendorResponse`), plus a `has_more` flag. Errors: 400 when the search is empty or over 200 characters; 401/403 as today. |
+| `GET /api/vendor/lookup?search=` (MarketEnforcer) | **Replaces** `GET /api/vendor/stall/{businessAccountNumber}`, which is removed (its only user is mobile). It matches business name, stall number, account number, owner or address, case-insensitive. Only active businesses, at most 20, sorted by business name. The response is the same list shape as today (`GetVendorResponse`), plus a `has_more` flag. Errors: 400 when the search is empty or over 200 characters; 401/403 as today. |
 | `GET /api/vendor/{businessId}/people` (MarketEnforcer) | **New.** Returns the registered owner name, plus the people with submitted tickets or warnings at this business. Each person has `id`, `full_name`, `address`, `offense_count`, `warning_count`, `outstanding_fine`, `last_ticket_at` and `last_business_name`, ordered by most recent ticket. Errors: 404 for a missing or inactive business, 400 for a bad ID, 401/403. |
 | `POST /api/persons/matches` | **Response gains fields**: `offense_count`, `warning_count`, `outstanding_fine`, `last_ticket_at`, `last_business_name` and `business_names`. Request unchanged. |
 
@@ -170,11 +172,11 @@ Expected results are written down before running. Then:
 
 ## A2a — Ordinance shortcuts and title search (approved 2026-11-06)
 
-Status (2026-11-06): **A2a complete** (closed by the user on 2026-11-06). Server 775 passed / 2 existing skips; phone 431 passed, analyze and format clean; all four live checks on V2529 passed (`evidence/ticket-flow-a2a-live/results.md`). Nothing is committed.
+Status (2026-11-06): **A2a complete** (closed by the user on 2026-11-06). Server 775 passed / 2 existing skips; phone 431 passed, analyze and format clean; all four live checks on V2529 passed (`evidence/ticket-flow-a2a-live/results.md`). Merged into `main` (pull request #2).
 
 As built: the route is `GET /api/ordinance/shortcuts` in `OrdinanceController`, but the counting lives in `TicketService` / `TicketRepository` (the server rules keep ticket queries in the ticket module). New: `OrdinanceShortcutsResponse.cs`, `OrdinanceShortcutsTests.cs`; phone `ordinance_shortcuts.dart` (+ model), `get_ordinance_shortcuts_use_case.dart`, `ordinance_shortcuts_test.dart`. Changed: ticket service/repository and their interfaces, `OrdinanceController.cs`; phone data source, repository and interface, bloc and `LoadOrdinanceSelection` event, `select_ordinance_bottom_sheet.dart`, `dependency_injection.dart`; four existing phone tests now answer the new shortcuts request in their fake servers.
 
-A2 is split into three parts, each with its own approval and live check: **A2a** ordinance shortcuts and title search (this part), **A2b** the copy-to-paper card, **A2c** the paper ticket scanner (needs package approval). The suggested next control number is dropped (user, 2026-11-06); a control number field is a separate question to the user.
+A2 is split into three parts, each with its own approval and live check: **A2a** ordinance shortcuts and title search (this part), **A2b** the copy-to-paper card, **A2c** the paper ticket scanner (package approved; closed 2026-11-09). The suggested next control number is dropped (user, 2026-11-06); a control number field is a separate question to the user.
 
 **For the enforcer:** the ordinance picker also searches titles and section numbers, and shows three shortcut groups at the top: this person's past violations, my recent ordinances, and the market's most violated in the last 30 days. If the shortcuts cannot load, the normal list still works.
 
@@ -186,9 +188,9 @@ A2 is split into three parts, each with its own approval and live check: **A2a**
 
 ## A2b — Copy-to-paper card (approved 2026-11-07)
 
-Status (2026-11-07): **A2b complete** (closed by the user on 2026-11-07). Phone 446 passed (10 new), analyze no issues, format clean; all six live checks on V2529 passed (`evidence/ticket-flow-a2b-live/results.md`). Committed on branch `a2b-copy-to-paper` (worktree `C:\Users\Admin\Documents\Projects\mmt-a2b-copy-to-paper`).
+Status (2026-11-07): **A2b complete** (closed by the user on 2026-11-07). Phone 446 passed (10 new), analyze no issues, format clean; all six live checks on V2529 passed (`evidence/ticket-flow-a2b-live/results.md`). Merged into `main` (pull request #3).
 
-Noted for later (user, 2026-11-07), not approved: on the review page, ADDRESS shows the business's address, while the card's ADDRESS shows the violator's own address from their person record (what the paper asks for under NAME). Not caused by A2b.
+Noted for later (user, 2026-11-07), not approved: on the review page, ADDRESS shows the business's address, while the card's ADDRESS shows the violator's own address from their person record (what the paper asks for under NAME). Not caused by A2b. **Resolved 2026-11-08** by the phone-only fixes (PR #6): the review page now says "BUSINESS ADDRESS" and "VIOLATOR ADDRESS".
 
 **For the enforcer:** on the New Inspection page, between the description and the paper photo, a card "Copy these onto the paper ticket" (or "…paper warning") lists what to write, using the paper's own labels and order. It appears only when everything it lists is ready and follows every change on the page. It saves nothing and does not affect Verify or Submit.
 
@@ -204,11 +206,11 @@ Noted for later (user, 2026-11-07), not approved: on the review page, ADDRESS sh
 
 ## Control number, Part 1 — server messages and phone (approved 2026-11-06)
 
-Status: **complete** (closed by the user 2026-11-07). Server 784 passed / 2 existing skips; phone 436 passed, analyze and format clean. Live V2529 checks 1, 2, 3, 4 and 6 passed. Check 5 rested on a wrong expectation and was accepted as-is by the user. Details: `evidence/control-number-part1-live/results.md`. Nothing committed.
+Status: **complete** (closed by the user 2026-11-07). Server 784 passed / 2 existing skips; phone 436 passed, analyze and format clean. Live V2529 checks 1, 2, 3, 4 and 6 passed. Check 5 rested on a wrong expectation and was accepted as-is by the user. Details: `evidence/control-number-part1-live/results.md`. Merged into `main` (pull request #2).
 
 Noted for later (user, 2026-11-07), not approved:
-- **Notification wording.** The phone's Notifications page shows the message the server saved. Saved status updates read " — status changed from Pending to Contested.": they carry no control number, and the business name in front is blank. That wording predates this task. The "Ticket X for … is now …" line changed in Part 1 belongs to a display the page never uses.
-- The server accepts a status change on a warning.
+- **Notification wording.** The phone's Notifications page shows the message the server saved. Saved status updates read " — status changed from Pending to Contested.": they carry no control number, and the business name in front is blank. That wording predates this task. The "Ticket X for … is now …" line changed in Part 1 belongs to a display the page never uses. **Resolved on the phone 2026-11-08** (PR #6): the page now rebuilds status-change text as "Ticket/Warning <number> for <business> is now <status>."; the saved server text itself is unchanged.
+- The server accepts a status change on a warning. **Still open** (noted 2026-11-08): the admin end should refuse and not offer it; needs its own plan and approval.
 
 **Decision (user, 2026-11-06):** the control number is the number printed on the paper ticket (stored as `paper_reference`). A warning, which has no printed number, uses its WRN number. The app's own running number (`control_number`, e.g. "2") stays stored and used internally but is no longer shown. Old tickets without a printed number show "Unavailable (legacy record)" on screens and leave the number out of messages. Part 2 (web admin screens and the two web-only searches) is planned separately.
 
@@ -218,7 +220,7 @@ Noted for later (user, 2026-11-07), not approved:
 
 ## Control number, Part 2 — website (approved 2026-11-07)
 
-Status (2026-11-07): **complete** (closed by the user 2026-11-07). Server 806 passed / 2 existing skips (22 new); website build passed, 163 Node tests passed (9 new); all 41 live checks passed (`evidence/control-number-part2-live/results.md`). Nothing committed: server changes are in the main folder; website changes are on branch `control-number-part2-web` in the worktree `C:\Users\Admin\Documents\Projects\mmt-control-number-part2-web` (branched from `62036e5`, after this computer's `main` was brought up to date with GitHub). The community service log could not be checked live (no community-service tickets in the throwaway database); it is covered by automated tests only.
+Status (2026-11-07): **complete** (closed by the user 2026-11-07). Server 806 passed / 2 existing skips (22 new); website build passed, 163 Node tests passed (9 new); all 41 live checks passed (`evidence/control-number-part2-live/results.md`). Merged into `main` (pull request #2). The worktree has been removed; the local branch `control-number-part2-web` is left over. The community service log could not be checked live (no community-service tickets in the throwaway database); it is covered by automated tests only.
 
 **For office staff:** every website screen shows one "Control number" (printed number for tickets, WRN number for warnings, "Unavailable (legacy record)" for old tickets). Covered: Tickets list, ticket detail page (title, breadcrumb, status confirmation), ticket record popup (one "CONTROL NO." box for both kinds) and its download file name, Inspections list, business inspection history and its export, compliance activity, pending settlements, community service log, enforcer inspection list, person history. The hidden app number is no longer shown or searched on the website.
 
@@ -230,12 +232,15 @@ Status (2026-11-07): **complete** (closed by the user 2026-11-07). Server 806 pa
 
 **Done when:** (1) server sends the shown number on every route above and never the hidden one; (2) the three searches find printed and WRN numbers in any case and not hidden numbers; (3) every listed screen shows the right number and no old labels; (4) no old labels left in the website code. Tests fail first; deliberate breaks are caught; live check as Head Admin in the browser (desktop and 390px) on `marikina_market_e2e`.
 
-## A2 preview (approved separately later)
+## A2c — paper ticket scanner (closed 2026-11-09)
 
-- **New:** `GET /api/ordinances/shortcuts?person_id=` returns up to 5 ordinance IDs each for: this person's past violations, this enforcer's recent ordinances, and the most violated across the market in the last 30 days. The phone maps them onto its saved ordinance list. If the call fails, the normal list still works.
-- **Mobile:** ordinance search also matches titles; the copy-to-paper card; the paper photo uses the document scanner (one page). Warnings use the same scanner.
-- **Package:** `google_mlkit_document_scanner`. It works on Android only, needs Google Play services, downloads its scanner once on first use, and scans on the phone. It needs your package approval at the A2 gate.
+Status (2026-11-09): **A2c complete** (closed by the user on 2026-11-09). Built with `cunning_document_scanner` 3.0.4 (Google's scanner on Android, Apple's on iPhone, built but not tested) instead of the package named below. Phone only; full notes in `docs/closed-work/faster-entry/a2c-paper-ticket-scanner.md`; live results in `evidence/ticket-flow-a2c-live/results.md`.
+
+Noted by the user 2026-11-07: **decision for later.** Not approved, not built, not dropped. A2a and A2b above are built and closed; the original "A2 preview" is superseded by them.
+
+- **What it would be:** the paper photo uses a document scanner (one page, auto-cropped). Warnings use the same scanner.
+- **Package:** `google_mlkit_document_scanner`. It works on Android only, needs Google Play services, downloads its scanner once on first use, and scans on the phone. It needs the user's package approval before any work.
 
 ## Open questions
 
-None for A1. The A2 package approval is asked at the A2 gate.
+- None open for A2c (closed 2026-11-09).

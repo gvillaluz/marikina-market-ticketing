@@ -1,0 +1,3 @@
+# Resolved backlog item
+
+- The `vendorPublic`/`vendorPrivate` E2E accounts were removed by the approved criterion-2 vendor account deletion (database holds only the four staff accounts, checked read-only 2026-11-02); their credentials and aliases remain in local user-secrets and evidence helper scripts. Resolved 2026-11-04: the four `vendorPublic`/`vendorPrivate` user-secret entries (username and password each) were removed from the API project's local user-secrets after the user approved; the four staff accounts' entries remain. The evidence helper scripts were left unchanged: they hold only the account names, no credentials, and are records of closed slices.

@@ -1,0 +1,7 @@
+# Criterion 5 existing implementation assessment — 2026-10-30
+
+Historical read-only assessment before the two criterion-5 slices: warning creation and a distinct Written Warning Preview already existed. Warning saves then had no citation paper-reference/photo requirements and no monetary penalty/status. The server generated an internal `WRN-{id:D4}` reference, not a printed warning number. Duplicate detection then checked business/ordinance warning history and excluded pending citation ordinances for that business within a rolling 24 hours. Those observed rules were superseded by the approved person-based procedure recorded below.
+
+Evidence supports existing behavior, not full criterion completion: `InspectionNotificationTests` covers warning save/null fields/JWT attribution and failure handling and passed in the final 675-test API run; recent focused Flutter runs include warning navigation regressions. [Historical warning issuance report](../../../evidence/warning-issuance/README.md) explicitly says live E2E unverified. [Warning-detail verification](../../../evidence/phase-1-warning-detail/README.md) is automated-only; historical vendor-device display evidence does not establish revised enforcer create/duplicate/relogin behavior.
+
+At that assessment, policy reconciliation and revised live verification were still outstanding; no warning was created or code changed by the assessment itself. The later approved slices resolved the rules and supplied the closure evidence below. Historical automated-only reports alone did not establish revised completion.
