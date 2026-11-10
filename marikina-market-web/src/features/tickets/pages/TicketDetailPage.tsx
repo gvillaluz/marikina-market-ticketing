@@ -123,6 +123,8 @@ const TicketDetailPage: FC = () => {
     );
   }
 
+  const isTicket = ticket.type === "Ticket";
+
   return (
     <div className={styles.page}>
       <Breadcrumb
@@ -134,7 +136,7 @@ const TicketDetailPage: FC = () => {
 
       <TicketDetailHeader
         controlNo={ticket?.controlNumber}
-        status={ticket?.status ?? "Paid"}
+        status={isTicket ? ticket.status : undefined}
         lastUpdated={formatDateTime(ticket?.updatedAt || "")}
       />
 
@@ -333,6 +335,7 @@ const TicketDetailPage: FC = () => {
           confirmModal.open();
         }}
         statusOptionsOpen={statusOptions.isOpen}
+        canChangeStatus={isTicket}
       />
 
       {recordModal.isOpen && ticket != null && (

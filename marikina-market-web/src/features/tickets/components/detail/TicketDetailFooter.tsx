@@ -7,12 +7,14 @@ interface TicketDetailFooterProps {
   onViewFullRecord: () => void;
   onChangeStatus: () => void;
   statusOptionsOpen: boolean;
+  canChangeStatus: boolean;
 }
 
 const TicketDetailFooter: FC<TicketDetailFooterProps> = ({
   onViewFullRecord,
   onChangeStatus,
   statusOptionsOpen,
+  canChangeStatus,
 }) => {
   return (
     <div className={styles.footer}>
@@ -23,16 +25,18 @@ const TicketDetailFooter: FC<TicketDetailFooterProps> = ({
       >
         View Full Ticket Record
       </button>
-      <Button
-        type="button"
-        variant="primary"
-        icon={<SquareCheck size={18} aria-hidden="true" />}
-        onClick={onChangeStatus}
-        aria-expanded={statusOptionsOpen}
-        aria-controls="ticket-status-options"
-      >
-        Change Status
-      </Button>
+      {canChangeStatus && (
+        <Button
+          type="button"
+          variant="primary"
+          icon={<SquareCheck size={18} aria-hidden="true" />}
+          onClick={onChangeStatus}
+          aria-expanded={statusOptionsOpen}
+          aria-controls="ticket-status-options"
+        >
+          Change Status
+        </Button>
+      )}
     </div>
   );
 };
