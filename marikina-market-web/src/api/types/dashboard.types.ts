@@ -1,12 +1,12 @@
 export type DashboardActivityCategory = string;
 
-export type DashboardAttentionType = "OpenTickets" | "PendingRegistrations";
+export type DashboardAttentionType = "OpenTickets";
 
 export interface DashboardMetrics {
-  inspectionsToday: number;
+  warningsToday: number;
+  ticketsToday: number;
   openTickets: number;
-  activeVendors: number;
-  pendingRegistrations: number;
+  activeBusinesses: number;
 }
 
 export interface DashboardActivity {

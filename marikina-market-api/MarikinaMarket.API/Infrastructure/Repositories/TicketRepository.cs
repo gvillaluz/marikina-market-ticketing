@@ -95,7 +95,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .GroupBy(_ => 1)
                 .Select(group => new DashboardTicketCounts
                 {
-                    InspectionsToday = group.Count(ticket => ticket.IssuedAt >= startUtc && ticket.IssuedAt < endUtc),
+                    WarningsToday = group.Count(ticket => ticket.Type == ViolationType.Warning &&
+                        ticket.IssuedAt >= startUtc && ticket.IssuedAt < endUtc),
+                    TicketsToday = group.Count(ticket => ticket.Type == ViolationType.Ticket &&
+                        ticket.IssuedAt >= startUtc && ticket.IssuedAt < endUtc),
                     OpenTickets = group.Count(ticket => ticket.Type == ViolationType.Ticket &&
                         (ticket.Status == TicketStatus.Pending || ticket.Status == TicketStatus.Contested ||
                          ticket.Status == TicketStatus.Overdue || ticket.Status == TicketStatus.InProgress))

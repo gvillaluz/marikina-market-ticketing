@@ -80,13 +80,6 @@
   min-width: 0;
 }
 
-.rightColumn {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: var(--space-lg);
-}
-
 .sectionHeading {
   display: flex;
   align-items: center;
@@ -134,10 +127,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .rightColumn {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .quickLinks {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -159,8 +148,7 @@
   }
 
   .metrics,
-  .quickLinks,
-  .rightColumn {
+  .quickLinks {
     grid-template-columns: minmax(0, 1fr);
   }
 

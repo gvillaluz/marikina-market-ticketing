@@ -6,7 +6,7 @@ import type {
 } from "@/api/types/dashboard.types";
 import { ApiRequestError } from "@/utils/apiErrors";
 
-const ATTENTION_TYPES = ["OpenTickets", "PendingRegistrations"] as const;
+const ATTENTION_TYPES = ["OpenTickets"] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -27,10 +27,10 @@ function isTimestamp(value: unknown): value is string {
 function validateMetrics(value: unknown): value is DashboardMetrics {
   return (
     isRecord(value) &&
-    isNonnegativeCount(value.inspectionsToday) &&
+    isNonnegativeCount(value.warningsToday) &&
+    isNonnegativeCount(value.ticketsToday) &&
     isNonnegativeCount(value.openTickets) &&
-    isNonnegativeCount(value.activeVendors) &&
-    isNonnegativeCount(value.pendingRegistrations)
+    isNonnegativeCount(value.activeBusinesses)
   );
 }
 

@@ -99,21 +99,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return counts ?? new VendorRegistrationStatusCounts();
         }
 
-        public async Task<DashboardVendorCounts> GetDashboardVendorCountsAsync()
-        {
-            var activeVendors = await _context.Businesses
+        public Task<int> GetActiveBusinessCountAsync()
+            => _context.Businesses
                 .AsNoTracking()
-                .CountAsync(vendor => vendor.Status == VendorStatus.Active);
-            var pendingRegistrations = await _context.VendorRegistrationRequests
-                .AsNoTracking()
-                .CountAsync(request => request.Status == RequestStatus.Pending);
-
-            return new DashboardVendorCounts
-            {
-                ActiveVendors = activeVendors,
-                PendingRegistrations = pendingRegistrations
-            };
-        }
+                .CountAsync(business => business.Status == VendorStatus.Active);
 
         public async Task<List<VendorRegistrationSummary>> GetVendorRegistrationSummariesAsync(
             int offset,

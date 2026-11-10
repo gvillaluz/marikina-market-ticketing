@@ -38,7 +38,7 @@ namespace MarikinaMarket.API.Application.Services
                 DateTime.SpecifyKind(localToday.AddDays(1), DateTimeKind.Unspecified), manilaTimeZone);
 
             var ticketCounts = await _ticketRepository.GetDashboardTicketCountsAsync(startUtc, endUtc);
-            var vendorCounts = await _vendorRepository.GetDashboardVendorCountsAsync();
+            var activeBusinesses = await _vendorRepository.GetActiveBusinessCountAsync();
             var activities = await _auditLogRepository.GetRecentDashboardActivitiesAsync(RECENT_ACTIVITY_LIMIT);
 
             var actorIds = activities
@@ -55,13 +55,13 @@ namespace MarikinaMarket.API.Application.Services
                 AsOf = asOf,
                 Metrics = new DashboardMetricsResponse
                 {
-                    InspectionsToday = ticketCounts.InspectionsToday,
+                    WarningsToday = ticketCounts.WarningsToday,
+                    TicketsToday = ticketCounts.TicketsToday,
                     OpenTickets = ticketCounts.OpenTickets,
-                    ActiveVendors = vendorCounts.ActiveVendors,
-                    PendingRegistrations = vendorCounts.PendingRegistrations
+                    ActiveBusinesses = activeBusinesses
                 },
                 RecentActivity = activities.Select(activity => MapActivity(activity, actorNames)).ToList(),
-                AttentionItems = BuildAttentionItems(ticketCounts.OpenTickets, vendorCounts.PendingRegistrations)
+                AttentionItems = BuildAttentionItems(ticketCounts.OpenTickets)
             };
         }
 
@@ -95,7 +95,7 @@ namespace MarikinaMarket.API.Application.Services
             };
         }
 
-        private static List<DashboardAttentionItemResponse> BuildAttentionItems(int openTickets, int pendingRegistrations)
+        private static List<DashboardAttentionItemResponse> BuildAttentionItems(int openTickets)
         {
             var items = new List<DashboardAttentionItemResponse>();
             if (openTickets > 0)
@@ -106,16 +106,6 @@ namespace MarikinaMarket.API.Application.Services
                     Type = "OpenTickets",
                     Title = "Open tickets",
                     Count = openTickets
-                });
-            }
-            if (pendingRegistrations > 0)
-            {
-                items.Add(new DashboardAttentionItemResponse
-                {
-                    Id = "pending-registrations",
-                    Type = "PendingRegistrations",
-                    Title = "Pending registrations",
-                    Count = pendingRegistrations
                 });
             }
             return items;

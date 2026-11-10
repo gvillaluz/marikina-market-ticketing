@@ -10,10 +10,10 @@ namespace MarikinaMarket.API.Application.DTOs.Analytics.Response
 
     public class DashboardMetricsResponse
     {
-        public int InspectionsToday { get; set; }
+        public int WarningsToday { get; set; }
+        public int TicketsToday { get; set; }
         public int OpenTickets { get; set; }
-        public int ActiveVendors { get; set; }
-        public int PendingRegistrations { get; set; }
+        public int ActiveBusinesses { get; set; }
     }
 
     public class DashboardActivityResponse
