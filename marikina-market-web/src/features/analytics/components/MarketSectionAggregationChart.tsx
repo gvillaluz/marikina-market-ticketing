@@ -10,6 +10,10 @@ interface MarketSectionAggregationChartProps {
   onRetry: () => void;
 }
 
+function countLabel(count: number, singular: string) {
+  return `${count} ${count === 1 ? singular : `${singular}s`}`;
+}
+
 export default function MarketSectionAggregationChart({
   data,
   isLoading,
@@ -25,7 +29,7 @@ export default function MarketSectionAggregationChart({
   return (
     <AnalyticsPanel
       title="Market Section Aggregation"
-      subtitle="Inspection counts across all market sections."
+      subtitle="Warnings and tickets in each market section. Bar length is warnings plus tickets."
       skeletonVariant="chart"
       isLoading={isLoading}
       isError={isError}
@@ -42,11 +46,13 @@ export default function MarketSectionAggregationChart({
             <div
               className={styles.track}
               role="img"
-              aria-label={`${row.marketSectionName}: ${row.totalInspectionCount} inspections`}
+              aria-label={`${row.marketSectionName}: ${countLabel(row.warningCount, "warning")} and ${countLabel(row.ticketCount, "ticket")}`}
             >
               <span style={{ width: `${(row.totalInspectionCount / maxValue) * 100}%` }} />
             </div>
-            <strong>{row.totalInspectionCount}</strong>
+            <strong>
+              {countLabel(row.warningCount, "warning")} · {countLabel(row.ticketCount, "ticket")}
+            </strong>
           </div>
         ))}
         {rows.length === 0 && <p className={styles.empty}>No market section data available.</p>}

@@ -50,7 +50,7 @@ export default function PeakViolationHeatmap({
   return (
     <AnalyticsPanel
       title="Peak Violation Time Analysis"
-      subtitle="Violation activity by day of week and time block."
+      subtitle="Ticket activity by day of week and time block. Tickets only; warnings are not included."
       skeletonVariant="heatmap"
       isLoading={isLoading}
       isError={isError}
