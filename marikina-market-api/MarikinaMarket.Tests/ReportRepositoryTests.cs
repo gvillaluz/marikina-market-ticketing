@@ -79,6 +79,71 @@ public class ReportRepositoryTests
         Assert.Single(warnings);
     }
 
+    // Worked out by hand. The report day is 12 Oct 2026 in Manila, which is 11 Oct 16:00 UTC up to 12 Oct 16:00 UTC.
+    // Inside the day:
+    //   warnings: a registered business, an unregistered vendor                          -> 2 warnings
+    //   Paid cash ticket, 1,000, with two violations (still one ticket)                  -> resolved
+    //   Waived cash ticket, 300                                                           -> resolved
+    //   Pending cash ticket, 500, unregistered vendor                                     -> pending
+    //   Pending blood-donation ticket and Pending community-service ticket (no amount)    -> pending, 0 pesos
+    // Just outside the day: a Paid 999 ticket one tick before it starts, a warning exactly at its end.
+    // Expected: warnings 2 / 0; tickets 5 / 1,800; resolved 2 / 1,300; pending 3 / 500; total 7 / 1,800.
+    [Fact]
+    public async Task ReportCountsEachRecordOnceAndAddsOnlyCashFines()
+    {
+        var start = new DateTime(2026, 10, 11, 16, 0, 0, DateTimeKind.Utc);
+        var end = start.AddDays(1);
+        var paid = Record(ViolationType.Ticket, TicketStatus.Paid, 1000m, start.AddHours(1));
+        paid.VendorId = 1;
+        paid.PenaltyType = PenaltyType.CashFine;
+        paid.TicketViolations = [new TicketViolation { OrdinanceId = 1, PenaltyAmount = 600m }, new TicketViolation { OrdinanceId = 2, PenaltyAmount = 400m }];
+        var bloodDonation = Record(ViolationType.Ticket, TicketStatus.Pending, null, start.AddHours(4));
+        bloodDonation.PenaltyType = PenaltyType.BloodDonation;
+        var communityService = Record(ViolationType.Ticket, TicketStatus.Pending, null, start.AddHours(5));
+        communityService.PenaltyType = PenaltyType.CommunityService;
+        var registeredWarning = Record(ViolationType.Warning, null, null, start.AddHours(6));
+        registeredWarning.VendorId = 1;
+        var records = new List<Ticket>
+        {
+            registeredWarning,
+            Record(ViolationType.Warning, null, null, start.AddHours(7)),
+            paid,
+            Record(ViolationType.Ticket, TicketStatus.Waived, 300m, start.AddHours(2)),
+            Record(ViolationType.Ticket, TicketStatus.Pending, 500m, start.AddHours(3)),
+            bloodDonation,
+            communityService,
+            Record(ViolationType.Ticket, TicketStatus.Paid, 999m, start.AddTicks(-1)),
+            Record(ViolationType.Warning, null, null, end)
+        };
+        using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);
+        context.Tickets = new ReportTestDbSet<Ticket>(records);
+        var reports = new MemoryReportRepository();
+        var service = new MarikinaMarket.API.Application.Services.ReportService(
+            reports, new TicketRepository(context), AuditUserRepositoryStub.Create(), new ReportUnitOfWork());
+
+        var both = (await service.PreviewAsync("2026-10-12", "Warning & Ticket")).Summary;
+        Assert.Equal(2, both.WarningsIssued!.TotalRecords);
+        Assert.Equal(0m, both.WarningsIssued.AssessedPenalties);
+        Assert.Equal(5, both.TicketsIssued!.TotalRecords);
+        Assert.Equal(1800m, both.TicketsIssued.AssessedPenalties);
+        Assert.Equal(2, both.Resolved.TotalRecords);
+        Assert.Equal(1300m, both.Resolved.AssessedPenalties);
+        Assert.Equal(3, both.Pending.TotalRecords);
+        Assert.Equal(500m, both.Pending.AssessedPenalties);
+        Assert.Equal(7, both.Total.TotalRecords);
+        Assert.Equal(1800m, both.Total.AssessedPenalties);
+
+        var tickets = (await service.PreviewAsync("2026-10-12", "Ticket")).Summary;
+        Assert.Null(tickets.WarningsIssued);
+        Assert.Equal(5, tickets.Total.TotalRecords);
+        Assert.Equal(1800m, tickets.Total.AssessedPenalties);
+
+        var warnings = (await service.PreviewAsync("2026-10-12", "Warning")).Summary;
+        Assert.Null(warnings.TicketsIssued);
+        Assert.Equal(2, warnings.Total.TotalRecords);
+        Assert.Equal(0m, warnings.Total.AssessedPenalties);
+    }
+
     private static Ticket Record(ViolationType type, TicketStatus? status, decimal? amount, DateTime issuedAt)
         => new() { Type = type, Status = status, TotalPaymentAmount = amount, IssuedAt = issuedAt, Description = "Market inspection" };
 }
