@@ -22,6 +22,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/dialogs/duplicate_warning_conflict_dialog.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/duplicate_ticket_dialog.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/fine_changed_notice.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/penalty_details_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/photo_evidence_preview_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/process_loading_overlay.dart';
@@ -634,6 +635,11 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           ),
                       if (_verificationMessage != null)
                         Text(_verificationMessage!),
+                      FineChangedNotice(
+                        copied: widget.formData.fineSummary,
+                        verified: _verification?.calculation,
+                        penaltyType: penaltyType,
+                      ),
                       TextButton(
                         onPressed: () async {
                           final checked = await PersonHistorySheet.show(
