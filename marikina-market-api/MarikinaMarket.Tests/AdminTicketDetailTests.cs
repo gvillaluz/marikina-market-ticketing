@@ -58,6 +58,33 @@ public class AdminTicketDetailTests
         Assert.Equal("Fish aisle near F-014", enforcerDetail.IssuePlace);
     }
 
+    [Fact]
+    public async Task Repository_includes_last_updated_time_in_admin_warning_detail()
+    {
+        var updatedAt = new DateTime(2026, 11, 10, 2, 0, 0, DateTimeKind.Utc);
+        var enforcer = new User
+        {
+            FirstName = "Ana", LastName = "Santos", DateOfBirth = new DateOnly(1990, 1, 1),
+            HouseNumber = "1", Street = "Test Street", Barangay = "Test Barangay", City = "Marikina"
+        };
+        var warning = new Ticket
+        {
+            Id = 43, Description = "Loose cart near gate", Type = ViolationType.Warning,
+            IssuedAt = new DateTime(2026, 11, 8, 2, 0, 0, DateTimeKind.Utc), UpdatedAt = updatedAt,
+            IssuePlace = "Palengke gate 2",
+            MarketSection = new MarketSection { Name = "Dry Goods", Description = "Dry goods section" },
+            Enforcer = enforcer
+        };
+        using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);
+        context.Tickets = new AccountDatabaseSet<Ticket>([warning]);
+
+        var detail = await new TicketRepository(context).GetAdminTicketDetailAsync(43);
+
+        Assert.NotNull(detail);
+        Assert.Equal(updatedAt, detail.UpdatedAt);
+        Assert.Null(detail.DueDate);
+    }
+
     [Theory]
     [InlineData(BusinessType.Public, "Public")]
     [InlineData(BusinessType.Private, "Private")]
