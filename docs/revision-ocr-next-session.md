@@ -5,7 +5,7 @@ Detailed records: `docs/revision-ocr-feasibility-plan.md` and `evidence/revision
 
 ## Latest (2026-11-06): A1 complete
 
-New ticket flow, part A1 (find the business and the violator) is complete: all automatic tests pass, all six live checks on V2529 passed, and the user closed it on 2026-11-06. A2 has not started and needs its own plan and approval. Report: "A1 final report" in `docs/ticket-flow-slice-a-plan.md`. Nothing is committed. The throwaway database `marikina_market_e2e` was set up again on this computer (`evidence/local-e2e-database/`, files dated 2026-11-06).
+New ticket flow, part A1 (find the business and the violator) is complete: all automatic tests pass, all six live checks on V2529 passed, and the user closed it on 2026-11-06. A2 has not started and needs its own plan and approval. Report: "A1 final report" in `docs/closed-work/faster-entry/ticket-flow-slice-a-plan.md`. Nothing is committed. The throwaway database `marikina_market_e2e` was set up again on this computer (`evidence/local-e2e-database/`, files dated 2026-11-06).
 
 ## Your answers (2026-11-06)
 

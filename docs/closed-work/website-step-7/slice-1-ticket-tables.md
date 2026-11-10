@@ -1,0 +1,7 @@
+# Step 7, slice 1 — web ticket tables (COMPLETE 2026-11-06, merged as PR #1)
+
+Approved scope: website only, no API/database/mobile change. Tickets list adds Business name and Registered owner (ticket-day saved details) and renames "Recorded violator" to "Violator"; Inspections list renames "Trade name" to "Business name" and "Person" to "Violator" and adds Registered owner. Older records show the existing "Historical business details unavailable." note.
+
+Evidence ([README](../../../evidence/revision-web-ticket-tables-2026-11-06/README.md)): new render test red→green; web 154/154 Node tests passed and build passed (existing large-bundle warning only). Live against guarded disposable `marikina_market_e2e` with the real API, 1600px and 390px: values matched hand-written expectations; reload asks to sign in again (by design); no sign-in refused (401); enforcer refused on the website; blocked list requests show "Unable to load …" with Try again, which recovers. Merged by the user (merge `62036e5`); GitHub check on `main` passed after the user's CI fix `72c42b0` (backup tests' disposable temp folder; 755 passed/2 skips; previously 22 backup tests failed on every run since at least 2026-10-30).
+
+Limits: not checked — an enforcer holding a valid session token; AdminOfficer (no test account). Remaining for the Phase 3 table criterion: ticket detail (scan, evidence, change history) and search. The GitHub check runs API tests only, not web tests. Completion does not authorize the next step 7 slice.

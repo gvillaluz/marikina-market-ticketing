@@ -117,3 +117,7 @@ When I correct you or reject your approach:
 
 2. [COMMUNICATION] Always explain results, options and decisions in plain, non-technical language (technical detail only when asked or needed for a decision), because the user needs to understand and decide without a technical background.
 
+3. [WORKFLOW] Always create a worktree beside the project, set up only the packages that slice needs, and ask before each install or secret copy, because a new worktree has no installed packages or git-ignored files, the main folder must stay clean, and the user approves installs per task. Steps for creating and cleaning up are in `docs/worktrees.md`.
+
+4. [DOCS] Always keep `roadmap.md` a short checklist (✅ closed with date, ☐ open, ⏸ waiting or decision for later, one line per task) and put notes, evidence and limits for each task in its own file inside a topic folder under `docs/closed-work/`, listed in `docs/closed-work/README.md`, because the long roadmap was too hard to read and closed-task notes are documents, not roadmap items. Move notes word for word; never reword them.
+
