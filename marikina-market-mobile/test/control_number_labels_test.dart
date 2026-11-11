@@ -117,11 +117,9 @@ void main() {
       ),
     );
     await flush(tester);
-    expect(find.textContaining('Control number: 000456'), findsOneWidget);
-    expect(
-      find.textContaining('Issue place: Fish aisle near F-014'),
-      findsOneWidget,
-    );
+    expect(find.text('Control number'), findsOneWidget);
+    expect(find.text('000456'), findsOneWidget);
+    expect(find.text('Fish aisle near F-014'), findsOneWidget);
     expectNoOldLabels();
   });
 

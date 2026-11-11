@@ -1,0 +1,2 @@
+.list { display: grid; gap: var(--space-md); }
+.card { display: grid; gap: var(--space-md); padding: var(--space-lg); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-md); }

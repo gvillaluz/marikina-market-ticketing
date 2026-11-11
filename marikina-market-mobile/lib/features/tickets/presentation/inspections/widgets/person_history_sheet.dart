@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_outlined_btn.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_ticket_history.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/unregistered_vendor.dart';
+import 'person_history_card.dart';
+import 'person_history_message.dart';
 
 class PersonHistorySheet extends StatefulWidget {
   final int personId;
@@ -20,6 +22,7 @@ class PersonHistorySheet extends StatefulWidget {
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
+        showDragHandle: true,
         builder: (_) => BlocProvider.value(
           value: context.read<InspectionBloc>(),
           child: PersonHistorySheet(personId: id, name: name),
@@ -70,40 +73,78 @@ class _PersonHistorySheetState extends State<PersonHistorySheet> {
     },
     builder: (context, state) => FractionallySizedBox(
       heightFactor: .85,
-      child: ListView(
-        padding: AppTheme.ticketDetailPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Person citation history',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          Text('${widget.name} · Person ${widget.personId}'),
-          const Text(
-            'Citations across businesses and issuing officers. Warnings are excluded.',
-          ),
-          for (final ticket in _items)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                'Control number: ${ticket.paperReference ?? 'Unavailable (legacy record)'} · ${ticket.isUnregistered ? unregisteredVendorLabel : ticket.businessSnapshot?.businessName ?? 'Historical business details unavailable.'}',
-              ),
-              subtitle: Text(
-                'Issue place: ${ticket.issuePlace ?? 'Unavailable (legacy record)'}\nRecorded violator: ${ticket.paperViolatorName ?? 'Unconfirmed'}\n${ticket.ordinances.join('; ')}\n${ticket.issuedAt.toLocal()} · ${ticket.status ?? 'Unknown'}\nOfficer: ${ticket.enforcerName}\nAssessed cash: ${ticket.assessedCashFine?.toStringAsFixed(2) ?? 'Not cash'} · Outstanding cash: ${ticket.outstandingCashFine.toStringAsFixed(2)}',
-              ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Person citation history',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                Text(widget.name.trim(), style: AppTheme.ticketHeadingStyle),
+                Text(
+                  'Citations across businesses and issuing officers. Warnings are excluded.',
+                  style: AppTheme.ticketBodyStyle.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
-          if (_loading) const Center(child: CircularProgressIndicator()),
-          if (!_loading && _items.isEmpty && _error == null)
-            const Text('No citations linked to this person.'),
-          if (_error != null) ...[
-            Text(_error!),
-            TextButton(onPressed: _load, child: const Text('Retry')),
-          ],
-          if (_hasMore && !_loading)
-            TextButton(onPressed: _load, child: const Text('Load more')),
-          TextButton(
-            onPressed: () =>
-                Navigator.pop(context, !_loading && _error == null),
-            child: const Text('Close'),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                for (final ticket in _items) PersonHistoryCard(ticket: ticket),
+                if (_loading && _items.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(AppTheme.dashboardSectionGap),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        semanticsLabel: 'Loading citation history',
+                      ),
+                    ),
+                  ),
+                if (!_loading && _items.isEmpty && _error == null)
+                  const PersonHistoryMessage(
+                    iconData: Icons.history,
+                    title: 'No citations yet',
+                    message: 'No citations linked to this person.',
+                  ),
+                if (_error != null)
+                  PersonHistoryMessage(
+                    iconData: Icons.error_outline,
+                    title: 'Could not load the history',
+                    message: _error!,
+                    isError: true,
+                    onRetry: _load,
+                  ),
+                if (_hasMore && _error == null && _items.isNotEmpty)
+                  AppOutlinedBtn(
+                    label: 'Load more',
+                    iconData: Icons.expand_more,
+                    onPressed: _load,
+                    isLoading: _loading,
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                  ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: AppTheme.selectionSheetPadding,
+            child: AppOutlinedBtn(
+              label: 'Close',
+              iconData: Icons.close,
+              onPressed: () =>
+                  Navigator.pop(context, !_loading && _error == null),
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+            ),
           ),
         ],
       ),
