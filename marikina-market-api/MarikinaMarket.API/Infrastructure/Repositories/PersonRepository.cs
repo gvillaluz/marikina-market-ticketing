@@ -25,6 +25,16 @@ public class PersonRepository(AppDbContext context) : IPersonRepository
         return (items, total);
     }
 
+    // Same name and address, ignoring case and outer spaces; the oldest record when there are several.
+    public Task<Person?> FindExactAsync(string fullName, string address)
+    {
+        var name = fullName.Trim().ToLowerInvariant();
+        var place = address.Trim().ToLowerInvariant();
+        return context.Persons.AsNoTracking()
+            .Where(p => p.FullName.Trim().ToLower() == name && p.Address.Trim().ToLower() == place)
+            .OrderBy(p => p.Id).FirstOrDefaultAsync();
+    }
+
     public async Task AddAsync(Person person) => await context.Persons.AddAsync(person);
 
     public async Task<(List<Person> Items, int Total)> MatchAsync(string[] nameTokens, string? address, string? phone, int offset, int limit)

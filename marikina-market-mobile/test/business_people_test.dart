@@ -7,21 +7,20 @@ import 'package:hive/hive.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_hive_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/person_candidate_model.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/person_candidate.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/business_result_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/search_business_bottom_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/violator_info_card.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/person_identity_review.dart';
 
 import 'features/auth/data/login_mobile_contract_test.dart' show reply;
 import 'inspection_list_ui_test.dart' show listBloc;
-import 'inspection_preview_navigation_test.dart' show flush, vendor;
+import 'inspection_preview_navigation_test.dart' show flush;
 
-// Slice A1 on the phone: business search, the business people list and
-// "Add helper". Synthetic people; expected texts are worked out by hand.
+// Slice A1 on the phone: business search and person ticket totals. Choosing
+// the violator is in violator_picker_test.dart. Synthetic people; expected
+// texts are worked out by hand.
 
 Map<String, Object?> totals({
   int offenses = 0,
@@ -60,55 +59,6 @@ final juan = person(
     businesses: ['Store X', 'Synthetic Market Goods'],
   ),
 );
-
-// Pedro: only ticketed at Store X, so he is not on this business's list.
-final pedro = person(
-  3,
-  'Pedro Reyes',
-  totals(
-    offenses: 1,
-    warnings: 1,
-    lastAt: '2026-10-02T08:00:00Z',
-    lastBusiness: 'Store X',
-    businesses: ['Store X'],
-  ),
-);
-
-Future<void> showReview(
-  WidgetTester tester,
-  InspectionBloc bloc,
-  void Function(PersonCandidate?, String) onChanged,
-) async {
-  tester.view.physicalSize = const Size(390, 2400);
-  tester.view.devicePixelRatio = 1;
-  addTearDown(tester.view.resetPhysicalSize);
-  addTearDown(tester.view.resetDevicePixelRatio);
-  await tester.pumpWidget(
-    BlocProvider.value(
-      value: bloc,
-      child: MaterialApp(
-        theme: AppTheme.light,
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: PersonIdentityReview(vendor: vendor, onChanged: onChanged),
-          ),
-        ),
-      ),
-    ),
-  );
-  await flush(tester);
-}
-
-String nameField(WidgetTester tester) => tester
-    .widget<TextField>(
-      find.byWidgetPredicate(
-        (w) =>
-            w is TextField && w.decoration?.labelText == 'Paper violator name',
-      ),
-    )
-    .controller!
-    .text;
-
 void main() {
   setUpAll(() {
     final adapter = OrdinanceHiveModelAdapter();
@@ -305,190 +255,4 @@ void main() {
     );
     expect(find.text('Search for a registered business.'), findsOneWidget);
   });
-
-  testWidgets(
-    'people list shows the owner and people ticketed here with totals; one tap selects',
-    (tester) async {
-      final paths = <String>[];
-      final bloc = await tester.runAsync(
-        () => listBloc((options) async {
-          paths.add(options.path);
-          return reply(options, [juan]);
-        }),
-      );
-      PersonCandidate? selected;
-      var paperName = '';
-      await showReview(tester, bloc!, (p, name) {
-        selected = p;
-        paperName = name;
-      });
-      expect(paths, ['/vendor/12/people']);
-      expect(find.text('Owner: Synthetic Vendor'), findsOneWidget);
-      expect(find.text('Juan Dela Cruz'), findsOneWidget);
-      expect(
-        find.text('2 offenses · 0 warnings · ₱500.00 unpaid'),
-        findsOneWidget,
-      );
-      expect(
-        find.text('Last ticket: Oct 5, 2026 at Synthetic Market Goods'),
-        findsOneWidget,
-      );
-      await tester.tap(find.text('Select'));
-      await tester.pump();
-      expect(selected?.id, 1);
-      expect(paperName, 'Juan Dela Cruz');
-      expect(nameField(tester), 'Juan Dela Cruz');
-    },
-  );
-
-  testWidgets('people list explains when nobody was ticketed here yet', (
-    tester,
-  ) async {
-    final bloc = await tester.runAsync(
-      () => listBloc((options) async => reply(options, [])),
-    );
-    await showReview(tester, bloc!, (_, _) {});
-    expect(
-      find.text('No one has been ticketed at this business yet.'),
-      findsOneWidget,
-    );
-    expect(find.text('Owner: Synthetic Vendor'), findsOneWidget);
-  });
-
-  testWidgets('people list shows a plain error and retry loads it again', (
-    tester,
-  ) async {
-    var calls = 0;
-    final bloc = await tester.runAsync(
-      () => listBloc((options) async {
-        calls++;
-        if (calls == 1) {
-          throw DioException(
-            requestOptions: options,
-            type: DioExceptionType.connectionError,
-          );
-        }
-        return reply(options, [juan]);
-      }),
-    );
-    await showReview(tester, bloc!, (_, _) {});
-    expect(
-      find.text('No internet connection. Please try again.'),
-      findsOneWidget,
-    );
-    await tester.tap(find.text('Retry'));
-    await flush(tester);
-    expect(calls, 2);
-    expect(find.text('Juan Dela Cruz'), findsOneWidget);
-  });
-
-  testWidgets(
-    'tapping the owner searches people with the owner name filled in',
-    (tester) async {
-      final requests = <RequestOptions>[];
-      final bloc = await tester.runAsync(
-        () => listBloc((options) async {
-          requests.add(options);
-          if (options.path == '/persons/matches') {
-            return reply(options, {'items': [], 'has_more': false});
-          }
-          return reply(options, []);
-        }),
-      );
-      await showReview(tester, bloc!, (_, _) {});
-      await tester.tap(find.text('Find owner'));
-      await flush(tester);
-      expect(nameField(tester), 'Synthetic Vendor');
-      expect(requests.last.path, '/persons/matches');
-      expect(requests.last.data['name'], 'Synthetic Vendor');
-    },
-  );
-
-  testWidgets('new person is the main choice only when nobody matches', (
-    tester,
-  ) async {
-    var matches = <Object?>[
-      {
-        ...pedro,
-        'matched_fields': ['name'],
-      },
-    ];
-    final bloc = await tester.runAsync(
-      () => listBloc((options) async {
-        if (options.path == '/persons/matches') {
-          return reply(options, {'items': matches, 'has_more': false});
-        }
-        return reply(options, []);
-      }),
-    );
-    await showReview(tester, bloc!, (_, _) {});
-    final name = find.byWidgetPredicate(
-      (w) => w is TextField && w.decoration?.labelText == 'Paper violator name',
-    );
-    expect(find.text('New person'), findsNothing);
-    await tester.enterText(name, 'pedro');
-    await tester.tap(find.text('Check possible matches'));
-    await flush(tester);
-    // A same-name stranger can still be recorded, but only after the matches.
-    expect(find.text('New person'), findsNothing);
-    expect(find.text('Not any of these – new person'), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.text('Not any of these – new person')).dy,
-      greaterThan(tester.getTopLeft(find.text('Pedro Reyes')).dy),
-    );
-
-    matches = [];
-    await tester.enterText(name, 'nobody');
-    await tester.tap(find.text('Check possible matches'));
-    await flush(tester);
-    expect(find.text('New person'), findsOneWidget);
-    expect(find.text('Not any of these – new person'), findsNothing);
-  });
-
-  testWidgets(
-    'add helper finds a person from another business and selects without retyping',
-    (tester) async {
-      final bloc = await tester.runAsync(
-        () => listBloc((options) async {
-          if (options.path == '/persons/matches') {
-            return reply(options, {
-              'items': [
-                {
-                  ...pedro,
-                  'matched_fields': ['name'],
-                },
-              ],
-              'has_more': false,
-            });
-          }
-          return reply(options, [juan]);
-        }),
-      );
-      PersonCandidate? selected;
-      var paperName = '';
-      await showReview(tester, bloc!, (p, name) {
-        selected = p;
-        paperName = name;
-      });
-      expect(find.text('Pedro Reyes'), findsNothing);
-      await tester.enterText(
-        find.byWidgetPredicate(
-          (w) =>
-              w is TextField &&
-              w.decoration?.labelText == 'Paper violator name',
-        ),
-        'pedro',
-      );
-      await tester.tap(find.text('Check possible matches'));
-      await flush(tester);
-      expect(find.text('Pedro Reyes'), findsOneWidget);
-      expect(find.text('1 offense · 1 warning · ₱0.00 unpaid'), findsOneWidget);
-      expect(find.text('Ticketed at: Store X'), findsOneWidget);
-      await tester.tap(find.text('Same person – select'));
-      await tester.pump();
-      expect(selected?.id, 3);
-      expect(paperName, 'Pedro Reyes');
-      expect(nameField(tester), 'Pedro Reyes');
-    },
-  );
 }

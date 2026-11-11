@@ -1,5 +1,11 @@
 export './business_people_error.dart';
 export './business_people_loading.dart';
+export './owner_person_loading.dart';
+export './owner_person_loaded.dart';
+export './owner_person_error.dart';
+export './owner_person_adding.dart';
+export './owner_person_added.dart';
+export './owner_person_add_error.dart';
 export './market_sections_error.dart';
 export './market_sections_loading.dart';
 export './inspection_verification_error.dart';
@@ -9,7 +15,7 @@ export './person_history_loading.dart';
 export './person_creation_error.dart';
 export './person_creation_loading.dart';
 export './person_matches_error.dart';
-export './person_matches_loading.dart';
+export './person_matches_loaded.dart';
 
 import 'package:marikina_market_mobile/features/tickets/domain/entities/duplicate_ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';

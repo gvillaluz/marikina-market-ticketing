@@ -26,7 +26,9 @@ public class VendorSignUpRemovalTests
                 "GET dashboard",
                 "GET lookup",
                 "GET profile",
+                "GET {businessId:int}/owner-person",
                 "GET {businessId:int}/people",
+                "POST {businessId:int}/owner-person",
                 "PUT profile",
             },
             Routes(typeof(VendorController)));

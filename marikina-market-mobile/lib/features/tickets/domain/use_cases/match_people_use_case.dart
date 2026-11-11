@@ -7,10 +7,6 @@ import 'package:marikina_market_mobile/features/tickets/domain/repositories/insp
 class MatchPeopleUseCase {
   final InspectionRepository _repository;
   const MatchPeopleUseCase(this._repository);
-  Future<Result<PageResult<PersonCandidate>>> call(
-    String name,
-    String? address,
-    String? phone,
-    int offset,
-  ) => _repository.matchPeople(name, address, phone, offset);
+  Future<Result<PageResult<PersonCandidate>>> call(String name, int offset) =>
+      _repository.matchPeople(name, offset);
 }

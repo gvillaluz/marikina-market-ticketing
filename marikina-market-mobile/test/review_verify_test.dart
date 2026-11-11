@@ -48,6 +48,7 @@ import 'features/tickets/presentation/person_verification_flow_test.dart'
 import 'fine_summary_display_test.dart' show line, summaryOf;
 import 'inspection_list_ui_test.dart' show listBloc;
 import 'inspection_preview_navigation_test.dart' show flush, formAction, vendor;
+import 'violator_picker_test.dart' show inReview;
 
 // Criterion 5, Review and Verify. The Review page shows the paper ticket photo
 // next to the details; Verify only asks the server to check, it never saves;
@@ -241,21 +242,14 @@ void main() {
         () => listBloc((options) async {
           paths.add(options.path);
           switch (options.path) {
-            case '/persons/matches':
+            case '/vendor/12/owner-person':
+              // The business owner already has person record 31.
               return reply(options, {
-                'items': [
-                  {
-                    'id': 31,
-                    'full_name': 'Juan Dela Cruz',
-                    'address': '31 Synthetic Market Lane',
-                    'phone_number': null,
-                    'matched_fields': ['name'],
-                  },
-                ],
-                'has_more': false,
+                'id': 31,
+                'full_name': 'Synthetic Vendor',
+                'address': 'Synthetic Street, Marikina',
+                'phone_number': null,
               });
-            case '/vendor/12/people':
-              return reply(options, []);
             case '/persons/31/tickets':
               return reply(options, {'items': [], 'has_more': false});
             case '/ordinance':
@@ -317,6 +311,8 @@ void main() {
           getOrdinanceShortcutsUseCase:
               templateBloc.getOrdinanceShortcutsUseCase,
           getBusinessPeopleUseCase: templateBloc.getBusinessPeopleUseCase,
+          getOwnerPersonUseCase: templateBloc.getOwnerPersonUseCase,
+          addOwnerPersonUseCase: templateBloc.addOwnerPersonUseCase,
           getFineSummaryUseCase: templateBloc.getFineSummaryUseCase,
           checkWarningOrdinancesUseCase:
               templateBloc.checkWarningOrdinancesUseCase,
@@ -374,11 +370,6 @@ void main() {
       const reference = ValueKey('paper-reference');
       const place = ValueKey('issue-place');
       const description = ValueKey('inspection-description');
-      final name = find.byWidgetPredicate(
-        (widget) =>
-            widget is TextField &&
-            widget.decoration?.labelText == 'Paper violator name',
-      );
       String typed(Finder field) => tester
           .widget<TextField>(
             find
@@ -395,13 +386,10 @@ void main() {
       await tester.enterText(find.byKey(reference), '000100');
       await tester.ensureVisible(find.byKey(place));
       await tester.enterText(find.byKey(place), 'Fish aisle near F-014');
-      await tester.ensureVisible(name);
-      await tester.enterText(name, 'Juan Cruz');
-      await tester.ensureVisible(find.text('Check possible matches'));
-      await tester.tap(find.text('Check possible matches'));
-      await flush(tester);
-      await tester.ensureVisible(find.text('Same person – select'));
-      await tester.tap(find.text('Same person – select'));
+      // One tap on the owner card chooses the owner as the violator.
+      final owner = inReview(find.text('Synthetic Vendor'));
+      await tester.ensureVisible(owner);
+      await tester.tap(owner);
       await tester.pump();
 
       await tester.ensureVisible(find.text('Select Ordinance'));
@@ -486,20 +474,20 @@ void main() {
         await flush(tester);
       }
 
-      // What the entry page holds before Review. (Choosing the person fills
-      // the paper name from the record; that is faster entry A1.)
+      // What the entry page holds before Review. (The violator's name is
+      // the chosen person's record name.)
       final before = [
         typed(find.byKey(reference)),
         typed(find.byKey(place)),
-        typed(name),
         typed(find.byKey(description)),
       ];
       expect(before, [
         '000100',
         'Fish aisle near F-014',
-        'Juan Dela Cruz',
         'Market identification card not displayed',
       ]);
+      expect(inReview(find.text('Synthetic Vendor')), findsOneWidget);
+      expect(inReview(find.text('Change')), findsOneWidget);
 
       // Review, with a wrong control number typed by mistake.
       final review = await openReview();
@@ -515,9 +503,10 @@ void main() {
       expect([
         typed(find.byKey(reference)),
         typed(find.byKey(place)),
-        typed(name),
         typed(find.byKey(description)),
       ], before);
+      expect(inReview(find.text('Synthetic Vendor')), findsOneWidget);
+      expect(inReview(find.text('Change')), findsOneWidget);
 
       // Fix the number; the next Verify checks the fixed one with the rest
       // unchanged.
@@ -530,7 +519,7 @@ void main() {
       expect(verifyBodies, hasLength(2));
       expect(verifyBodies.last['paper_reference'], '000457');
       expect(verifyBodies.last['issue_place'], 'Fish aisle near F-014');
-      expect(verifyBodies.last['paper_violator_name'], 'Juan Dela Cruz');
+      expect(verifyBodies.last['paper_violator_name'], 'Synthetic Vendor');
       expect(verifyBodies.last['person_id'], 31);
       expect(verifyBodies.last['vendor_id'], 12);
       expect(paths, isNot(contains('/enforcer/tickets/new-inspection')));

@@ -28,6 +28,8 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
         Task<FineSummaryResponse> GetPersonFineSummaryAsync(List<int> ordinanceIds, int personId);
         Task<PageResponse<PersonTicketHistoryResponse>> GetPersonHistoryAsync(int personId, int offset);
         Task<List<PersonSummaryResponse>> GetBusinessPeopleAsync(int businessId);
+        Task<PersonSummaryResponse?> GetOwnerPersonAsync(int businessId);
+        Task<PersonSummaryResponse> AddOwnerPersonAsync(int businessId);
         Task<OrdinanceShortcutsResponse> GetOrdinanceShortcutsAsync(int enforcerId, int? personId);
         Task<PageResponse<VendorInspectionHistoryResponse>> GetVendorInspectionHistoryAsync(
             int vendorId,

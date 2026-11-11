@@ -1,6 +1,7 @@
 import './inspection_state.dart';
 
 class PersonCreationError extends InspectionState {
-  final String message;
+  // Null when the server did not reply: the person may have been saved.
+  final String? message;
   PersonCreationError(this.message);
 }

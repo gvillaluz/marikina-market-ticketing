@@ -24,6 +24,8 @@ import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_mar
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_ordinance_shortcuts_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_businesses_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_business_people_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_owner_person_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/add_owner_person_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/check_warning_ordinances_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/warning_ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
@@ -41,6 +43,8 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   final SearchBusinessesUseCase searchBusinessesUseCase;
   final GetOrdinanceShortcutsUseCase getOrdinanceShortcutsUseCase;
   final GetBusinessPeopleUseCase getBusinessPeopleUseCase;
+  final GetOwnerPersonUseCase getOwnerPersonUseCase;
+  final AddOwnerPersonUseCase addOwnerPersonUseCase;
   final GetFineSummaryUseCase getFineSummaryUseCase;
   final CheckWarningOrdinancesUseCase checkWarningOrdinancesUseCase;
   final SaveInspectionTicketUseCase saveInspectionTicketUseCase;
@@ -59,6 +63,8 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
 
   int _personMatchRequest = 0;
   bool _creatingPerson = false;
+  // Businesses whose owner is being added, so a double tap sends one POST.
+  final Set<int> _addingOwners = {};
   List<InspectionTicketSummary> _inspectionSummary = [];
   List<InspectionTicketSummary> get inspectionSummaries => _inspectionSummary;
   String _listSearch = '';
@@ -87,19 +93,15 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     required this.searchBusinessesUseCase,
     required this.getOrdinanceShortcutsUseCase,
     required this.getBusinessPeopleUseCase,
+    required this.getOwnerPersonUseCase,
+    required this.addOwnerPersonUseCase,
     required this.getFineSummaryUseCase,
     required this.checkWarningOrdinancesUseCase,
     required this.saveInspectionTicketUseCase,
   }) : super(InspectionInitial()) {
     on<PersonMatchesRequested>((event, emit) async {
       final request = ++_personMatchRequest;
-      emit(PersonMatchesLoading());
-      final result = await matchPeopleUseCase(
-        event.name,
-        event.address,
-        event.phone,
-        event.offset,
-      );
+      final result = await matchPeopleUseCase(event.name, event.offset);
       if (emit.isDone || request != _personMatchRequest) return;
       switch (result) {
         case Success<PageResult<PersonCandidate>>(:final data):
@@ -122,6 +124,9 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
         switch (result) {
           case Success<PersonCandidate>(:final data):
             emit(PersonCreated(data));
+          // No reply from the server, so there is no server message.
+          case ResultFailure(failure: NetworkFailure()):
+            emit(PersonCreationError(null));
           case ResultFailure(:final failure):
             emit(PersonCreationError(failure.message));
         }
@@ -163,6 +168,8 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     on<MarketSectionsRequested>(_onMarketSectionsRequested);
     on<BusinessSearchRequested>(_onBusinessSearchRequested);
     on<BusinessPeopleRequested>(_onBusinessPeopleRequested);
+    on<OwnerPersonRequested>(_onOwnerPersonRequested);
+    on<OwnerPersonAddRequested>(_onOwnerPersonAddRequested);
     on<LoadOrdinanceSelection>(_onLoadOrdinanceSelection);
     on<FineSummaryRequested>(_onFineSummaryRequested);
     on<WarningOrdinanceCheckRequested>(_onWarningOrdinanceCheckRequested);
@@ -334,6 +341,41 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
         emit(BusinessPeopleLoaded(data));
       case ResultFailure(:final failure):
         emit(BusinessPeopleError(failure.message));
+    }
+  }
+
+  Future<void> _onOwnerPersonRequested(
+    OwnerPersonRequested event,
+    Emitter<InspectionState> emit,
+  ) async {
+    emit(OwnerPersonLoading(event.businessId));
+    final result = await getOwnerPersonUseCase(event.businessId);
+    if (emit.isDone) return;
+    switch (result) {
+      case Success(:final data):
+        emit(OwnerPersonLoaded(event.businessId, data));
+      case ResultFailure(:final failure):
+        emit(OwnerPersonError(event.businessId, failure.message));
+    }
+  }
+
+  Future<void> _onOwnerPersonAddRequested(
+    OwnerPersonAddRequested event,
+    Emitter<InspectionState> emit,
+  ) async {
+    if (!_addingOwners.add(event.businessId)) return;
+    emit(OwnerPersonAdding(event.businessId));
+    try {
+      final result = await addOwnerPersonUseCase(event.businessId);
+      if (emit.isDone) return;
+      switch (result) {
+        case Success(:final data):
+          emit(OwnerPersonAdded(event.businessId, data));
+        case ResultFailure(:final failure):
+          emit(OwnerPersonAddError(event.businessId, failure.message));
+      }
+    } finally {
+      _addingOwners.remove(event.businessId);
     }
   }
 

@@ -6,15 +6,17 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_s
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
-import 'business_people_section.dart';
-import 'create_person_sheet.dart';
+import 'find_person_sheet.dart';
+import 'owner_person_card.dart';
 import 'person_history_sheet.dart';
-import 'person_record_tile.dart';
+import 'person_result_card.dart';
 
+// Choosing the violator: the owner card first, then anyone else by name.
+// After a choice only that person is shown, with Change and History.
 class PersonIdentityReview extends StatefulWidget {
-  // Null when the vendor is not registered: there is no owner or people list.
+  // Null when the vendor is not registered: there is no owner.
   final VendorSummary? vendor;
-  final void Function(PersonCandidate? person, String paperName) onChanged;
+  final ValueChanged<PersonCandidate?> onChanged;
   const PersonIdentityReview({
     super.key,
     required this.vendor,
@@ -25,268 +27,152 @@ class PersonIdentityReview extends StatefulWidget {
 }
 
 class _PersonIdentityReviewState extends State<PersonIdentityReview> {
-  final _name = TextEditingController();
-  final _address = TextEditingController();
-  final _phone = TextEditingController();
-  final List<PersonCandidate> _candidates = [];
-  PersonCandidate? _confirmed;
-  bool _checked = false, _hasMore = false, _loading = false;
-  String? _message;
-  List<PersonCandidate> _people = const [];
-  bool _peopleLoading = true;
-  String? _peopleError;
+  PersonCandidate? _selected;
+  PersonCandidate? _owner;
+  bool _ownerLoading = false, _adding = false;
+  String? _ownerError, _addError;
 
   @override
   void initState() {
     super.initState();
-    if (widget.vendor == null) {
-      _peopleLoading = false;
-    } else {
-      _loadPeople();
+    if (widget.vendor != null) {
+      _ownerLoading = true;
+      _loadOwner();
     }
   }
 
-  void _loadPeople() => context.read<InspectionBloc>().add(
-    BusinessPeopleRequested(widget.vendor!.id),
+  void _loadOwner() => context.read<InspectionBloc>().add(
+    OwnerPersonRequested(widget.vendor!.id),
   );
 
-  @override
-  void dispose() {
-    _name.dispose();
-    _address.dispose();
-    _phone.dispose();
-    super.dispose();
+  void _addOwner() => context.read<InspectionBloc>().add(
+    OwnerPersonAddRequested(widget.vendor!.id),
+  );
+
+  void _select(PersonCandidate? person) {
+    setState(() => _selected = person);
+    widget.onChanged(person);
   }
 
-  void _changed(String value) {
-    context.read<InspectionBloc>().invalidatePersonSearch();
-    setState(() {
-      _checked = false;
-      _hasMore = false;
-      _loading = false;
-      _candidates.clear();
-      _confirmed = null;
-      _message = null;
-    });
-    widget.onChanged(null, _name.text.trim());
-  }
-
-  // One tap fills the paper name from the record, so nothing is retyped.
-  void _select(PersonCandidate person) {
-    setState(() {
-      _confirmed = person;
-      _name.text = person.fullName;
-    });
-    widget.onChanged(person, person.fullName);
-  }
-
-  void _findOwner() {
-    _name.text = widget.vendor!.ownerName;
-    _changed(_name.text);
-    _check();
-  }
-
-  void _check({int offset = 0}) {
-    if (_name.text.trim().isEmpty || _loading) return;
-    FocusScope.of(context).unfocus();
-    context.read<InspectionBloc>().add(
-      PersonMatchesRequested(
-        _name.text.trim(),
-        _address.text.trim(),
-        _phone.text.trim(),
-        offset: offset,
-      ),
-    );
-  }
-
-  Future<void> _create() async {
-    if (!_checked || _loading) return;
+  Future<void> _findPerson() async {
     final person = await showModalBottomSheet<PersonCandidate>(
       context: context,
+      showDragHandle: true,
       isScrollControlled: true,
       useSafeArea: true,
+      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+          ? AnimationStyle.noAnimation
+          : const AnimationStyle(
+              duration: AppTheme.pageTransitionDuration,
+              reverseDuration: AppTheme.pageReverseTransitionDuration,
+            ),
       builder: (_) => BlocProvider.value(
         value: context.read<InspectionBloc>(),
-        child: CreatePersonSheet(
-          name: _name.text.trim(),
-          address: _address.text.trim(),
-          phone: _phone.text.trim(),
-        ),
+        child: FindPersonSheet(businessId: widget.vendor?.id),
       ),
     );
-    if (!mounted) return;
-    // A failed/uncertain request must be checked against actual records before retry.
-    setState(() {
-      _checked = false;
-      _confirmed = null;
-    });
-    widget.onChanged(null, _name.text.trim());
-    if (person != null) {
+    if (mounted && person != null) _select(person);
+  }
+
+  // Owner replies for another business (one shown earlier) are ignored.
+  void _onState(BuildContext context, InspectionState state) {
+    final id = widget.vendor?.id;
+    if (state is OwnerPersonLoading && state.businessId == id) {
       setState(() {
-        _candidates.insert(0, person);
-        _checked = true;
-        _message = 'Person created. Confirm this is the violator.';
+        _ownerLoading = true;
+        _ownerError = null;
       });
-    } else {
-      _check();
+    }
+    if (state is OwnerPersonLoaded && state.businessId == id) {
+      setState(() {
+        _ownerLoading = false;
+        _owner = state.person;
+      });
+    }
+    if (state is OwnerPersonError && state.businessId == id) {
+      setState(() {
+        _ownerLoading = false;
+        _ownerError = state.message;
+      });
+    }
+    if (state is OwnerPersonAdding && state.businessId == id) {
+      setState(() {
+        _adding = true;
+        _addError = null;
+      });
+    }
+    if (state is OwnerPersonAddError && state.businessId == id) {
+      setState(() {
+        _adding = false;
+        _addError = state.message;
+      });
+    }
+    if (state is OwnerPersonAdded && state.businessId == id) {
+      setState(() {
+        _adding = false;
+        _owner = state.person;
+      });
+      // Someone chosen meanwhile stays chosen; the owner card just updates.
+      if (_selected == null) _select(state.person);
     }
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) => BlocConsumer<InspectionBloc, InspectionState>(
-    listener: (context, state) {
-      if (state is BusinessPeopleLoading) {
-        setState(() {
-          _peopleLoading = true;
-          _peopleError = null;
-        });
-      }
-      if (state is BusinessPeopleLoaded) {
-        setState(() {
-          _peopleLoading = false;
-          _people = state.people;
-        });
-      }
-      if (state is BusinessPeopleError) {
-        setState(() {
-          _peopleLoading = false;
-          _peopleError = state.message;
-        });
-      }
-      if (state is PersonMatchesLoading) {
-        setState(() {
-          _loading = true;
-          _message = null;
-        });
-      }
-      if (state is PersonMatchesLoaded && state.name == _name.text.trim()) {
-        setState(() {
-          _loading = false;
-          _checked = true;
-          _hasMore = state.page.hasMore;
-          if (state.offset == 0) _candidates.clear();
-          _candidates.addAll(state.page.items);
-          _message = _candidates.isEmpty
-              ? 'No possible matches. Review the name and details before creating a person.'
-              : 'Compare the details. A name match does not confirm identity.';
-        });
-      }
-      if (state is PersonMatchesError) {
-        setState(() {
-          _loading = false;
-          _checked = false;
-          _message = state.message;
-        });
-      }
-    },
-    builder: (context, state) => Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (widget.vendor != null)
-          BusinessPeopleSection(
-            ownerName: widget.vendor!.ownerName,
-            people: _people,
-            loading: _peopleLoading,
-            error: _peopleError,
-            selectedId: _confirmed?.id,
-            onFindOwner: _findOwner,
-            onRetry: _loadPeople,
-            onSelect: _select,
-          ),
-        Text(
-          'Add helper or another person',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const Text(
-          'Enter the name from the paper, then search all person records.',
-        ),
-        TextField(
-          controller: _name,
-          maxLength: 200,
-          onChanged: _changed,
-          decoration: const InputDecoration(
-            labelText: 'Paper violator name',
-            helperText: 'Keep the spelling written on the paper.',
-          ),
-        ),
-        TextField(
-          controller: _address,
-          maxLength: 500,
-          onChanged: _changed,
-          decoration: const InputDecoration(
-            labelText: 'Reviewed address (optional for matching)',
-          ),
-        ),
-        TextField(
-          controller: _phone,
-          maxLength: 11,
-          keyboardType: TextInputType.phone,
-          onChanged: _changed,
-          decoration: const InputDecoration(labelText: 'Phone (optional)'),
-        ),
-        OutlinedButton(
-          onPressed: _loading ? null : () => _check(),
-          child: Text(
-            _loading ? 'Checking records…' : 'Check possible matches',
-          ),
-        ),
-        if (_message != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: AppTheme.ticketSmallGap,
+  Widget build(BuildContext context) {
+    final vendor = widget.vendor;
+    final selected = _selected;
+    return BlocListener<InspectionBloc, InspectionState>(
+      listener: _onState,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Violator', style: AppTheme.inspectionHeadingStyle),
+          const SizedBox(height: AppTheme.inspectionSmallGap),
+          if (selected != null) ...[
+            PersonResultCard(
+              person: selected,
+              isOwner: selected.id == _owner?.id,
+              isSelected: true,
+              onTap: null,
             ),
-            child: Text(_message!),
-          ),
-        for (final person in _candidates)
-          PersonRecordTile(
-            key: ValueKey('person-match-${person.id}'),
-            person: person,
-            details: [
-              person.address,
-              person.phoneNumber ?? 'No phone recorded',
-              if (person.matchedFields.isNotEmpty)
-                'Matches: ${person.matchedFields.join(', ')}',
-              if (person.ticketTotals.businessNames.isNotEmpty)
-                'Ticketed at: ${person.ticketTotals.businessNames.join(', ')}',
-            ],
-            actionLabel: _confirmed?.id == person.id
-                ? 'Selected'
-                : 'Same person – select',
-            onAction: _loading || !_checked ? null : () => _select(person),
-          ),
-        if (_hasMore)
-          TextButton(
-            onPressed: _loading
-                ? null
-                : () => _check(offset: _candidates.length),
-            child: const Text('More possible matches'),
-          ),
-        if (_checked)
-          TextButton(
-            onPressed: _loading ? null : _create,
-            child: Text(
-              _candidates.isEmpty
-                  ? 'New person'
-                  : 'Not any of these – new person',
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () => _select(null),
+                  child: const Text('Change'),
+                ),
+                TextButton(
+                  onPressed: () => PersonHistorySheet.show(
+                    context,
+                    selected.id,
+                    selected.fullName,
+                  ),
+                  child: const Text('History'),
+                ),
+              ],
             ),
-          ),
-        if (_confirmed != null) ...[
-          Text(
-            'Confirmed person: ${_confirmed!.fullName} (Person ${_confirmed!.id})',
-          ),
-          TextButton(
-            onPressed: () => PersonHistorySheet.show(
-              context,
-              _confirmed!.id,
-              _confirmed!.fullName,
+          ] else ...[
+            if (vendor != null)
+              OwnerPersonCard(
+                ownerName: vendor.ownerName,
+                owner: _owner,
+                isLoading: _ownerLoading,
+                error: _ownerError,
+                isAdding: _adding,
+                addError: _addError,
+                onRetry: _loadOwner,
+                onAdd: _addOwner,
+                onSelect: _select,
+              ),
+            OutlinedButton.icon(
+              onPressed: _findPerson,
+              icon: const Icon(Icons.person_search_outlined),
+              label: Text(vendor == null ? 'Find violator' : 'Someone else'),
             ),
-            child: const Text('View person citation history'),
-          ),
+          ],
+          const SizedBox(height: AppTheme.inspectionSmallGap),
         ],
-        const SizedBox(height: AppTheme.ticketSmallGap),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }

@@ -2,18 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 
 // The shell of a pick-one-or-more card in a selection sheet: a title with a
-// check circle, then [children]. A null [onTap] locks the card.
+// check circle, then [children]. A null [onTap] locks the card. A card that
+// only shows a choice already made sets [isButton] to false, so screen
+// readers do not call it a disabled button.
 class SelectionCard extends StatelessWidget {
   final Widget title;
   final List<Widget> children;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool isButton;
 
   const SelectionCard({
     required this.title,
     required this.children,
     required this.isSelected,
     required this.onTap,
+    this.isButton = true,
     super.key,
   });
 
@@ -24,8 +28,8 @@ class SelectionCard extends StatelessWidget {
       padding: AppTheme.selectionSheetItemPadding,
       child: MergeSemantics(
         child: Semantics(
-          button: true,
-          enabled: onTap != null,
+          button: isButton,
+          enabled: isButton ? onTap != null : null,
           selected: isSelected,
           child: Material(
             color: isSelected ? colors.primaryContainer : colors.surface,
