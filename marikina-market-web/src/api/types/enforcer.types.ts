@@ -44,7 +44,7 @@ export interface EnforcerProfile {
   role: UserRole;
   hiredAt: Date;
   profileUrl: string;
-  lastInspectionDate: Date;
+  lastInspectionDate: Date | null;
 }
 
 export interface EnforcerPerformanceData {

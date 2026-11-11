@@ -906,25 +906,27 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<PerformanceSummaryResponse?> GetEnforcerPerformanceSummaryAsync(int enforcerId, DateTime yearStart)
+        public async Task<PerformanceSummaryResponse> GetEnforcerPerformanceSummaryAsync(int enforcerId, DateTime yearStart, DateTime yearEnd)
         {
-            var totals = await _context.Tickets
+            var byType = await _context.Tickets
                 .Where(t => t.EnforcerId == enforcerId)
-                .GroupBy(t => 1)
+                .GroupBy(t => t.Type)
                 .Select(g => new
                 {
-                    Total = g.Count(),
-                    Resolved = g.Count(t => t.Status == TicketStatus.Paid || t.Status == TicketStatus.Waived),
-                    Warnings = g.Count(t => t.Type == ViolationType.Warning),
-                    Tickets = g.Count(t => t.Type == ViolationType.Ticket),
+                    Type = g.Key,
+                    Count = g.Count(),
+                    Resolved = g.Count(t => t.Status == TicketStatus.Paid || t.Status == TicketStatus.Cleared || t.Status == TicketStatus.Waived),
                 })
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (totals is null || totals.Total == 0)
-                return null;
+            var total = byType.Sum(g => g.Count);
+            var tickets = byType.Where(g => g.Type == ViolationType.Ticket).Sum(g => g.Count);
+            var warnings = byType.Where(g => g.Type == ViolationType.Warning).Sum(g => g.Count);
+            var resolvedTickets = byType.Where(g => g.Type == ViolationType.Ticket).Sum(g => g.Resolved);
 
             var monthly = await _context.Tickets
-                .Where(t => t.EnforcerId == enforcerId && t.IssuedAt >= yearStart)
+                .Where(t => t.EnforcerId == enforcerId && t.IssuedAt >= yearStart && t.IssuedAt < yearEnd)
+                .Select(t => new { IssuedAt = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(t.IssuedAt, "Asia/Manila") })
                 .GroupBy(t => t.IssuedAt.Month)
                 .Select(g => new MonthInspectionResponse
                 {
@@ -940,20 +942,22 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return new PerformanceSummaryResponse
             {
                 EnforcerId = enforcerId,
-                TotalInspections = totals.Total,
-                ResolutionRate = Math.Round((double)totals.Resolved / totals.Total * 100, 1),
-                WarningRatio = Math.Round((double)totals.Warnings / totals.Total * 100, 1),
-                TicketRatio = Math.Round((double)totals.Tickets / totals.Total * 100, 1),
+                TotalInspections = total,
+                ResolutionRate = Percent(resolvedTickets, tickets),
+                WarningRatio = Percent(warnings, total),
+                TicketRatio = Percent(tickets, total),
                 MonthlyInspections = monthlyFilled,
             };
         }
 
-        public async Task<DateTime> GetLastEnforcerInspectionAsync(int enforcerId)
+        private static double Percent(int part, int whole) => whole == 0 ? 0 : Math.Round((double)part / whole * 100, 1);
+
+        public async Task<DateTime?> GetLastEnforcerInspectionAsync(int enforcerId)
         {
             return await _context.Tickets
                 .Where(t => t.EnforcerId == enforcerId)
                 .OrderByDescending(t => t.IssuedAt)
-                .Select(t => t.IssuedAt)
+                .Select(t => (DateTime?)t.IssuedAt)
                 .FirstOrDefaultAsync();
         }
 

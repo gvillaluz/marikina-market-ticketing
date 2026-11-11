@@ -13,18 +13,21 @@ namespace MarikinaMarket.API.Application.Services
         private readonly IUserRepository _userRepository;
         private readonly ITicketRepository _ticketRepository;
         private readonly IStorageService _storageService;
+        private readonly TimeProvider _clock;
 
         private const int PAGE_SIZE = 10;
 
         public EnforcerService(
-            IUserRepository userRepository, 
+            IUserRepository userRepository,
             ITicketRepository ticketRepository,
-            IStorageService storageService
+            IStorageService storageService,
+            TimeProvider? clock = null
             )
         {
             _userRepository = userRepository;
             _ticketRepository = ticketRepository;
             _storageService = storageService;
+            _clock = clock ?? TimeProvider.System;
         }
 
         public async Task<PageResponse<AdminEnforcerSummaryResponse>> GetEnforcerSummaryAsync(int offset, EnforcerSummaryFilter filters)
@@ -112,24 +115,20 @@ namespace MarikinaMarket.API.Application.Services
 
         public async Task<PerformanceSummaryResponse> GetPerformanceSummaryAsync(int enforcerId)
         {
-            var yearStart = new DateTime(DateTime.UtcNow.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var manilaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            var manilaYear = TimeZoneInfo.ConvertTimeFromUtc(_clock.GetUtcNow().UtcDateTime, manilaTimeZone).Year;
+            var yearStart = TimeZoneInfo.ConvertTimeToUtc(new DateTime(manilaYear, 1, 1), manilaTimeZone);
+            var yearEnd = TimeZoneInfo.ConvertTimeToUtc(new DateTime(manilaYear + 1, 1, 1), manilaTimeZone);
 
-            var summary = await _ticketRepository.GetEnforcerPerformanceSummaryAsync(enforcerId, yearStart);
-
-            if (summary is null)
-                throw new RecordNotFoundException("No inspection records found for this enforcer.");
-
-            return summary;
+            return await _ticketRepository.GetEnforcerPerformanceSummaryAsync(enforcerId, yearStart, yearEnd);
         }
 
         public async Task<EnforcerInfoResponse> GetProfileAsync(int enforcerId)
         {
             var user = await _userRepository.GetUserAsync(enforcerId);
 
-            if (user is null) 
+            if (user is null || await _userRepository.GetRoleAsync(user) != Role.MarketEnforcer)
                 throw new RecordNotFoundException("Enforcer not found.");
-
-            var userRole = await _userRepository.GetRoleAsync(user);
 
             var lastInspection = await _ticketRepository.GetLastEnforcerInspectionAsync(enforcerId);
 
@@ -143,7 +142,7 @@ namespace MarikinaMarket.API.Application.Services
                 PhoneNumber = user.PhoneNumber!,
                 Email = user.Email!,
                 Status = user.Status,
-                Role = userRole ?? Role.MarketEnforcer,
+                Role = Role.MarketEnforcer,
                 HiredAt = user.CreatedAt,
                 ProfileUrl = user.ProfilePictureUrl ?? null,
                 LastInspectionDate = lastInspection

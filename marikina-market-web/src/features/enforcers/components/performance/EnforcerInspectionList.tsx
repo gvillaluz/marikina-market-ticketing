@@ -61,6 +61,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
           key: "status",
           header: "Status",
           render: (record) => {
+            if (record.type === "Warning") return "—";
             const status = (record.status || "").toLowerCase();
             return (
               <div className={`${styles.status} ${styles[status] || ""}`}>

@@ -1,5 +1,6 @@
 import { enforcersApi } from "@/api/endpoints/enforcers.api";
 import { InspectionHistorySummary } from "@/api/types/enforcer.types";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
@@ -35,7 +36,11 @@ export function useFetchHistory(enforcerId: number) {
       isLoading: query.isLoading,
       isFetching: query.isFetching,
       isError: query.isError,
-      error: query.error,
+      errorMessage: getApiErrorMessage(
+        query.error,
+        "Couldn't load the inspection history.",
+      ),
+      onRetry: query.refetch,
     },
   };
 }
