@@ -1,33 +1,104 @@
 import Button from "@/components/ui/Button";
 import Table, { type Column } from "@/components/ui/Table";
-import Pagination from "@/components/ui/Pagination";
+import {
+  RecordActions,
+  RecordsFooter,
+  RecordsPanel,
+  RecordsState,
+  RecordsToolbar,
+} from "@/components/ui/Records";
 import type { PersonRecord } from "@/api/types/person.types";
+import { formatDate } from "@/utils/formatters";
 import type { usePersonsPage } from "../hooks/usePersonsPage";
-import controls from "@/styles/FormControls.module.css";
 import styles from "./PersonRegistry.module.css";
 
-export default function PersonRegistry(state: ReturnType<typeof usePersonsPage>) {
+const PAGE_SIZE = 10;
+
+export default function PersonRegistry(
+  state: ReturnType<typeof usePersonsPage>,
+) {
   const columns: Column<PersonRecord>[] = [
-    { key: "fullName", header: "Full name", width: "25%" },
-    { key: "address", header: "Address", width: "40%" },
-    { key: "phoneNumber", header: "Phone", render: person => person.phoneNumber || "—" },
-    { key: "action", header: "Details", render: person => <Button type="button" variant="secondary" onClick={() => state.showForm(person.id)}>View / edit</Button> },
+    { key: "fullName", header: "Full name", width: "22%" },
+    { key: "address", header: "Address", width: "34%" },
+    {
+      key: "phoneNumber",
+      header: "Phone",
+      width: "15%",
+      render: (person) => person.phoneNumber || "—",
+    },
+    {
+      key: "createdAt",
+      header: "Date added",
+      width: "14%",
+      render: (person) => formatDate(person.createdAt),
+    },
+    {
+      key: "action",
+      header: "Details",
+      align: "center",
+      render: (person) => (
+        <RecordActions
+          label={`person ${person.fullName}`}
+          onView={() => state.showForm(person.id)}
+        />
+      ),
+    },
   ];
   return (
-    <section className={styles.registry} aria-label="Person registry">
-      <div className={styles.toolbar}>
-        <label className={styles.search}>Search people
-          <input className={controls.input} type="search" maxLength={500} value={state.search} onChange={event => state.setSearch(event.target.value)} placeholder="Name, address or phone" />
-        </label>
-        <Button type="button" onClick={() => state.showForm(null)}>Create person</Button>
-      </div>
-      {state.error ? <div className={styles.message} role="alert"><p>{state.error}</p><Button type="button" variant="secondary" onClick={state.retry}>Try again</Button></div> : <>
-        <Table columns={columns} data={state.persons} keyExtractor={person => String(person.id)} loading={state.loading} loadingMessage="Loading people…" emptyMessage={state.search ? "No people match this search." : "No people recorded yet. Create a person to begin."} tableClassName={styles.table} responsive />
-        <div className={styles.footer}>
-          <span role="status">{state.fetching ? "Updating people…" : `${state.total} ${state.total === 1 ? "person" : "people"}`}</span>
-          <Pagination page={state.page} totalPages={Math.max(1, Math.ceil(state.total / 10))} canGoNext={state.hasMore} onChange={state.setPage} disabled={state.fetching} />
-        </div>
-      </>}
-    </section>
+    <RecordsPanel
+      title="Person registry"
+      description="Search, view and edit recorded people"
+      count={state.loading || state.error ? undefined : state.total}
+      countLabel={state.total === 1 ? "person" : "people"}
+      updating={state.fetching && !state.loading}
+    >
+      <RecordsToolbar
+        search={state.search}
+        onSearch={state.setSearch}
+        searchLabel="Search people"
+        placeholder="Name, address or phone"
+      >
+        <Button type="button" onClick={() => state.showForm(null)}>
+          Create person
+        </Button>
+      </RecordsToolbar>
+      {state.error ? (
+        <RecordsState
+          title="Unable to load people"
+          message={state.error}
+          onRetry={state.retry}
+        />
+      ) : (
+        <>
+          <Table
+            responsive
+            className={styles.list}
+            tableClassName={styles.table}
+            columns={columns}
+            data={state.persons}
+            keyExtractor={(person) => String(person.id)}
+            loading={state.loading}
+            loadingMessage="Loading people…"
+            emptyMessage={
+              state.search
+                ? "No people match this search."
+                : "No people recorded yet. Create a person to begin."
+            }
+          />
+          {!state.loading && (
+            <RecordsFooter
+              page={state.page}
+              pageSize={PAGE_SIZE}
+              total={state.total}
+              totalPages={Math.max(1, Math.ceil(state.total / PAGE_SIZE))}
+              rowCount={state.persons.length}
+              label="people"
+              busy={state.fetching}
+              onPageChange={state.setPage}
+            />
+          )}
+        </>
+      )}
+    </RecordsPanel>
   );
 }

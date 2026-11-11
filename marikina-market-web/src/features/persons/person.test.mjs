@@ -83,20 +83,41 @@ test("person validation accepts blank phone and enforces length boundaries", () 
 });
 
 test("registry renders loading, empty, error and distinct same-name rows as text", () => {
-  const Table = load("../../components/ui/Table/Table.tsx", { "react/jsx-runtime": ReactJsx(), react: React }).Table;
-  const Pagination = load("../../components/ui/Pagination/Pagination.tsx", { "react/jsx-runtime": ReactJsx(), react: React }).default;
-  const Button = load("../../components/ui/Button/Button.tsx", { "react/jsx-runtime": ReactJsx(), react: React }).default;
-  const Registry = load("./components/PersonRegistry.tsx", { "react/jsx-runtime": ReactJsx(),
-    "@/components/ui/Table": { default: Table }, "@/components/ui/Pagination": { default: Pagination }, "@/components/ui/Button": { default: Button } }).default;
-  const state = { persons: [], search: "", total: 0, page: 1, showForm() {}, setSearch() {}, setPage() {}, retry() {} };
+  const jsx = { "react/jsx-runtime": ReactJsx(), react: React };
+  const icon = name => () => React.createElement("svg", { "data-icon": name });
+  const icons = { "lucide-react": { Search: icon("search"), Eye: icon("eye"), RefreshCw: icon("refresh"), Download: icon("download"), Printer: icon("printer"), CircleAlert: icon("alert"), FolderSearch: icon("folder") } };
+  const Table = load("../../components/ui/Table/Table.tsx", jsx).Table;
+  const Pagination = load("../../components/ui/Pagination/Pagination.tsx", jsx).default;
+  const Button = load("../../components/ui/Button/Button.tsx", jsx).default;
+  const Records = {
+    RecordsPanel: load("../../components/ui/Records/RecordsPanel.tsx", jsx).RecordsPanel,
+    RecordsToolbar: load("../../components/ui/Records/RecordsToolbar.tsx", { ...jsx, ...icons }).RecordsToolbar,
+    RecordsFooter: load("../../components/ui/Records/RecordsFooter.tsx", { ...jsx, ...icons, "@/components/ui/Pagination": { default: Pagination } }).RecordsFooter,
+    RecordsState: load("../../components/ui/Records/RecordsState.tsx", { ...jsx, ...icons }).RecordsState,
+    RecordActions: load("../../components/ui/Records/RecordActions.tsx", { ...jsx, ...icons }).RecordActions,
+  };
+  const formatters = load("../../utils/formatters.ts", { "./constants": { APP_CONSTANTS: {} } });
+  const Registry = load("./components/PersonRegistry.tsx", { ...jsx,
+    "@/components/ui/Table": { default: Table }, "@/components/ui/Button": { default: Button },
+    "@/components/ui/Records": Records, "@/utils/formatters": formatters }).default;
+  const state = { persons: [], search: "", total: 0, page: 1, hasMore: false, showForm() {}, setSearch() {}, setPage() {}, retry() {} };
   const render = overrides => renderToStaticMarkup(React.createElement(Registry, { ...state, ...overrides }));
   assert.match(render({ loading: true }), /Loading people/);
   assert.match(render({}), /No people recorded yet/);
-  assert.match(render({ error: "API unavailable" }), /API unavailable/);
-  const person = { id: 1, fullName: "<E2E Elena>", address: "Market Lane", phoneNumber: null };
-  const html = render({ persons: [person, { ...person, id: 2 }], total: 2 });
-  assert.equal((html.match(/&lt;E2E Elena&gt;/g) ?? []).length, 2);
-  assert.match(html, /2 people/);
+  assert.match(render({ search: "zzz" }), /No people match this search/);
+  const failed = render({ error: "API unavailable" });
+  assert.match(failed, /API unavailable/);
+  assert.match(failed, /Try again/);
+  assert.doesNotMatch(failed, /Showing/);
+  const person = { id: 1, fullName: "<E2E Elena>", address: "Market Lane", phoneNumber: null, createdAt: "2026-11-01T06:00:00Z" };
+  const html = render({ persons: [person, { ...person, id: 2, phoneNumber: "09171234567", createdAt: "not a date" }], total: 2 });
+  // Per row, the name shows once in its cell and once in the action button's label.
+  assert.equal((html.match(/&lt;E2E Elena&gt;/g) ?? []).length, 4);
+  assert.match(html, /Showing 1–2 of 2 people/);
+  assert.match(html, /Date added/);
+  assert.match(html, /Nov 1, 2026/);
+  assert.match(html, /09171234567/);
+  assert.equal((html.match(/aria-label="View person/g) ?? []).length, 2);
 });
 
 test("saved person details show that person's citation history; a new person shows none", () => {
