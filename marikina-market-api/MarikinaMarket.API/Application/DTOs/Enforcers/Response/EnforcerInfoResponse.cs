@@ -15,6 +15,6 @@ namespace MarikinaMarket.API.Application.DTOs.Enforcers.Response
         public Role Role { get; set; }
         public DateTime HiredAt { get; set; }
         public string? ProfileUrl { get; set; }
-        public DateTime LastInspectionDate { get; set; }
+        public DateTime? LastInspectionDate { get; set; }
     }
 }

@@ -63,7 +63,9 @@ const EnforcerProfileCard: FC<EnforcerProfileProps> = ({ profile }) => {
         <div className={styles.tagContainer}>
           <span className={styles.tagLabel}>LAST INSPECTION</span>
           <span className={styles.tag}>
-            {formatDateTime(profile.lastInspectionDate)}
+            {profile.lastInspectionDate
+              ? formatDateTime(profile.lastInspectionDate)
+              : "No inspections yet"}
           </span>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { enforcersApi } from "@/api/endpoints/enforcers.api";
 import { EnforcerProfile } from "@/api/types/enforcer.types";
+import { getApiErrorMessage } from "@/utils/apiErrors";
 import { useQuery } from "@tanstack/react-query";
 
 export function useFetchProfile(enforcerId: number) {
@@ -16,7 +17,11 @@ export function useFetchProfile(enforcerId: number) {
       isLoading: query.isLoading,
       isFetching: query.isFetching,
       isError: query.isError,
-      error: query.error,
+      errorMessage: getApiErrorMessage(
+        query.error,
+        "Couldn't load the enforcer's profile.",
+      ),
+      onRetry: query.refetch,
     },
   };
 }

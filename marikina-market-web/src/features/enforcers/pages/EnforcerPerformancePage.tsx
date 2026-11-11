@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import PageHeader from "@/components/ui/PageHeader";
-import Button from "@/components/ui/Button";
+import { RecordsFooter, RecordsState } from "@/components/ui/Records";
 import { formatNumber } from "@/utils/formatters";
 import EnforcerProfileCard from "../components/performance/EnforcerProfileCard";
 import PerformanceStatCard from "../components/performance/PerformanceStatCard";
@@ -18,13 +18,20 @@ import { TicketModal } from "@/components/ui/TicketModal/TicketModal";
 
 const EnforcerPerformancePage: FC = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const enforcerId = Number(id) || 0;
+  const enforcerId = Number(id);
+  const isEnforcerId = Number.isInteger(enforcerId) && enforcerId > 0;
 
   const { profile, profileProcess } = useFetchProfile(enforcerId);
   const { performance, performanceProcess } = useFetchPerformance(enforcerId);
-  const { inspections, page, setPage, total, totalPages, historyProcess } =
-    useFetchHistory(enforcerId);
+  const {
+    inspections,
+    page,
+    setPage,
+    pageSize,
+    total,
+    totalPages,
+    historyProcess,
+  } = useFetchHistory(enforcerId);
 
   const [selectedTicketId, setSelectedTicketId] = useState<number>(0);
 
@@ -32,18 +39,40 @@ const EnforcerPerformancePage: FC = () => {
     setPage(Math.min(Math.max(target, 1), totalPages));
   };
 
+  const header = (
+    <PageHeader
+      title="Enforcer Performance Record"
+      subtitle="Performance summary and inspection log for this enforcer."
+    />
+  );
+
+  if (!isEnforcerId) {
+    return (
+      <div className={styles.page}>
+        {header}
+        <RecordsState
+          title="Enforcer not found"
+          message="This link does not match an enforcer. Open the enforcer from the Enforcers list."
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
-      <PageHeader
-        title="Enforcer Performance Record"
-        subtitle="Performance summary and inspection log for this enforcer."
-      />
+      {header}
 
       <section className={styles.summary}>
         {profileProcess.isLoading || profileProcess.isFetching ? (
           <EnforcerProfileCardSkeleton />
+        ) : profile ? (
+          <EnforcerProfileCard profile={profile} />
         ) : (
-          <EnforcerProfileCard profile={profile!} />
+          <RecordsState
+            title="Profile not loaded"
+            message={profileProcess.errorMessage}
+            onRetry={profileProcess.onRetry}
+          />
         )}
 
         {performanceProcess.isLoading || performanceProcess.isFetching ? (
@@ -57,39 +86,47 @@ const EnforcerPerformancePage: FC = () => {
             </div>
             <MonthlyInspectionsChartSkeleton />
           </>
-        ) : (
+        ) : performance ? (
           <>
             <div className={styles.stats}>
               <div className={styles.statsDrawer}>
                 <PerformanceStatCard
                   label="Total Inspections"
-                  value={formatNumber(performance?.totalInspections || 0)}
+                  value={formatNumber(performance.totalInspections)}
                 />
                 <PerformanceStatCard
                   label="Resolution Rate"
-                  value={`${performance?.resolutionRate}%`}
+                  value={`${performance.resolutionRate}%`}
                 />
               </div>
               <PerformanceStatCard
                 label="Inspection Ratio"
-                value={`${performance?.warningRatio}%`}
+                value={`${performance.warningRatio}%`}
                 subLabel="Warnings"
-                progress={performance?.warningRatio}
-                secondaryLabel={`${performance?.ticketRatio}% Tickets`}
+                progress={performance.warningRatio}
+                secondaryLabel={`${performance.ticketRatio}% Tickets`}
               />
             </div>
 
             <MonthlyInspectionsChart
-              inspections={performance?.monthlyInspections!}
+              inspections={performance.monthlyInspections}
             />
           </>
+        ) : (
+          <div className={styles.summaryError}>
+            <RecordsState
+              title="Summary not loaded"
+              message={performanceProcess.errorMessage}
+              onRetry={performanceProcess.onRetry}
+            />
+          </div>
         )}
       </section>
 
       <section className={styles.history}>
         <PageHeader
           title="Enforcer Inspection History"
-          subtitle="Performance summary and inspection log for this enforcer"
+          subtitle="Every ticket and warning this enforcer has issued, newest first."
         />
 
         <div className={styles.recordsContainer}>
@@ -100,52 +137,33 @@ const EnforcerPerformancePage: FC = () => {
             </p>
           </div>
 
-          <EnforcerInspectionList
-            records={inspections}
-            onView={(recordId) => setSelectedTicketId(recordId)}
-            loading={historyProcess.isLoading || historyProcess.isFetching}
-          />
+          {historyProcess.isError && !historyProcess.isFetching ? (
+            <RecordsState
+              title="History not loaded"
+              message={historyProcess.errorMessage}
+              onRetry={historyProcess.onRetry}
+            />
+          ) : (
+            <>
+              <EnforcerInspectionList
+                records={inspections}
+                onView={(recordId) => setSelectedTicketId(recordId)}
+                loading={historyProcess.isLoading || historyProcess.isFetching}
+              />
 
-          {inspections.length !== 0 && (
-            <div className={styles.footer}>
-              <span className={styles.entries}>
-                Showing {total === 0 ? 0 : (page - 1) * 9 + 1} to{" "}
-                {Math.min(page * 9, total)} of {total} entries
-              </span>
-
-              <div className={styles.footerActions}>
-                <button
-                  className={styles.pageButton}
-                  disabled={page <= 1}
-                  onClick={() => goToPage(page - 1)}
-                  aria-label="Previous page"
-                >
-                  ‹
-                </button>
-                {Array.from(
-                  { length: Math.min(totalPages, 3) },
-                  (_, index) => index + 1,
-                ).map((p) => (
-                  <button
-                    key={p}
-                    className={`${styles.pageButton} ${page === p ? styles.currentPage : ""}`}
-                    onClick={() => goToPage(p)}
-                    aria-label={`Go to page ${p}`}
-                  >
-                    {p}
-                  </button>
-                ))}
-                {totalPages > 3 && <span className={styles.ellipsis}>...</span>}
-                <button
-                  className={styles.pageButton}
-                  disabled={page >= totalPages}
-                  onClick={() => goToPage(page + 1)}
-                  aria-label="Next page"
-                >
-                  ›
-                </button>
-              </div>
-            </div>
+              {inspections.length !== 0 && (
+                <RecordsFooter
+                  page={page}
+                  pageSize={pageSize}
+                  total={total}
+                  totalPages={totalPages}
+                  rowCount={inspections.length}
+                  label="entries"
+                  busy={historyProcess.isFetching}
+                  onPageChange={goToPage}
+                />
+              )}
+            </>
           )}
         </div>
         {selectedTicketId != 0 && (
