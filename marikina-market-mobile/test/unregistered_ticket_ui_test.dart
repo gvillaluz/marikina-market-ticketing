@@ -290,10 +290,8 @@ void main() {
       ),
     );
     await flush(tester);
-    expect(
-      find.textContaining('Control number: 000456 · Unregistered vendor'),
-      findsOneWidget,
-    );
+    expect(find.text('000456'), findsOneWidget);
+    expect(find.text('Unregistered vendor'), findsOneWidget);
     expect(find.textContaining('Historical business details'), findsNothing);
   });
 }

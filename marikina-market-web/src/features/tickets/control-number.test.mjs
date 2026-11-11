@@ -117,8 +117,8 @@ test('person history shows "Control number" only', async () => {
     status: 'Pending', enforcerName: 'Santos', assessedCashFine: null, outstandingCashFine: 0, businessSnapshot: null };
   globalThis.personHistoryState = { isPending: false, isError: false, items: [item, { ...item, ticketId: 3, paperReference: null, controlNumber: '8' }], hasNextPage: false };
   const html = text(render(await component('features/tickets/components/PersonTicketHistory.tsx'), { personId: 1 }));
-  assert.match(html, /Control number: 000456/);
-  assert.match(html, /Control number: Unavailable \(legacy record\)/);
+  assert.match(html, /Control number000456/);
+  assert.match(html, /Control numberUnavailable \(legacy record\)/);
   assert.doesNotMatch(html, OLD_LABELS);
 });
 
