@@ -38,6 +38,8 @@ import 'inspection_list_ui_test.dart' show listBloc;
 import 'inspection_preview_navigation_test.dart' show flush, formAction, vendor;
 import 'ordinance_shortcuts_test.dart' show withNoShortcuts;
 import 'unregistered_entry_test.dart' show verifyInput;
+import 'violator_picker_test.dart'
+    show chooseViolator, inReview, inSheet, noContent, typeName;
 
 // Automatic checks (criterion 3): the entry page names what is missing, the
 // duplicate and control-number checks are shown to the enforcer, and a person
@@ -253,6 +255,8 @@ void main() {
           switch (options.path) {
             case '/persons/matches':
               return reply(options, {'items': matches, 'has_more': false});
+            case '/vendor/12/owner-person':
+              return noContent(options);
             case '/vendor/12/people':
               return reply(options, []);
             case '/persons/31/tickets':
@@ -317,6 +321,8 @@ void main() {
           getOrdinanceShortcutsUseCase:
               templateBloc.getOrdinanceShortcutsUseCase,
           getBusinessPeopleUseCase: templateBloc.getBusinessPeopleUseCase,
+          getOwnerPersonUseCase: templateBloc.getOwnerPersonUseCase,
+          addOwnerPersonUseCase: templateBloc.addOwnerPersonUseCase,
           getFineSummaryUseCase: templateBloc.getFineSummaryUseCase,
           checkWarningOrdinancesUseCase:
               templateBloc.checkWarningOrdinancesUseCase,
@@ -367,17 +373,16 @@ void main() {
       await flush(tester);
     }
 
-    Finder paperName() => find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField &&
-          widget.decoration?.labelText == 'Paper violator name',
-    );
+    // Searches in the find sheet, then closes it without choosing anyone.
+    Future<void> searchThenClose(WidgetTester tester, String name) async {
+      await tester.ensureVisible(inReview(find.text('Someone else')));
+      await tester.tap(inReview(find.text('Someone else')));
+      await flush(tester);
+      await typeName(tester, name);
+    }
 
-    Future<void> checkMatches(WidgetTester tester, String name) async {
-      await tester.ensureVisible(paperName());
-      await tester.enterText(paperName(), name);
-      await tester.ensureVisible(find.text('Check possible matches'));
-      await tester.tap(find.text('Check possible matches'));
+    Future<void> closeSheet(WidgetTester tester) async {
+      await tester.tap(inSheet(find.byTooltip('Close')));
       await flush(tester);
     }
 
@@ -431,10 +436,7 @@ void main() {
       (tester) async {
         await openEntryPage(tester);
         await tapSelectOrdinance(tester);
-        expect(
-          find.text('Confirm the violator’s person record first.'),
-          findsOneWidget,
-        );
+        expect(find.text('Choose the violator first.'), findsOneWidget);
         expect(find.byType(SelectOrdinanceBottomSheet), findsNothing);
       },
     );
@@ -443,23 +445,19 @@ void main() {
       tester,
     ) async {
       await openEntryPage(tester, matches: [personMatch]);
-      await checkMatches(tester, 'Juan');
-      expect(
-        find.text(
-          'Compare the details. A name match does not confirm identity.',
-        ),
-        findsOneWidget,
-      );
+      await searchThenClose(tester, 'Juan');
+      expect(inSheet(find.text('Juan Dela Cruz')), findsOneWidget);
+      await closeSheet(tester);
       await tapSelectOrdinance(tester);
-      expect(
-        find.text('Confirm the violator’s person record first.'),
-        findsOneWidget,
-      );
+      expect(find.text('Choose the violator first.'), findsOneWidget);
       expect(find.byType(SelectOrdinanceBottomSheet), findsNothing);
 
-      await tester.ensureVisible(find.text('Same person – select'));
-      await tester.tap(find.text('Same person – select'));
-      await tester.pump();
+      await chooseViolator(
+        tester,
+        button: 'Someone else',
+        typed: 'Juan',
+        name: 'Juan Dela Cruz',
+      );
       await tapSelectOrdinance(tester);
       expect(find.byType(SelectOrdinanceBottomSheet), findsOneWidget);
     });
@@ -468,18 +466,25 @@ void main() {
       tester,
     ) async {
       await openEntryPage(tester);
-      await checkMatches(tester, 'A Name Nobody Has Registered');
+      await searchThenClose(tester, 'A Name Nobody Has Registered');
       expect(
-        find.text(
-          'No possible matches. Review the name and details before creating a person.',
-        ),
+        find.text('No match. Check the spelling or add a new person.'),
         findsOneWidget,
       );
-      expect(find.text('New person'), findsOneWidget);
+      expect(find.text('Not listed? Add new person'), findsOneWidget);
+      await closeSheet(tester);
+      // The owner has no person record yet; it is not added without a tap.
+      expect(inReview(find.text('Add owner as person')), findsOneWidget);
       await tapSelectOrdinance(tester);
       expect(find.byType(SelectOrdinanceBottomSheet), findsNothing);
       expect(
         requests.where((r) => r.method == 'POST' && r.path == '/persons'),
+        isEmpty,
+      );
+      expect(
+        requests.where(
+          (r) => r.method == 'POST' && r.path == '/vendor/12/owner-person',
+        ),
         isEmpty,
       );
     });

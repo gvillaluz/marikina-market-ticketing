@@ -46,6 +46,7 @@ import 'features/auth/login_test_network_info.dart';
 import 'features/tickets/data/models/ordinance_model_test.dart'
     show ordinanceResponse;
 import 'inspection_list_ui_test.dart' show listBloc;
+import 'violator_picker_test.dart' show chooseViolator, inReview, noContent;
 
 const vendor = VendorSummary(
   id: 12,
@@ -233,6 +234,8 @@ void main() {
                   });
                 case '/persons/31/tickets':
                   return reply(options, {'items': [], 'has_more': false});
+                case '/vendor/12/owner-person':
+                  return noContent(options);
                 case '/vendor/12/people':
                   return reply(options, []);
                 case '/enforcer/tickets/verify':
@@ -329,6 +332,8 @@ void main() {
               getOrdinanceShortcutsUseCase:
                   templateBloc.getOrdinanceShortcutsUseCase,
               getBusinessPeopleUseCase: templateBloc.getBusinessPeopleUseCase,
+              getOwnerPersonUseCase: templateBloc.getOwnerPersonUseCase,
+              addOwnerPersonUseCase: templateBloc.addOwnerPersonUseCase,
               getFineSummaryUseCase: templateBloc.getFineSummaryUseCase,
               checkWarningOrdinancesUseCase:
                   templateBloc.checkWarningOrdinancesUseCase,
@@ -379,20 +384,12 @@ void main() {
               .widget<ViolatorInfoCard>(find.byType(ViolatorInfoCard))
               .onVendorSelected(vendor);
           await tester.pump();
-          final name = find.byWidgetPredicate(
-            (widget) =>
-                widget is TextField &&
-                widget.decoration?.labelText == 'Paper violator name',
+          Future<void> selectPerson() => chooseViolator(
+            tester,
+            button: 'Someone else',
+            typed: 'Juan Cruz',
+            name: 'Juan Dela Cruz',
           );
-          Future<void> selectPerson() async {
-            await tester.enterText(name, 'Juan Cruz');
-            await tester.ensureVisible(find.text('Check possible matches'));
-            await tester.tap(find.text('Check possible matches'));
-            await flush(tester);
-            await tester.ensureVisible(find.text('Same person – select'));
-            await tester.tap(find.text('Same person – select'));
-            await tester.pump();
-          }
 
           // Switching Warning to Ticket keeps the person already chosen.
           if (type == ViolationType.ticket) await selectPerson();
@@ -401,11 +398,8 @@ void main() {
               .onChange(type);
           await tester.pump();
           if (type == ViolationType.ticket) {
-            expect(find.text('Selected'), findsOneWidget);
-            expect(
-              tester.widget<TextField>(name).controller!.text,
-              'Juan Dela Cruz',
-            );
+            expect(inReview(find.text('Juan Dela Cruz')), findsOneWidget);
+            expect(inReview(find.text('Change')), findsOneWidget);
           }
           // The issue place starts from the business record and stays editable.
           expect(

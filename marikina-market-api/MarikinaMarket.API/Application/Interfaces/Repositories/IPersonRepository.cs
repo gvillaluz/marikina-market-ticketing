@@ -8,6 +8,7 @@ public interface IPersonRepository
     Task<List<Person>> GetManyAsync(List<int> ids);
     Task<(List<Person> Items, int Total)> MatchAsync(string[] nameTokens, string? address, string? phone, int offset, int limit);
     Task<(List<Person> Items, int Total)> SearchAsync(string? search, int offset, int limit);
+    Task<Person?> FindExactAsync(string fullName, string address);
     Task AddAsync(Person person);
     Task SaveChangesAsync();
 }

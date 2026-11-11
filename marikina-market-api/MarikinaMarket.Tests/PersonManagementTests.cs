@@ -152,6 +152,7 @@ public class PersonManagementTests
         public Task<List<Person>> GetManyAsync(List<int> ids) => Task.FromResult(Records.Where(p => ids.Contains(p.Id)).ToList());
         public Task<(List<Person> Items, int Total)> MatchAsync(string[] tokens, string? address, string? phone, int offset, int limit)
             => SearchAsync(null, offset, limit);
+        public Task<Person?> FindExactAsync(string fullName, string address) => Task.FromResult<Person?>(null);
         public Task AddAsync(Person person) { person.Id = Records.Count + 1; Records.Add(person); return Task.CompletedTask; }
         public Task SaveChangesAsync() { Writes++; return Task.CompletedTask; }
         public Task<(List<Person> Items, int Total)> SearchAsync(string? search, int offset, int limit)

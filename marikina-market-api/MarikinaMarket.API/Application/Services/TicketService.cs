@@ -1801,6 +1801,50 @@ namespace MarikinaMarket.API.Application.Services
             }).ToList();
         }
 
+        // The registered owner's person record: the same name and address as the business record.
+        public async Task<PersonSummaryResponse?> GetOwnerPersonAsync(int businessId)
+        {
+            var (people, name, address) = await RequireOwnerAsync(businessId);
+            var person = await people.FindExactAsync(name, address);
+            return person is null ? null : await PersonSummaryAsync(person);
+        }
+
+        // Adds the owner as a person from the business record; an existing record is returned instead of a second one.
+        public async Task<PersonSummaryResponse> AddOwnerPersonAsync(int businessId)
+        {
+            var (people, name, address) = await RequireOwnerAsync(businessId);
+            var person = await people.FindExactAsync(name, address);
+            if (person is null)
+            {
+                person = new Person { FullName = name, Address = address };
+                await people.AddAsync(person);
+                await people.SaveChangesAsync();
+            }
+            return await PersonSummaryAsync(person);
+        }
+
+        private async Task<(IPersonRepository People, string Name, string Address)> RequireOwnerAsync(int businessId)
+        {
+            if (businessId <= 0) throw new InvalidRequestException("Business ID must be greater than zero.");
+            var business = await _vendorRepository.GetVendorProfileForUpdateAsync(businessId);
+            if (business is null || business.Status != VendorStatus.Active)
+                throw new RecordNotFoundException("Business not found.");
+            var people = _personRepository ?? throw new InvalidOperationException("Person repository is unavailable.");
+            // Same name and address format the phone shows for the business.
+            return (people, $"{business.OwnerFirstName.Trim()} {business.OwnerLastName.Trim()}".Trim(),
+                $"{business.HouseNumber}, {business.Street}, {business.Barangay}, {business.City}");
+        }
+
+        private async Task<PersonSummaryResponse> PersonSummaryAsync(Person person)
+        {
+            var totals = await _ticketRepository.GetPersonTicketTotalsAsync([person.Id]);
+            return new PersonSummaryResponse
+            {
+                Id = person.Id, FullName = person.FullName, Address = person.Address,
+                PhoneNumber = person.PhoneNumber, CreatedAt = person.CreatedAt, TicketTotals = totals[person.Id]
+            };
+        }
+
         // Without a business, the enforcer says which market section the citation happened in.
         private async Task<MarketSection> RequireActiveSectionAsync(int? marketSectionId)
         {

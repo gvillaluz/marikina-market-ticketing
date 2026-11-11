@@ -58,5 +58,18 @@ namespace MarikinaMarket.API.Presentation.Controllers
         public async Task<ActionResult<List<PersonSummaryResponse>>> GetBusinessPeople(
             [FromRoute] int businessId, [FromServices] ITicketService tickets)
             => Ok(await tickets.GetBusinessPeopleAsync(businessId));
+
+        // 204 when the owner has no person record yet.
+        [HttpGet("{businessId:int}/owner-person")]
+        [Authorize(Roles = nameof(Role.MarketEnforcer))]
+        public async Task<ActionResult<PersonSummaryResponse>> GetOwnerPerson(
+            [FromRoute] int businessId, [FromServices] ITicketService tickets)
+            => await tickets.GetOwnerPersonAsync(businessId) is { } person ? Ok(person) : NoContent();
+
+        [HttpPost("{businessId:int}/owner-person")]
+        [Authorize(Roles = nameof(Role.MarketEnforcer))]
+        public async Task<ActionResult<PersonSummaryResponse>> AddOwnerPerson(
+            [FromRoute] int businessId, [FromServices] ITicketService tickets)
+            => Ok(await tickets.AddOwnerPersonAsync(businessId));
     }
 }

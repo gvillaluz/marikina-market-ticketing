@@ -6,13 +6,9 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 
 class CreatePersonSheet extends StatefulWidget {
-  final String name, address, phone;
-  const CreatePersonSheet({
-    super.key,
-    required this.name,
-    required this.address,
-    required this.phone,
-  });
+  // The name typed in the search, so it is not typed twice.
+  final String name;
+  const CreatePersonSheet({super.key, required this.name});
   @override
   State<CreatePersonSheet> createState() => _CreatePersonSheetState();
 }
@@ -20,8 +16,8 @@ class CreatePersonSheet extends StatefulWidget {
 class _CreatePersonSheetState extends State<CreatePersonSheet> {
   final _form = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.name);
-  late final _address = TextEditingController(text: widget.address);
-  late final _phone = TextEditingController(text: widget.phone);
+  final _address = TextEditingController();
+  final _phone = TextEditingController();
   bool _busy = false, _uncertain = false;
   String? _error;
   @override
@@ -39,12 +35,14 @@ class _CreatePersonSheetState extends State<CreatePersonSheet> {
     listener: (context, state) {
       if (state is PersonCreationLoading) setState(() => _busy = true);
       if (state is PersonCreated) Navigator.pop(context, state.person);
+      // Create stays locked after any failure: search again before retrying.
       if (state is PersonCreationError) {
         setState(() {
           _busy = false;
           _uncertain = true;
           _error =
-              '${state.message} Close this sheet and check possible matches before retrying.';
+              '${state.message ?? 'Could not confirm it was saved.'} '
+              'Close and search again before retrying.';
         });
       }
     },
@@ -63,11 +61,8 @@ class _CreatePersonSheetState extends State<CreatePersonSheet> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Create person',
+                  'New person',
                   style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const Text(
-                  'Create only after reviewing possible matches. Existing registry details can be changed by an admin.',
                 ),
                 TextFormField(
                   controller: _name,

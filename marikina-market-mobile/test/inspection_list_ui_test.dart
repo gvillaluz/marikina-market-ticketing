@@ -24,6 +24,8 @@ import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_mar
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_businesses_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_ordinance_shortcuts_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_business_people_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_owner_person_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/add_owner_person_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_fine_summary_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/check_warning_ordinances_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/save_inspection_ticket_use_case.dart';
@@ -89,6 +91,8 @@ Future<InspectionBloc> listBloc(
     searchBusinessesUseCase: SearchBusinessesUseCase(repository),
     getOrdinanceShortcutsUseCase: GetOrdinanceShortcutsUseCase(repository),
     getBusinessPeopleUseCase: GetBusinessPeopleUseCase(repository),
+    getOwnerPersonUseCase: GetOwnerPersonUseCase(repository),
+    addOwnerPersonUseCase: AddOwnerPersonUseCase(repository),
     getFineSummaryUseCase: GetFineSummaryUseCase(repository),
     checkWarningOrdinancesUseCase: CheckWarningOrdinancesUseCase(repository),
     saveInspectionTicketUseCase: SaveInspectionTicketUseCase(repository),

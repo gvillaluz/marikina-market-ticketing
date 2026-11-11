@@ -77,6 +77,8 @@ import 'package:marikina_market_mobile/features/tickets/domain/use_cases/save_in
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_market_sections_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/search_businesses_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_business_people_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_owner_person_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/add_owner_person_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_ordinance_shortcuts_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/submit_community_service_log_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/submit_ticket_receipt_proof_use_case.dart';
@@ -189,6 +191,8 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   sl.registerLazySingleton(() => GetMarketSectionsUseCase(sl()));
   sl.registerLazySingleton(() => SearchBusinessesUseCase(sl()));
   sl.registerLazySingleton(() => GetBusinessPeopleUseCase(sl()));
+  sl.registerLazySingleton(() => GetOwnerPersonUseCase(sl()));
+  sl.registerLazySingleton(() => AddOwnerPersonUseCase(sl()));
   sl.registerLazySingleton(() => GetOrdinanceShortcutsUseCase(sl()));
   sl.registerLazySingleton(() => MatchPeopleUseCase(sl()));
   sl.registerLazySingleton(() => CreatePersonUseCase(sl()));
@@ -209,6 +213,8 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
       searchBusinessesUseCase: sl(),
       getOrdinanceShortcutsUseCase: sl(),
       getBusinessPeopleUseCase: sl(),
+      getOwnerPersonUseCase: sl(),
+      addOwnerPersonUseCase: sl(),
       getFineSummaryUseCase: sl(),
       checkWarningOrdinancesUseCase: sl(),
       saveInspectionTicketUseCase: sl(),

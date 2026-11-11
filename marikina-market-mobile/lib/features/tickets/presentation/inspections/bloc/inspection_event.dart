@@ -1,5 +1,7 @@
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
 export './business_people_requested.dart';
+export './owner_person_requested.dart';
+export './owner_person_add_requested.dart';
 export './market_sections_requested.dart';
 export './inspection_verification_requested.dart';
 export './person_history_requested.dart';

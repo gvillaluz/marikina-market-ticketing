@@ -116,6 +116,20 @@ class InspectionRepositoryImpl implements InspectionRepository {
       );
 
   @override
+  Future<Result<PersonCandidate?>> getOwnerPerson(int businessId) =>
+      _personResult(
+        () async =>
+            (await remoteDataSource.getOwnerPerson(businessId))?.toEntity(),
+      );
+
+  @override
+  Future<Result<PersonCandidate>> addOwnerPerson(int businessId) =>
+      _personResult(
+        () async =>
+            (await remoteDataSource.addOwnerPerson(businessId)).toEntity(),
+      );
+
+  @override
   Future<Result<OrdinanceShortcuts>> getOrdinanceShortcuts(int? personId) =>
       _personResult(
         () async =>
@@ -212,14 +226,10 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<Result<PageResult<PersonCandidate>>> matchPeople(
     String name,
-    String? address,
-    String? phone,
     int offset,
   ) => _personResult(
     () async => (await remoteDataSource.matchPeople(
       name,
-      address,
-      phone,
       offset,
     )).toEntity((m) => m.toEntity()),
   );

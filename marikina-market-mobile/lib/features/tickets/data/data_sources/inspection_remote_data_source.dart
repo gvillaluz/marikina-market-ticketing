@@ -25,8 +25,6 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_t
 abstract class InspectionRemoteDataSource {
   Future<PageResultModel<PersonCandidateModel>> matchPeople(
     String name,
-    String? address,
-    String? phone,
     int offset,
   );
   Future<PersonCandidateModel> createPerson(
@@ -51,6 +49,9 @@ abstract class InspectionRemoteDataSource {
   Future<List<MarketSectionModel>> getMarketSections();
   Future<PageResultModel<VendorSummaryModel>> searchBusinesses(String search);
   Future<List<PersonCandidateModel>> getBusinessPeople(int businessId);
+  // Null when the owner has no person record yet.
+  Future<PersonCandidateModel?> getOwnerPerson(int businessId);
+  Future<PersonCandidateModel> addOwnerPerson(int businessId);
   Future<OrdinanceShortcutsModel> getOrdinanceShortcuts(int? personId);
   Future<FineSummaryModel> getFineSummary(
     List<int> ordinanceIds,
@@ -151,6 +152,25 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
             )
             .toList();
       });
+
+  @override
+  Future<PersonCandidateModel?> getOwnerPerson(
+    int businessId,
+  ) => _businessRequest(() async {
+    final response = await apiClient.get('/vendor/$businessId/owner-person');
+    if (response.statusCode == 204) return null;
+    return PersonCandidateModel.fromJson(response.data as Map<String, Object?>);
+  });
+
+  // The server builds the person from the business record and returns the
+  // existing one if it is already there, so a retry never makes a duplicate.
+  @override
+  Future<PersonCandidateModel> addOwnerPerson(
+    int businessId,
+  ) => _businessRequest(() async {
+    final response = await apiClient.post('/vendor/$businessId/owner-person');
+    return PersonCandidateModel.fromJson(response.data as Map<String, Object?>);
+  });
 
   @override
   Future<OrdinanceShortcutsModel> getOrdinanceShortcuts(int? personId) =>
@@ -423,18 +443,11 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
   @override
   Future<PageResultModel<PersonCandidateModel>> matchPeople(
     String name,
-    String? address,
-    String? phone,
     int offset,
   ) => _personRequest(() async {
     final response = await apiClient.post(
       '/persons/matches',
-      data: {
-        'name': name,
-        'address': address,
-        'phone_number': phone,
-        'offset': offset,
-      },
+      data: {'name': name, 'offset': offset},
     );
     return PageResultModel.fromJson(
       response.data,

@@ -70,6 +70,7 @@ Exit: each approved slice passes its automated and live acceptance checks, unres
 - ✅ Faster entry A2c (paper ticket scanner; Android checked, iPhone not tested) — complete 2026-11-09 (PR #8)
 - ✅ Faster entry B1 (the system holds and shows tickets and warnings for unregistered vendors: server, phone, website) — complete 2026-11-09 (PR #9)
 - ✅ Faster entry B2 (Registered / Unregistered choice and section entry on the phone; QR scanning removed; checked live on Android, iPhone not tested) — complete 2026-11-10 (PR #10)
+- ✅ Faster entry: choosing the violator (owner shown first with one tap, "Add owner as person" in one tap, "Someone else" name search; server routes for the owner person; Change Vendor/section clear the violator; checked by the user on their own phone, no recorded results; iPhone not tested) — closed 2026-11-12 (PR #28). Notes: [docs/closed-work/faster-entry/violator-picker.md](docs/closed-work/faster-entry/violator-picker.md)
 - ✅ Control number Part 1 (server messages and phone) — complete 2026-11-07
 - ✅ Control number Part 2 (website) — complete 2026-11-07
 - ✅ Phone-only fixes (review-page addresses, Warning ↔ Ticket keeps the person, notification wording) — complete 2026-11-08 (PR #6)

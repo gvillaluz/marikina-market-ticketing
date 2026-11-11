@@ -74,14 +74,12 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   bool get _hasBusinessOrSection =>
       _vendorSummary != null || _unregisteredSection != null;
   PersonCandidate? _confirmedPerson;
-  String _paperName = '';
   bool _hasOpenedReview = false;
   int? _reviewInformation;
   int get _currentInformation => Object.hashAll([
     _vendorSummary?.id,
     _unregisteredSection?.id,
     _confirmedPerson?.id,
-    _paperName,
     _paperReferenceController.text,
     _issuePlaceController.text,
     _selectedType,
@@ -261,9 +259,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
     if (_confirmedPerson == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Confirm the violator’s person record first.'),
-        ),
+        const SnackBar(content: Text('Choose the violator first.')),
       );
       return;
     }
@@ -460,7 +456,17 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
         _issuePlaceController.clear();
       }
       _vendorSummary = null;
+      _setViolator(null);
     });
+  }
+
+  // The ordinances and fines depend on the person, so they go with them. A
+  // new business or section starts with nobody chosen.
+  void _setViolator(PersonCandidate? person) {
+    _confirmedPerson = person;
+    _fineSummary = null;
+    _assessmentTexts.clear();
+    _selectedOrdinances = [];
   }
 
   void _onChangePenaltyType(PenaltyType value) {
@@ -514,18 +520,6 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
   Future<void> _submit() async {
     if (_isOpeningPreview || !_validateForm()) return;
-    if (_confirmedPerson == null ||
-        (_selectedType == ViolationType.ticket && _paperName.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Review possible matches and confirm a person before continuing.',
-          ),
-        ),
-      );
-      return;
-    }
-
     final isTicket = _selectedType == ViolationType.ticket;
     int? communityHrs;
     if (isTicket && _selectedPenaltyType == PenaltyType.communityService) {
@@ -544,7 +538,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
           personId: _confirmedPerson?.id,
           personFullName: _confirmedPerson?.fullName,
           personAddress: _confirmedPerson?.address,
-          paperViolatorName: _paperName,
+          // The violator's name is always the chosen person's record name.
+          paperViolatorName: _confirmedPerson?.fullName,
           paperReference: _selectedType == ViolationType.ticket
               ? _paperReferenceController.text.trim()
               : null,
@@ -653,8 +648,10 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                         else
                           UnregisteredSectionBanner(
                             section: _unregisteredSection!,
-                            onChangeSection: () =>
-                                setState(() => _unregisteredSection = null),
+                            onChangeSection: () => setState(() {
+                              _unregisteredSection = null;
+                              _setViolator(null);
+                            }),
                           ),
 
                         const SizedBox(height: 20),
@@ -697,17 +694,12 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           const SizedBox(height: AppTheme.inspectionSmallGap),
                         ],
                         PersonIdentityReview(
-                          // Keeps the chosen person and typed name when the
-                          // ticket fields appear or disappear above it.
+                          // Keeps the chosen person when the ticket fields
+                          // appear or disappear above it.
                           key: const ValueKey('person-identity-review'),
                           vendor: _vendorSummary,
-                          onChanged: (person, paperName) => setState(() {
-                            _confirmedPerson = person;
-                            _paperName = paperName;
-                            _fineSummary = null;
-                            _assessmentTexts.clear();
-                            _selectedOrdinances = [];
-                          }),
+                          onChanged: (person) =>
+                              setState(() => _setViolator(person)),
                         ),
                         if (isTicket &&
                             _hasOpenedReview &&
@@ -774,7 +766,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
 
                         CopyToPaperCard(
                           isTicket: isTicket,
-                          name: _paperName,
+                          name: _confirmedPerson?.fullName ?? '',
                           address: _confirmedPerson?.address ?? '',
                           place: _issuePlaceController.text,
                           officerName:

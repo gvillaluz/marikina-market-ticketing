@@ -456,7 +456,7 @@ void main() {
             theme: AppTheme.light,
             home: Scaffold(
               body: SingleChildScrollView(
-                child: PersonIdentityReview(vendor: null, onChanged: (_, _) {}),
+                child: PersonIdentityReview(vendor: null, onChanged: (_) {}),
               ),
             ),
           ),
@@ -464,9 +464,8 @@ void main() {
       );
       await flush(tester);
       expect(paths, isEmpty);
-      expect(find.textContaining('Owner:'), findsNothing);
-      expect(find.text('Add helper or another person'), findsOneWidget);
-      expect(find.text('Check possible matches'), findsOneWidget);
+      expect(find.text('Owner'), findsNothing);
+      expect(find.text('Find violator'), findsOneWidget);
     });
 
     testWidgets(

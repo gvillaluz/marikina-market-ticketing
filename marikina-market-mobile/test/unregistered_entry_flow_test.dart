@@ -44,6 +44,7 @@ import 'features/tickets/presentation/person_verification_flow_test.dart'
 import 'inspection_list_ui_test.dart' show listBloc;
 import 'inspection_preview_navigation_test.dart' show flush, formAction, vendor;
 import 'unregistered_entry_test.dart' show sectionList;
+import 'violator_picker_test.dart' show chooseViolator, inReview, noContent;
 
 // Faster entry B2, the whole entry page for an unregistered vendor: choose
 // Unregistered, pick the market section, type the place, then Next, Verify
@@ -128,8 +129,8 @@ void main() {
                 ],
                 'has_more': false,
               });
-            case '/vendor/12/people':
-              return reply(options, []);
+            case '/vendor/12/owner-person':
+              return noContent(options);
             case '/persons/31/tickets':
               return reply(options, {'items': [], 'has_more': false});
             case '/ordinance':
@@ -205,6 +206,8 @@ void main() {
           getOrdinanceShortcutsUseCase:
               templateBloc.getOrdinanceShortcutsUseCase,
           getBusinessPeopleUseCase: templateBloc.getBusinessPeopleUseCase,
+          getOwnerPersonUseCase: templateBloc.getOwnerPersonUseCase,
+          addOwnerPersonUseCase: templateBloc.addOwnerPersonUseCase,
           getFineSummaryUseCase: templateBloc.getFineSummaryUseCase,
           checkWarningOrdinancesUseCase:
               templateBloc.checkWarningOrdinancesUseCase,
@@ -258,10 +261,10 @@ void main() {
       await flush(tester);
       await tester.tap(find.text('Change Vendor'));
       await flush(tester);
-      final peopleRequests = paths
+      final ownerRequests = paths
           .where((path) => path.startsWith('/vendor'))
           .length;
-      expect(peopleRequests, 1);
+      expect(ownerRequests, 1);
 
       // Choose Unregistered, then the market section from the office list.
       await tester.tap(find.text('Unregistered'));
@@ -273,11 +276,11 @@ void main() {
       expect(find.text('Unregistered vendor'), findsOneWidget);
       expect(find.text('Meat Section'), findsOneWidget);
       expect(find.text('Change Vendor'), findsNothing);
-      expect(find.textContaining('Owner:'), findsNothing);
+      expect(inReview(find.text('Owner')), findsNothing);
       expect(
         paths.where((path) => path.startsWith('/vendor')).length,
-        peopleRequests,
-        reason: 'No business, so no people list is requested.',
+        ownerRequests,
+        reason: 'No business, so no owner is requested.',
       );
 
       tester
@@ -312,50 +315,50 @@ void main() {
           '000456',
         );
       }
-      final name = find.byWidgetPredicate(
-        (widget) =>
-            widget is TextField &&
-            widget.decoration?.labelText == 'Paper violator name',
+      // No business, so no owner card: "Find violator" is the only way.
+      expect(inReview(find.text('Someone else')), findsNothing);
+      Future<void> chooseJuan() => chooseViolator(
+        tester,
+        button: 'Find violator',
+        typed: 'Juan Cruz',
+        name: 'Juan Dela Cruz',
       );
-      await tester.ensureVisible(name);
-      await tester.enterText(name, 'Juan Cruz');
-      await tester.ensureVisible(find.text('Check possible matches'));
-      await tester.tap(find.text('Check possible matches'));
-      await flush(tester);
-      await tester.ensureVisible(find.text('Same person – select'));
-      await tester.tap(find.text('Same person – select'));
-      await tester.pump();
+      await chooseJuan();
 
-      await tester.ensureVisible(find.text('Select Ordinance'));
-      await tester.tap(find.text('Select Ordinance'));
-      await tester.pump();
-      final selectionBloc = tester
-          .element(find.byType(SelectOrdinanceBottomSheet))
-          .read<InspectionBloc>();
-      for (
-        var attempt = 0;
-        attempt < 100 &&
-            selectionBloc.state is! OrdinanceSelectionLoaded &&
-            selectionBloc.state is! OrdinanceSelectionError;
-        attempt++
-      ) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      Future<void> chooseOrdinance() async {
+        await tester.ensureVisible(find.text('Select Ordinance'));
+        await tester.tap(find.text('Select Ordinance'));
+        await tester.pump();
+        final selectionBloc = tester
+            .element(find.byType(SelectOrdinanceBottomSheet))
+            .read<InspectionBloc>();
+        for (
+          var attempt = 0;
+          attempt < 100 &&
+              selectionBloc.state is! OrdinanceSelectionLoaded &&
+              selectionBloc.state is! OrdinanceSelectionError;
+          attempt++
+        ) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 10)),
+          );
+          await tester.pump(const Duration(milliseconds: 20));
+        }
+        expect(selectionBloc.state, isA<OrdinanceSelectionLoaded>());
+        await flush(tester);
+        await tester.tap(
+          find.text(
+            'Ord No. ${ordinanceResponse['ordinance_no']}, Series of ${ordinanceResponse['series']}',
+          ),
         );
-        await tester.pump(const Duration(milliseconds: 20));
+        await tester.pump();
+        // Confirm selection must work with no business: it is the section
+        // and the person that matter.
+        await tester.tap(find.text('Confirm selection'));
+        await flush(tester);
       }
-      expect(selectionBloc.state, isA<OrdinanceSelectionLoaded>());
-      await flush(tester);
-      await tester.tap(
-        find.text(
-          'Ord No. ${ordinanceResponse['ordinance_no']}, Series of ${ordinanceResponse['series']}',
-        ),
-      );
-      await tester.pump();
-      // Confirm selection must work with no business: it is the section
-      // and the person that matter.
-      await tester.tap(find.text('Confirm selection'));
-      await flush(tester);
+
+      await chooseOrdinance();
       if (!isTicket) {
         expect(warningCheckBody!['vendor_id'], isNull);
         expect(warningCheckBody!['person_id'], 31);
@@ -442,6 +445,11 @@ void main() {
         await flush(tester);
         await tester.tap(find.text('Vegetable Section'));
         await flush(tester);
+        // A new section starts with nobody chosen: choose the violator and
+        // the ordinance again.
+        expect(inReview(find.text('Change')), findsNothing);
+        await chooseJuan();
+        await chooseOrdinance();
         expect(
           find.text('Information changed. Verify again before submitting.'),
           findsOneWidget,

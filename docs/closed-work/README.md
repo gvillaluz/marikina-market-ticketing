@@ -38,6 +38,7 @@ One file per task, grouped by topic. These are the notes that used to sit in `ro
 - [A2c, paper ticket scanner](faster-entry/a2c-paper-ticket-scanner.md) — closed 2026-11-09
 - [B1, unregistered vendor tickets shown](faster-entry/b1-unregistered-tickets.md) — closed 2026-11-09
 - [B2, unregistered vendor entry](faster-entry/b2-unregistered-entry.md) — closed 2026-11-10
+- [Choosing the violator](faster-entry/violator-picker.md) — closed 2026-11-12
 
 ## scanning
 - [Automatic checks](scanning/automatic-checks.md) — closed 2026-11-10

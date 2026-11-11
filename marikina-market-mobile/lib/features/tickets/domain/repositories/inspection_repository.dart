@@ -18,8 +18,6 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_t
 abstract class InspectionRepository {
   Future<Result<PageResult<PersonCandidate>>> matchPeople(
     String name,
-    String? address,
-    String? phone,
     int offset,
   );
   Future<Result<PersonCandidate>> createPerson(
@@ -45,6 +43,9 @@ abstract class InspectionRepository {
   Future<Result<List<MarketSection>>> getMarketSections();
   Future<Result<PageResult<VendorSummary>>> searchBusinesses(String search);
   Future<Result<List<PersonCandidate>>> getBusinessPeople(int businessId);
+  // Null when the owner has no person record yet.
+  Future<Result<PersonCandidate?>> getOwnerPerson(int businessId);
+  Future<Result<PersonCandidate>> addOwnerPerson(int businessId);
   Future<Result<OrdinanceShortcuts>> getOrdinanceShortcuts(int? personId);
   Future<Result<FineSummary>> getTicketFineSummary(
     List<int> ordinanceIds,
