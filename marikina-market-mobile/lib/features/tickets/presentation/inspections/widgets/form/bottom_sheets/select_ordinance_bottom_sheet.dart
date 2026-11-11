@@ -7,8 +7,8 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 import 'inspection_selection_sheet.dart';
+import 'ordinance_card.dart';
 import 'selection_sheet_message.dart';
-import 'selection_sheet_tile.dart';
 
 class SelectOrdinanceBottomSheet extends StatefulWidget {
   final bool isWarningTicket;
@@ -53,18 +53,14 @@ class _SelectOrdinanceBottomSheetState
     ordinance.title,
   ].any((text) => text.toLowerCase().contains(query));
 
-  Widget _tile(
-    Ordinance ordinance,
-    Set<int> selectedIds,
-    String keyPrefix,
-  ) => SelectionSheetTile(
-    key: ValueKey('$keyPrefix-${ordinance.id}'),
-    title: 'Ord No. ${ordinance.ordinanceNo}, Series of ${ordinance.series}',
-    subtitle:
-        '${ordinance.sectionLabel} · ${ordinance.categoryLabel}\n${ordinance.title}',
-    isSelected: selectedIds.contains(ordinance.id),
-    onTap: _confirming ? null : () => _toggle(ordinance),
-  );
+  Widget _tile(Ordinance ordinance, Set<int> selectedIds, String keyPrefix) =>
+      OrdinanceCard(
+        key: ValueKey('$keyPrefix-${ordinance.id}'),
+        ordinance: ordinance,
+        query: _searchQuery,
+        isSelected: selectedIds.contains(ordinance.id),
+        onTap: _confirming ? null : () => _toggle(ordinance),
+      );
 
   Widget _groupHeading(String text) => Padding(
     padding: const EdgeInsets.only(top: AppTheme.inspectionSmallGap),
@@ -255,27 +251,6 @@ class _SelectOrdinanceBottomSheetState
                     Text(
                       '${_selectedOrdinances.length} selected',
                       style: AppTheme.inspectionCaptionStyle,
-                    ),
-                    Wrap(
-                      spacing: AppTheme.inspectionTinyGap,
-                      runSpacing: AppTheme.inspectionTinyGap,
-                      children: _selectedOrdinances
-                          .map(
-                            (ordinance) => InputChip(
-                              label: Builder(
-                                builder: (context) => DefaultTextStyle(
-                                  style: DefaultTextStyle.of(context).style,
-                                  child: Text(
-                                    'Ord No. ${ordinance.ordinanceNo}, Series of ${ordinance.series}',
-                                  ),
-                                ),
-                              ),
-                              onDeleted: _confirming
-                                  ? null
-                                  : () => _toggle(ordinance),
-                            ),
-                          )
-                          .toList(),
                     ),
                   ],
                   if (_conflictMessage != null) ...[

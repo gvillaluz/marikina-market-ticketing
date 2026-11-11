@@ -11,6 +11,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/person_c
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/business_result_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/search_business_bottom_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/violator_info_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/person_identity_review.dart';
@@ -175,74 +176,115 @@ void main() {
     },
   );
 
-  testWidgets(
-    'business sheet shows stall, section, owner and address, and asks to keep typing',
-    (tester) async {
-      final bloc = await tester.runAsync(
-        () => listBloc(
-          (options) async => reply(options, {
-            'items': [
-              {
-                'vendor_id': 1,
-                'username': null,
-                'type': 'Public',
-                'business_account_number': 'ACC-100',
-                'stall_number': '12',
-                'trade_name': "Aling Nena's Store",
-                'last_name': 'Santos',
-                'first_name': 'Nena',
-                'middle_name': null,
-                'address': '12, Shoe Ave, Sto. Niño, Marikina City',
-                'market_section_id': 1,
-                'market_section_name': 'Dry Goods',
-              },
-            ],
-            'has_more': true,
-            'total': 21,
-          }),
-        ),
-      );
-      await tester.pumpWidget(
-        BlocProvider<InspectionBloc>.value(
-          value: bloc!,
-          child: MaterialApp(
-            theme: AppTheme.light,
-            home: const MediaQuery(
-              data: MediaQueryData(disableAnimations: true),
-              child: Scaffold(body: SearchBusinessBottomSheet()),
-            ),
+  Map<String, Object?> vendorJson(int id, String name, String? stall) => {
+    'vendor_id': id,
+    'username': null,
+    'type': 'Public',
+    'business_account_number': 'ACC-$id',
+    'stall_number': stall,
+    'trade_name': name,
+    'last_name': 'Santos',
+    'first_name': 'Nena',
+    'middle_name': null,
+    'address': '12, Shoe Ave, Sto. Niño, Marikina City',
+    'market_section_id': 1,
+    'market_section_name': 'Dry Goods',
+  };
+
+  Future<void> showBusinessSheet(
+    WidgetTester tester,
+    List<Map<String, Object?>> items, {
+    required bool hasMore,
+  }) async {
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final bloc = await tester.runAsync(
+      () => listBloc(
+        (options) async => reply(options, {
+          'items': items,
+          'has_more': hasMore,
+          'total': hasMore ? 21 : items.length,
+        }),
+      ),
+    );
+    await tester.pumpWidget(
+      BlocProvider<InspectionBloc>.value(
+        value: bloc!,
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: const MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: Scaffold(body: SearchBusinessBottomSheet()),
           ),
         ),
-      );
+      ),
+    );
+  }
+
+  Future<void> typeInBusinessSheet(WidgetTester tester, String text) async {
+    await tester.enterText(find.byType(TextField), text);
+    await tester.pump(AppTheme.inspectionSearchDelay);
+    await flush(tester);
+  }
+
+  testWidgets(
+    'business sheet has a short prompt, then shows a card per business and asks to keep typing',
+    (tester) async {
+      await showBusinessSheet(tester, [
+        vendorJson(1, "Aling Nena's Store", '12'),
+      ], hasMore: true);
+      expect(find.text('Search businesses'), findsOneWidget);
       expect(
-        find.text('Business name, stall, owner, address or account number'),
+        find.text('Search, then tap a business to select it.'),
         findsOneWidget,
       );
-      expect(
-        find.text(
-          'Search by business name, stall, owner, address or account number, then choose the business.',
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.text(
-          'Type a business name, stall, owner, address or account number to find the business.',
-        ),
-        findsOneWidget,
-      );
-      await tester.enterText(find.byType(TextField), 'santos');
-      await tester.pump(AppTheme.inspectionSearchDelay);
-      await flush(tester);
+      expect(find.text('Start typing to find a business.'), findsOneWidget);
+      expect(find.text('1 business shown'), findsNothing);
+      await typeInBusinessSheet(tester, 'santos');
       expect(find.text("Aling Nena's Store"), findsOneWidget);
+      expect(find.text('Stall 12'), findsOneWidget);
+      expect(find.text('Dry Goods'), findsOneWidget);
+      expect(find.text('Public'), findsOneWidget);
+      expect(find.text('Nena Santos'), findsOneWidget);
       expect(
-        find.text(
-          'Stall 12 · Dry Goods · Owner: Nena Santos · 12, Shoe Ave, Sto. Niño, Marikina City',
-        ),
+        find.text('12, Shoe Ave, Sto. Niño, Marikina City'),
         findsOneWidget,
       );
+      expect(find.text('Account ACC-1'), findsOneWidget);
+      expect(find.text('1 business shown'), findsOneWidget);
       expect(find.text('Keep typing to narrow the results.'), findsOneWidget);
     },
   );
+
+  testWidgets('business sheet counts the results when there are no more', (
+    tester,
+  ) async {
+    await showBusinessSheet(tester, [
+      vendorJson(1, "Aling Nena's Store", '12'),
+      vendorJson(2, 'Santos Fresh Fish', null),
+    ], hasMore: false);
+    await typeInBusinessSheet(tester, 'santos');
+    expect(find.text('2 businesses found'), findsOneWidget);
+    expect(find.text('Keep typing to narrow the results.'), findsNothing);
+  });
+
+  testWidgets('tapping a business card enables Select business', (
+    tester,
+  ) async {
+    await showBusinessSheet(tester, [
+      vendorJson(1, "Aling Nena's Store", '12'),
+    ], hasMore: false);
+    await typeInBusinessSheet(tester, 'nena');
+    ElevatedButton button() =>
+        tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+    expect(button().onPressed, isNull);
+    await tester.tap(find.byType(BusinessResultCard));
+    await tester.pump();
+    expect(button().onPressed, isNotNull);
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+  });
 
   testWidgets('entry page business card names every way to search', (
     tester,
@@ -261,12 +303,7 @@ void main() {
         ),
       ),
     );
-    expect(
-      find.text(
-        'Search by business name, stall, owner, address or account number',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Search for a registered business.'), findsOneWidget);
   });
 
   testWidgets(

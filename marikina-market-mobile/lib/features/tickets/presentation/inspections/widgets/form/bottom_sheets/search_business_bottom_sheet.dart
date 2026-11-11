@@ -7,9 +7,9 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_s
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
+import 'business_result_card.dart';
 import 'inspection_selection_sheet.dart';
 import 'selection_sheet_message.dart';
-import 'selection_sheet_tile.dart';
 
 class SearchBusinessBottomSheet extends StatefulWidget {
   const SearchBusinessBottomSheet({super.key});
@@ -54,13 +54,6 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
     }
   }
 
-  static String _details(VendorSummary vendor) => [
-    if (vendor.stallNumber != null) 'Stall ${vendor.stallNumber}',
-    vendor.marketSectionName,
-    'Owner: ${vendor.ownerName}',
-    vendor.address,
-  ].join(' · ');
-
   @override
   Widget build(
     BuildContext context,
@@ -78,8 +71,7 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
       Widget? message;
       if (_query.isEmpty) {
         message = const SelectionSheetMessage(
-          message:
-              'Type a business name, stall, owner, address or account number to find the business.',
+          message: 'Start typing to find a business.',
           icon: Icons.storefront_outlined,
         );
       } else if (loading) {
@@ -101,8 +93,7 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
       }
       return InspectionSelectionSheet(
         title: 'Find business',
-        description:
-            'Search by business name, stall, owner, address or account number, then choose the business.',
+        description: 'Search, then tap a business to select it.',
         slivers: [
           SliverPadding(
             padding: AppTheme.selectionSheetPadding,
@@ -115,8 +106,8 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
                 textInputAction: TextInputAction.search,
                 onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
-                  labelText:
-                      'Business name, stall, owner, address or account number',
+                  labelText: 'Search businesses',
+                  hintText: 'Name, stall, owner, address or account number',
                   counterText: '',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _query.isEmpty
@@ -137,15 +128,28 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
             SliverFillRemaining(hasScrollBody: false, child: message)
           else ...[
             SliverPadding(
-              padding: AppTheme.selectionSheetPadding,
+              padding: AppTheme.selectionSheetPadding.copyWith(bottom: 0),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  '${vendors.length} ${vendors.length == 1 ? 'business' : 'businesses'} ${results?.hasMore == true ? 'shown' : 'found'}',
+                  style: AppTheme.inspectionCaptionStyle.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: AppTheme.selectionSheetPadding.copyWith(
+                top: AppTheme.inspectionSmallGap,
+              ),
               sliver: SliverList.builder(
                 itemCount: vendors.length,
                 itemBuilder: (context, index) {
                   final vendor = vendors[index];
-                  return SelectionSheetTile(
+                  return BusinessResultCard(
                     key: ValueKey(vendor.id),
-                    title: vendor.tradeName,
-                    subtitle: _details(vendor),
+                    vendor: vendor,
+                    query: _query,
                     isSelected: selected?.id == vendor.id,
                     onTap: () => setState(() => _selectedVendor = vendor),
                   );

@@ -129,6 +129,15 @@ class AppTheme {
   static const selectionSheetMaxSize = 0.95;
   static const selectionSheetPadding = EdgeInsets.all(16);
   static const selectionSheetItemPadding = EdgeInsets.only(bottom: 10);
+  static const selectionCardPadding = EdgeInsets.all(14);
+  static const selectionCardSelectedBorderWidth = 2.0;
+  static const selectionChipPadding = EdgeInsets.symmetric(
+    horizontal: 10,
+    vertical: 4,
+  );
+  static const selectionChipRadius = BorderRadius.all(Radius.circular(8));
+  static const selectionChipGap = 6.0;
+  static const selectionMatchWeight = FontWeight.w800;
   static const scannerGuideSize = 240.0;
   static const scannerGuideViewportRatio = 0.7;
   static const scannerStatusMaxHeightRatio = 0.35;
