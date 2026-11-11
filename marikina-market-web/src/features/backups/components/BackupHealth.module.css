@@ -36,6 +36,18 @@
 .running {
   animation: backup-spin 1.5s linear infinite;
 }
+.loading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--backup-space-md);
+  margin-top: var(--backup-space-sm);
+  width: 100%;
+}
+.loading .stats div {
+  align-items: center;
+}
 .label {
   font-size: var(--backup-font-caption);
   font-weight: 700;
