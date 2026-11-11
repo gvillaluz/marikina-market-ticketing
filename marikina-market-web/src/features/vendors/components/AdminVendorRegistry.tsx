@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   Download,
   Eye,
+  Pencil,
   Printer,
   RefreshCw,
   Search,
@@ -20,6 +21,7 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge/Badge";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
 import Table, { type Column } from "@/components/ui/Table";
+import StackedCell from "./StackedCell";
 import styles from "./AdminVendorRegistry.module.css";
 
 const PAGE_SIZE = 10;
@@ -52,6 +54,10 @@ function getTypeLabel(type: string | number | null | undefined): string {
   return typeof type === "string"
     ? type.replace(/([a-z])([A-Z])/g, "$1 $2")
     : String(type);
+}
+
+function formatCount(count: number): string {
+  return count === 0 ? "—" : String(count);
 }
 
 interface AdminVendorRegistryProps {
@@ -108,35 +114,41 @@ export default function AdminVendorRegistry({
       : Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const columns: Column<AdminVendorSummary>[] = [
-    { key: "businessName", header: "Business Name", width: "10%", render: vendor => vendor.businessName },
     {
-      key: "businessAccountNumber",
-      header: "Business Account Number",
-      width: "16%",
+      key: "business",
+      header: "Business",
+      width: "22%",
       render: (vendor) => (
-        <span className={styles.businessAccountNumber}>{vendor.businessAccountNumber}</span>
+        <StackedCell
+          primary={vendor.businessName}
+          secondary={vendor.businessAccountNumber}
+        />
       ),
     },
     {
       key: "vendorName",
       header: "Registered Owner",
-      width: "12%",
+      width: "16%",
       render: (vendor) => (
-        <span className={styles.vendorName}>{vendor.vendorName}</span>
+        <span className={styles.owner}>{vendor.vendorName}</span>
       ),
     },
-    { key: "marketSectionName", header: "Market Section", width: "10%" },
     {
-      key: "type",
-      header: "Business Type",
-      width: "9%",
-      render: (vendor) => getTypeLabel(vendor.type),
+      key: "sectionType",
+      header: "Section & Type",
+      width: "14%",
+      render: (vendor) => (
+        <StackedCell
+          primary={vendor.marketSectionName}
+          secondary={getTypeLabel(vendor.type)}
+        />
+      ),
     },
     {
       key: "complianceScore",
       header: "Compliance Score",
       align: "center",
-      width: "11%",
+      width: "12%",
       render: (vendor) => (
         <Badge
           className={styles.scoreBadge}
@@ -146,23 +158,46 @@ export default function AdminVendorRegistry({
         </Badge>
       ),
     },
-    { key: "warningCount", header: "Warnings", align: "center", width: "9%" },
-    { key: "ticketCount", header: "Tickets", align: "center", width: "7%" },
+    {
+      key: "warningCount",
+      header: "Warnings",
+      align: "center",
+      width: "10%",
+      render: (vendor) => formatCount(vendor.warningCount),
+    },
+    {
+      key: "ticketCount",
+      header: "Tickets",
+      align: "center",
+      width: "9%",
+      render: (vendor) => formatCount(vendor.ticketCount),
+    },
     {
       key: "action",
       header: "Action",
       align: "center",
-      width: "16%",
+      width: "17%",
       render: (vendor) => (
         <div className={styles.rowActions}>
-          <button type="button" className={styles.viewButton} onClick={() => onEditBusiness(vendor)} aria-label={`Edit ${vendor.businessName}`}>Edit Business</button>
           <button
             type="button"
-            className={styles.viewButton}
+            className={styles.rowButton}
+            onClick={() => onEditBusiness(vendor)}
+            aria-label={`Edit ${vendor.businessName}`}
+            title="Edit business"
+          >
+            <Pencil size={16} aria-hidden="true" />
+            <span className={styles.rowButtonLabel}>Edit</span>
+          </button>
+          <button
+            type="button"
+            className={styles.rowButton}
             onClick={() => onViewInspections(vendor)}
             aria-label={`View inspections for ${vendor.vendorName}`}
+            title="View inspections"
           >
-            <Eye size={13} /> View Inspections
+            <Eye size={16} aria-hidden="true" />
+            <span className={styles.rowButtonLabel}>Inspections</span>
           </button>
         </div>
       ),
@@ -172,9 +207,15 @@ export default function AdminVendorRegistry({
   return (
     <Card className={styles.registryCard} aria-label="Business registry">
       <div className={styles.toolbar}>
-        <button type="button" className={styles.viewButton} onClick={onCreateBusiness}>Create Business</button>
+        <button
+          type="button"
+          className={styles.createButton}
+          onClick={onCreateBusiness}
+        >
+          Create Business
+        </button>
         <label className={styles.searchBox}>
-          <Search size={14} aria-hidden="true" />
+          <Search size={16} aria-hidden="true" />
           <input
             aria-label="Search businesses"
             placeholder="Search by business, owner, account or stall"
@@ -184,6 +225,7 @@ export default function AdminVendorRegistry({
         </label>
         <div className={styles.filters}>
           <Dropdown
+            fullWidth
             ariaLabel="Filter by market section"
             triggerLabel={
               section === "all"
@@ -195,6 +237,7 @@ export default function AdminVendorRegistry({
             options={SECTION_OPTIONS}
           />
           <Dropdown
+            fullWidth
             ariaLabel="Filter by compliance score"
             triggerLabel={`Compliance Score: ${SCORE_OPTIONS.find((option) => option.value === complianceScore)?.label}`}
             value={complianceScore}
