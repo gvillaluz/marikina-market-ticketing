@@ -325,12 +325,7 @@ void main() {
       expect(find.text('Unregistered'), findsOneWidget);
       expect(find.text('Search business'), findsOneWidget);
       expect(find.text('Scan QR Code'), findsNothing);
-      expect(
-        find.text(
-          'Search by business name, stall, owner, address or account number',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('Search for a registered business.'), findsOneWidget);
       expect(find.text('Meat Section'), findsNothing);
       expect(paths, isEmpty);
     });

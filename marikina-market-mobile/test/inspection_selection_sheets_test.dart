@@ -12,6 +12,7 @@ import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_mo
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/ordinance_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/search_business_bottom_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/bottom_sheets/select_ordinance_bottom_sheet.dart';
 import 'ordinance_shortcuts_test.dart' show withNoShortcuts;
@@ -24,6 +25,16 @@ import 'features/tickets/presentation/inspection_photo_controls_test.dart'
 import 'features/auth/data/login_mobile_contract_test.dart' show reply;
 import 'features/tickets/data/models/ordinance_model_test.dart'
     show ordinanceResponse;
+
+// The tap handler of the only ordinance card, even when it is off screen.
+VoidCallback? cardTap(WidgetTester tester) => tester
+    .widget<InkWell>(
+      find.descendant(
+        of: find.byType(OrdinanceCard, skipOffstage: false),
+        matching: find.byType(InkWell, skipOffstage: false),
+      ),
+    )
+    .onTap;
 
 void main() {
   setUpAll(() async {
@@ -158,14 +169,9 @@ void main() {
             ),
             findsOneWidget,
           );
-          expect(find.text(label), findsNWidgets(2));
-          final chipLabel = find.descendant(
-            of: find.byType(InputChip),
-            matching: find.text(label),
-          );
-          if (width == 280) {
-            expect(tester.getSize(chipLabel).height, greaterThan(20));
-          }
+          expect(find.text(label), findsOneWidget);
+          expect(find.byType(InputChip), findsNothing);
+          expect(find.text('1 selected'), findsOneWidget);
           await captureFormControls(
             tester,
             'ordinance-${width.toInt()}-warning-$warning',
@@ -173,13 +179,15 @@ void main() {
           expect(find.textContaining('Section 69'), findsOneWidget);
           await tester.enterText(find.byType(TextField), '2026');
           await tester.pumpAndSettle();
-          expect(find.text(label), findsNWidgets(2));
+          expect(find.text(label), findsOneWidget);
           await tester.tap(find.byTooltip('Clear search'));
           await tester.pumpAndSettle();
-          await tester.tap(find.byTooltip('Delete'));
+          await tester.tap(find.text(label));
           await tester.pumpAndSettle();
           expect(selected, hasLength(1));
           expect(find.text(label), findsOneWidget);
+          expect(find.text('1 selected'), findsNothing);
+          expect(find.byIcon(Icons.check_circle), findsNothing);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
         },
@@ -284,7 +292,7 @@ void main() {
   );
 
   testWidgets(
-    'removing a draft ordinance does not mutate the parent selection',
+    'unselecting a draft ordinance does not mutate the parent selection',
     (tester) async {
       final selected = [OrdinanceModel.fromJson(ordinanceResponse).toEntity()];
       final bloc = await tester.runAsync(
@@ -311,11 +319,18 @@ void main() {
           ),
         ),
       );
-      await tester.pump();
-      final chip = tester.widget<InputChip>(find.byType(InputChip));
-      chip.onDeleted!();
+      await tester.runAsync(() async {
+        final loaded = bloc.stream.firstWhere(
+          (state) => state is OrdinanceSelectionLoaded,
+        );
+        await loaded;
+      });
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+      await tester.tap(find.byType(OrdinanceCard));
       await tester.pump();
       expect(selected, hasLength(1));
+      expect(find.byIcon(Icons.check_circle), findsNothing);
       expect(find.byType(InputChip), findsNothing);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
@@ -402,13 +417,8 @@ void main() {
         tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
         isNull,
       );
-      // The selected chip is above the viewport with enlarged text and a keyboard.
-      expect(
-        tester
-            .widget<InputChip>(find.byType(InputChip, skipOffstage: false))
-            .onDeleted,
-        isNull,
-      );
+      // The selected row is locked while confirming.
+      expect(cardTap(tester), isNull);
       expect(tester.takeException(), isNull);
       release.complete();
       await tester.pump();
@@ -421,12 +431,7 @@ void main() {
         tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
         isNotNull,
       );
-      expect(
-        tester
-            .widget<InputChip>(find.byType(InputChip, skipOffstage: false))
-            .onDeleted,
-        isNotNull,
-      );
+      expect(cardTap(tester), isNotNull);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
     },

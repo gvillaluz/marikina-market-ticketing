@@ -89,7 +89,7 @@ class ViolatorInfoCard extends StatelessWidget {
         Text(
           isUnregistered
               ? 'Choose the market section where the vendor was found'
-              : 'Search by business name, stall, owner, address or account number',
+              : 'Search for a registered business.',
           textAlign: TextAlign.center,
         ),
 
