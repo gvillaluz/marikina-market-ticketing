@@ -1,0 +1,18 @@
+.cell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.primary {
+  color: var(--text-heading);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.secondary {
+  color: var(--text-body);
+  font-size: var(--form-font-caption);
+  font-variant-numeric: tabular-nums;
+}

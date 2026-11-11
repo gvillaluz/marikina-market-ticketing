@@ -3,126 +3,185 @@
   overflow: hidden;
 }
 
+.registryCard button {
+  box-shadow: none;
+}
+
 .toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px;
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-lg);
 }
 
-.searchBox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: min(320px, 45%);
-  min-width: 190px;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid #d9e1ec;
-  border-radius: 6px;
-  color: #728095;
-}
-
-.searchBox:focus-within {
-  border-color: #7da7d3;
-  box-shadow: 0 0 0 3px rgba(32, 105, 181, 0.1);
-}
-
-.searchBox input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  color: #253b54;
-  font: inherit;
-  font-size: 0.76rem;
-}
-
-.searchBox input::placeholder {
-  color: #8490a0;
-}
-
-.filters {
-  display: flex;
-  justify-content: flex-end;
-  gap: 7px;
-}
-
-.tableWrapper {
-  margin: 0 16px 12px;
-}
-
-.tableWrapper :global(table) {
-  table-layout: fixed;
-  min-width: 980px;
-}
-
-.businessAccountNumber {
-  color: #184b82 !important;
-  font-weight: 700;
-}
-
-.vendorName {
-  color: #182b41 !important;
-  font-weight: 650;
-}
-
-.scoreBadge {
-  min-width: 48px;
-  justify-content: center;
-  padding: 3px 7px;
-  border: 1px solid currentColor;
-  font-size: 0.67rem;
-}
-
-.viewButton {
+.createButton {
   display: inline-flex;
-  min-width: 142px;
-  justify-content: center;
   align-items: center;
-  gap: 5px;
-  padding: 7px 10px;
-  border: 1px solid #b9d2ee;
-  border-radius: 5px;
-  background: #f4f9ff;
-  color: var(--button-primary);
-  font-size: 0.67rem;
+  justify-content: center;
+  min-height: var(--form-control-height);
+  padding: 0 var(--space-lg);
+  border: 1px solid var(--button-primary);
+  border-radius: var(--radius-sm);
+  background: var(--button-primary);
+  color: var(--text-on-primary);
+  font-size: var(--form-font-body);
   font-weight: 650;
   white-space: nowrap;
   cursor: pointer;
 }
 
-.viewButton:hover {
-  background: #e7f2ff;
+.createButton:hover {
+  border-color: var(--button-primary-hover);
+  background: var(--button-primary-hover);
+}
+
+.createButton:focus-visible,
+.rowButton:focus-visible,
+.utilityButton:focus-visible,
+.iconButton:focus-visible,
+.errorState button:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-body);
+}
+
+.searchBox:focus-within {
+  border-color: var(--button-primary);
+  box-shadow: var(--form-focus-ring);
+}
+
+.searchBox input {
+  flex: 1;
+  min-width: 0;
+  height: var(--form-control-height);
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-heading);
+  font: inherit;
+  font-size: var(--form-font-body);
+}
+
+.searchBox input::placeholder {
+  color: var(--text-body);
+}
+
+.filters {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.filters :global(button[aria-haspopup="listbox"]) {
+  height: var(--form-control-height);
+  padding-inline: var(--space-md);
+  font-size: var(--form-font-body);
+}
+
+.tableWrapper {
+  margin: 0 var(--space-lg) var(--space-md);
+}
+
+.registryCard .tableWrapper :global(table) {
+  table-layout: fixed;
+  min-width: 0;
+}
+
+.registryCard .tableWrapper :global(table > thead > tr > th) {
+  white-space: normal;
+  overflow-wrap: normal;
+  font-size: var(--form-font-caption);
+}
+
+.registryCard .tableWrapper :global(table > tbody > tr > td) {
+  font-size: var(--form-font-body);
+  overflow-wrap: break-word;
+}
+
+.owner {
+  font-weight: 500;
+}
+
+.scoreBadge {
+  min-width: 3rem;
+  justify-content: center;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.rowButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-width: var(--form-control-height);
+  min-height: var(--form-control-height);
+  padding: 0 var(--space-md);
+  border: 1px solid
+    color-mix(in srgb, var(--button-primary) 30%, var(--bg-surface));
+  border-radius: var(--radius-sm);
+  background: var(--button-primary-surface);
+  color: var(--button-primary);
+  font-size: var(--form-font-body);
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rowButton:hover {
+  background: color-mix(in srgb, var(--button-primary) 12%, var(--bg-surface));
 }
 
 .tableFooter {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  color: #697789;
-  font-size: 0.7rem;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  color: var(--text-body);
+  font-size: var(--form-font-caption);
 }
 
 .footerActions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 7px;
+  gap: var(--space-sm);
+}
+
+.iconButton,
+.utilityButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  height: var(--form-control-height);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-body);
+  font-size: var(--form-font-caption);
+  cursor: pointer;
 }
 
 .iconButton {
-  display: inline-grid;
-  width: 27px;
-  height: 27px;
-  place-items: center;
-  border: 1px solid #dce5ef;
-  border-radius: 5px;
-  background: #fff;
-  color: #52657a;
-  cursor: pointer;
+  width: var(--form-control-height);
+}
+
+.utilityButton {
+  padding: 0 var(--space-md);
 }
 
 .utilityButton:disabled {
@@ -130,38 +189,23 @@
   cursor: not-allowed;
 }
 
-.utilityButton {
-  display: inline-flex;
-  height: 27px;
-  align-items: center;
-  gap: 5px;
-  padding: 0 8px;
-  border: 1px solid #dce5ef;
-  border-radius: 5px;
-  background: #fff;
-  color: #52657a;
-  font-size: 0.66rem;
-  cursor: pointer;
-}
-
 .pagination {
-  justify-content: flex-end;
-  gap: 4px;
+  gap: var(--space-xs);
   margin-top: 0;
 }
 
 .pagination :global(button) {
-  width: 27px;
-  height: 27px;
+  width: var(--form-control-height);
+  height: var(--form-control-height);
   padding: 0;
-  border-radius: 5px;
-  font-size: 0.7rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--form-font-body);
 }
 
 .pagination :global(button[aria-current="page"]) {
   border-color: var(--button-primary);
   background: var(--button-primary);
-  color: #fff;
+  color: var(--text-on-primary);
 }
 
 .pagination :global(button:disabled) {
@@ -175,95 +219,81 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  color: #718094;
-  font-size: 0.78rem;
+  gap: var(--space-sm);
+  color: var(--text-body);
+  font-size: var(--form-font-body);
 }
 
 .errorState > svg {
-  color: #bd7a1b;
+  color: var(--warning);
 }
 
 .errorState strong {
-  color: #2a4058;
-  font-size: 0.9rem;
+  color: var(--text-heading);
+  font-size: var(--market-font-size-body);
 }
 
 .errorState button {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-xs);
+  min-height: var(--form-control-height);
+  padding: 0 var(--space-md);
   border: 0;
   background: transparent;
   color: var(--button-primary);
-  font-size: 0.68rem;
+  font-size: var(--form-font-body);
   font-weight: 700;
   cursor: pointer;
 }
 
-@media (max-width: 620px) {
+@media (min-width: 701px) {
+  .registryCard .tableWrapper :global(table > thead > tr > th),
+  .registryCard .tableWrapper :global(table > tbody > tr > td) {
+    padding-inline: var(--space-sm);
+  }
+
   .toolbar {
-    align-items: stretch;
-    flex-direction: column;
+    grid-template-columns: auto minmax(0, 1fr);
   }
-  .searchBox {
-    width: 100%;
-  }
+
   .filters {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 17rem));
   }
-  .tableFooter {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-}
 
-.registryCard button {
-  box-shadow: none;
-}
-
-.registryCard .tableWrapper :global(table > thead > tr > th) {
-  white-space: normal;
-  overflow-wrap: normal;
-  font-size: var(--form-font-body);
-}
-
-.registryCard .tableWrapper :global(table > tbody > tr > td) {
-  font-size: var(--form-font-body);
-  overflow-wrap: break-word;
-}
-
-.rowActions {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-sm);
-}
-
-.rowActions .viewButton {
-  width: 100%;
-  min-width: 0;
-  white-space: normal;
-}
-
-.viewButton {
-  font-size: var(--form-font-body);
-  min-height: var(--form-control-height);
-}
-
-.scoreBadge {
-  font-size: var(--form-font-caption);
-}
-
-@media (max-width: 700px) {
-  .tableWrapper :global(table) {
-    min-width: 0;
-  }
   .rowActions {
-    align-items: flex-start;
+    flex-wrap: nowrap;
+    justify-content: center;
   }
-  .rowActions .viewButton {
-    width: auto;
+
+  .rowButton {
+    padding: 0;
+  }
+
+  .rowButtonLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tableFooter {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .iconButton,
+  .utilityButton,
+  .pagination :global(button) {
+    height: var(--records-export-control-height);
+  }
+
+  .iconButton,
+  .pagination :global(button) {
+    width: var(--records-export-control-height);
   }
 }

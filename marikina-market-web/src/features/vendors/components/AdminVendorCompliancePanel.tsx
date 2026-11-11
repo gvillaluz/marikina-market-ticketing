@@ -44,10 +44,10 @@ export default function AdminVendorCompliancePanel({
   refetchSettlements,
 }: AdminVendorCompliancePanelProps) {
   return (
-    <Card className={styles.compliancePanel}>
+    <Card className={styles.compliancePanel} aria-label="Market compliance">
       <div className={styles.panelHeading}>
         <h2>Market Compliance</h2>
-        <p>Track market vendor activities.</p>
+        <p>Track market business activities.</p>
       </div>
 
       {overviewIsError ? (
@@ -63,23 +63,19 @@ export default function AdminVendorCompliancePanel({
         <>
           <div className={styles.summaryStats}>
             <Card className={styles.summaryStat}>
-              <strong>
-                {overview?.vendorsWithWarningsThisWeek ?? 0} VENDORS
-              </strong>
-              <span>WARNINGS THIS WEEK</span>
+              <strong>{overview?.vendorsWithWarningsThisWeek ?? 0}</strong>
+              <span>Businesses with warnings this week</span>
             </Card>
             <Card className={styles.summaryStat}>
-              <strong>
-                {overview?.vendorsWithTicketsThisWeek ?? 0} VENDORS
-              </strong>
-              <span>TICKETS THIS WEEK</span>
+              <strong>{overview?.vendorsWithTicketsThisWeek ?? 0}</strong>
+              <span>Businesses with tickets this week</span>
             </Card>
           </div>
 
           <section className={styles.panelSection}>
             <h3>New Activities</h3>
             {(overview?.activities ?? []).length === 0 ? (
-              <p className={styles.panelEmpty}>No recent vendor activity.</p>
+              <p className={styles.panelEmpty}>No recent business activity.</p>
             ) : (
               <div className={styles.activityList}>
                 {overview?.activities.map((activity) => (
@@ -94,9 +90,7 @@ export default function AdminVendorCompliancePanel({
         </>
       )}
 
-      <section
-        className={`${styles.panelSection} ${styles.settlementsSection}`}
-      >
+      <section className={styles.panelSection}>
         <h3>Pending Ticket Settlements</h3>
         {settlementIsError ? (
           <div className={styles.panelError} role="alert">
