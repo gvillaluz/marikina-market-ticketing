@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/core/utils/password_change_check.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
@@ -22,6 +23,7 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmNewPasswordController =
       TextEditingController();
+  PasswordChangeCheck? _check;
   int userId = 0;
 
   @override
@@ -44,6 +46,13 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
   }
 
   void _submit() {
+    final check = PasswordChangeCheck(
+      _currentPasswordController.text,
+      _newPasswordController.text,
+      _confirmNewPasswordController.text,
+    );
+    setState(() => _check = check);
+    if (!check.isValid) return;
     context.read<AuthBloc>().add(
       ChangePasswordSubmitted(
         userId: userId,
@@ -72,6 +81,7 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
             currentPasswordController: _currentPasswordController,
             newPasswordController: _newPasswordController,
             confirmNewPasswordController: _confirmNewPasswordController,
+            check: _check,
           ),
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {

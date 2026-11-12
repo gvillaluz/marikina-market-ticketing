@@ -7,6 +7,7 @@ class ProfilePasswordField extends StatefulWidget {
   final TextEditingController controller;
   final bool enabled;
   final bool isNewPassword;
+  final String? errorText;
   final VoidCallback? onSubmitted;
   const ProfilePasswordField({
     required this.label,
@@ -14,6 +15,7 @@ class ProfilePasswordField extends StatefulWidget {
     required this.controller,
     required this.enabled,
     this.isNewPassword = true,
+    this.errorText,
     this.onSubmitted,
     super.key,
   });
@@ -52,6 +54,7 @@ class _ProfilePasswordFieldState extends State<ProfilePasswordField> {
         onTapOutside: (_) => FocusScope.of(context).unfocus(),
         decoration: InputDecoration(
           hintText: widget.hint,
+          errorText: widget.errorText,
           suffixIcon: IconButton(
             tooltip: _visible ? 'Hide password' : 'Show password',
             onPressed: !widget.enabled

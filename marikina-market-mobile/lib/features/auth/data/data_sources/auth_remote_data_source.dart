@@ -175,8 +175,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       if (e.response?.statusCode == 400) {
-        throw UnauthorizedException(
-          e.response?.data['message'] ?? 'Invalid current or new password.',
+        throw ValidationException(
+          ApiErrorMessage.fromBody(e.response?.data) ??
+              'Invalid current or new password.',
         );
       }
 

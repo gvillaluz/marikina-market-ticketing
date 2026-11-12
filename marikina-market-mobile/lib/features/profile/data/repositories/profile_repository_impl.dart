@@ -56,8 +56,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
         confirmNewPassword,
       );
       return Result.success(unit);
-    } on UnauthorizedException catch (e) {
-      return Result.failure(UnauthorizedFailure(e.message));
+    } on ValidationException catch (e) {
+      return Result.failure(ValidationFailure(e.message));
     } on NetworkException catch (e) {
       return Result.failure(NetworkFailure(e.message));
     } on ServerException catch (e) {

@@ -1,12 +1,14 @@
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
+import 'package:marikina_market_mobile/core/utils/password_change_check.dart';
 
 class ChangePasswordFields extends StatefulWidget {
   final bool enabled;
   final TextEditingController currentPasswordController;
   final TextEditingController newPasswordController;
   final TextEditingController confirmNewPasswordController;
+  final PasswordChangeCheck? check;
 
   const ChangePasswordFields({
     super.key,
@@ -14,6 +16,7 @@ class ChangePasswordFields extends StatefulWidget {
     required this.currentPasswordController,
     required this.newPasswordController,
     required this.confirmNewPasswordController,
+    this.check,
   });
 
   @override
@@ -55,6 +58,7 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
                 ),
               ),
               hintText: 'Enter your current password',
+              errorText: widget.check?.currentError,
               hintStyle: TextStyle(
                 color: AppColors.lightGrey,
                 fontSize: AppTheme.bodyFontSize,
@@ -87,10 +91,20 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
                 ),
               ),
               hintText: 'Enter your new password',
+              errorText: widget.check?.newPasswordError,
               hintStyle: TextStyle(
                 color: AppColors.lightGrey,
                 fontSize: AppTheme.bodyFontSize,
               ),
+            ),
+          ),
+
+          const SizedBox(height: 7),
+          const Text(
+            PasswordChangeCheck.hint,
+            style: TextStyle(
+              color: AppColors.mediumGrey,
+              fontSize: AppTheme.bodyFontSize,
             ),
           ),
 
@@ -120,6 +134,7 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
                 ),
               ),
               hintText: 'Confirm your new password',
+              errorText: widget.check?.confirmError,
               hintStyle: TextStyle(
                 color: AppColors.lightGrey,
                 fontSize: AppTheme.bodyFontSize,

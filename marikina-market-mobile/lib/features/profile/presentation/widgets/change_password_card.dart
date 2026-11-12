@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/core/utils/password_change_check.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/bloc/profile_state.dart';
 import 'package:marikina_market_mobile/features/profile/presentation/widgets/profile_password_field.dart';
@@ -11,11 +12,13 @@ class ChangePasswordCard extends StatelessWidget {
   final TextEditingController currentPasswordController;
   final TextEditingController newPasswordController;
   final TextEditingController confirmNewPasswordController;
+  final PasswordChangeCheck? check;
   final VoidCallback submit;
   const ChangePasswordCard({
     required this.currentPasswordController,
     required this.newPasswordController,
     required this.confirmNewPasswordController,
+    this.check,
     required this.submit,
     super.key,
   });
@@ -37,6 +40,7 @@ class ChangePasswordCard extends StatelessWidget {
             controller: currentPasswordController,
             enabled: !loading,
             isNewPassword: false,
+            errorText: check?.currentError,
           ),
           const SizedBox(height: AppTheme.profileGap),
           ProfilePasswordField(
@@ -44,6 +48,14 @@ class ChangePasswordCard extends StatelessWidget {
             hint: 'Enter new password',
             controller: newPasswordController,
             enabled: !loading,
+            errorText: check?.newPasswordError,
+          ),
+          const SizedBox(height: AppTheme.profileSmallGap),
+          Text(
+            PasswordChangeCheck.hint,
+            style: AppTheme.profileBodyStyle.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: AppTheme.profileGap),
           ProfilePasswordField(
@@ -51,6 +63,7 @@ class ChangePasswordCard extends StatelessWidget {
             hint: 'Confirm new password',
             controller: confirmNewPasswordController,
             enabled: !loading,
+            errorText: check?.confirmError,
             onSubmitted: submit,
           ),
           const SizedBox(height: AppTheme.profileGap),
