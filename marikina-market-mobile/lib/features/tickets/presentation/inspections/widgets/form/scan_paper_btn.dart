@@ -2,7 +2,7 @@ import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_outlined_btn.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/add_photo_evidence_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_evidence_grid.dart';
@@ -52,10 +52,12 @@ class _ScanPaperBtnState extends State<ScanPaperBtn> {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      AppPrimaryButton(
+      AppOutlinedBtn(
         label: _isScanning ? 'Opening scanner' : widget.buttonLabel,
         iconData: Icons.document_scanner_outlined,
         onPressed: _scan,
+        foregroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         isLoading: _isScanning,
       ),
       if (_scannerUnavailable) ...[

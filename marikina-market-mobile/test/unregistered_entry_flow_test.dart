@@ -326,8 +326,8 @@ void main() {
       await chooseJuan();
 
       Future<void> chooseOrdinance() async {
-        await tester.ensureVisible(find.text('Select Ordinance'));
-        await tester.tap(find.text('Select Ordinance'));
+        await tester.ensureVisible(find.text('Select ordinance'));
+        await tester.tap(find.text('Select ordinance'));
         await tester.pump();
         final selectionBloc = tester
             .element(find.byType(SelectOrdinanceBottomSheet))
@@ -440,8 +440,8 @@ void main() {
           find.text('Information changed. Verify again before submitting.'),
           findsNothing,
         );
-        await tester.ensureVisible(find.text('Change section'));
-        await tester.tap(find.text('Change section'));
+        await tester.ensureVisible(find.byTooltip('Change section'));
+        await tester.tap(find.byTooltip('Change section'));
         await flush(tester);
         await tester.tap(find.text('Vegetable Section'));
         await flush(tester);

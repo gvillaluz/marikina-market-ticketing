@@ -300,8 +300,8 @@ void main() {
       );
 
       Future<void> tapSelectOrdinance() async {
-        await tester.ensureVisible(find.text('Select Ordinance'));
-        await tester.tap(find.text('Select Ordinance'));
+        await tester.ensureVisible(find.text('Select ordinance'));
+        await tester.tap(find.text('Select ordinance'));
         await tester.pump();
       }
 

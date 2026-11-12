@@ -208,8 +208,8 @@ void main() {
   }
 
   Future<void> tapSelectOrdinance(WidgetTester tester) async {
-    await tester.ensureVisible(find.text('Select Ordinance'));
-    await tester.tap(find.text('Select Ordinance'));
+    await tester.ensureVisible(find.text('Select ordinance'));
+    await tester.tap(find.text('Select ordinance'));
     await tester.pump();
   }
 
@@ -311,8 +311,8 @@ void main() {
     expect(copyName(tester), 'Pedro Reyes');
     expect(chosenOrdinances(tester), [1]);
 
-    await tester.ensureVisible(find.text('Change section'));
-    await tester.tap(find.text('Change section'));
+    await tester.ensureVisible(find.byTooltip('Change section'));
+    await tester.tap(find.byTooltip('Change section'));
     await flush(tester);
     await tester.tap(find.text('Vegetable Section'));
     await flush(tester);

@@ -153,7 +153,7 @@ void main() {
       await showControls(tester, width: width);
       // The existing primary-button height is 52px; no extra 40px frame padding.
       expect(tester.getSize(find.byType(AddPhotoEvidenceBtn)).height, 52);
-      expect(tester.getSize(find.byType(ElevatedButton)).width, width - 40);
+      expect(tester.getSize(find.byType(OutlinedButton)).width, width - 40);
       expect(find.text('Take a photo'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await captureFormControls(tester, 'photo-action-${width.toInt()}');
@@ -181,7 +181,7 @@ void main() {
       await flushCamera(tester);
       expect(find.text('Opening camera'), findsOneWidget);
       expect(
-        tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+        tester.widget<OutlinedButton>(find.byType(OutlinedButton)).onPressed,
         isNull,
       );
       await tester.tap(find.text('Opening camera'));

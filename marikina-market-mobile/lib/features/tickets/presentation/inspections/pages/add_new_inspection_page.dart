@@ -30,6 +30,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/add_photo_evidence_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/dialogs/duplicate_warning_dialog.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/form_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/inspection_type_toggle.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/payment_type_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/scan_paper_btn.dart';
@@ -605,29 +606,27 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                        'Inspection details',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: AppTheme.inspectionFormTitleFontSize,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        !_hasBusinessOrSection
-                            ? 'Choose Registered or Unregistered, then find the vendor or pick the market section to begin.'
-                            : 'Complete the inspection details, then review them before submitting.',
-                        style: const TextStyle(
-                          color: AppColors.mediumGrey,
-                          fontSize: AppTheme.bodyFontSize,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
                       if (!_hasBusinessOrSection) ...[
+                        const Text(
+                          'Inspection details',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: AppTheme.inspectionFormTitleFontSize,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Choose Registered or Unregistered, then find the vendor or pick the market section to begin.',
+                          style: TextStyle(
+                            color: AppColors.mediumGrey,
+                            fontSize: AppTheme.bodyFontSize,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                         ViolatorInfoCard(
                           isUnregistered: _isUnregistered,
                           onKindChanged: (value) =>
@@ -636,7 +635,6 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           onSectionSelected: _populateSection,
                           errorMessage: _vendorError,
                         ),
-                        const SizedBox(height: 20),
                       ],
 
                       if (_hasBusinessOrSection) ...[
@@ -654,7 +652,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                             }),
                           ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: AppTheme.inspectionGap),
 
                         InspectionTypeToggle(
                           selected: _selectedType,
@@ -670,29 +668,21 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           isEnabled: true,
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: AppTheme.inspectionGap),
 
-                        if (isTicket)
-                          PaperCitationFields(
-                            referenceController: _paperReferenceController,
-                            placeController: _issuePlaceController,
-                          ),
-                        if (!isTicket) ...[
-                          const Text('ISSUE PLACE'),
-                          TextFormField(
-                            key: const ValueKey('warning-issue-place'),
-                            controller: _issuePlaceController,
-                            maxLength: 500,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
+                        FormSection(
+                          title: 'Paper details',
+                          children: [
+                            PaperCitationFields(
+                              isTicket: isTicket,
+                              referenceController: _paperReferenceController,
+                              placeController: _issuePlaceController,
                             ),
-                            validator: (value) =>
-                                value == null || value.trim().isEmpty
-                                ? 'Enter where the warning was issued.'
-                                : null,
-                          ),
-                          const SizedBox(height: AppTheme.inspectionSmallGap),
-                        ],
+                          ],
+                        ),
+
+                        const SizedBox(height: AppTheme.inspectionGap),
+
                         PersonIdentityReview(
                           // Keeps the chosen person when the ticket fields
                           // appear or disappear above it.
@@ -703,149 +693,168 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                         ),
                         if (isTicket &&
                             _hasOpenedReview &&
-                            _reviewInformation != _currentInformation)
+                            _reviewInformation != _currentInformation) ...[
                           const Text(
                             'Information changed. Verify again before submitting.',
                           ),
-                        TicketViolationCard(
-                          onPressed: _handleOrdinanceSelect,
-                          onDelete: _onDeleteFineSummary,
-                          ordinances: _selectedOrdinances,
-                          capturedPhotos: _capturedEvidences,
-                          fineSummary: _localFineSummary,
-                          assessmentTexts: _assessmentTexts,
-                          onAssessmentChanged: (id, value) =>
-                              setState(() => _assessmentTexts[id] = value),
-                          isTicket: isTicket,
-                          errorMessage: _ordinanceError,
-                        ),
-
-                        if (_fineSummary != null &&
-                            _fineSummary!.breakdownItems.isNotEmpty &&
-                            isTicket &&
-                            _selectedOrdinances.isNotEmpty) ...[
-                          PaymentTypeSection(
-                            selectedPenaltyType: _selectedPenaltyType,
-                            allowBloodDonation:
-                                _localFineSummary?.allowBloodDonation ?? false,
-                            allowCommunityService:
-                                _localFineSummary?.allowCommunityService ??
-                                false,
-                            totalFineAmount:
-                                _localFineSummary?.totalPaymentAmount,
-                            onChangeType: _onChangePenaltyType,
-                            communityHrsController: _communityHrsController,
-                            communityHrsError: _communityHrsError,
-                          ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppTheme.inspectionSmallGap),
                         ],
 
-                        const Text('DESCRIPTION'),
-                        const SizedBox(height: 5),
-                        TextFormField(
-                          key: const ValueKey('inspection-description'),
-                          controller: _ticketDescriptionController,
-                          maxLines: 5,
-                          minLines: 3,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          onTapOutside: (event) =>
-                              FocusScope.of(context).unfocus(),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Description is required.';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            errorText: _descriptionError,
-                            border: const OutlineInputBorder(),
-                          ),
+                        FormSection(
+                          title: 'Violation',
+                          children: [
+                            TicketViolationCard(
+                              onPressed: _handleOrdinanceSelect,
+                              onDelete: _onDeleteFineSummary,
+                              ordinances: _selectedOrdinances,
+                              capturedPhotos: _capturedEvidences,
+                              fineSummary: _localFineSummary,
+                              assessmentTexts: _assessmentTexts,
+                              onAssessmentChanged: (id, value) =>
+                                  setState(() => _assessmentTexts[id] = value),
+                              isTicket: isTicket,
+                              errorMessage: _ordinanceError,
+                            ),
+
+                            if (_fineSummary != null &&
+                                _fineSummary!.breakdownItems.isNotEmpty &&
+                                isTicket &&
+                                _selectedOrdinances.isNotEmpty) ...[
+                              const SizedBox(height: AppTheme.inspectionGap),
+                              PaymentTypeSection(
+                                selectedPenaltyType: _selectedPenaltyType,
+                                allowBloodDonation:
+                                    _localFineSummary?.allowBloodDonation ??
+                                    false,
+                                allowCommunityService:
+                                    _localFineSummary?.allowCommunityService ??
+                                    false,
+                                totalFineAmount:
+                                    _localFineSummary?.totalPaymentAmount,
+                                onChangeType: _onChangePenaltyType,
+                                communityHrsController: _communityHrsController,
+                                communityHrsError: _communityHrsError,
+                              ),
+                            ],
+
+                            const SizedBox(height: AppTheme.inspectionGap),
+                            const Text(
+                              'Description',
+                              style: AppTheme.ticketPaperLabelStyle,
+                            ),
+                            const SizedBox(height: AppTheme.inspectionTinyGap),
+                            TextFormField(
+                              key: const ValueKey('inspection-description'),
+                              controller: _ticketDescriptionController,
+                              maxLines: 5,
+                              minLines: 3,
+                              keyboardType: TextInputType.multiline,
+                              textInputAction: TextInputAction.newline,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              onTapOutside: (event) =>
+                                  FocusScope.of(context).unfocus(),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Description is required.';
+                                }
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                errorText: _descriptionError,
+                              ),
+                            ),
+                          ],
                         ),
 
-                        CopyToPaperCard(
-                          isTicket: isTicket,
-                          name: _confirmedPerson?.fullName ?? '',
-                          address: _confirmedPerson?.address ?? '',
-                          place: _issuePlaceController.text,
-                          officerName:
-                              [
-                                    widget.user.firstName,
-                                    widget.user.middleName,
-                                    widget.user.lastName,
-                                  ]
-                                  .whereType<String>()
-                                  .where((part) => part.trim().isNotEmpty)
-                                  .join(' '),
-                          ordinances: _selectedOrdinances,
-                          penaltyType: _selectedPenaltyType,
-                          fineTotal: _localFineSummary?.totalPaymentAmount,
-                          communityHours: int.tryParse(
-                            _communityHrsController.text.trim(),
-                          ),
-                          now: DateTime.now(),
-                        ),
+                        const SizedBox(height: AppTheme.inspectionGap),
 
-                        ...[
-                          const SizedBox(height: 20),
-                          Text(
-                            isTicket
-                                ? 'Paper ticket photo'
-                                : 'Paper warning photo',
-                          ),
-                          const SizedBox(height: 5),
-
-                          ScanPaperBtn(
-                            photos: _paperTicketPhoto == null
-                                ? []
-                                : [_paperTicketPhoto!],
-                            onPhotoAdded: (photo) => setState(() {
-                              _paperTicketPhoto = photo;
-                              _photoError = null;
-                            }),
-                            onPhotoRemoved: (_) =>
-                                setState(() => _paperTicketPhoto = null),
-                            buttonLabel: _paperTicketPhoto == null
-                                ? (isTicket
-                                      ? 'Scan paper ticket'
-                                      : 'Scan paper warning')
-                                : (isTicket
-                                      ? 'Rescan paper ticket'
-                                      : 'Rescan paper warning'),
-                          ),
-                          if (isTicket) ...[
+                        FormSection(
+                          title: 'Paper copy',
+                          children: [
+                            CopyToPaperCard(
+                              isTicket: isTicket,
+                              name: _confirmedPerson?.fullName ?? '',
+                              address: _confirmedPerson?.address ?? '',
+                              place: _issuePlaceController.text,
+                              officerName:
+                                  [
+                                        widget.user.firstName,
+                                        widget.user.middleName,
+                                        widget.user.lastName,
+                                      ]
+                                      .whereType<String>()
+                                      .where((part) => part.trim().isNotEmpty)
+                                      .join(' '),
+                              ordinances: _selectedOrdinances,
+                              penaltyType: _selectedPenaltyType,
+                              fineTotal: _localFineSummary?.totalPaymentAmount,
+                              communityHours: int.tryParse(
+                                _communityHrsController.text.trim(),
+                              ),
+                              now: DateTime.now(),
+                            ),
                             const SizedBox(height: AppTheme.inspectionSmallGap),
-                            const Text('Supporting evidence'),
-                            AddPhotoEvidenceBtn(
-                              buttonLabel: 'Add supporting photo',
-                              photos: _capturedEvidences,
-                              onPhotoAdded: (photo) => addEvidence(photo),
-                              onPhotoRemoved: (index) => removeEvidence(index),
-                              isInvalid: _photoError != null,
+                            Text(
+                              isTicket
+                                  ? 'Paper ticket photo'
+                                  : 'Paper warning photo',
+                              style: AppTheme.ticketPaperLabelStyle,
                             ),
-                          ],
+                            const SizedBox(height: AppTheme.inspectionTinyGap),
+                            ScanPaperBtn(
+                              photos: _paperTicketPhoto == null
+                                  ? []
+                                  : [_paperTicketPhoto!],
+                              onPhotoAdded: (photo) => setState(() {
+                                _paperTicketPhoto = photo;
+                                _photoError = null;
+                              }),
+                              onPhotoRemoved: (_) =>
+                                  setState(() => _paperTicketPhoto = null),
+                              buttonLabel: _paperTicketPhoto == null
+                                  ? (isTicket
+                                        ? 'Scan paper ticket'
+                                        : 'Scan paper warning')
+                                  : (isTicket
+                                        ? 'Rescan paper ticket'
+                                        : 'Rescan paper warning'),
+                            ),
+                            if (isTicket) ...[
+                              const SizedBox(height: AppTheme.inspectionGap),
+                              const Text(
+                                'Supporting evidence',
+                                style: AppTheme.ticketPaperLabelStyle,
+                              ),
+                              const SizedBox(
+                                height: AppTheme.inspectionTinyGap,
+                              ),
+                              AddPhotoEvidenceBtn(
+                                buttonLabel: 'Add supporting photo',
+                                photos: _capturedEvidences,
+                                onPhotoAdded: (photo) => addEvidence(photo),
+                                onPhotoRemoved: (index) =>
+                                    removeEvidence(index),
+                                isInvalid: _photoError != null,
+                              ),
+                            ],
 
-                          if (_photoError != null) ...[
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const SizedBox(width: 15),
-                                Expanded(
-                                  child: Text(
-                                    _photoError!,
-                                    style: const TextStyle(
-                                      color: AppColors.primaryRed,
-                                      fontSize: AppTheme.captionFontSize,
-                                    ),
-                                  ),
+                            if (_photoError != null) ...[
+                              const SizedBox(
+                                height: AppTheme.inspectionTinyGap,
+                              ),
+                              Text(
+                                _photoError!,
+                                style: const TextStyle(
+                                  color: AppColors.primaryRed,
+                                  fontSize: AppTheme.captionFontSize,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
 
-                        const SizedBox(height: 30),
+                        const SizedBox(height: AppTheme.inspectionGap),
 
                         AppPrimaryButton(
                           label: 'Next',
@@ -854,31 +863,23 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           onPressed: _submit,
                         ),
 
-                        const SizedBox(height: 10),
+                        const SizedBox(height: AppTheme.inspectionTinyGap),
 
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primaryRed,
-                              backgroundColor: AppColors.secondaryRed
-                                  .withValues(alpha: .30),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              side: BorderSide(color: AppColors.primaryRed),
-                              padding: const EdgeInsets.symmetric(vertical: 15),
-                            ),
-                            onPressed: () async {
-                              if (_isFormEmpty) {
-                                Navigator.of(context).pop();
-                              } else if (await _confirmDiscard(context) &&
-                                  context.mounted) {
-                                Navigator.of(context).pop();
-                              }
-                            },
-                            child: const Text('Cancel'),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onSurface,
                           ),
+                          onPressed: () async {
+                            if (_isFormEmpty) {
+                              Navigator.of(context).pop();
+                            } else if (await _confirmDiscard(context) &&
+                                context.mounted) {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          child: const Text('Cancel'),
                         ),
                       ],
                     ],

@@ -446,9 +446,11 @@ void main() {
               'Fish aisle near F-014',
             );
           }
+          // Lets the owner lookup finish so the page has its final height.
+          if (type == ViolationType.warning) await flush(tester);
           if (type == ViolationType.warning) await selectPerson();
-          await tester.ensureVisible(find.text('Select Ordinance'));
-          await tester.tap(find.text('Select Ordinance'));
+          await tester.ensureVisible(find.text('Select ordinance'));
+          await tester.tap(find.text('Select ordinance'));
           await tester.pump();
           final selectionBloc = tester
               .element(find.byType(SelectOrdinanceBottomSheet))

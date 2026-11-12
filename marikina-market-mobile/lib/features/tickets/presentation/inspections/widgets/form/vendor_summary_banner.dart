@@ -50,9 +50,7 @@ class VendorSummaryBanner extends StatelessWidget {
                           fontSize: AppTheme.sectionHeadingFontSize,
                         ),
                       ),
-                      Text(
-                        'Business Account Number: ${vendor.businessAccountNumber}',
-                      ),
+                      Text('Account Number: ${vendor.businessAccountNumber}'),
                       Text(
                         'Registered owner: ${vendor.lastName}, ${vendor.firstName}',
                       ),

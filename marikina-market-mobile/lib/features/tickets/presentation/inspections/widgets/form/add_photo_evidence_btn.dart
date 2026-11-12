@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_outlined_btn.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/utils/image_picker_util.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_evidence_grid.dart';
@@ -62,10 +62,12 @@ class _AddPhotoEvidenceBtnState extends State<AddPhotoEvidenceBtn> {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      AppPrimaryButton(
+      AppOutlinedBtn(
         label: _isCapturing ? 'Opening camera' : widget.buttonLabel,
         iconData: Icons.add_a_photo_outlined,
         onPressed: _captureEvidence,
+        foregroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         isLoading: _isCapturing,
       ),
       if (_captureError != null) ...[
