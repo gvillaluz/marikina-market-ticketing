@@ -13,6 +13,7 @@ export const ROUTES = {
   adminVendorInspections: (id: string) => `/admin/vendors/${id}/inspections`,
   enforcerPerformancePage: (id: string) => `/enforcer/performance/${id}`,
   analytics: "/analytics",
+  recommendations: "/recommendations",
   ticketDetail: (id: string) => `/tickets/${id}`,
   vendors: "/vendors",
   vendorDetail: (id: string) => `/vendors/${id}`,

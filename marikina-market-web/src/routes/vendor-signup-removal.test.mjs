@@ -107,6 +107,7 @@ const pageModules = [
   "features/vendors/pages/AdminVendorRegistrationDeclinePage",
   "features/vendors/pages/AdminVendorRegistrationInformationPage",
   "features/analytics/pages/AdminAnalyticsPage",
+  "features/recommendations/pages/RecommendationsPage",
   "features/configuration/pages/SystemConfigurationPage",
   "features/market-section/pages/MarketSectionPage",
   "features/ordinances/pages/OrdinancesPage",

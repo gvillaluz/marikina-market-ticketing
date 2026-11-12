@@ -23,6 +23,7 @@ import EnforcerPerformancePage from "@/features/enforcers/pages/EnforcerPerforma
 import AdminVendorsPage from "@/features/vendors/pages/AdminVendorsPage";
 import AdminVendorInspectionPage from "@/features/vendors/pages/AdminVendorInspectionPage";
 import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
+import RecommendationsPage from "@/features/recommendations/pages/RecommendationsPage";
 import SystemConfigurationPage from "@/features/configuration/pages/SystemConfigurationPage";
 import MarketSectionPage from "@/features/market-section/pages/MarketSectionPage";
 import OrdinancesPage from "@/features/ordinances/pages/OrdinancesPage";
@@ -138,6 +139,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={ADMIN_ROLES}>
               <AdminAnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.recommendations}
+          element={
+            <ProtectedRoute roles={ADMIN_ROLES}>
+              <RecommendationsPage />
             </ProtectedRoute>
           }
         />

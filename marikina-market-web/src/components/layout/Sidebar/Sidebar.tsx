@@ -10,7 +10,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./Sidebar.module.css";
-import { History, Settings, UsersRound } from "lucide-react";
+import { History, Lightbulb, Settings, UsersRound } from "lucide-react";
 import UrlImage from "@/components/ui/UrlImage";
 
 interface NavItem {
@@ -166,6 +166,12 @@ const NAV_ITEMS: NavItem[] = [
     to: "/analytics",
     label: "Analytics",
     icon: BarChartIcon,
+    allowedRoles: ADMIN_ROLES,
+  },
+  {
+    to: "/recommendations",
+    label: "Recommended Actions",
+    icon: <Lightbulb size={18} strokeWidth={2} />,
     allowedRoles: ADMIN_ROLES,
   },
   {

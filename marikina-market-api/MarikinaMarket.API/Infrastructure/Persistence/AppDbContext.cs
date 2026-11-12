@@ -30,6 +30,9 @@ namespace MarikinaMarket.API.Infrastructure.Persistence
         public DbSet<BackupSchedule> BackupSchedules { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<RecommendationRun> RecommendationRuns { get; set; }
+        public DbSet<RecommendationFinding> RecommendationFindings { get; set; }
+        public DbSet<SectionRecommendation> SectionRecommendations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
