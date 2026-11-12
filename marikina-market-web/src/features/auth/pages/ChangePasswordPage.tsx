@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Lock, KeyRound, ShieldCheck, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "@/api/endpoints/auth.api";
-import { ROUTES } from "@/routes/routePaths";
+import { useToast } from "@/components/ui/Toast/useToast";
+import { PASSWORD_RULE_HINT, validatePasswordForm } from "@/features/profile";
 import styles from "./ChangePasswordPage.module.css";
 import { getApiErrorMessage } from "@/utils/apiErrors";
 
@@ -13,19 +14,21 @@ export default function ChangePasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { clearMustChangePassword } = useAuth();
+  const { logout } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    if (!currentPassword) return setError("Enter your current password.");
-    if (newPassword.length < 6)
-      return setError("New password must be at least 6 characters.");
-    if (!/\d/.test(newPassword))
-      return setError("New password must contain at least one number.");
-    if (newPassword !== confirmPassword)
-      return setError("Passwords do not match.");
+    const [firstError] = Object.values(
+      validatePasswordForm({
+        currentPassword,
+        newPassword,
+        confirmNewPassword: confirmPassword,
+      }),
+    );
+    if (firstError) return setError(firstError);
     setLoading(true);
     try {
       await authApi.mandatoryChangePassword({
@@ -33,8 +36,12 @@ export default function ChangePasswordPage() {
         newPassword,
         confirmNewPassword: confirmPassword,
       });
-      clearMustChangePassword();
-      navigate(ROUTES.dashboard, { replace: true });
+      showToast({
+        title: "Password changed",
+        description: "Please sign in again with your new password.",
+        variant: "success",
+      });
+      logout();
     } catch (err: unknown) {
       setError(
         getApiErrorMessage(err, "Failed to change password. Please try again."),
@@ -94,9 +101,7 @@ export default function ChangePasswordPage() {
                   className={styles.input}
                 />
               </div>
-              <p className={styles.hint}>
-                Min. 6 characters, at least 1 number.
-              </p>
+              <p className={styles.hint}>{PASSWORD_RULE_HINT}</p>
             </div>
             <div>
               <label className={styles.label}>Confirm New Password</label>

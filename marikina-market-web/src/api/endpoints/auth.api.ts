@@ -8,7 +8,7 @@ import type {
   UserProfileResponse,
 } from "@/features/auth/auth.types";
 
-export interface MandatoryChangePasswordInput {
+export interface ChangePasswordInput {
   currentPassword: string;
   newPassword: string;
   confirmNewPassword: string;
@@ -63,9 +63,11 @@ export const authApi = {
     return data;
   },
 
-  async mandatoryChangePassword(
-    input: MandatoryChangePasswordInput,
-  ): Promise<void> {
+  async changePassword(input: ChangePasswordInput): Promise<void> {
+    await client.post("/auth/change-password", input);
+  },
+
+  async mandatoryChangePassword(input: ChangePasswordInput): Promise<void> {
     await client.post("/auth/mandatory-change-password", input);
   },
 

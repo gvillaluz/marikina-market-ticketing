@@ -13,7 +13,13 @@ const compiled = ts.transpileModule(source, {
     target: ts.ScriptTarget.ES2020,
   },
 }).outputText;
-const { validateProfileForm, validatePasswordForm, profilePayload, todayDate } =
+const {
+  validateProfileForm,
+  validatePasswordForm,
+  profilePayload,
+  todayDate,
+  PASSWORD_RULE_HINT,
+} =
   await import(
     `data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`
   );
@@ -30,41 +36,60 @@ const validProfile = {
   city: "Marikina",
 };
 
-test("accepts six-character passwords without number or symbol requirements", () => {
+const RULE = "Use at least 8 characters, with a number and a capital letter.";
+const withNew = (newPassword, confirmNewPassword = newPassword) => ({
+  currentPassword: "current",
+  newPassword,
+  confirmNewPassword,
+});
+test("accepts an 8-character password with a number and a capital letter", () => {
+  assert.deepEqual(validatePasswordForm(withNew("Abcdefg1")), {});
+});
+test("rejects a new password with no capital, no number, or fewer than 8 characters", () => {
+  for (const value of ["abcdefg1", "Abcdefgh", "Abcdef1", "Abc1", ""]) {
+    assert.deepEqual(validatePasswordForm(withNew(value)).newPassword, RULE, value);
+  }
+});
+test("states the server rule as a hint", () => {
+  assert.equal(
+    PASSWORD_RULE_HINT,
+    "At least 8 characters, with a number and a capital letter.",
+  );
+});
+test("rejects an empty current password with its own message", () => {
+  assert.deepEqual(
+    validatePasswordForm({ ...withNew("Abcdefg1"), currentPassword: "" }),
+    { currentPassword: "Enter your current password." },
+  );
+});
+test("rejects an empty confirmation and a mismatch with their own messages", () => {
+  assert.deepEqual(validatePasswordForm(withNew("Abcdefg1", "")), {
+    confirmNewPassword: "Confirm your new password.",
+  });
+  assert.deepEqual(validatePasswordForm(withNew("Abcdefg1", "Abcdefg2")), {
+    confirmNewPassword: "Passwords do not match.",
+  });
+});
+test("reports every failing field together", () => {
   assert.deepEqual(
     validatePasswordForm({
-      currentPassword: "current",
-      newPassword: "abcdef",
-      confirmNewPassword: "abcdef",
+      currentPassword: "",
+      newPassword: "short",
+      confirmNewPassword: "other",
     }),
-    {},
+    {
+      currentPassword: "Enter your current password.",
+      newPassword: RULE,
+      confirmNewPassword: "Passwords do not match.",
+    },
   );
 });
-test("rejects missing current password, short new password, and mismatch", () => {
-  assert.deepEqual(
-    Object.keys(
-      validatePasswordForm({
-        currentPassword: "",
-        newPassword: "short",
-        confirmNewPassword: "other",
-      }),
-    ),
-    ["currentPassword", "newPassword", "confirmNewPassword"],
-  );
-});
-test("requires confirmation and preserves password whitespace", () => {
-  assert.ok(
-    validatePasswordForm({
-      currentPassword: "current",
-      newPassword: "abcdef",
-      confirmNewPassword: "",
-    }).confirmNewPassword,
-  );
+test("preserves password whitespace", () => {
   assert.deepEqual(
     validatePasswordForm({
       currentPassword: " current ",
-      newPassword: " abcde",
-      confirmNewPassword: " abcde",
+      newPassword: " Abcdef1",
+      confirmNewPassword: " Abcdef1",
     }),
     {},
   );
