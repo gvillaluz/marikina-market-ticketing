@@ -45,3 +45,6 @@
 
 # OCR trial paper-ticket photos (large, machine-local).
 /sample-tickets/
+
+# The delivered recommendation model (large files) must never be committed.
+/description-model/New Training Model/

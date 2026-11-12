@@ -121,3 +121,5 @@ When I correct you or reject your approach:
 
 4. [DOCS] Always keep `roadmap.md` a short checklist (✅ closed with date, ☐ open, ⏸ waiting or decision for later, one line per task) and put notes, evidence and limits for each task in its own file inside a topic folder under `docs/closed-work/`, listed in `docs/closed-work/README.md`, because the long roadmap was too hard to read and closed-task notes are documents, not roadmap items. Move notes word for word; never reword them.
 
+
+5. [WORKFLOW] Always explain a step in plain language, then propose its plan and wait for my approval before starting it, including steps that only install or run something and change no code, because the user must understand each step before deciding, and "before coding a feature" did not clearly cover those steps.

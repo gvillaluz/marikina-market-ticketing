@@ -821,6 +821,74 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                     b.ToTable("persons", (string)null);
                 });
 
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RecommendationFinding", b =>
+                {
+                    b.Property<int>("RecommendationRunId")
+                        .HasColumnType("integer")
+                        .HasColumnName("recommendation_run_id");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ticket_id");
+
+                    b.Property<string>("CategoryCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("category_code");
+
+                    b.HasKey("RecommendationRunId", "TicketId", "CategoryCode")
+                        .HasName("pk_recommendation_findings");
+
+                    b.HasIndex("TicketId")
+                        .HasDatabaseName("ix_recommendation_findings_ticket_id");
+
+                    b.ToTable("recommendation_findings", (string)null);
+                });
+
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RecommendationRun", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finished_at");
+
+                    b.Property<string>("ModelVersion")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("model_version");
+
+                    b.Property<int>("RecordCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("record_count");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<DateTime>("WindowEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("window_end");
+
+                    b.Property<DateTime>("WindowStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("window_start");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recommendation_runs");
+
+                    b.HasIndex("FinishedAt")
+                        .HasDatabaseName("ix_recommendation_runs_finished_at");
+
+                    b.ToTable("recommendation_runs", (string)null);
+                });
+
             modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -929,6 +997,98 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasDatabaseName("ix_reports_date_generated_id");
 
                     b.ToTable("reports", (string)null);
+                });
+
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.SectionRecommendation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CategoryCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("category_code");
+
+                    b.Property<string>("CategoryNameEnglish")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("category_name_english");
+
+                    b.Property<string>("CategoryNameFilipino")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("category_name_filipino");
+
+                    b.Property<int>("CategoryRecordCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("category_record_count");
+
+                    b.PrimitiveCollection<List<int>>("HourlyCounts")
+                        .IsRequired()
+                        .HasColumnType("integer[]")
+                        .HasColumnName("hourly_counts");
+
+                    b.Property<DateTime>("LastFlaggedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_flagged_at");
+
+                    b.Property<int>("MarketSectionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("market_section_id");
+
+                    b.Property<string>("PatternConfidence")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("pattern_confidence");
+
+                    b.Property<int>("PeakStartHour")
+                        .HasColumnType("integer")
+                        .HasColumnName("peak_start_hour");
+
+                    b.Property<int>("RecommendationRunId")
+                        .HasColumnType("integer")
+                        .HasColumnName("recommendation_run_id");
+
+                    b.Property<string>("RecommendedAction")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("recommended_action");
+
+                    b.Property<string>("RiskLevel")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("risk_level");
+
+                    b.Property<decimal>("RiskScore")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("risk_score");
+
+                    b.Property<int>("SectionRecordCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("section_record_count");
+
+                    b.HasKey("Id")
+                        .HasName("pk_section_recommendations");
+
+                    b.HasIndex("MarketSectionId")
+                        .HasDatabaseName("ix_section_recommendations_market_section_id");
+
+                    b.HasIndex("RecommendationRunId", "MarketSectionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_section_recommendations_recommendation_run_id_market_sectio");
+
+                    b.ToTable("section_recommendations", (string)null);
                 });
 
             modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.Ticket", b =>
@@ -1856,6 +2016,27 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RecommendationFinding", b =>
+                {
+                    b.HasOne("MarikinaMarket.API.Domain.Entities.RecommendationRun", "RecommendationRun")
+                        .WithMany("Findings")
+                        .HasForeignKey("RecommendationRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_recommendation_findings_recommendation_runs_recommendation_");
+
+                    b.HasOne("MarikinaMarket.API.Domain.Entities.Ticket", "Ticket")
+                        .WithMany()
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_recommendation_findings_tickets_ticket_id");
+
+                    b.Navigation("RecommendationRun");
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("MarikinaMarket.API.Domain.Entities.User", "User")
@@ -1876,6 +2057,27 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_reports_asp_net_users_generated_by_id");
+                });
+
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.SectionRecommendation", b =>
+                {
+                    b.HasOne("MarikinaMarket.API.Domain.Entities.MarketSection", "MarketSection")
+                        .WithMany()
+                        .HasForeignKey("MarketSectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_section_recommendations_market_sections_market_section_id");
+
+                    b.HasOne("MarikinaMarket.API.Domain.Entities.RecommendationRun", "RecommendationRun")
+                        .WithMany("SectionRecommendations")
+                        .HasForeignKey("RecommendationRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_section_recommendations_recommendation_runs_recommendation_");
+
+                    b.Navigation("MarketSection");
+
+                    b.Navigation("RecommendationRun");
                 });
 
             modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.Ticket", b =>
@@ -2054,6 +2256,13 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                     b.Navigation("PenaltyTiers");
 
                     b.Navigation("TicketViolations");
+                });
+
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RecommendationRun", b =>
+                {
+                    b.Navigation("Findings");
+
+                    b.Navigation("SectionRecommendations");
                 });
 
             modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.Ticket", b =>
