@@ -1,5 +1,6 @@
 import { RefreshCw } from "lucide-react";
 import { Dropdown } from "@/components/ui/Dropdown";
+import SkeletonBlock from "@/components/ui/Skeleton/SkeletonBlock";
 import type { BackupScheduleModel } from "../hooks/useBackupSchedule";
 import BackupMessage from "./BackupMessage";
 import styles from "./BackupScheduler.module.css";
@@ -36,7 +37,31 @@ export default function BackupScheduler({ schedule }: BackupSchedulerProps) {
         </button>
       </header>
       {schedule.isLoading ? (
-        <BackupMessage message="Loading backup schedule…" />
+        <div
+          className={styles.form}
+          role="status"
+          aria-label="Loading backup schedule"
+        >
+          <div className={styles.fields}>
+            {Array.from({ length: 3 }, (_, index) => (
+              <div key={index} className={styles.field}>
+                <SkeletonBlock width="6rem" height="0.75rem" />
+                <SkeletonBlock
+                  height="var(--backup-control-height)"
+                  radius="var(--backup-control-radius)"
+                />
+              </div>
+            ))}
+          </div>
+          <div className={styles.actions}>
+            <SkeletonBlock width="10rem" height="0.75rem" />
+            <SkeletonBlock
+              width="8rem"
+              height="var(--backup-control-height)"
+              radius="var(--backup-control-radius)"
+            />
+          </div>
+        </div>
       ) : !schedule.fields ? (
         <BackupMessage
           message={schedule.loadError}

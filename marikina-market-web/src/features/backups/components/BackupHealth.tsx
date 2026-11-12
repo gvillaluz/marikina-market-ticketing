@@ -5,6 +5,7 @@ import {
   Pause,
   TriangleAlert,
 } from "lucide-react";
+import SkeletonBlock from "@/components/ui/Skeleton/SkeletonBlock";
 import type { BackupHealthModel } from "../hooks/useBackups";
 import BackupMessage from "./BackupMessage";
 import styles from "./BackupHealth.module.css";
@@ -32,7 +33,29 @@ export default function BackupHealth({ health }: BackupHealthProps) {
       aria-busy={health.isFetching}
     >
       {health.isLoading ? (
-        <BackupMessage message="Loading backup health…" />
+        <div
+          className={styles.loading}
+          role="status"
+          aria-label="Loading backup health"
+        >
+          <SkeletonBlock
+            width="var(--backup-health-icon-size)"
+            height="var(--backup-health-icon-size)"
+            radius="var(--backup-pill-radius)"
+          />
+          <SkeletonBlock width="7rem" height="0.75rem" />
+          <SkeletonBlock width="11rem" />
+          <SkeletonBlock width="85%" height="0.75rem" />
+          <SkeletonBlock width="65%" height="0.75rem" />
+          <div className={styles.stats}>
+            {Array.from({ length: 2 }, (_, index) => (
+              <div key={index}>
+                <SkeletonBlock width="4rem" />
+                <SkeletonBlock width="5rem" height="0.625rem" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : !health.view ? (
         <BackupMessage
           message={health.error}

@@ -64,7 +64,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             if (_connection is null)
             {
                 _connection = (NpgsqlConnection)_context.Database.GetDbConnection();
-                _connectionString = _connection.ConnectionString;
+                // The configured string keeps the password; a used connection's string hides it.
+                _connectionString = _context.Database.GetConnectionString();
                 _connection.StateChange += ConnectionStateChanged;
             }
             if (_pins == 0)
