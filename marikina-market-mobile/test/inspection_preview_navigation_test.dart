@@ -34,7 +34,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/add_photo_evidence_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/copy_to_paper_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/scan_paper_btn.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/inspection_type_toggle.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/violator_info_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/submit_confirmation_bottom_sheet.dart';
@@ -91,14 +91,15 @@ Future<void> flush(WidgetTester tester) async {
 
 // Copy-to-paper card values by paper label, leaving out the date and time.
 Map<String, String> copyCard(WidgetTester tester) => {
-  for (final field in tester.widgetList<TicketPaperField>(
+  for (final group in tester.widgetList<TicketPaperFieldGroup>(
     find.descendant(
       of: find.byType(CopyToPaperCard),
-      matching: find.byType(TicketPaperField),
+      matching: find.byType(TicketPaperFieldGroup),
     ),
   ))
-    if (field.label != 'DATE / TIME:' && field.label != 'Petsa:')
-      field.label: field.value,
+    for (final field in group.fields)
+      if (field.label != 'DATE / TIME:' && field.label != 'Petsa:')
+        field.label: field.value,
 };
 
 void main() {

@@ -32,7 +32,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/scan_paper_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/ticket_violation_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/violator_info_card.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 
 import 'features/auth/data/login_mobile_contract_test.dart'
     show profileResponse, reply;
@@ -55,11 +55,12 @@ import 'violator_picker_test.dart'
 // a ticket can only go ahead with the record name. Synthetic people; expected
 // values are worked out by hand.
 
-String paperField(WidgetTester tester, String label) => tester
-    .widget<TicketPaperField>(
-      find.byWidgetPredicate((w) => w is TicketPaperField && w.label == label),
-    )
-    .value;
+String paperField(WidgetTester tester, String label) => [
+  for (final group in tester.widgetList<TicketPaperFieldGroup>(
+    find.byType(TicketPaperFieldGroup),
+  ))
+    ...group.fields,
+].singleWhere((field) => field.label == label).value;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

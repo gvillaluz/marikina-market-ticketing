@@ -16,6 +16,7 @@ class AppColors {
 
   static const lightGrey = Color(0xFFBFC0BF);
   static const mediumGrey = Color(0xFF8F8F8F);
+  static const paperLabelGrey = Color(0xFF6B6B6B);
 
   static const primaryRed = Color(0xFF93000A);
   static const secondaryRed = Color(0xFFEFB4B4);

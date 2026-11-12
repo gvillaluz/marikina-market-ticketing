@@ -6,6 +6,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinanc
 import 'package:marikina_market_mobile/features/tickets/domain/enums/ordinance_category.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/copy_to_paper_card.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 
 Ordinance ordinance(int id, String? section, String title) => Ordinance(
   id: id,
@@ -57,11 +58,17 @@ Future<void> pumpCard(
   ),
 );
 
+// Every paper line the card lists, in the order it shows them.
+List<TicketPaperField> paperFields(WidgetTester tester) => [
+  for (final group in tester.widgetList<TicketPaperFieldGroup>(
+    find.byType(TicketPaperFieldGroup),
+  ))
+    ...group.fields,
+];
+
 // The value shown next to a paper label on the card.
 String? valueOf(WidgetTester tester, String label) {
-  final fields = tester
-      .widgetList<TicketPaperField>(find.byType(TicketPaperField))
-      .where((field) => field.label == label);
+  final fields = paperFields(tester).where((field) => field.label == label);
   return fields.isEmpty ? null : fields.single.value;
 }
 
@@ -72,20 +79,15 @@ void main() {
     await pumpCard(tester);
 
     expect(find.text('Copy these onto the paper ticket'), findsOneWidget);
-    expect(
-      tester
-          .widgetList<TicketPaperField>(find.byType(TicketPaperField))
-          .map((field) => field.label),
-      [
-        'NAME:',
-        'ADDRESS:',
-        'ORDINANCE:',
-        'FINE/PENALTIES:',
-        'PLACE:',
-        'DATE / TIME:',
-        'NAME & SIGNATURE OF APPREHENDING OFFICER:',
-      ],
-    );
+    expect(paperFields(tester).map((field) => field.label), [
+      'NAME:',
+      'ADDRESS:',
+      'ORDINANCE:',
+      'FINE/PENALTIES:',
+      'PLACE:',
+      'DATE / TIME:',
+      'NAME & SIGNATURE OF APPREHENDING OFFICER:',
+    ]);
     expect(valueOf(tester, 'NAME:'), 'Juan Dela Cruz');
     expect(valueOf(tester, 'ADDRESS:'), '31 Synthetic Market Lane');
     expect(
@@ -181,7 +183,7 @@ void main() {
     };
     for (final MapEntry(key: reason, value: pump) in notReady.entries) {
       await pump();
-      expect(find.byType(TicketPaperField), findsNothing, reason: reason);
+      expect(find.byType(TicketPaperFieldGroup), findsNothing, reason: reason);
       expect(find.textContaining('Copy these'), findsNothing, reason: reason);
     }
 
@@ -209,25 +211,19 @@ void main() {
     );
 
     expect(find.text('Copy these onto the paper warning'), findsOneWidget);
-    expect(
-      tester
-          .widgetList<TicketPaperField>(find.byType(TicketPaperField))
-          .map((field) => field.label),
-      [
-        'Petsa:',
-        'Pangalan:',
-        'Lugar:',
-        'Ordinansa Blg.:',
-        'Ordinansa Blg.:',
-        'Market Enforcer:',
-      ],
-    );
+    expect(paperFields(tester).map((field) => field.label), [
+      'Petsa:',
+      'Pangalan:',
+      'Lugar:',
+      'Ordinansa Blg.:',
+      'Ordinansa Blg.:',
+      'Market Enforcer:',
+    ]);
     expect(valueOf(tester, 'Petsa:'), '11/7/2026');
     expect(valueOf(tester, 'Pangalan:'), 'Maria Santos');
     expect(valueOf(tester, 'Lugar:'), 'Section A, Stall A-12');
     expect(
-      tester
-          .widgetList<TicketPaperField>(find.byType(TicketPaperField))
+      paperFields(tester)
           .where((field) => field.label == 'Ordinansa Blg.:')
           .map((field) => field.value),
       [
@@ -261,7 +257,7 @@ void main() {
             ],
             fineTotal: 1500,
           );
-          expect(find.byType(TicketPaperField), findsWidgets);
+          expect(find.byType(TicketPaperFieldGroup), findsWidgets);
           expect(tester.takeException(), isNull);
         },
       );

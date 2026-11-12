@@ -199,7 +199,7 @@ class AppTheme {
   static const ticketPaperLabelStyle = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w500,
-    color: AppColors.mediumGrey,
+    color: AppColors.paperLabelGrey,
   );
   static const ticketPaperValueStyle = TextStyle(
     fontSize: 14,

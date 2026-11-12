@@ -6,6 +6,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class TicketPenaltyDetail extends StatelessWidget {
@@ -65,9 +66,9 @@ class TicketPenaltyDetail extends StatelessWidget {
         ),
         const SizedBox(height: AppTheme.ticketSmallGap),
 
-        Column(
+        TicketPaperFieldGroup(
           spacing: AppTheme.ticketSmallGap,
-          children: [
+          fields: [
             TicketPaperField(
               label: 'SEVERITY:',
               value: severity.value,

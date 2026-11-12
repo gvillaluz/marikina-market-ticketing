@@ -4,6 +4,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dar
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 // What the enforcer writes on the paper ticket or warning, using the paper's
@@ -121,7 +122,10 @@ class CopyToPaperCard extends StatelessWidget {
                   ? 'Copy these onto the paper ticket'
                   : 'Copy these onto the paper warning',
             ),
-            ...(isTicket ? _ticketFields : _warningFields),
+            TicketPaperFieldGroup(
+              spacing: AppTheme.inspectionSmallGap,
+              fields: isTicket ? _ticketFields : _warningFields,
+            ),
           ],
         ),
       ),
