@@ -291,8 +291,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Result.success(newUser.toEntity());
     } on TokenExpiredException catch (e) {
       return Result.failure(TokenValidationFailure(e.message));
-    } on UnauthorizedException catch (e) {
-      return Result.failure(UnauthorizedFailure(e.message));
+    } on ValidationException catch (e) {
+      return Result.failure(ValidationFailure(e.message));
     } on CacheException catch (e) {
       return Result.failure(CacheFailure(e.message));
     } on NetworkException catch (e) {

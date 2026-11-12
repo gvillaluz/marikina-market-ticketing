@@ -310,8 +310,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     switch (result) {
       case Success(data: final user):
         emit(Authenticated(user: user));
-      case ResultFailure(failure: UnauthorizedFailure()):
-        emit(Unauthenticated(false));
       case ResultFailure(
         failure: NetworkFailure(:final message) ||
             ServerFailure(:final message),

@@ -3,6 +3,7 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
+import 'package:marikina_market_mobile/core/utils/password_change_check.dart';
 import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
@@ -36,7 +37,16 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     super.dispose();
   }
 
+  PasswordChangeCheck? _check;
+
   void _submit() {
+    final check = PasswordChangeCheck(
+      _currentPasswordController.text,
+      _newPasswordController.text,
+      _confirmNewPasswordController.text,
+    );
+    setState(() => _check = check);
+    if (!check.isValid) return;
     context.read<ProfileBloc>().add(
       UpdatePasswordSubmitted(
         userId: widget.user.userId,
@@ -108,6 +118,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                         newPasswordController: _newPasswordController,
                         confirmNewPasswordController:
                             _confirmNewPasswordController,
+                        check: _check,
                         submit: _submit,
                       ),
                     ],

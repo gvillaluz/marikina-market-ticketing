@@ -82,10 +82,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       ):
         emit(ChangePasswordNetworkError(message));
 
-      case ResultFailure(
-        failure: ValidationFailure(:final message) ||
-            UnauthorizedFailure(:final message),
-      ):
+      case ResultFailure(failure: ValidationFailure(:final message)):
         emit(ChangePasswordError(message));
 
       case Success():

@@ -104,9 +104,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       );
     } on DioException catch (e) {
       if (e.response?.statusCode == 400) {
-        throw UnauthorizedException(
-          e.response?.data ??
-              'Failed to change password. Please try again later.',
+        throw ValidationException(
+          ApiErrorMessage.fromBody(e.response?.data) ??
+              'Unable to change your password. Please check the fields and try again.',
         );
       }
 
