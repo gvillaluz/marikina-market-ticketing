@@ -190,6 +190,7 @@ class AppTheme {
   static const ticketDetailMaxWidth = 760.0;
   static const ticketDetailPadding = EdgeInsets.fromLTRB(16, 16, 16, 28);
   static const ticketPaperFieldBreakpoint = 280.0;
+  static const ticketPaperFieldMinValueWidth = 120.0;
   static const ticketPaperOfficeStyle = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w700,

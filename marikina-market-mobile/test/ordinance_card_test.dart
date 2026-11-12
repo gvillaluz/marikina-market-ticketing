@@ -75,7 +75,7 @@ void main() {
       }),
     );
     expect(
-      find.text('Others: Market clearance and stall requirements'),
+      find.text('Market clearance and stall requirements'),
       findsOneWidget,
     );
   });

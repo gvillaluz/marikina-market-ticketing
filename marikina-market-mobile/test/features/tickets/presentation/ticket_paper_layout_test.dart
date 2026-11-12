@@ -371,6 +371,95 @@ void main() {
     await capturePaper(tester, 'paper-warning-280-enlarged');
   });
 
+  group('paper field label', () {
+    const longValue = 'Synthetic Vendor Dela Cruz Santos Reyes Bautista';
+    // The paper label is 12px and inherits the 1.45 body line height:
+    // 12 * 1.45 = 17.4 per line (checked within 1px for line rounding).
+    const oneLabelLine = 17.4;
+
+    Future<void> showField(
+      WidgetTester tester,
+      double width,
+      String label,
+    ) async {
+      tester.view.physicalSize = Size(width, 600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: TicketPaperField(label: label, value: longValue),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('stays on one line beside a long value at 390px', (
+      tester,
+    ) async {
+      await showField(tester, 390, 'REGISTERED OWNER:');
+      final label = tester.getRect(find.text('REGISTERED OWNER:'));
+      final value = tester.getRect(find.text(longValue));
+      expect(label.height, closeTo(oneLabelLine, 1));
+      expect(value.top, label.top);
+      expect(value.left, label.right + AppTheme.ticketSmallGap);
+      expect(value.right, 390);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('sits above the value below the 280px breakpoint', (
+      tester,
+    ) async {
+      await showField(tester, 279, 'NAME:');
+      final label = tester.getRect(find.text('NAME:'));
+      final value = tester.getRect(find.text(longValue));
+      expect(value.top, greaterThan(label.bottom));
+      expect(value.left, label.left);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a label too wide for the row sits above the value', (
+      tester,
+    ) async {
+      const officer = 'NAME & SIGNATURE OF APPREHENDING OFFICER:';
+      await showField(tester, 390, officer);
+      final label = tester.getRect(find.text(officer));
+      final value = tester.getRect(find.text(longValue));
+      expect(value.top, greaterThan(label.bottom));
+      expect(tester.takeException(), isNull);
+    });
+
+    for (final width in [280.0, 300.0, 320.0, 350.0, 390.0]) {
+      testWidgets('real labels never overflow or wrap beside values at '
+          '${width}px', (tester) async {
+        for (final text in [
+          'VIOLATION COMMITTED:',
+          'BUSINESS ADDRESS:',
+          'REGISTERED OWNER:',
+          'RECORDED VIOLATOR:',
+          'CONFIRMED PERSON:',
+          'NAME & SIGNATURE OF APPREHENDING OFFICER:',
+        ]) {
+          await showField(tester, width, text);
+          expect(tester.takeException(), isNull, reason: text);
+          final label = tester.getRect(find.text(text));
+          final value = tester.getRect(find.text(longValue));
+          if (value.top == label.top) {
+            expect(label.height, closeTo(oneLabelLine, 1), reason: text);
+            expect(value.left, greaterThan(label.right), reason: text);
+          } else {
+            expect(value.top, greaterThan(label.bottom), reason: text);
+          }
+        }
+      });
+    }
+  });
+
   for (final width in [280.0, 400.0]) {
     testWidgets('preview ordinance label has a 6px code gap at ${width}px', (
       tester,

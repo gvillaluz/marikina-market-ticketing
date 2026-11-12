@@ -99,7 +99,7 @@ class ViolatorInfoSection extends StatelessWidget {
             label: 'CONFIRMED PERSON:',
             value: personId == null
                 ? 'Unconfirmed'
-                : '${personFullName ?? 'Person'} · Person $personId',
+                : personFullName ?? 'Person',
           ),
           const SizedBox(height: AppTheme.inspectionSmallGap),
           if (isTicket && vendor != null && businessSnapshot == null)
