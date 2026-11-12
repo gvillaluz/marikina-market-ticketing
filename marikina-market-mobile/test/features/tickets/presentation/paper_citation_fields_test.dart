@@ -19,6 +19,7 @@ void main() {
             body: Form(
               key: form,
               child: PaperCitationFields(
+                isTicket: true,
                 referenceController: reference,
                 placeController: place,
               ),
@@ -63,6 +64,7 @@ void main() {
                 padding: AppTheme.inspectionCardPadding,
                 child: Form(
                   child: PaperCitationFields(
+                    isTicket: true,
                     referenceController: reference,
                     placeController: place,
                   ),

@@ -17,63 +17,41 @@ class UnregisteredSectionBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.only(left: AppTheme.inspectionSmallGap),
     decoration: BoxDecoration(
       border: Border.all(color: AppColors.lightGrey),
       borderRadius: BorderRadius.circular(10),
     ),
-    child: Column(
+    child: Row(
+      spacing: AppTheme.inspectionSmallGap,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(15),
-          child: Row(
-            spacing: 15,
+        const Icon(
+          Icons.storefront_outlined,
+          color: AppColors.primary,
+          size: AppTheme.inspectionIconSize,
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: const Icon(
-                  Icons.storefront_outlined,
-                  color: AppColors.primaryLight,
-                  size: 35,
-                ),
+              const Text(
+                unregisteredVendorLabel,
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              Expanded(
-                child: Column(
-                  spacing: 5,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      unregisteredVendorLabel,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: AppTheme.sectionHeadingFontSize,
-                      ),
-                    ),
-                    Text(
-                      section.name,
-                      style: const TextStyle(color: AppColors.mediumGrey),
-                    ),
-                  ],
+              Text(
+                section.name,
+                style: AppTheme.captionTextStyle.copyWith(
+                  color: AppColors.mediumGrey,
                 ),
               ),
             ],
           ),
         ),
-        const Divider(height: 1),
-        SizedBox(
-          width: double.infinity,
-          child: TextButton.icon(
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.all(10),
-              iconSize: 25,
-              shape: const RoundedRectangleBorder(),
-            ),
+        Tooltip(
+          message: 'Change section',
+          child: TextButton(
             onPressed: onChangeSection,
-            icon: const Icon(Icons.sync),
-            label: const Text('Change section'),
+            child: const Text('Change'),
           ),
         ),
       ],

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_outlined_btn.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/scan_paper_btn.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_evidence_grid.dart';
@@ -134,7 +134,7 @@ void main() {
     await flush(tester);
     expect(find.text('Opening scanner'), findsOneWidget);
     expect(
-      tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+      tester.widget<OutlinedButton>(find.byType(OutlinedButton)).onPressed,
       isNull,
     );
     await tester.tap(find.text('Opening scanner'));
@@ -155,7 +155,7 @@ void main() {
     });
     await showButton(tester);
     final action = tester
-        .widget<AppPrimaryButton>(find.byType(AppPrimaryButton))
+        .widget<AppOutlinedBtn>(find.byType(AppOutlinedBtn))
         .onPressed!;
     action();
     action();

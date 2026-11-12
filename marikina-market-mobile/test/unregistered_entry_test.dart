@@ -430,7 +430,7 @@ void main() {
         );
         expect(find.text('Unregistered vendor'), findsOneWidget);
         expect(find.text('Meat Section'), findsOneWidget);
-        await tester.tap(find.text('Change section'));
+        await tester.tap(find.byTooltip('Change section'));
         expect(changed, 1);
       },
     );
