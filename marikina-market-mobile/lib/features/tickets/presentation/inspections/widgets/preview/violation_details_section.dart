@@ -9,6 +9,7 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_bre
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ordinance.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class ViolationDetailsSection extends StatelessWidget {
@@ -178,9 +179,9 @@ class ViolationDetailsSection extends StatelessWidget {
 
         const SizedBox(height: AppTheme.ticketSmallGap),
 
-        Column(
+        TicketPaperFieldGroup(
           spacing: AppTheme.inspectionSmallGap,
-          children: [
+          fields: [
             TicketPaperField(
               label: 'DATE & TIME:',
               value: isTicket

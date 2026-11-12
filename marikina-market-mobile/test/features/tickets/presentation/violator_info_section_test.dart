@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/business_snapshot.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/violator_info_section.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 
 import '../../../inspection_preview_navigation_test.dart' show vendor;
 
 // Every labelled line of the section, by label.
 Map<String, String> lines(WidgetTester tester) => {
-  for (final field in tester.widgetList<TicketPaperField>(
-    find.byType(TicketPaperField),
+  for (final group in tester.widgetList<TicketPaperFieldGroup>(
+    find.byType(TicketPaperFieldGroup),
   ))
-    field.label: field.value,
+    for (final field in group.fields) field.label: field.value,
 };
 
 Future<void> show(
