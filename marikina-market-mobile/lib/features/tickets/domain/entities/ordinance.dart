@@ -32,7 +32,7 @@ class Ordinance {
       category == OrdinanceCategory.others &&
           specificCategory != null &&
           specificCategory!.isNotEmpty
-      ? 'Others: $specificCategory'
+      ? specificCategory!
       : category.label;
 
   Ordinance({

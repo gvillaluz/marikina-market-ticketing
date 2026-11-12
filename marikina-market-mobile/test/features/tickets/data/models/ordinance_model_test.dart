@@ -77,7 +77,7 @@ void main() {
       expect(cached.ordinanceCode, isEmpty);
       expect(cached.toEntity().section, '69');
       expect(cached.toEntity().specificCategory, 'Market clearance');
-      expect(cached.toEntity().categoryLabel, 'Others: Market clearance');
+      expect(cached.toEntity().categoryLabel, 'Market clearance');
     },
   );
 

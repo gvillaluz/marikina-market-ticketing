@@ -84,7 +84,7 @@ void main() {
       final ordinances = (result as Success<List<Ordinance>>).data;
       expect(ordinances.single.id, 53);
       expect(ordinances.single.section, '53');
-      expect(ordinances.single.categoryLabel, 'Others: Market clearance');
+      expect(ordinances.single.categoryLabel, 'Market clearance');
       final cached = (await local.getCacheOrdinances()).single.toEntity();
       expect(cached.id, 53);
       expect(cached.section, '53');

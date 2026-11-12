@@ -164,9 +164,7 @@ void main() {
           );
           const label = 'Ord No. 2026-123456789, Series of 2026';
           expect(
-            find.textContaining(
-              'Others: Market clearance and stall requirements',
-            ),
+            find.text('Market clearance and stall requirements'),
             findsOneWidget,
           );
           expect(find.text(label), findsOneWidget);

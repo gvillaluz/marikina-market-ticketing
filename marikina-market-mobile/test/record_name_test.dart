@@ -418,10 +418,7 @@ void main() {
       await flush(tester);
       expect(find.byType(NewInspectionPreviewPage), findsOneWidget);
       expect(paperField(tester, 'RECORDED VIOLATOR:'), 'Juan Dela Cruz');
-      expect(
-        paperField(tester, 'CONFIRMED PERSON:'),
-        'Juan Dela Cruz · Person 31',
-      );
+      expect(paperField(tester, 'CONFIRMED PERSON:'), 'Juan Dela Cruz');
 
       // Verify sends the record name with the chosen person.
       await tester.ensureVisible(find.text('Verify ticket'));

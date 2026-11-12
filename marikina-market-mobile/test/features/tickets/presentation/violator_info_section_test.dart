@@ -19,6 +19,7 @@ Future<void> show(
   BusinessSnapshot? snapshot,
   String? personAddress,
   bool isTicket = true,
+  int? personId = 31,
 }) => tester.pumpWidget(
   MaterialApp(
     home: Scaffold(
@@ -26,7 +27,7 @@ Future<void> show(
         child: ViolatorInfoSection(
           vendor: vendor,
           businessSnapshot: snapshot,
-          personId: 31,
+          personId: personId,
           personFullName: 'Juan Dela Cruz',
           personAddress: personAddress,
           paperViolatorName: 'Juan Dela Cruz',
@@ -82,5 +83,16 @@ void main() {
     final shown = lines(tester);
     expect(shown.containsKey('VIOLATOR ADDRESS:'), isFalse);
     expect(shown.containsKey('ADDRESS:'), isFalse);
+  });
+
+  testWidgets('confirmed person shows only the person name', (tester) async {
+    await show(tester);
+    expect(lines(tester)['CONFIRMED PERSON:'], 'Juan Dela Cruz');
+    expect(find.textContaining('Person 31'), findsNothing);
+  });
+
+  testWidgets('no chosen person shows Unconfirmed', (tester) async {
+    await show(tester, personId: null);
+    expect(lines(tester)['CONFIRMED PERSON:'], 'Unconfirmed');
   });
 }

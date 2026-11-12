@@ -45,7 +45,12 @@ void main() {
       'specific_category': 'Market clearance',
     }).toEntity();
     expect(ordinance.specificCategory, 'Market clearance');
-    expect(ordinance.categoryLabel, 'Others: Market clearance');
+    expect(ordinance.categoryLabel, 'Market clearance');
+  });
+
+  test('a non-Others ordinance shows its category name', () {
+    final ordinance = OrdinanceModel.fromJson(sectionResponse).toEntity();
+    expect(ordinance.categoryLabel, 'Obstruction');
   });
 
   test(
