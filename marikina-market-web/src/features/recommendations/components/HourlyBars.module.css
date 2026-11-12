@@ -1,0 +1,26 @@
+.bars {
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  align-items: end;
+  gap: 2px;
+  height: 2.5rem;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.bar {
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--border-default);
+}
+
+.high .peak {
+  background: var(--danger);
+}
+
+.moderate .peak {
+  background: var(--warning);
+}
+
+.neutral .peak {
+  background: var(--text-muted);
+}

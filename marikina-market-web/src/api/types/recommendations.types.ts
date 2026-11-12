@@ -1,0 +1,33 @@
+export type RiskLevel = "High" | "Moderate" | "Low";
+
+export type PatternConfidence = "High" | "Moderate" | "Low";
+
+export interface RecommendationRun {
+  finishedAt: string;
+  windowStart: string;
+  windowEnd: string;
+  recordCount: number;
+}
+
+export interface SectionRecommendation {
+  marketSectionId: number;
+  marketSectionName: string;
+  categoryCode: string;
+  categoryNameEnglish: string;
+  categoryNameFilipino: string;
+  recommendedAction: string;
+  categoryRecordCount: number;
+  sectionRecordCount: number;
+  riskScore: number;
+  riskLevel: RiskLevel;
+  patternConfidence: PatternConfidence;
+  peakStartHour: number;
+  hourlyCounts: number[];
+  lastFlaggedAt: string;
+}
+
+export interface RecommendationsResponse {
+  run: RecommendationRun | null;
+  recommendations: SectionRecommendation[];
+  sectionsWithoutRecommendation: string[];
+}

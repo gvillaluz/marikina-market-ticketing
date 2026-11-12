@@ -78,6 +78,7 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IOtpRepository, OtpRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IBackupRepository, BackupRepository>();
+builder.Services.AddScoped<IRecommendationRepository, RecommendationRepository>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
@@ -86,6 +87,7 @@ builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IVendorComplianceScoreService, VendorComplianceScoreService>();
 builder.Services.AddScoped<IAdminAnalyticsService, AdminAnalyticsService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IOrdinanceService, OrdinanceService>();
 builder.Services.AddScoped<IMarketSectionService, MarketSectionService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
