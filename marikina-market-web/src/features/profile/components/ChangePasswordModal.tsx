@@ -1,6 +1,6 @@
 import { KeyRound } from "lucide-react";
 import { useChangePassword } from "../hooks/useChangePassword";
-import type { PasswordValues } from "../profile.validation";
+import { PASSWORD_RULE_HINT, type PasswordValues } from "../profile.validation";
 import ProfileFormModal from "./ProfileFormModal";
 import ProfileFormField from "./ProfileFormField";
 import styles from "./ChangePasswordModal.module.css";
@@ -59,9 +59,7 @@ export default function ChangePasswordModal({
           autoComplete={autoComplete}
           visible={editor.visible[name]}
           onToggle={() => editor.toggle(name)}
-          hint={
-            name === "newPassword" ? "Use at least 6 characters." : undefined
-          }
+          hint={name === "newPassword" ? PASSWORD_RULE_HINT : undefined}
           success={
             name === "confirmNewPassword" && editor.matches
               ? "Passwords match"

@@ -10,6 +10,9 @@ export interface PasswordValues {
   confirmNewPassword: string;
 }
 
+export const PASSWORD_RULE_HINT =
+  "At least 8 characters, with a number and a capital letter.";
+
 export async function validateProfilePhoto(file: File): Promise<string | null> {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
     return "Choose a JPEG, PNG, or WebP image.";
@@ -85,8 +88,13 @@ export function validatePasswordForm(
   const errors: Partial<Record<keyof PasswordValues, string>> = {};
   if (!values.currentPassword)
     errors.currentPassword = "Enter your current password.";
-  if (values.newPassword.length < 6)
-    errors.newPassword = "Use at least 6 characters.";
+  if (
+    values.newPassword.length < 8 ||
+    !/\d/.test(values.newPassword) ||
+    !/[A-Z]/.test(values.newPassword)
+  )
+    errors.newPassword =
+      "Use at least 8 characters, with a number and a capital letter.";
   if (!values.confirmNewPassword)
     errors.confirmNewPassword = "Confirm your new password.";
   else if (values.confirmNewPassword !== values.newPassword)

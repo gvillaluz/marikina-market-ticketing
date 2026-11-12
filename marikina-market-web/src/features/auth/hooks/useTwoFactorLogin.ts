@@ -34,7 +34,7 @@ export function useTwoFactorLogin() {
     requestedPath.startsWith("/") &&
     !requestedPath.startsWith("//") &&
     !requestedPath.includes("\\") &&
-    ![ROUTES.adminLogin, ROUTES.loginVerification].some(
+    ![ROUTES.adminLogin, ROUTES.loginVerification, ROUTES.changePassword].some(
       (path) => path === requestedPath,
     )
       ? requestedPath
