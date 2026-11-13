@@ -8,9 +8,18 @@ import 'package:marikina_market_mobile/features/tickets/presentation/tickets/wid
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_notice.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_list_footer.dart';
 
-class TicketListSection extends StatelessWidget {
+class TicketListSection extends StatefulWidget {
   final VoidCallback? onRetry;
   const TicketListSection({super.key, this.onRetry});
+
+  @override
+  State<TicketListSection> createState() => _TicketListSectionState();
+}
+
+class _TicketListSectionState extends State<TicketListSection> {
+  int? _expandedTicketId;
+
+  VoidCallback? get onRetry => widget.onRetry;
 
   @override
   Widget build(BuildContext context) => BlocBuilder<TicketBloc, TicketState>(
@@ -71,7 +80,16 @@ class TicketListSection extends StatelessWidget {
                 return Padding(
                   key: ValueKey(ticket.ticketId),
                   padding: AppTheme.ticketItemPadding,
-                  child: TicketCard(ticketSummary: ticket),
+                  child: TicketCard(
+                    ticketSummary: ticket,
+                    expanded: _expandedTicketId == ticket.ticketId,
+                    onToggle: () => setState(
+                      () => _expandedTicketId =
+                          _expandedTicketId == ticket.ticketId
+                          ? null
+                          : ticket.ticketId,
+                    ),
+                  ),
                 );
               },
               childCount: state.ticketSummary.length + 2,

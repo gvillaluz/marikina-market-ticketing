@@ -170,6 +170,9 @@ class AppTheme {
   static const ticketSmallGap = inspectionSmallGap;
   static const ticketTinyGap = inspectionTinyGap;
   static const ticketCardRadius = inspectionCardRadius;
+  static const ticketCardPressedScale = inspectionCardPressedScale;
+  static const ticketCardPressDuration = inspectionCardPressDuration;
+  static const ticketCardExpandDuration = inspectionCardExpandDuration;
   static const ticketTitleStyle = inspectionTitleStyle;
   static const ticketHeadingStyle = inspectionHeadingStyle;
   static const ticketBodyStyle = inspectionBodyStyle;

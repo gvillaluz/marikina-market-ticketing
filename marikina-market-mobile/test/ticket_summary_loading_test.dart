@@ -103,6 +103,8 @@ void main() {
       final widget = card == 'ticket'
           ? TicketCard(
               ticketSummary: TicketSummaryModel.fromJson(_summary).toEntity(),
+              expanded: true,
+              onToggle: () {},
             )
           : InspectionCard(
               ticketSummary: InspectionSummaryModel.fromJson({
@@ -123,16 +125,10 @@ void main() {
           ),
         ),
       );
-      if (card == 'inspection') {
-        // The Inspections card shows the first ordinance and counts the rest.
-        expect(find.text(_labels.first), findsOneWidget);
-        expect(find.text(_labels.last), findsNothing);
-        expect(find.text('+1 more ordinance'), findsOneWidget);
-      } else {
-        for (final label in _labels) {
-          expect(find.text(label), findsOneWidget);
-        }
-      }
+      // Both cards show the first ordinance and count the rest.
+      expect(find.text(_labels.first), findsOneWidget);
+      expect(find.text(_labels.last), findsNothing);
+      expect(find.text('+1 more ordinance'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
@@ -202,7 +198,11 @@ void main() {
         theme: AppTheme.light,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: TicketCard(ticketSummary: summary),
+            child: TicketCard(
+              ticketSummary: summary,
+              expanded: false,
+              onToggle: () {},
+            ),
           ),
         ),
       ),

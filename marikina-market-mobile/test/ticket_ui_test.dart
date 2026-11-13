@@ -17,6 +17,7 @@ import 'package:marikina_market_mobile/features/tickets/presentation/tickets/wid
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ticket_summary_model.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_card.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_status_badge.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/pages/ticket_detail_page.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/pages/tickets_page.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/bloc/ticket_state.dart';
@@ -319,6 +320,8 @@ void main() {
                       'issue_place': 'Fish aisle near F-014',
                       'status': 'Contested',
                     }).toEntity(),
+                    expanded: false,
+                    onToggle: () {},
                   ),
                 ),
               ),
@@ -351,6 +354,39 @@ void main() {
       },
     );
   }
+  testWidgets('ticket card shows its status in the upper-right corner', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(500, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: TicketCard(
+              ticketSummary: TicketSummaryModel.fromJson({
+                ...ticketResponse,
+                'paper_reference': '000456',
+                'status': 'Contested',
+              }).toEntity(),
+              expanded: false,
+              onToggle: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    final card = tester.getRect(find.byType(TicketCard));
+    final badge = tester.getRect(find.byType(TicketStatusBadge));
+    // Right edge sits one card padding in from the card; top is the first row.
+    expect(badge.right, closeTo(card.right - 21, 1));
+    expect(badge.top, lessThan(card.top + 30));
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('changing ticket status cancels pending search debounce', (
     tester,
   ) async {
