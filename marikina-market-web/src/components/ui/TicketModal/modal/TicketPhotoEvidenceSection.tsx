@@ -1,27 +1,41 @@
-import TicketEvidenceGallery from "@/components/ui/PhotoGallery/TicketEvidenceGallery";
+import TicketPhotoEvidenceGroup from "./TicketPhotoEvidenceGroup";
 import styles from "./TicketPhotoEvidenceSection.module.css";
 import type { TicketEvidenceItem } from "@/api/types/ticket.types";
 
+interface EvidenceGroup {
+  label: string;
+  images: string[];
+  large: boolean;
+}
+
+function sortedUrls(items: TicketEvidenceItem[]) {
+  return [...items].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id - b.id).map(item => item.url);
+}
+
+function buildGroups(images: string[], evidenceItems: TicketEvidenceItem[], isTicket: boolean): EvidenceGroup[] {
+  if (evidenceItems.length === 0) return [{ label: "Unclassified evidence", images, large: false }];
+  const paper = evidenceItems.filter(item => item.role === "PaperTicket");
+  if (!isTicket) return [{ label: "Paper warning", images: sortedUrls(paper), large: true }];
+  const supporting = evidenceItems.filter(item => item.role === "Supporting");
+  const other = evidenceItems.filter(item => item.role !== "PaperTicket" && item.role !== "Supporting");
+  return [
+    { label: "Paper ticket", images: sortedUrls(paper), large: true },
+    { label: "Supporting evidence", images: sortedUrls(supporting), large: false },
+    { label: "Unclassified evidence", images: sortedUrls(other), large: false },
+  ].filter(group => group.images.length > 0);
+}
+
 function TicketPhotoEvidenceSection({ images, evidenceItems = [], isTicket = true }: { images: string[]; evidenceItems?: TicketEvidenceItem[]; isTicket?: boolean }) {
-  const groups = !isTicket ? evidenceItems.length === 0
-    ? [{ label: "Unclassified evidence", images }]
-    : [{ label: "Paper warning photo", images: evidenceItems.filter(item => item.role === "PaperTicket").map(item => item.url) }]
-    : evidenceItems.length === 0 ? [{ label: "Unclassified evidence", images }]
-      : (["PaperTicket", "Supporting", null] as const).map(role => ({
-        label: role === "PaperTicket" ? "Paper ticket photo" : role === "Supporting" ? "Supporting evidence" : "Unclassified evidence",
-        images: evidenceItems.filter(item => role === null ? item.role !== "PaperTicket" && item.role !== "Supporting" : item.role === role)
-          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id - b.id).map(item => item.url),
-      })).filter(group => group.images.length > 0);
+  const groups = buildGroups(images, evidenceItems, isTicket);
   return (
     <section className={styles.photoSection}>
-      <h5 className={styles.title}>Photo Evidence Record</h5>
+      <h5 className={styles.title}>{isTicket ? "Ticket Photos" : "Warning Photos"}</h5>
       <p className={styles.subtitle}>
-        {isTicket ? "Paper ticket and supporting photos are shown by their saved classification." : "Photos attached to this warning."}
+        {isTicket ? "The scanned paper ticket and any supporting photos." : "Photos attached to this warning."}
       </p>
-      {groups.map(group => <div key={group.label} className={styles.group}>
-        <h6 className={styles.title}>{group.label}</h6>
-        <TicketEvidenceGallery images={group.images} />
-      </div>)}
+      <div className={`${styles.layout} ${groups.length === 1 ? styles.single : ""}`}>
+        {groups.map(group => <TicketPhotoEvidenceGroup key={group.label} {...group} />)}
+      </div>
     </section>
   );
 }

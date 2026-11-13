@@ -8,13 +8,14 @@ import "yet-another-react-lightbox/plugins/thumbnails.css";
 
 interface TicketGalleryProps {
   images: string[];
+  large?: boolean;
 }
 
-function TicketEvidenceGallery({ images }: TicketGalleryProps) {
+function TicketEvidenceGallery({ images, large = false }: TicketGalleryProps) {
   const gallery = useImagePreview(images);
 
   return (
-    <div className={styles.imageContainer}>
+    <div className={`${styles.imageContainer} ${large ? styles.large : ""}`}>
       {gallery.urls.length <= 0 ? (
         <span>No photo evidence available</span>
       ) : (
@@ -31,6 +32,7 @@ function TicketEvidenceGallery({ images }: TicketGalleryProps) {
               src={url}
               className={styles.evidence}
               alt={`Photo evidence ${i + 1}`}
+              fit={large ? "contain" : "cover"}
               loading="lazy"
               onError={() => gallery.onError(url)}
             />

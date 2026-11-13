@@ -11,6 +11,19 @@
   color: var(--neutral-500);
 }
 
-.group + .group {
-  margin-top: var(--space-lg);
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+}
+
+.layout > :nth-child(n + 3) {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .layout:not(.single) {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
 }
