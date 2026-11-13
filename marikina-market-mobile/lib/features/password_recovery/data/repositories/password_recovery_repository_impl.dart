@@ -68,6 +68,8 @@ class PasswordRecoveryRepositoryImpl implements PasswordRecoveryRepository {
       );
 
       return Result.success(result.toEntity());
+    } on ValidationException catch (e) {
+      return Result.failure(ValidationFailure(e.message));
     } on NetworkException catch (e) {
       return Result.failure(NetworkFailure(e.message));
     } on ServerException catch (e) {

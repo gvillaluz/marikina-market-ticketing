@@ -15,12 +15,14 @@ class PasswordChangeCheck {
   String? get currentError =>
       currentPassword.isEmpty ? 'Enter your current password.' : null;
 
-  String? get newPasswordError =>
-      newPassword.length >= 8 &&
-          newPassword.contains(RegExp(r'[0-9]')) &&
-          newPassword.contains(RegExp(r'[A-Z]'))
+  static String? newPasswordProblem(String value) =>
+      value.length >= 8 &&
+          value.contains(RegExp(r'[0-9]')) &&
+          value.contains(RegExp(r'[A-Z]'))
       ? null
       : 'Use at least 8 characters, with a number and a capital letter.';
+
+  String? get newPasswordError => newPasswordProblem(newPassword);
 
   String? get confirmError {
     if (confirmPassword.isEmpty) return 'Confirm your new password.';

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:marikina_market_mobile/core/errors/api_error_message.dart';
 import 'package:marikina_market_mobile/core/errors/exceptions.dart';
 import 'package:marikina_market_mobile/core/network/client.dart';
 import 'package:marikina_market_mobile/features/password_recovery/data/models/account_lookup_model.dart';
@@ -104,6 +105,13 @@ class PasswordRecoveryRemoteDataSourceImpl
           e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.receiveTimeout) {
         throw NetworkException('No internet connection. Please try again.');
+      }
+
+      if (e.response?.statusCode == 400) {
+        throw ValidationException(
+          ApiErrorMessage.fromBody(e.response?.data) ??
+              'Check your new password and try again.',
+        );
       }
 
       throw ServerException('Something went wrong. Please try again later');

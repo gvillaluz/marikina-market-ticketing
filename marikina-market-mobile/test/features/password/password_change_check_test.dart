@@ -43,6 +43,11 @@ void main() {
     expect(check.isValid, isFalse);
   });
 
+  test('newPasswordProblem gives the rule text, or null when it is met', () {
+    expect(PasswordChangeCheck.newPasswordProblem('abcdefg1'), rule);
+    expect(PasswordChangeCheck.newPasswordProblem('Abcdefg1'), isNull);
+  });
+
   test('a valid new password with matching confirmation has no messages', () {
     final check = PasswordChangeCheck('Old1', 'Abcdefg1', 'Abcdefg1');
     expect(check.currentError, isNull);
