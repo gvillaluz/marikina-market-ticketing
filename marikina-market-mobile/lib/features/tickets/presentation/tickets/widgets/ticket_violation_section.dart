@@ -108,6 +108,7 @@ class TicketViolationSection extends StatelessWidget {
                   if (isTicket) ...[
                     const SizedBox(height: AppTheme.ticketSmallGap),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
                           child: Container(
@@ -145,14 +146,9 @@ class TicketViolationSection extends StatelessWidget {
                         ),
                         if (penaltyType == PenaltyType.cashFine) ...[
                           const SizedBox(width: AppTheme.ticketSmallGap),
-                          Expanded(
-                            child: Text(
-                              _currencyFormat.format(ordinance.paymentAmount),
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                          Text(
+                            _currencyFormat.format(ordinance.paymentAmount),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ],
