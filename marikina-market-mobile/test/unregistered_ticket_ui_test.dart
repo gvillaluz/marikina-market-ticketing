@@ -190,10 +190,12 @@ void main() {
         ticketSummary: TicketSummaryModel.fromJson(
           _unregisteredTicketRow,
         ).toEntity(),
+        expanded: false,
+        onToggle: () {},
       ),
     );
     _expectUnregisteredWording();
-    expect(find.text('Issue place: Palengke gate 2'), findsOneWidget);
+    expect(find.textContaining('Issue place'), findsNothing);
     expect(find.text('Meat and Poultry'), findsOneWidget);
   });
 

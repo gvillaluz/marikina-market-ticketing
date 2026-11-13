@@ -5,111 +5,201 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_summary.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_icon_line.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_status_badge.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/unregistered_vendor.dart';
 
-class TicketCard extends StatelessWidget {
+class TicketCard extends StatefulWidget {
   final TicketSummary ticketSummary;
-  const TicketCard({required this.ticketSummary, super.key});
-  void _open(BuildContext context) => context.pushNamed(
+  final bool expanded;
+  final VoidCallback onToggle;
+  const TicketCard({
+    required this.ticketSummary,
+    required this.expanded,
+    required this.onToggle,
+    super.key,
+  });
+
+  @override
+  State<TicketCard> createState() => _TicketCardState();
+}
+
+class _TicketCardState extends State<TicketCard> {
+  static const _shownOrdinanceCount = 1;
+
+  bool _pressed = false;
+
+  TicketSummary get ticketSummary => widget.ticketSummary;
+
+  void _openDetails(BuildContext context) => context.pushNamed(
     Routes.ticketDetailName,
     pathParameters: {'ticketId': ticketSummary.ticketId.toString()},
   );
+
   @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface,
-    shape: RoundedRectangleBorder(
-      borderRadius: AppTheme.ticketCardRadius,
-      side: BorderSide(
-        color: ticketSummary.ticketStatus == TicketStatus.overdue
-            ? Theme.of(context).colorScheme.error
-            : Theme.of(context).colorScheme.outlineVariant,
-      ),
-    ),
-    clipBehavior: Clip.antiAlias,
-    child: InkWell(
-      onTap: () => _open(context),
-      child: Padding(
-        padding: AppTheme.ticketCardPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: AppTheme.ticketTinyGap,
-              runSpacing: AppTheme.ticketTinyGap,
-              crossAxisAlignment: WrapCrossAlignment.center,
+  Widget build(BuildContext context) {
+    final animate = !MediaQuery.disableAnimationsOf(context);
+    final colors = Theme.of(context).colorScheme;
+    final overdue = ticketSummary.ticketStatus == TicketStatus.overdue;
+    final section = ticketSummary.isUnregistered
+        ? ticketSummary.marketSection
+        : ticketSummary.businessSnapshot?.marketSectionName;
+    final stall = ticketSummary.isUnregistered
+        ? ticketSummary.stallNumber
+        : ticketSummary.businessSnapshot?.stallNumber;
+    final location = [
+      if (section != null && section.trim().isNotEmpty) section,
+      if (stall != null && stall.trim().isNotEmpty) 'Stall $stall',
+    ].join(' • ');
+    final shownOrdinances = ticketSummary.ordinance.take(_shownOrdinanceCount);
+    final hiddenOrdinances =
+        ticketSummary.ordinance.length - shownOrdinances.length;
+    return AnimatedScale(
+      scale: _pressed && animate ? AppTheme.ticketCardPressedScale : 1,
+      duration: AppTheme.ticketCardPressDuration,
+      child: Material(
+        color: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppTheme.ticketCardRadius,
+          side: BorderSide(
+            color: overdue ? colors.error : colors.outlineVariant,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: widget.onToggle,
+          onHighlightChanged: (pressed) => setState(() => _pressed = pressed),
+          child: Padding(
+            padding: AppTheme.ticketCardPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'CONTROL NUMBER:',
-                  style: AppTheme.ticketCaptionStyle.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    spacing: AppTheme.ticketSmallGap,
+                    runSpacing: AppTheme.ticketTinyGap,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'CONTROL NUMBER:',
+                            style: AppTheme.ticketCaptionStyle.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                          Text(
+                            ticketSummary.paperReference ??
+                                'Unavailable (legacy record)',
+                            style: AppTheme.ticketHeadingStyle.copyWith(
+                              color: colors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      TicketStatusBadge(status: ticketSummary.ticketStatus),
+                    ],
                   ),
                 ),
+                const SizedBox(height: AppTheme.ticketSmallGap),
                 Text(
-                  ticketSummary.paperReference ?? 'Unavailable (legacy record)',
+                  ticketSummary.isUnregistered
+                      ? unregisteredVendorLabel
+                      : (ticketSummary.businessSnapshot?.businessName ??
+                            'Historical business details unavailable.'),
                   style: AppTheme.ticketHeadingStyle.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: colors.onSurface,
                   ),
                 ),
-                TicketStatusBadge(status: ticketSummary.ticketStatus),
+                const SizedBox(height: AppTheme.ticketTinyGap),
+                if (location.isNotEmpty)
+                  InspectionIconLine(
+                    icon: Icons.place_outlined,
+                    text: location,
+                  ),
+                InspectionIconLine(
+                  icon: Icons.person_outline,
+                  text:
+                      ticketSummary.paperViolatorName ??
+                      'Unconfirmed (legacy record)',
+                ),
+                const SizedBox(height: AppTheme.ticketSmallGap),
+                ...shownOrdinances.map(
+                  (ordinance) => Text(
+                    ordinance,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTheme.ticketBodyStyle.copyWith(
+                      color: colors.onSurface,
+                    ),
+                  ),
+                ),
+                if (hiddenOrdinances > 0)
+                  Text(
+                    '+$hiddenOrdinances more ordinance${hiddenOrdinances == 1 ? '' : 's'}',
+                    style: AppTheme.ticketBodyStyle.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                const Divider(),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: AppTheme.ticketIconSize,
+                      color: colors.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: AppTheme.ticketTinyGap),
+                    Expanded(
+                      child: Text(
+                        DateTimeFormatter.getShortDateTime(
+                          ticketSummary.issuedAt,
+                        ),
+                        style: AppTheme.ticketBodyStyle.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                AnimatedSize(
+                  duration: animate
+                      ? AppTheme.ticketCardExpandDuration
+                      : Duration.zero,
+                  alignment: Alignment.topCenter,
+                  child: widget.expanded
+                      ? Padding(
+                          padding: const EdgeInsets.only(
+                            top: AppTheme.ticketTinyGap,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.tonal(
+                              onPressed: () => _openDetails(context),
+                              child: const Text('View Details'),
+                            ),
+                          ),
+                        )
+                      : const SizedBox(width: double.infinity),
+                ),
+                if (overdue && ticketSummary.overDueDate != null)
+                  Text(
+                    'Overdue: ${DateTimeFormatter.getDate(ticketSummary.overDueDate!)}',
+                    style: AppTheme.ticketBodyStyle.copyWith(
+                      color: colors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
               ],
             ),
-            Text(
-              'Issue place: ${ticketSummary.issuePlace ?? 'Unavailable (legacy record)'}',
-              style: AppTheme.ticketBodyStyle,
-            ),
-            const SizedBox(height: AppTheme.ticketSmallGap),
-            Text(
-              ticketSummary.isUnregistered
-                  ? unregisteredVendorLabel
-                  : (ticketSummary.businessSnapshot?.businessName ??
-                        'Historical business details unavailable.'),
-              style: AppTheme.ticketHeadingStyle,
-            ),
-            Text(
-              [
-                ticketSummary.isUnregistered
-                    ? ticketSummary.marketSection
-                    : (ticketSummary.businessSnapshot?.marketSectionName ??
-                          'Unavailable'),
-                if (ticketSummary.businessSnapshot?.stallNumber
-                        ?.trim()
-                        .isNotEmpty ==
-                    true)
-                  ticketSummary.businessSnapshot!.stallNumber!,
-              ].join(' • '),
-              style: AppTheme.ticketBodyStyle.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (ticketSummary.ordinance.isNotEmpty) ...[
-              const SizedBox(height: AppTheme.ticketSmallGap),
-              for (final ordinance in ticketSummary.ordinance)
-                Text(ordinance, style: AppTheme.ticketBodyStyle),
-            ],
-            const Divider(),
-            Text(
-              DateTimeFormatter.getShortDateTime(ticketSummary.issuedAt),
-              style: AppTheme.ticketBodyStyle,
-            ),
-            if (ticketSummary.ticketStatus == TicketStatus.overdue &&
-                ticketSummary.overDueDate != null)
-              Text(
-                'Overdue: ${DateTimeFormatter.getDate(ticketSummary.overDueDate!)}',
-                style: AppTheme.ticketBodyStyle.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => _open(context),
-                child: const Text('View Details'),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
