@@ -1,0 +1,7 @@
+.body {
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  font-size: var(--market-font-size-body);
+  line-height: 1.5;
+  color: var(--text-body);
+}

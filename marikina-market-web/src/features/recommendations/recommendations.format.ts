@@ -1,3 +1,8 @@
+import type {
+  RecommendationReview,
+  RecommendationsResponse,
+} from "@/api/types/recommendations.types";
+
 const MANILA_TIME_ZONE = "Asia/Manila";
 
 export type RiskTone = "high" | "moderate" | "neutral";
@@ -49,4 +54,17 @@ export function riskTone(riskLevel: string): RiskTone {
   if (riskLevel === "High") return "high";
   if (riskLevel === "Moderate") return "moderate";
   return "neutral";
+}
+
+export function withReview(
+  data: RecommendationsResponse,
+  id: number,
+  review: RecommendationReview,
+): RecommendationsResponse {
+  return {
+    ...data,
+    recommendations: data.recommendations.map((card) =>
+      card.id === id ? { ...card, review } : card,
+    ),
+  };
 }

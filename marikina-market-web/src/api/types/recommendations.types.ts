@@ -2,6 +2,14 @@ export type RiskLevel = "High" | "Moderate" | "Low";
 
 export type PatternConfidence = "High" | "Moderate" | "Low";
 
+export type RecommendationDecision = "Reviewed" | "Dismissed";
+
+export interface RecommendationReview {
+  decision: RecommendationDecision;
+  reviewedByName: string;
+  reviewedAt: string;
+}
+
 export interface RecommendationRun {
   finishedAt: string;
   windowStart: string;
@@ -10,6 +18,7 @@ export interface RecommendationRun {
 }
 
 export interface SectionRecommendation {
+  id: number;
   marketSectionId: number;
   marketSectionName: string;
   categoryCode: string;
@@ -24,6 +33,7 @@ export interface SectionRecommendation {
   peakStartHour: number;
   hourlyCounts: number[];
   lastFlaggedAt: string;
+  review: RecommendationReview | null;
 }
 
 export interface RecommendationsResponse {

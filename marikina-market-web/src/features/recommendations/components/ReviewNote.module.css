@@ -1,0 +1,9 @@
+.note {
+  font-size: var(--market-font-size-small);
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.date {
+  white-space: nowrap;
+}

@@ -845,6 +845,64 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                     b.ToTable("recommendation_findings", (string)null);
                 });
 
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RecommendationReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CategoryCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("category_code");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("decision");
+
+                    b.Property<int>("MarketSectionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("market_section_id");
+
+                    b.Property<int>("RecommendationRunId")
+                        .HasColumnType("integer")
+                        .HasColumnName("recommendation_run_id");
+
+                    b.Property<DateTime>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<int>("ReviewedById")
+                        .HasColumnType("integer")
+                        .HasColumnName("reviewed_by_id");
+
+                    b.Property<string>("ReviewedByName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("reviewed_by_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recommendation_reviews");
+
+                    b.HasIndex("RecommendationRunId")
+                        .HasDatabaseName("ix_recommendation_reviews_recommendation_run_id");
+
+                    b.HasIndex("ReviewedById")
+                        .HasDatabaseName("ix_recommendation_reviews_reviewed_by_id");
+
+                    b.HasIndex("MarketSectionId", "CategoryCode")
+                        .HasDatabaseName("ix_recommendation_reviews_market_section_id_category_code");
+
+                    b.ToTable("recommendation_reviews", (string)null);
+                });
+
             modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RecommendationRun", b =>
                 {
                     b.Property<int>("Id")
@@ -2035,6 +2093,32 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                     b.Navigation("RecommendationRun");
 
                     b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RecommendationReview", b =>
+                {
+                    b.HasOne("MarikinaMarket.API.Domain.Entities.MarketSection", null)
+                        .WithMany()
+                        .HasForeignKey("MarketSectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_recommendation_reviews_market_sections_market_section_id");
+
+                    b.HasOne("MarikinaMarket.API.Domain.Entities.RecommendationRun", "RecommendationRun")
+                        .WithMany()
+                        .HasForeignKey("RecommendationRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_recommendation_reviews_recommendation_runs_recommendation_r");
+
+                    b.HasOne("MarikinaMarket.API.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_recommendation_reviews_asp_net_users_reviewed_by_id");
+
+                    b.Navigation("RecommendationRun");
                 });
 
             modelBuilder.Entity("MarikinaMarket.API.Domain.Entities.RefreshToken", b =>
