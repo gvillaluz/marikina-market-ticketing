@@ -214,7 +214,7 @@ void main() {
         for (var i = 0; i < values.length; i++) {
           await tester.enterText(find.byType(TextField).at(i), values[i]);
         }
-        final submit = find.text(mandatory ? 'UPDATE PASSWORD' : 'LOGIN');
+        final submit = find.text(mandatory ? 'SAVE PASSWORD' : 'LOGIN');
         await tester.ensureVisible(submit);
         await tester.runAsync(() async {
           final failed = auth.stream.firstWhere(

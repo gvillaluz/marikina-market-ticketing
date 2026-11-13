@@ -74,6 +74,25 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const LoginCardHeader(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Column(
+              children: [
+                const Text(
+                  'CHANGE PASSWORD',
+                  style: AppTheme.authPageTitleStyle,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppTheme.authSmallGap),
+                Text(
+                  'For your security, change the temporary password you were '
+                  'given before you continue.',
+                  style: AppTheme.authBodyStyle,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
           ChangePasswordFields(
             enabled: context.select<AuthBloc, bool>(
               (bloc) => bloc.state is! AuthChangePasswordLoading,
@@ -82,29 +101,34 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
             newPasswordController: _newPasswordController,
             confirmNewPasswordController: _confirmNewPasswordController,
             check: _check,
+            onSubmitted: _submit,
           ),
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
-              return Column(
-                children: [
-                  if (state
-                      case AuthChangePasswordError(:final message) ||
-                          AuthChangePasswordNetworkError(:final message)) ...{
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: AuthErrorNotice(message: message),
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    AuthBtn(
+                      isLoading: state is AuthChangePasswordLoading,
+                      onPressed: _submit,
+                      label: 'SAVE PASSWORD',
                     ),
-                  },
 
-                  AuthBtn(
-                    isLoading: state is AuthChangePasswordLoading,
-                    onPressed: _submit,
-                    label: 'UPDATE PASSWORD',
-                  ),
-                ],
+                    const SizedBox(height: 10),
+
+                    if (state
+                        case AuthChangePasswordError(:final message) ||
+                            AuthChangePasswordNetworkError(:final message)) ...{
+                      AuthErrorNotice(message: message),
+                    },
+                  ],
+                ),
               );
             },
           ),
+
+          const SizedBox(height: 20),
         ],
       ),
     );

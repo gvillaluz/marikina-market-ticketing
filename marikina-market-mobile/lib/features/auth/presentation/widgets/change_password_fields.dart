@@ -9,6 +9,7 @@ class ChangePasswordFields extends StatefulWidget {
   final TextEditingController newPasswordController;
   final TextEditingController confirmNewPasswordController;
   final PasswordChangeCheck? check;
+  final VoidCallback onSubmitted;
 
   const ChangePasswordFields({
     super.key,
@@ -17,6 +18,7 @@ class ChangePasswordFields extends StatefulWidget {
     required this.newPasswordController,
     required this.confirmNewPasswordController,
     this.check,
+    required this.onSubmitted,
   });
 
   @override
@@ -43,18 +45,25 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
             enableSuggestions: false,
             controller: widget.currentPasswordController,
             obscureText: !isCurrentPasswordVisible,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.password],
             decoration: InputDecoration(
               prefixIcon: Icon(Icons.lock_rounded),
-              suffixIcon: IconButton(
-                onPressed: !widget.enabled
-                    ? null
-                    : () => setState(() {
-                        isCurrentPasswordVisible = !isCurrentPasswordVisible;
-                      }),
-                icon: Icon(
-                  isCurrentPasswordVisible
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility,
+              suffixIcon: ExcludeFocus(
+                child: IconButton(
+                  tooltip: isCurrentPasswordVisible
+                      ? 'Hide current password'
+                      : 'Show current password',
+                  onPressed: !widget.enabled
+                      ? null
+                      : () => setState(() {
+                          isCurrentPasswordVisible = !isCurrentPasswordVisible;
+                        }),
+                  icon: Icon(
+                    isCurrentPasswordVisible
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility,
+                  ),
                 ),
               ),
               hintText: 'Enter your current password',
@@ -76,18 +85,25 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
             enableSuggestions: false,
             controller: widget.newPasswordController,
             obscureText: !isNewPasswordVisible,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.newPassword],
             decoration: InputDecoration(
               prefixIcon: Icon(Icons.lock_rounded),
-              suffixIcon: IconButton(
-                onPressed: !widget.enabled
-                    ? null
-                    : () => setState(() {
-                        isNewPasswordVisible = !isNewPasswordVisible;
-                      }),
-                icon: Icon(
-                  isNewPasswordVisible
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility,
+              suffixIcon: ExcludeFocus(
+                child: IconButton(
+                  tooltip: isNewPasswordVisible
+                      ? 'Hide new password'
+                      : 'Show new password',
+                  onPressed: !widget.enabled
+                      ? null
+                      : () => setState(() {
+                          isNewPasswordVisible = !isNewPasswordVisible;
+                        }),
+                  icon: Icon(
+                    isNewPasswordVisible
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility,
+                  ),
                 ),
               ),
               hintText: 'Enter your new password',
@@ -118,19 +134,27 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
             enableSuggestions: false,
             controller: widget.confirmNewPasswordController,
             obscureText: !isConfirmNewPasswordVisible,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.newPassword],
+            onSubmitted: (_) => widget.onSubmitted(),
             decoration: InputDecoration(
               prefixIcon: Icon(Icons.lock_rounded),
-              suffixIcon: IconButton(
-                onPressed: !widget.enabled
-                    ? null
-                    : () => setState(() {
-                        isConfirmNewPasswordVisible =
-                            !isConfirmNewPasswordVisible;
-                      }),
-                icon: Icon(
-                  isConfirmNewPasswordVisible
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility,
+              suffixIcon: ExcludeFocus(
+                child: IconButton(
+                  tooltip: isConfirmNewPasswordVisible
+                      ? 'Hide confirm new password'
+                      : 'Show confirm new password',
+                  onPressed: !widget.enabled
+                      ? null
+                      : () => setState(() {
+                          isConfirmNewPasswordVisible =
+                              !isConfirmNewPasswordVisible;
+                        }),
+                  icon: Icon(
+                    isConfirmNewPasswordVisible
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility,
+                  ),
                 ),
               ),
               hintText: 'Confirm your new password',

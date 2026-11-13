@@ -294,13 +294,13 @@ void main() {
         await tester.enterText(find.byType(TextField).at(0), 'OldPass123');
         await tester.enterText(find.byType(TextField).at(1), newPassword);
         await tester.enterText(find.byType(TextField).at(2), confirm);
-        await tester.ensureVisible(find.text('UPDATE PASSWORD'));
+        await tester.ensureVisible(find.text('SAVE PASSWORD'));
         final sent = listenForRequest(
           tester,
           auth.stream,
           (s) => s is AuthChangePasswordError,
         );
-        await tester.tap(find.text('UPDATE PASSWORD'));
+        await tester.tap(find.text('SAVE PASSWORD'));
         expect(await sent, expected == 1);
         await tester.pump();
         expect(
@@ -311,5 +311,107 @@ void main() {
         expect(requests, expected);
       });
     }
+  });
+
+  group('forced screen look', () {
+    late ConnectivityCubit connectivity;
+    late AuthBloc auth;
+    var requests = 0;
+
+    Future<void> pumpForced(WidgetTester tester) async {
+      requests = 0;
+      await tester.runAsync(() async {
+        connectivity = ConnectivityCubit(LoginTestNetworkInfo());
+        auth = loginBloc(connectivity, (options) async {
+          requests++;
+          throw rejected(options, wrongPassword);
+        });
+        await auth.stream
+            .firstWhere((s) => s is Unauthenticated)
+            .timeout(const Duration(seconds: 5));
+      });
+      addTearDown(connectivity.close);
+      addTearDown(auth.close);
+      await tester.pumpWidget(
+        BlocProvider<AuthBloc>.value(
+          value: auth,
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: const Scaffold(
+              body: SingleChildScrollView(child: forced.ChangePasswordCard()),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('shows the title and the explanation line', (tester) async {
+      await pumpForced(tester);
+      expect(find.text('CHANGE PASSWORD'), findsOneWidget);
+      expect(
+        find.text(
+          'For your security, change the temporary password you were given '
+          'before you continue.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the button says SAVE PASSWORD', (tester) async {
+      await pumpForced(tester);
+      expect(find.text('SAVE PASSWORD'), findsOneWidget);
+      expect(find.text('UPDATE PASSWORD'), findsNothing);
+    });
+
+    testWidgets('a server error shows below the button', (tester) async {
+      await pumpForced(tester);
+      await tester.enterText(find.byType(TextField).at(0), 'OldPass123');
+      await tester.enterText(find.byType(TextField).at(1), 'NewPass123');
+      await tester.enterText(find.byType(TextField).at(2), 'NewPass123');
+      await tester.ensureVisible(find.text('SAVE PASSWORD'));
+      final sent = listenForRequest(
+        tester,
+        auth.stream,
+        (s) => s is AuthChangePasswordError,
+      );
+      await tester.tap(find.text('SAVE PASSWORD'));
+      expect(await sent, isTrue);
+      await tester.pump();
+      expect(
+        tester.getTopLeft(find.text('Incorrect password.')).dy,
+        greaterThan(tester.getBottomLeft(find.text('SAVE PASSWORD')).dy),
+      );
+    });
+
+    testWidgets('Next moves from each field to the next field', (tester) async {
+      await pumpForced(tester);
+      bool hasFocus(int i) => tester
+          .widget<EditableText>(find.byType(EditableText).at(i))
+          .focusNode
+          .hasFocus;
+      await tester.tap(find.byType(TextField).at(0));
+      await tester.pump();
+      await tester.testTextInput.receiveAction(TextInputAction.next);
+      await tester.pump();
+      expect(hasFocus(1), isTrue);
+      await tester.testTextInput.receiveAction(TextInputAction.next);
+      await tester.pump();
+      expect(hasFocus(2), isTrue);
+    });
+
+    testWidgets('Done on the last field sends the change', (tester) async {
+      await pumpForced(tester);
+      await tester.enterText(find.byType(TextField).at(0), 'OldPass123');
+      await tester.enterText(find.byType(TextField).at(1), 'NewPass123');
+      await tester.enterText(find.byType(TextField).at(2), 'NewPass123');
+      final sent = listenForRequest(
+        tester,
+        auth.stream,
+        (s) => s is AuthChangePasswordError,
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      expect(await sent, isTrue);
+      expect(requests, 1);
+    });
   });
 }
