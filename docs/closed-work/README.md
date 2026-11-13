@@ -27,6 +27,7 @@ One file per task, grouped by topic. These are the notes that used to sit in `ro
 ## admin-end
 - [Warnings have no status](admin-end/warnings-no-status.md) — closed 2026-11-11
 - [Record dates: warning due date and last-updated time](admin-end/admin-record-dates.md) — closed 2026-11-11
+- [Enforcer performance page fixes](admin-end/enforcer-performance-fixes.md) — closed 2026-11-11
 
 ## mobile
 - [Vendor-end removal](mobile/vendor-end-removal.md) — closed 2026-11-02
@@ -39,6 +40,7 @@ One file per task, grouped by topic. These are the notes that used to sit in `ro
 - [B1, unregistered vendor tickets shown](faster-entry/b1-unregistered-tickets.md) — closed 2026-11-09
 - [B2, unregistered vendor entry](faster-entry/b2-unregistered-entry.md) — closed 2026-11-10
 - [Choosing the violator](faster-entry/violator-picker.md) — closed 2026-11-12
+- [Entry page layout and buttons](faster-entry/entry-page-layout.md) — closed 2026-11-12
 
 ## scanning
 - [Automatic checks](scanning/automatic-checks.md) — closed 2026-11-10
@@ -48,6 +50,9 @@ One file per task, grouped by topic. These are the notes that used to sit in `ro
 - [Calculated counts and the violator's name](scanning/record-name.md) — closed 2026-11-10
 - [The server's checks at Submit](scanning/submit-server-checks.md) — closed 2026-11-11
 - [OCR dropped](scanning/ocr-dropped.md) — 2026-11-04
+
+## recommended-actions
+- [Step 4, administrator review](recommended-actions/step-4-administrator-review.md) — closed 2026-11-13 (PR #49)
 
 ## phases
 - [Phase 0 baseline](phases/phase-0-baseline.md)

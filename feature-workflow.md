@@ -25,8 +25,8 @@ Use the build, test, and format commands listed in the `AGENTS.md` of each repo 
 
 ## 3. Gate
 
-- The parent presents the final scope, allowed paths, acceptance criteria, expected results, contract changes, schema/deployment prerequisites, and exclusions.
-- Include implementation order, selective subagent ownership when useful, automated checks, E2E steps, and any blockers.
+- The main agent presents the final scope, allowed paths, acceptance criteria, expected results, contract changes, schema/deployment prerequisites, and exclusions.
+- Include implementation order, automated checks, E2E steps, and any blockers.
 - Wait for explicit user approval before implementation. Approval covers this slice only.
 - Plan approval is a strict scope gate. Stop and request approval if any prerequisite, path, dependency, or change falls outside the approved plan. Do not ask again for unchanged approval.
 - Missing prerequisites become separate small approved tasks. Do not claim readiness based on assumptions.
@@ -70,7 +70,7 @@ Use the build, test, and format commands listed in the `AGENTS.md` of each repo 
 - Run the full set of builds and tests for each repo touched and read the output.
 - Only then say the slice is done. If anything failed or couldn't run, say so.
 - Record pre-existing failures separately from introduced failures. Do not silently weaken checks or fix unrelated failures.
-- Use the reviewer selectively within the approved task. The parent checks the integrated result, fixes in-scope findings, and reruns affected checks.
+- Review the final diff yourself as a separate pass: re-read it against the approved plan and acceptance criteria, fix in-scope findings, and rerun affected checks. Use the code reviewer subagent only if I ask for it.
 - Require reviewable verification evidence appropriate to each task, such as actual command output, inspectable diffs or artifacts, and observed E2E results when applicable. The AI's own report is not verification. Completion requires the approved acceptance criteria and all required automated and E2E evidence.
 
 ## Report and stop
@@ -98,11 +98,11 @@ Use the build, test, and format commands listed in the `AGENTS.md` of each repo 
 - Use existing installed dependencies. If restore/install or a missing SDK is required, report it and propose a small approved prerequisite task. Do not install packages automatically.
 - Workflow/documentation-only changes use file/content validation; application builds and live E2E are not applicable when application behavior is unchanged.
 
-## Intended specialist responsibilities
+## Specialist responsibilities (only when I ask for a subagent)
 
 - API developer: approved API paths and tests; server validation, JWT-derived identity, roles/ownership, contract and error cases, schema descriptions, and build/test evidence. Preserve Controller → Service → Repository.
 - Flutter developer: approved mobile flows against the agreed API; data/domain/presentation and BLoC boundaries, secure storage, route access, paging, theme, narrow layouts, and format/analyze/test/device evidence.
 - React developer: approved web flows against the agreed API; API → hooks → UI, typed contracts, CSS Modules, existing auth/paging patterns, Node tests, build and browser evidence.
 - Code reviewer: read-only review of the approved plan, final diff, contracts, correctness, security/ownership, regressions, scope drift, and verification gaps. Return severity, location, behavior and reproduction evidence; distinguish pre-existing issues.
 - These are the four intended custom roles. Definitions are gated on installed-version format verification. No additional agents are needed.
-- The parent retains planning, scope approval, API contract coordination, integration verification, and the final report. Delegation is selective and restricted to approved tasks.
+- The main agent retains planning, scope approval, API contract coordination, integration verification, and the final report. Never delegate unless I explicitly ask.

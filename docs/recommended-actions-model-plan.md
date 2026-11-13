@@ -1,6 +1,6 @@
 # Recommended actions: model plan
 
-**Status (2026-11-12):** step 1 ran and passed. Step 2 is closed (2026-11-11, user decision): built and checked live on the test database. Step 3 is closed (2026-11-12, user decision): built and checked live on the test database; committed with steps 1 and 2 on the `recommended-actions` branch for a pull request. Steps 4 and 5 are not approved. The roadmap item stays open until step 4.
+**Status (2026-11-13):** step 1 ran and passed. Step 2 is closed (2026-11-11, user decision): built and checked live on the test database. Step 3 is closed (2026-11-12, user decision): built and checked live on the test database; committed with steps 1 and 2 on the `recommended-actions` branch for a pull request. Step 4 is closed (2026-11-13, user decision): merged as PR #49. Step 5 is not approved.
 
 This file records what the review of the `description-model` folder found, what has been decided, and what is still open. It does not authorize any work. Each step needs its own approval, as `feature-workflow.md` requires.
 
@@ -287,10 +287,10 @@ Limits and open points:
 - Review notes not acted on: the latest-run test would not notice if the cards stopped loading (the live check covers this); the loading test sets both loading flags together; a few one-off sizes (2px, 4px, 2.5rem) are typed in the bar and card styles; the market-section lookup also loads every business record (existing code).
 - "Recommended Actions" stays open on the roadmap until step 4 (administrator review).
 
-## Step 4 result (2026-11-13, built and live-checked; waiting for the user to close it)
+## Step 4 result (2026-11-13, closed by user decision 2026-11-13)
 
 - Built: review table `recommendation_reviews` (applied to `marikina_market_e2e` by the user), `POST /api/admin/recommendations/{id}/review` and `/dismiss`, a `review` line on each card, and on the website the two buttons, the "Reviewed by" line, the Dismissed list and the "Are you sure" box. The phone app is unchanged.
 - Automatic checks: server build 0 errors; recommendation tests 48/48; full server run 887 passed, 22 failed (all the known old backup tests), 2 skipped. Website build passes; 203/203 website tests (189 before step 4). One website test had a wrong comparison and was corrected.
 - Live check on `marikina_market_e2e` (evidence in `evidence/recommended-actions-step-4/`, expected results in `expected.md`): 22 of 22 checks match after fixing one wrong search term in the check script, not the product. Marking reviewed and dismissing survived signing in again and a second connector run; the audit log has one Reports row per click with the Head Admin; an enforcer gets 403, no sign-in gets 401, an old-run card, a missing card, a repeat dismiss and a repeat review are refused with the agreed messages; tickets are unchanged.
 - Not proved live (as planned): "review needed again after a gap" (server tests only) and Admin Officer (no such test account; role test only).
-- Not done: the independent code review, commit and PR.
+- Code review: done by Claude (main agent, no subagent); no blocking findings. Committed on `recommended-actions-review` (aabd2d3), merged as PR #49 (292efe0) on 2026-11-13.

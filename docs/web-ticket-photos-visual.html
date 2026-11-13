@@ -1,0 +1,104 @@
+<!--
+Topic: Web ticket modal photo evidence layout (prototype, change to an existing app).
+Lands in: marikina-market-web TicketModal, left column, below Penalty details (TicketPhotoEvidenceSection).
+Reflects: Q1 layout = W2 side by side (answered B), Q2 wording = phone wording (answered A), Q3 warnings = same layout, one 'Paper warning' box (answered A). Nothing assumed. Modal chrome copied from TicketModal.module.css (#dfe6ee border, 8px radius, #002753 titles,
+#f9f9fc / #c3c6d2 photo boxes). App web font replaced by system font so the file works offline.
+Version 2: all three questions answered; W2 is the default, assumed tags removed, other layouts kept as comparison.
+-->
+<!doctype html>
+<meta charset="utf-8">
+<style>
+:root{--navy:#002753;--n500:#6b7686;--line:#dfe6ee;--box:#f9f9fc;--boxline:#c3c6d2;--accent:#00488f}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;background:#e9edf3;color:#1f2a37}
+.bar{position:sticky;top:0;z-index:3;background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:13px}
+.bar b{color:var(--navy)}
+.seg{display:inline-flex;border:1px solid var(--boxline);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:5px 10px;cursor:pointer;font:inherit}
+.seg button+button{border-left:1px solid var(--boxline)}
+.seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+.tagq{font-size:11px;background:#e6f4ea;border:1px solid #8bc79b;color:#1d5a2e;border-radius:99px;padding:1px 8px}
+.stage{padding:20px 16px;display:flex;justify-content:center}
+.modal{width:var(--w,720px);max-width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.mh{display:flex;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--line);color:var(--navy);font-weight:700}
+.left{padding:18px;display:flex;flex-direction:column;gap:14px}
+.paper{border:1px solid var(--line);border-radius:8px;padding:18px;box-shadow:0 4px 14px rgba(19,45,75,.06);background:#fff}
+.ghost{color:var(--n500);font-size:12px;display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:6px 0}
+.ghost:last-of-type{border:0}
+.sec h5{margin:0 0 2px;font-size:.95rem;font-weight:700;color:var(--navy)}
+.sec p.sub{margin:0 0 12px;font-size:.8rem;color:var(--n500)}
+.lbl{display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.05em;color:#5b6b7d;margin-bottom:6px}
+.lbl em{font-style:normal;font-weight:500;letter-spacing:0}
+.box{background:var(--box);border:1px solid var(--boxline);border-radius:10px;padding:10px}
+.ph{border-radius:8px;background:linear-gradient(135deg,#e9eef4,#cfd8e3);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#5b6b7d;font-size:11px;border:0;padding:0;cursor:pointer;font-family:inherit}
+.ph:hover{opacity:.9}.ph:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tk{width:var(--tw,40%);height:88%;background:#fff;border:1px solid #bfc0bf;border-radius:3px;padding:8px;display:flex;flex-direction:column;gap:5px}
+.tk i{display:block;height:4px;background:#d9dee5;border-radius:2px}.tk i.r{background:#e7b3b3;width:40%;align-self:flex-end}
+.hint{position:absolute;left:8px;bottom:8px;background:rgba(0,20,40,.78);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px}
+.g{display:grid;gap:8px}
+/* W1 */ .w1{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.w1 .hero{grid-column:1/-1;aspect-ratio:21/9}.w1 .lbl{grid-column:1/-1;margin:6px 0 0}.w1 .lbl:first-child{margin-top:0}.w1 .th{aspect-ratio:1}
+/* W2 */ .w2{display:grid;grid-template-columns:3fr 2fr;gap:14px;align-items:start}.w2.single{grid-template-columns:1fr}
+.w2 .hero{aspect-ratio:4/3}.w2 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.w2 .th{aspect-ratio:1}
+/* W3 */ .w3{display:grid;gap:14px}.w3 .hero{aspect-ratio:16/7}.w3 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}.w3 .th{aspect-ratio:1}
+@media (max-width:640px){.w2{grid-template-columns:1fr}}
+.assumed{position:relative}
+
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;color:#fff;z-index:9}#lb.on{display:flex}
+</style>
+<div class="bar">
+  <b>Prototype</b>
+  <span>Layout <span class="tagq">Q1 decided: W2</span>
+    <span class="seg" id="lay"><button data-v="w1" aria-pressed="false">W1 hero + thumbs</button><button data-v="w2" aria-pressed="true">W2 side by side (chosen)</button><button data-v="w3" aria-pressed="false">W3 two boxes</button></span></span>
+  <span>Wording <span class="tagq">Q2 decided: phone wording</span>
+    <span class="seg" id="wd"><button data-v="new" aria-pressed="true">Phone wording (chosen)</button><button data-v="old" aria-pressed="false">Current web wording</button></span></span>
+  <span>Record <span class="tagq">Q3 decided: same layout</span>
+    <span class="seg" id="rc"><button data-v="ticket" aria-pressed="true">Ticket</button><button data-v="warn" aria-pressed="false">Written warning</button></span></span>
+  <span>Modal width <input id="wr" type="range" min="420" max="820" value="720"> <output id="wo">720px</output></span>
+</div>
+<div class="stage"><div class="modal" id="modal">
+  <div class="mh"><span id="mt">Ticket #000456</span><span>✕</span></div>
+  <div class="left"><div class="paper">
+    <div class="ghost"><span>PENALTY DETAILS (unchanged)</span><span>Cash Fine · ₱1,500.00</span></div>
+    <div class="ghost"><span>Severity</span><span>Moderate</span></div>
+    <div style="height:10px"></div>
+    <section class="sec assumed" id="sec"></section>
+  </div></div>
+</div></div>
+<div id="lb" role="dialog" aria-label="Photo viewer"><span>Photo viewer (existing lightbox with zoom and thumbnails, unchanged) · click to close</span></div>
+<script>
+(function(){
+  var st={lay:'w2',wd:'new',rc:'ticket'};
+  function ph(cls,n,hero,tw){return '<button class="ph '+cls+'" type="button" aria-label="View photo '+n+'">'+(hero?'<div class="tk" style="--tw:'+(tw||40)+'%"><i></i><i style="width:70%"></i><i></i><i style="width:55%"></i><i class="r"></i></div><span class="hint">Click to enlarge</span>':n)+'</button>';}
+  function render(){
+    var T=st.rc==='ticket',N=st.wd==='new';
+    var title=N?(T?'Ticket Photos':'Ticket Photos'):'Photo Evidence Record';
+    var sub=T?(N?'The scanned paper ticket and any supporting photos.':'Paper ticket and supporting photos are shown by their saved classification.'):'Photos attached to this warning.';
+    var pl=T?(N?'PAPER TICKET':'PAPER TICKET PHOTO'):'PAPER WARNING';
+    var sup=[1,2,3,4].map(function(n){return n});
+    var h='<h5>'+title+'</h5><p class="sub">'+sub+'</p>';
+    var cnt=function(n){return '<em>'+n+(n===1?' photo':' photos')+'</em>'};
+    var L=st.lay;
+    if(L==='w1'){h+='<div class="w1"><div class="lbl">'+pl+' '+cnt(1)+'</div>'+ph('hero',1,1,42);
+      if(T){h+='<div class="lbl">SUPPORTING EVIDENCE '+cnt(4)+'</div>'+sup.map(function(n){return ph('th',n)}).join('')}
+      h+='</div>';}
+    else if(L==='w2'){h+='<div class="w2'+(T?'':' single')+'"><div><div class="lbl">'+pl+' '+cnt(1)+'</div>'+ph('hero',1,1,55)+'</div>';
+      if(T)h+='<div><div class="lbl">SUPPORTING EVIDENCE '+cnt(4)+'</div><div class="grid">'+sup.map(function(n){return ph('th',n)}).join('')+'</div></div>';
+      h+='</div>';}
+    else{h+='<div class="w3"><div class="box"><div class="lbl">'+pl+' '+cnt(1)+'</div>'+ph('hero',1,1,30)+'</div>';
+      if(T)h+='<div class="box"><div class="lbl">SUPPORTING EVIDENCE '+cnt(4)+'</div><div class="grid">'+sup.map(function(n){return ph('th',n)}).join('')+'</div></div>';
+      h+='</div>';}
+    document.getElementById('sec').innerHTML=h;
+    document.getElementById('mt').textContent=T?'Ticket #000456':'Written warning W-0007';
+    document.querySelectorAll('.ph').forEach(function(b){b.onclick=function(){document.getElementById('lb').classList.add('on')}});
+  }
+  [['lay','lay'],['wd','wd'],['rc','rc']].forEach(function(p){
+    document.querySelectorAll('#'+p[0]+' button').forEach(function(b){b.onclick=function(){
+      st[p[1]]=b.getAttribute('data-v');
+      document.querySelectorAll('#'+p[0]+' button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});
+      render();};});});
+  document.getElementById('lb').onclick=function(){this.classList.remove('on')};
+  var wr=document.getElementById('wr');wr.oninput=function(){document.getElementById('modal').style.setProperty('--w',wr.value+'px');document.getElementById('wo').textContent=wr.value+'px'};
+  render();
+})();
+</script>

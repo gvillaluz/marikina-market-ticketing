@@ -53,11 +53,11 @@ If a layer file and this file conflict, the layer file wins for its own layer. L
 - Never commit secrets, connection strings, or API keys.
 - Follow existing configuration and secret-storage mechanisms. Do not introduce new packages or patterns without approval.
 
-## Parent and Subagent Coordination
+## Agents and Delegation
 
-- The parent agent owns planning, scope approval, API contract coordination, integration verification, and the final report.
-- Default to one agent for small tasks. Delegate selectively, only within explicitly approved tasks and only when delegation helps the slice.
-- Keep four intended specialists:
+- The main agent does all planning, scope approval, API contract coordination, building, review, verification, and the final report.
+- Never start a subagent unless I explicitly ask for one. Do not decide to delegate on your own.
+- When I do ask, the available specialists are:
   1. API development
   2. Flutter development
   3. React development
@@ -80,7 +80,7 @@ If a layer file and this file conflict, the layer file wins for its own layer. L
   - Blockers
   - Risks
 - The reviewer reports findings without editing.
-- The parent verifies the integrated result. Subagent reports alone do not establish completion.
+- The main agent verifies the integrated result. Subagent reports alone do not establish completion.
 - Before creating custom Claude Code agent definitions, confirm their format against the installed Claude Code documentation or help. If the format cannot be confirmed, create no agent files and report the blocker.
 
 ## Done Means Verified
@@ -111,9 +111,9 @@ When I correct you or reject your approach:
 6. Rules specific to one application belong in that application's `AGENTS.md`.
 7. Newer rules win conflicts.
 
-1. [CODE] Always leave application code with no dead options, branches or flags after a change, because the user wants the resulting code simple, not just the edits small. Supersedes the "simplest code" line in Scope and Approval where they differ.
+<!-- Rules below this line -->
 
-<!-- Rules below this line --> 
+1. [CODE] Always leave application code with no dead options, branches or flags after a change, because the user wants the resulting code simple, not just the edits small. Supersedes the "simplest code" line in Scope and Approval where they differ.
 
 2. [COMMUNICATION] Always explain results, options and decisions in plain, non-technical language (technical detail only when asked or needed for a decision), because the user needs to understand and decide without a technical background.
 
@@ -121,5 +121,8 @@ When I correct you or reject your approach:
 
 4. [DOCS] Always keep `roadmap.md` a short checklist (✅ closed with date, ☐ open, ⏸ waiting or decision for later, one line per task) and put notes, evidence and limits for each task in its own file inside a topic folder under `docs/closed-work/`, listed in `docs/closed-work/README.md`, because the long roadmap was too hard to read and closed-task notes are documents, not roadmap items. Move notes word for word; never reword them.
 
-
 5. [WORKFLOW] Always explain a step in plain language, then propose its plan and wait for my approval before starting it, including steps that only install or run something and change no code, because the user must understand each step before deciding, and "before coding a feature" did not clearly cover those steps.
+
+6. [ACCURACY] Always check the code before describing a risk or giving an example of something going wrong, because an unchecked example can push the user toward a decision built on a problem that does not exist.
+
+7. [DESIGN] Always use the installed design skills (ui-ux-pro-max first) when planning, building or reviewing any change to how a screen looks or works, because matching the existing screens is not enough on its own and the user expects design best practice checked.
