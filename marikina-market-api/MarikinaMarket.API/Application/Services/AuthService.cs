@@ -439,18 +439,36 @@ namespace MarikinaMarket.API.Application.Services
 
         public async Task<IdentityResult> MandatoryChangePasswordAsync(ChangePasswordRequest request, int userId)
         {
-            var user = await _repository.GetUserAsync(userId);
-            if (user is null)
-                throw new RecordNotFoundException("User not found.");
-
-            var result = await _repository.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
-            if (result.Succeeded)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                user.MustChangePassword = false;
-                await _repository.UpdateUserAsync(user);
-            }
+                var user = await _repository.GetUserAsync(userId);
+                if (user is null)
+                    throw new RecordNotFoundException("User not found.");
+                if (!user.MustChangePassword)
+                    throw new InvalidRequestException("Your password does not need to be changed.");
 
-            return result;
+                var result = await _repository.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+                if (result.Succeeded)
+                {
+                    user.MustChangePassword = false;
+                    result = await _repository.UpdateUserAsync(user);
+                }
+
+                if (!result.Succeeded)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return result;
+                }
+
+                await _unitOfWork.CommitAsync();
+                return result;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<IdentityResult> ChangePasswordAsync(ChangePasswordRequest request, int userId)

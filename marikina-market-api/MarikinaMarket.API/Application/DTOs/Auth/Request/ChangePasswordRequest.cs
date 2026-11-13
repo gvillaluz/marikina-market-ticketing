@@ -8,10 +8,9 @@ namespace MarikinaMarket.API.Application.DTOs.Auth.Request
         public required string CurrentPassword { get; set; }
 
         [Required(ErrorMessage = "New password is required.")]
-        [MinLength(6, ErrorMessage = "New password must be at least 6 characters long.")]
         [RegularExpression(
-            @"^(?=.*\d).+$",
-            ErrorMessage = "Password must contain at least one number."
+            @"^(?=.*\d)(?=.*[A-Z]).{8,}$",
+            ErrorMessage = "Use at least 8 characters, with a number and a capital letter."
         )]
         public required string NewPassword { get; set; }
 
