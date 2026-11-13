@@ -83,6 +83,7 @@ function text(html) {
 // The Fish and Seafood card from step 2's run 1 (spec, live check item 1).
 // lastFlaggedAt 06:05 UTC is 14:05 in Manila (UTC+8), so 2:05 PM on 8 Nov.
 const fishAndSeafood = {
+  id: 11,
   marketSectionId: 3,
   marketSectionName: "Fish and Seafood",
   categoryCode: "weights_and_measures",
@@ -99,14 +100,21 @@ const fishAndSeafood = {
     0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ],
   lastFlaggedAt: "2026-11-08T06:05:00Z",
+  review: null,
 };
 
-function renderCard(recommendation) {
+function renderCard(recommendation, props = {}) {
   const { default: RecommendationCard } = load(
     "features/recommendations/components/RecommendationCard.tsx",
   );
   return renderToStaticMarkup(
-    React.createElement(RecommendationCard, { recommendation }),
+    React.createElement(RecommendationCard, {
+      recommendation,
+      isSaving: false,
+      onReview() {},
+      onDismiss() {},
+      ...props,
+    }),
   );
 }
 
@@ -202,11 +210,20 @@ test("W2: a peak starting at 23:00 highlights hours 23, 0 and 1 only", () => {
 
 // The page uses the real hook; only React Query (the outer fetching library)
 // is replaced so each state can be shown without a server.
-function renderPage(queryResult) {
+function renderPage(queryResult, mutationResult = () => ({}), raw = false) {
   const cache = new Map();
   const errors = load("utils/apiErrors.ts", {}, cache);
   const overrides = {
     "@tanstack/react-query": {
+      useQueryClient: () => ({ setQueryData() {} }),
+      useMutation: () => ({
+        isPending: false,
+        isError: false,
+        error: null,
+        variables: undefined,
+        mutate() {},
+        ...mutationResult(errors),
+      }),
       useQuery: () => ({
         data: undefined,
         error: null,
@@ -226,7 +243,8 @@ function renderPage(queryResult) {
     overrides,
     cache,
   );
-  return text(renderToStaticMarkup(React.createElement(RecommendationsPage)));
+  const html = renderToStaticMarkup(React.createElement(RecommendationsPage));
+  return raw ? html : text(html);
 }
 
 // finishedAt 12:49 UTC is 20:49 Manila; the window starts 13:11 Manila on
@@ -242,6 +260,8 @@ test("W3: loading shows the loading state and no message", () => {
   const cache = new Map();
   const overrides = {
     "@tanstack/react-query": {
+      useQueryClient: () => ({ setQueryData() {} }),
+      useMutation: () => ({ isPending: false, isError: false, mutate() {} }),
       useQuery: () => ({
         isLoading: true,
         isFetching: true,
@@ -389,4 +409,226 @@ test("W4: a Market Enforcer does not see Recommended Actions", () => {
   const labels = sidebarLabels("MarketEnforcer").map((item) => item.label);
   assert.ok(labels.includes("Dashboard"));
   assert.ok(!labels.includes("Recommended Actions"));
+});
+
+// ---- Step 4: administrator review ------------------------------------------
+
+const reviewedByJuan = {
+  decision: "Reviewed",
+  reviewedByName: "Juan Dela Cruz",
+  reviewedAt: "2026-11-11T12:49:00Z",
+};
+const dismissedByMaria = {
+  decision: "Dismissed",
+  reviewedByName: "Maria Santos",
+  reviewedAt: "2026-11-12T01:30:00Z",
+};
+const dryGoodsCard = {
+  ...fishAndSeafood,
+  id: 12,
+  marketSectionId: 1,
+  marketSectionName: "Dry Goods",
+  riskLevel: "Low",
+};
+
+function buttonLabels(html) {
+  return [...html.matchAll(/<button\b[^>]*>(.*?)<\/button>/g)].map(([, inner]) =>
+    text(inner),
+  );
+}
+
+function openData(...recommendations) {
+  return {
+    data: { run, recommendations, sectionsWithoutRecommendation: [] },
+  };
+}
+
+test("W5: a card nobody has looked at shows both buttons, enabled", () => {
+  const html = renderCard(fishAndSeafood);
+  assert.deepEqual(buttonLabels(html), ["Mark as reviewed", "Dismiss"]);
+  assert.doesNotMatch(html, /<button[^>]*disabled/);
+  assert.doesNotMatch(text(html), /Reviewed by|Dismissed by/);
+});
+
+test("W5: a reviewed card shows who and when, keeps Dismiss and drops Mark as reviewed", () => {
+  const html = renderCard({ ...fishAndSeafood, review: reviewedByJuan });
+  // 12:49 UTC is 20:49 in Manila.
+  assert.ok(
+    text(html).includes("Reviewed by Juan Dela Cruz on 11 Nov 2026, 8:49 PM"),
+    text(html),
+  );
+  assert.deepEqual(buttonLabels(html), ["Dismiss"]);
+});
+
+test("W5: a dismissed card shows who and when and has no buttons", () => {
+  const html = renderCard({ ...fishAndSeafood, review: dismissedByMaria });
+  // 01:30 UTC on 12 Nov is 09:30 in Manila.
+  assert.ok(
+    text(html).includes("Dismissed by Maria Santos on 12 Nov 2026, 9:30 AM"),
+    text(html),
+  );
+  assert.deepEqual(buttonLabels(html), []);
+});
+
+test("W5: the buttons are disabled while the click is being saved", () => {
+  const html = renderCard(fishAndSeafood, { isSaving: true });
+  const buttons = [...html.matchAll(/<button\b[^>]*>/g)].map(([tag]) => tag);
+  assert.equal(buttons.length, 2);
+  for (const tag of buttons) assert.match(tag, /disabled/);
+  const reviewed = renderCard(
+    { ...fishAndSeafood, review: reviewedByJuan },
+    { isSaving: true },
+  );
+  assert.match(reviewed.match(/<button\b[^>]*>/)[0], /disabled/);
+});
+
+test("W5: a dismissed card appears only in the Dismissed list, below the open cards", () => {
+  const words = renderPage(() =>
+    openData({ ...fishAndSeafood, review: dismissedByMaria }, dryGoodsCard),
+  );
+  const count = (needle) => words.split(needle).length - 1;
+  assert.equal(count("Fish and Seafood"), 1, words);
+  assert.equal(count("Dry Goods"), 1, words);
+  assert.equal(count("Dismissed by Maria Santos"), 1, words);
+  const heading = words.search(/Dismissed\s*Fish and Seafood/);
+  assert.ok(heading >= 0, words);
+  assert.ok(words.indexOf("Dry Goods") < heading, words);
+  // Only Dry Goods is still open, so only one "Mark as reviewed".
+  assert.equal(count("Mark as reviewed"), 1, words);
+});
+
+test("W5: with nothing dismissed there is no Dismissed list", () => {
+  const words = renderPage(() => openData(fishAndSeafood, dryGoodsCard));
+  assert.doesNotMatch(words, /Dismissed/);
+});
+
+test("W5: when every card is dismissed the page says so and still lists them", () => {
+  const words = renderPage(() =>
+    openData({ ...fishAndSeafood, review: dismissedByMaria }),
+  );
+  assert.ok(words.includes("Every recommendation has been dismissed."), words);
+  assert.doesNotMatch(words, /No section has a recommendation/);
+  assert.ok(words.includes("Dismissed by Maria Santos"), words);
+});
+
+test("W5: a failed click shows the server's message", () => {
+  const words = renderPage(
+    () => openData(fishAndSeafood),
+    (errors) => ({
+      isError: true,
+      error: new errors.ApiRequestError(
+        "This recommendation was updated. Refresh the page.",
+        400,
+      ),
+    }),
+  );
+  assert.ok(
+    words.includes("This recommendation was updated. Refresh the page."),
+    words,
+  );
+});
+
+test("W5: a failed click without a message shows the written fallback", () => {
+  const words = renderPage(
+    () => openData(fishAndSeafood),
+    (errors) => ({
+      isError: true,
+      error: new errors.ApiRequestError(undefined, 500),
+    }),
+  );
+  assert.ok(words.includes("Couldn't save your decision."), words);
+});
+
+test("W5: no error message shows when nothing has failed", () => {
+  const words = renderPage(() => openData(fishAndSeafood));
+  assert.doesNotMatch(words, /Couldn't save your decision/);
+});
+
+test("W5: only the card being saved has disabled buttons", () => {
+  const words = renderPage(
+    () => openData(fishAndSeafood, dryGoodsCard),
+    () => ({ isPending: true, variables: { id: 12, action: "review" } }),
+    true,
+  );
+  const cards = words.split("<article").slice(1);
+  assert.equal(cards.length, 2);
+  // Fish and Seafood (id 11) is not saving; Dry Goods (id 12) is.
+  assert.doesNotMatch(cards[0], /<button[^>]*disabled/);
+  assert.match(cards[1], /<button[^>]*disabled/);
+});
+
+test("W5: the Are you sure box names the section and its problem, and is locked while saving", () => {
+  const modal = {
+    default: ({ open, title, children, footer }) =>
+      open
+        ? React.createElement("div", { role: "dialog" }, title, children, footer)
+        : null,
+  };
+  const { default: DismissConfirm } = load(
+    "features/recommendations/components/DismissConfirm.tsx",
+    { "@/components/ui/Modal": modal },
+  );
+  const render = (props) =>
+    renderToStaticMarkup(
+      React.createElement(DismissConfirm, {
+        recommendation: fishAndSeafood,
+        isSaving: false,
+        onConfirm() {},
+        onCancel() {},
+        ...props,
+      }),
+    );
+  const words = text(render({}));
+  assert.ok(words.includes("Are you sure you want to dismiss"), words);
+  assert.ok(words.includes("Fish and Seafood"), words);
+  assert.ok(words.includes("Timbang at Sukat (Weights and Measures)"), words);
+  assert.ok(words.includes("cannot be undone"), words);
+  assert.deepEqual(buttonLabels(render({})).slice(-2), ["Cancel", "Dismiss"]);
+  assert.equal(render({ recommendation: null }), "");
+  const saving = render({ isSaving: true });
+  assert.ok(text(saving).includes("Dismissing…"), text(saving));
+  for (const [tag] of saving.matchAll(/<button\b[^>]*>/g))
+    assert.match(tag, /disabled/);
+});
+
+test("W5: the review and dismiss clicks post to the agreed routes and return the review", async () => {
+  const calls = [];
+  const client = {
+    default: {
+      get: async () => ({ data: undefined }),
+      post: async (url, body) => {
+        calls.push([url, body]);
+        return { data: reviewedByJuan };
+      },
+    },
+  };
+  const { recommendationsApi } = load("api/endpoints/recommendations.api.ts", {
+    "@/api/client": client,
+  });
+  assert.deepEqual(await recommendationsApi.review(11), reviewedByJuan);
+  assert.deepEqual(await recommendationsApi.dismiss(12), reviewedByJuan);
+  assert.deepEqual(calls, [
+    ["/admin/recommendations/11/review", undefined],
+    ["/admin/recommendations/12/dismiss", undefined],
+  ]);
+});
+
+test("W5: a saved review is put on its own card and nothing else changes", () => {
+  const { withReview } = load(
+    "features/recommendations/recommendations.format.ts",
+  );
+  const before = {
+    run,
+    recommendations: [fishAndSeafood, dryGoodsCard],
+    sectionsWithoutRecommendation: ["Meat"],
+  };
+  const after = withReview(before, 12, dismissedByMaria);
+  assert.equal(after.recommendations[0], fishAndSeafood);
+  assert.deepEqual(JSON.parse(JSON.stringify(after.recommendations[1])), {
+    ...dryGoodsCard,
+    review: dismissedByMaria,
+  });
+  assert.equal(after.run, run);
+  assert.deepEqual(after.sectionsWithoutRecommendation, ["Meat"]);
+  assert.equal(before.recommendations[1].review, null);
 });

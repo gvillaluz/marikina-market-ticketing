@@ -1,3 +1,5 @@
+using MarikinaMarket.API.Domain.Enums;
+
 namespace MarikinaMarket.API.Application.DTOs.Recommendations.Response
 {
     public class RecommendationsResponse
@@ -17,6 +19,7 @@ namespace MarikinaMarket.API.Application.DTOs.Recommendations.Response
 
     public class SectionRecommendationResponse
     {
+        public int Id { get; set; }
         public int MarketSectionId { get; set; }
         public required string MarketSectionName { get; set; }
         public required string CategoryCode { get; set; }
@@ -31,5 +34,13 @@ namespace MarikinaMarket.API.Application.DTOs.Recommendations.Response
         public int PeakStartHour { get; set; }
         public List<int> HourlyCounts { get; set; } = [];
         public DateTime LastFlaggedAt { get; set; }
+        public RecommendationReviewResponse? Review { get; set; }
+    }
+
+    public class RecommendationReviewResponse
+    {
+        public RecommendationDecision Decision { get; set; }
+        public required string ReviewedByName { get; set; }
+        public DateTime ReviewedAt { get; set; }
     }
 }

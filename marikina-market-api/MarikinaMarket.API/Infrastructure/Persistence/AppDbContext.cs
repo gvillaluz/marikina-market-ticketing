@@ -33,6 +33,7 @@ namespace MarikinaMarket.API.Infrastructure.Persistence
         public DbSet<RecommendationRun> RecommendationRuns { get; set; }
         public DbSet<RecommendationFinding> RecommendationFindings { get; set; }
         public DbSet<SectionRecommendation> SectionRecommendations { get; set; }
+        public DbSet<RecommendationReview> RecommendationReviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

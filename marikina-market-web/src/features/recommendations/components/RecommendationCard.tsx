@@ -6,14 +6,22 @@ import {
   riskTone,
 } from "../recommendations.format";
 import HourlyBars from "./HourlyBars";
+import ReviewActions from "./ReviewActions";
+import ReviewNote from "./ReviewNote";
 import styles from "./RecommendationCard.module.css";
 
 interface RecommendationCardProps {
   recommendation: SectionRecommendation;
+  isSaving: boolean;
+  onReview: (id: number) => void;
+  onDismiss: (recommendation: SectionRecommendation) => void;
 }
 
 export default function RecommendationCard({
   recommendation,
+  isSaving,
+  onReview,
+  onDismiss,
 }: RecommendationCardProps) {
   const tone = riskTone(recommendation.riskLevel);
 
@@ -49,6 +57,16 @@ export default function RecommendationCard({
           tone={tone}
         />
       </section>
+
+      <div className={styles.review}>
+        <ReviewNote review={recommendation.review} />
+        <ReviewActions
+          review={recommendation.review}
+          isSaving={isSaving}
+          onReview={() => onReview(recommendation.id)}
+          onDismiss={() => onDismiss(recommendation)}
+        />
+      </div>
 
       <footer className={styles.footer}>
         <span>
