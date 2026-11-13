@@ -31,11 +31,10 @@ public class PaperCitationMetadataTests
         Assert.Equal("\"type\" = 'Ticket' AND paper_reference IS NOT NULL", index.GetFilter());
     }
 
-    [Theory]
-    [InlineData(typeof(CreateTicketRequest))]
-    [InlineData(typeof(VerifyInspectionRequest))]
-    public void Both_review_and_submit_contracts_bound_the_same_paper_fields(Type requestType)
+    [Fact]
+    public void The_submit_contract_bounds_the_paper_fields()
     {
+        var requestType = typeof(CreateTicketRequest);
         foreach (var (name, limit) in new[] { ("PaperReference", 200), ("IssuePlace", 500) })
         {
             var property = requestType.GetProperty(name);

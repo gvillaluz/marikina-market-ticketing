@@ -15,15 +15,12 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_ass
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_form_data.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/pages/new_inspection_preview_page.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/assessed_fine_field.dart';
 import '../../../inspection_list_ui_test.dart' show listBloc;
 import '../../../inspection_preview_navigation_test.dart' show vendor, flush;
-import '../../auth/data/login_mobile_contract_test.dart' show reply;
 import '../data/models/ordinance_model_test.dart' show ordinanceResponse;
 import '../data/models/penalty_terms_contract_test.dart' show provisionalFine;
-import 'business_snapshot_test.dart' show snapshot;
 
 Map<String, Object?> calculation([double? amount, double cap = 1000]) => {
   'total_payment_amount': amount,
@@ -85,54 +82,51 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
-  testWidgets(
-    'unconfirmed terms are visible and cannot be verified or submitted',
-    (tester) async {
-      final bloc = (await tester.runAsync(
-        () => listBloc((options) async {
-          fail('An unconfirmed penalty must not reach the API.');
-        }),
-      ))!;
-      final draft = InspectionFormData(
-        vendorSummary: vendor,
-        enforcerId: 7,
-        personId: 31,
-        paperViolatorName: 'Synthetic Vendor',
-        paperReference: 'S2-0002',
-        issuePlace: 'Market aisle',
-        description: 'Unconfirmed later offense',
-        ticketType: ViolationType.ticket,
-        penaltyType: PenaltyType.cashFine,
-        communityServiceHrs: null,
-        fineSummary: FineSummaryModel.fromJson(provisionalFine).toEntity(),
-        ordinances: [
-          OrdinanceModel.fromJson({...ordinanceResponse, 'id': 53}).toEntity(),
-        ],
-        evidences: null,
-      );
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BlocProvider<InspectionBloc>.value(
-            value: bloc,
-            child: NewInspectionPreviewPage(formData: draft),
-          ),
+  testWidgets('unconfirmed terms are visible and cannot be submitted', (
+    tester,
+  ) async {
+    final bloc = (await tester.runAsync(
+      () => listBloc((options) async {
+        fail('An unconfirmed penalty must not reach the API.');
+      }),
+    ))!;
+    final draft = InspectionFormData(
+      vendorSummary: vendor,
+      enforcerId: 7,
+      personId: 31,
+      paperViolatorName: 'Synthetic Vendor',
+      paperReference: 'S2-0002',
+      issuePlace: 'Market aisle',
+      description: 'Unconfirmed later offense',
+      ticketType: ViolationType.ticket,
+      penaltyType: PenaltyType.cashFine,
+      communityServiceHrs: null,
+      fineSummary: FineSummaryModel.fromJson(provisionalFine).toEntity(),
+      ordinances: [
+        OrdinanceModel.fromJson({...ordinanceResponse, 'id': 53}).toEntity(),
+      ],
+      evidences: null,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider<InspectionBloc>.value(
+          value: bloc,
+          child: NewInspectionPreviewPage(formData: draft),
         ),
-      );
-      await flush(tester);
-      expect(find.text('Second offense is not stated.'), findsOneWidget);
-      for (final label in ['Verify ticket', 'Submit Ticket']) {
-        final button = find.byWidgetPredicate(
-          (w) => w is AppPrimaryButton && w.label == label,
-        );
-        expect(tester.widget<AppPrimaryButton>(button).onPressed, isNull);
-      }
-      expect(find.text('₱0.00'), findsNothing);
-      await tester.pumpWidget(const SizedBox.shrink());
-    },
-  );
+      ),
+    );
+    await flush(tester);
+    expect(find.text('Second offense is not stated.'), findsOneWidget);
+    final submit = find.byWidgetPredicate(
+      (w) => w is AppPrimaryButton && w.label == 'Submit Ticket',
+    );
+    expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
+    expect(find.text('₱0.00'), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
   for (final width in [280.0, 400.0, 390.0]) {
     testWidgets(
-      'changing a verified UpTo amount invalidates review and blocks out-of-bounds at $width',
+      'changing an UpTo amount turns Submit off outside the bounds at $width',
       (tester) async {
         tester.view.physicalSize = Size(width, 1000);
         tester.view.devicePixelRatio = 1;
@@ -149,21 +143,11 @@ void main() {
           ),
         ))!;
         addTearDown(() => folder.delete(recursive: true));
-        final submittedAmounts = <double>[];
+        final requests = <String>[];
         final bloc = (await tester.runAsync(
           () => listBloc((options) async {
-            expect(options.path, '/enforcer/tickets/verify');
-            final assessment =
-                (options.data['fine_assessments'] as List).single as Map;
-            expect(assessment['ordinance_id'], 1);
-            final amount = (assessment['assessed_amount'] as num).toDouble();
-            submittedAmounts.add(amount);
-            return reply(options, {
-              'reviewed_calculation': 'opaque-$amount',
-              'reviewed_business_snapshot': 'opaque-business',
-              'business_snapshot': snapshot,
-              'calculation': calculation(amount, width == 390 ? 2000 : 1000),
-            });
+            requests.add(options.path);
+            throw StateError('Nothing is sent before Submit.');
           }),
         ))!;
         addTearDown(bloc.close);
@@ -209,48 +193,20 @@ void main() {
         final submit = find.byWidgetPredicate(
           (w) => w is AppPrimaryButton && w.label == 'Submit Ticket',
         );
-        final verify = find.byWidgetPredicate(
-          (w) => w is AppPrimaryButton && w.label == 'Verify ticket',
-        );
-        expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
-        Future<void> verifyCurrent() async {
-          await tester.ensureVisible(verify);
-          final checked = bloc.stream.firstWhere(
-            (state) => state is InspectionVerified,
-          );
-          await tester.tap(verify);
-          await tester.runAsync(
-            () => checked.timeout(const Duration(seconds: 5)),
-          );
-          await flush(tester);
-        }
-
-        await verifyCurrent();
-        expect(submittedAmounts, [100]);
+        // The assessed amount that came with the draft is inside the bounds.
         expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNotNull);
         final field = find.byKey(const ValueKey('assessed-fine-1'));
         await tester.ensureVisible(field);
         await tester.enterText(field, '99.99');
         await flush(tester);
-        expect(tester.widget<AppPrimaryButton>(verify).onPressed, isNull);
         expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
-        expect(
-          find.text('Information changed. Verify again before submitting.'),
-          findsOneWidget,
-        );
-        final nextAmount = width == 390 ? 1500.0 : 1000.0;
-        await tester.enterText(field, nextAmount.toStringAsFixed(2));
+        await tester.enterText(field, '1000.01');
         await flush(tester);
         expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
-        expect(
-          tester.widget<AppPrimaryButton>(verify).onPressed,
-          isNotNull,
-          reason:
-              'Edits use the latest server-reviewed bounds, including an increased cap.',
-        );
-        await verifyCurrent();
-        expect(submittedAmounts, [100, nextAmount]);
+        await tester.enterText(field, '1000.00');
+        await flush(tester);
         expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNotNull);
+        expect(requests, isEmpty);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
       },

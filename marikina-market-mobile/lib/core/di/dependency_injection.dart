@@ -1,7 +1,6 @@
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/match_people_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/create_person_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_person_history_use_case.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/use_cases/verify_inspection_use_case.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
@@ -197,7 +196,6 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   sl.registerLazySingleton(() => MatchPeopleUseCase(sl()));
   sl.registerLazySingleton(() => CreatePersonUseCase(sl()));
   sl.registerLazySingleton(() => GetPersonHistoryUseCase(sl()));
-  sl.registerLazySingleton(() => VerifyInspectionUseCase(sl()));
   sl.registerLazySingleton(() => GetFineSummaryUseCase(sl()));
   sl.registerLazySingleton(() => CheckWarningOrdinancesUseCase(sl()));
   sl.registerLazySingleton(() => SaveInspectionTicketUseCase(sl()));
@@ -206,7 +204,6 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
       matchPeopleUseCase: sl(),
       createPersonUseCase: sl(),
       getPersonHistoryUseCase: sl(),
-      verifyInspectionUseCase: sl(),
       loadInspectionListUseCase: sl(),
       loadOrdinancesUseCase: sl(),
       getMarketSectionsUseCase: sl(),

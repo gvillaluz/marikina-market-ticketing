@@ -1,7 +1,5 @@
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_candidate.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_ticket_history.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_verification.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'package:marikina_market_mobile/core/errors/exceptions.dart';
 import 'package:marikina_market_mobile/core/errors/failure.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
@@ -251,11 +249,5 @@ class InspectionRepositoryImpl implements InspectionRepository {
       personId,
       offset,
     )).toEntity((m) => m.toEntity()),
-  );
-  @override
-  Future<Result<InspectionVerification>> verifyInspection(
-    VerifyInspectionInput input,
-  ) => _personResult(
-    () async => (await remoteDataSource.verifyInspection(input)).toEntity(),
   );
 }

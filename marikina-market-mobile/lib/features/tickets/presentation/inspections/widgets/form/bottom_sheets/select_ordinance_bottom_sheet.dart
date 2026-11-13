@@ -122,7 +122,7 @@ class _SelectOrdinanceBottomSheetState
           setState(() {
             _confirming = false;
             _conflictMessage =
-                'This person already has an active citation for a selected ordinance today. Change the selection and verify again.';
+                'This person already has an active citation for a selected ordinance today. Change the selection.';
           });
           return;
         }

@@ -6,5 +6,9 @@ class SaveInspectionResult {
   final List<DuplicateOrdinance>? duplicateOrdinances;
   final String? warningMessageForDuplicates;
 
-  SaveInspectionResult({required this.inspectionSummary, this.duplicateOrdinances, this.warningMessageForDuplicates});
+  SaveInspectionResult({
+    required this.inspectionSummary,
+    this.duplicateOrdinances,
+    this.warningMessageForDuplicates,
+  });
 }

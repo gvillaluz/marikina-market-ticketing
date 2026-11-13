@@ -1,10 +1,8 @@
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/match_people_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/create_person_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_person_history_use_case.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/use_cases/verify_inspection_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_candidate.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_ticket_history.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_verification.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/errors/failure.dart';
@@ -36,7 +34,6 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   final MatchPeopleUseCase matchPeopleUseCase;
   final CreatePersonUseCase createPersonUseCase;
   final GetPersonHistoryUseCase getPersonHistoryUseCase;
-  final VerifyInspectionUseCase verifyInspectionUseCase;
   final LoadInspectionListUseCase loadInspectionListUseCase;
   final LoadOrdinancesUseCase loadOrdinancesUseCase;
   final GetMarketSectionsUseCase getMarketSectionsUseCase;
@@ -52,14 +49,6 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   void invalidatePersonSearch() {
     ++_personMatchRequest;
   }
-
-  void invalidateVerification() {
-    ++_verificationRequest;
-    _verificationBusy = false;
-  }
-
-  int _verificationRequest = 0;
-  bool _verificationBusy = false;
 
   int _personMatchRequest = 0;
   bool _creatingPerson = false;
@@ -86,7 +75,6 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     required this.matchPeopleUseCase,
     required this.createPersonUseCase,
     required this.getPersonHistoryUseCase,
-    required this.verifyInspectionUseCase,
     required this.loadInspectionListUseCase,
     required this.loadOrdinancesUseCase,
     required this.getMarketSectionsUseCase,
@@ -146,21 +134,6 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
           emit(PersonHistoryLoaded(data, event.personId, event.offset));
         case ResultFailure(:final failure):
           emit(PersonHistoryError(failure.message));
-      }
-    });
-    on<InspectionVerificationRequested>((event, emit) async {
-      if (_verificationBusy) return;
-      _verificationBusy = true;
-      final request = ++_verificationRequest;
-      emit(InspectionVerificationLoading());
-      final result = await verifyInspectionUseCase(event.input);
-      if (emit.isDone || request != _verificationRequest) return;
-      _verificationBusy = false;
-      switch (result) {
-        case Success<InspectionVerification>(:final data):
-          emit(InspectionVerified(data));
-        case ResultFailure(:final failure):
-          emit(InspectionVerificationError(failure.message));
       }
     });
     on<LoadOrdinances>(_onLoadOrdinances);
@@ -474,8 +447,6 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
         paperViolatorName: event.paperViolatorName,
         paperReference: event.paperReference,
         issuePlace: event.issuePlace,
-        reviewedCalculation: event.reviewedCalculation,
-        reviewedBusinessSnapshot: event.reviewedBusinessSnapshot,
         vendorId: event.vendorId,
         marketSectionId: event.marketSectionId,
         enforcerId: event.enforcerId,

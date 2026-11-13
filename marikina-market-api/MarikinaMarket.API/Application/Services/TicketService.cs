@@ -457,7 +457,7 @@ namespace MarikinaMarket.API.Application.Services
             if (calculation.Breakdown.Any(item => item.FineKind == FineKind.Unconfirmed))
                 throw new ValidationException("A confirmed penalty rule is required before assessment. Review the displayed penalty terms.");
             if (calculation.Breakdown.Any(item => !item.PaymentAmount.HasValue))
-                throw new ValidationException("Enter the paper-assessed amount for each up-to fine before verifying or submitting.");
+                throw new ValidationException("Enter the paper-assessed amount for each up-to fine before submitting.");
             calculation.TotalPaymentAmount = calculation.Breakdown.Sum(item => item.PaymentAmount!.Value);
         }
 
@@ -554,7 +554,7 @@ namespace MarikinaMarket.API.Application.Services
                     ? await _ticketRepository.GetPersonDuplicatesAsync(person!.Id, request.Ordinances, DateTime.UtcNow)
                     : new List<DuplicateOrdinance>();
                 if (request.Type == ViolationType.Ticket && duplicateOrdinances.Any())
-                    throw new DuplicateOrdinanceException("This person already has an active citation for a selected ordinance today. Review and verify again.", duplicateOrdinances);
+                    throw new DuplicateOrdinanceException("This person already has an active citation for a selected ordinance today. Review the ordinances.", duplicateOrdinances);
 
                 if (duplicateOrdinances.Any())
                 {
@@ -709,10 +709,7 @@ namespace MarikinaMarket.API.Application.Services
 
                 ApplyFineAssessments(ordinanceFineSummary, ParseFineAssessments(request.FineAssessments));
                 ValidatePenaltyEligibility(ordinanceFineSummary, request.PenaltyType);
-                EnsureReviewedCalculation(request.ReviewedCalculation, ordinanceFineSummary);
                 var businessSnapshot = vendor is null ? null : GetBusinessSnapshot(vendor);
-                if (businessSnapshot is not null)
-                    EnsureReviewedBusinessSnapshot(request.ReviewedBusinessSnapshot, businessSnapshot);
                 var newControlNumber = await _ticketRepository.GetNewControlNumber();
                 var ticketEvidences = new List<TicketEvidence>();
 
@@ -880,7 +877,7 @@ namespace MarikinaMarket.API.Application.Services
                 or DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_tickets_control_number" } }))
             {
                 if (!transactionCommitted) await _unitOfWork.RollbackAsync();
-                throw new ConcurrencyConflictException("Another citation changed the reviewed history. Check this person’s history and verify again before submitting.");
+                throw new ConcurrencyConflictException("Another citation changed this person’s history. Check this person’s history and submit again.");
             }
             catch (Exception)
             {
@@ -1698,32 +1695,6 @@ namespace MarikinaMarket.API.Application.Services
                 await _ticketRepository.GetPersonDuplicatesAsync(personId, ordinanceIds, DateTime.UtcNow));
         }
 
-        public async Task<InspectionVerificationResponse> VerifyInspectionAsync(VerifyInspectionRequest request)
-        {
-            request.PaperReference = request.PaperReference?.Trim();
-            request.IssuePlace = request.IssuePlace?.Trim();
-            Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
-            await ValidatePaperMetadataAsync(request.PaperReference, request.IssuePlace);
-            if (request.PaperTicketPhotoCount != 1 || request.SupportingEvidenceCount < 1
-                || (long)request.EvidenceCount != (long)request.PaperTicketPhotoCount + request.SupportingEvidenceCount)
-                throw new InvalidRequestException("Exactly one paper ticket photo and at least one supporting photo are required for tickets.");
-            if (request.PenaltyType == PenaltyType.CommunityService && request.CommunityServiceHours is null or < 3)
-                throw new ValidationException("Community service requires a minimum of 3 hours.");
-            var business = request.VendorId is { } businessId
-                ? await _vendorRepository.GetByIdAsync(businessId) ?? throw new RecordNotFoundException("Business not found.")
-                : null;
-            if (business is null) await RequireActiveSectionAsync(request.MarketSectionId);
-            var calculation = await GetPersonFineSummaryAsync(request.OrdinanceIds, request.PersonId);
-            if (calculation.Breakdown.Any(item => item.IsDuplicate == true))
-                throw new DuplicateOrdinanceException("This person already has an active citation for a selected ordinance today.",
-                    await _ticketRepository.GetPersonDuplicatesAsync(request.PersonId, request.OrdinanceIds, DateTime.UtcNow));
-            ApplyFineAssessments(calculation, request.FineAssessments);
-            ValidatePenaltyEligibility(calculation, request.PenaltyType);
-            var snapshot = business is null ? null : GetBusinessSnapshot(business);
-            return new() { Calculation = calculation, ReviewedCalculation = JsonSerializer.Serialize(calculation, ReviewJson),
-                BusinessSnapshot = snapshot, ReviewedBusinessSnapshot = snapshot is null ? null : JsonSerializer.Serialize(snapshot, ReviewJson) };
-        }
-
         private static BusinessSnapshotResponse GetBusinessSnapshot(VendorTicketSummary business) => new()
         {
             BusinessAccountNumber = business.BusinessAccountNumber,
@@ -1735,45 +1706,12 @@ namespace MarikinaMarket.API.Application.Services
             BusinessAddress = business.BusinessAddress
         };
 
-        private static void EnsureReviewedBusinessSnapshot(string? reviewed, BusinessSnapshotResponse current)
-        {
-            BusinessSnapshotResponse? previous;
-            try { previous = string.IsNullOrWhiteSpace(reviewed) ? null : JsonSerializer.Deserialize<BusinessSnapshotResponse>(reviewed, ReviewJson); }
-            catch (JsonException) { throw new ValidationException("Verify the business details before submitting."); }
-            if (previous is null || string.IsNullOrWhiteSpace(previous.BusinessAccountNumber)
-                || string.IsNullOrWhiteSpace(previous.BusinessName) || string.IsNullOrWhiteSpace(previous.RegisteredOwnerName)
-                || string.IsNullOrWhiteSpace(previous.BusinessType) || string.IsNullOrWhiteSpace(previous.MarketSectionName))
-                throw new ValidationException("Verify the business details before submitting.");
-            if (previous != current)
-                throw new ConcurrencyConflictException("Business details changed. Review and verify again before submitting.");
-        }
-
         private async Task ValidatePaperMetadataAsync(string? paperReference, string? issuePlace)
         {
             if (string.IsNullOrWhiteSpace(paperReference) || string.IsNullOrWhiteSpace(issuePlace))
-                throw new ValidationException("Enter the reviewed control number and issue place before verifying or submitting.");
+                throw new ValidationException("Enter the control number and issue place before submitting.");
             if (await _ticketRepository.PaperReferenceExistsAsync(paperReference))
                 throw new ConcurrencyConflictException("A citation with this control number already exists. Review the control number before submitting.");
-        }
-
-        private static void EnsureReviewedCalculation(string? reviewed, FineSummaryResponse current)
-        {
-            FineSummaryResponse? previous;
-            try { previous = string.IsNullOrWhiteSpace(reviewed) ? null : JsonSerializer.Deserialize<FineSummaryResponse>(reviewed, ReviewJson); }
-            catch (JsonException) { throw new ValidationException("Verify the corrected citation before submitting."); }
-            if (previous?.Breakdown is null || previous.Breakdown.Count == 0
-                || previous.Breakdown.Any(item => item is null)
-                || previous.Breakdown.Select(item => item.OrdinanceId).Distinct().Count() != previous.Breakdown.Count)
-                throw new ValidationException("Verify the corrected citation before submitting.");
-            if (previous.TotalPaymentAmount != current.TotalPaymentAmount || previous.HighestSeverity != current.HighestSeverity
-                || previous.AllowBloodDonation != current.AllowBloodDonation || previous.AllowCommunityService != current.AllowCommunityService
-                || previous.Breakdown.Count != current.Breakdown.Count
-                || current.Breakdown.Any(item => !previous.Breakdown.Any(old => old.OrdinanceId == item.OrdinanceId
-                    && old.OffenseNumber == item.OffenseNumber && old.PaymentAmount == item.PaymentAmount && old.Severity == item.Severity
-                    && old.FineKind == item.FineKind && old.MinimumFine == item.MinimumFine && old.MaximumFine == item.MaximumFine
-                    && old.PenaltyTerms == item.PenaltyTerms && old.AllowBloodDonation == item.AllowBloodDonation
-                    && old.AllowCommunityService == item.AllowCommunityService)))
-                throw new ConcurrencyConflictException("Offense history or the calculated fine changed. Review and verify again before submitting.");
         }
 
         public async Task<PageResponse<PersonTicketHistoryResponse>> GetPersonHistoryAsync(int personId, int offset)

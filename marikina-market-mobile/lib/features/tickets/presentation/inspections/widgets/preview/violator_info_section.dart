@@ -1,4 +1,3 @@
-import 'package:marikina_market_mobile/features/tickets/domain/entities/business_snapshot.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/unregistered_vendor.dart';
@@ -10,14 +9,12 @@ import 'package:marikina_market_mobile/features/tickets/presentation/widgets/tic
 class ViolatorInfoSection extends StatelessWidget {
   // Null when the vendor is not registered.
   final VendorSummary? vendor;
-  final BusinessSnapshot? businessSnapshot;
   final bool isTicket;
   final String? paperViolatorName, personFullName, personAddress;
   final int? personId;
 
   const ViolatorInfoSection({
     required this.vendor,
-    this.businessSnapshot,
     this.paperViolatorName,
     this.personFullName,
     this.personAddress,
@@ -37,12 +34,6 @@ class ViolatorInfoSection extends StatelessWidget {
           title: 'VIOLATOR DETAILS',
         ),
         const SizedBox(height: AppTheme.ticketSmallGap),
-        if (isTicket && vendor != null)
-          Text(
-            businessSnapshot == null
-                ? 'Current registry details. Verify to review the business details for this citation.'
-                : 'Business details reviewed for this citation.',
-          ),
         TicketPaperFieldGroup(
           spacing: AppTheme.inspectionSmallGap,
           fields: [
@@ -51,36 +42,7 @@ class ViolatorInfoSection extends StatelessWidget {
                 label: 'BUSINESS:',
                 value: unregisteredVendorLabel,
               )
-            else if (businessSnapshot != null) ...[
-              TicketPaperField(
-                label: 'BUSINESS ID:',
-                value: businessSnapshot!.businessAccountNumber ?? 'Unavailable',
-              ),
-              TicketPaperField(
-                label: 'TRADE NAME:',
-                value: businessSnapshot!.businessName ?? 'Unavailable',
-              ),
-              TicketPaperField(
-                label: 'REGISTERED OWNER:',
-                value: businessSnapshot!.registeredOwnerName ?? 'Unavailable',
-              ),
-              TicketPaperField(
-                label: 'BUSINESS TYPE:',
-                value: businessSnapshot!.businessType ?? 'Unavailable',
-              ),
-              TicketPaperField(
-                label: 'STALL/UNIT NO:',
-                value: businessSnapshot!.stallNumber ?? 'Unavailable',
-              ),
-              TicketPaperField(
-                label: 'MARKET SECTION:',
-                value: businessSnapshot!.marketSectionName ?? 'Unavailable',
-              ),
-              TicketPaperField(
-                label: 'BUSINESS ADDRESS:',
-                value: businessSnapshot!.businessAddress ?? 'Unavailable',
-              ),
-            ] else ...[
+            else ...[
               TicketPaperField(
                 label: "STALL/UNIT NO:",
                 value: vendor.stallNumber ?? 'N/A',
@@ -102,7 +64,7 @@ class ViolatorInfoSection extends StatelessWidget {
                   ? 'Unconfirmed'
                   : personFullName ?? 'Person',
             ),
-            if (isTicket && vendor != null && businessSnapshot == null)
+            if (isTicket && vendor != null)
               TicketPaperField(
                 label: 'BUSINESS ADDRESS:',
                 value: vendor.address,

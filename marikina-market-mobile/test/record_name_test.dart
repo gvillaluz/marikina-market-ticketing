@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,7 +45,6 @@ import 'features/tickets/presentation/person_verification_flow_test.dart'
     show BoundaryImageCompressor;
 import 'inspection_list_ui_test.dart' show listBloc;
 import 'inspection_preview_navigation_test.dart' show flush, formAction, vendor;
-import 'review_verify_test.dart' show calculation, verifiedAnswer;
 import 'violator_picker_test.dart'
     show chooseViolator, inReview, juan, noContent, pedro, showReview;
 
@@ -61,6 +61,23 @@ String paperField(WidgetTester tester, String label) => [
   ))
     ...group.fields,
 ].singleWhere((field) => field.label == label).value;
+
+const calculation = {
+  'total_payment_amount': 500,
+  'highest_severity': 'Minor',
+  'breakdown': [
+    {
+      'ordinance_id': 1,
+      'ordinance_no': '123',
+      'section': '53',
+      'payment_amount': 500,
+      'fine_kind': 'Fixed',
+      'severity': 'Minor',
+      'offense_number': 1,
+      'is_duplicate': false,
+    },
+  ],
+};
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -147,7 +164,7 @@ void main() {
     });
 
     testWidgets('Change clears the person and ordinances; after choosing '
-        'again, Review and Verify carry the record name', (tester) async {
+        'again, Review and Submit carry the record name', (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -155,7 +172,7 @@ void main() {
       final compressor = FlutterImageCompressPlatform.instance;
       FlutterImageCompressPlatform.instance = BoundaryImageCompressor();
       addTearDown(() => FlutterImageCompressPlatform.instance = compressor);
-      final verifyBodies = <Map<String, Object?>>[];
+      Map<String, String>? submittedFields;
       final template = await tester.runAsync(
         () => listBloc((options) async {
           switch (options.path) {
@@ -182,9 +199,14 @@ void main() {
               return reply(options, [ordinanceResponse]);
             case '/enforcer/tickets/fine-summary':
               return reply(options, calculation);
-            case '/enforcer/tickets/verify':
-              verifyBodies.add(Map<String, Object?>.from(options.data as Map));
-              return reply(options, verifiedAnswer());
+            case '/enforcer/tickets/new-inspection':
+              submittedFields = Map.fromEntries(
+                (options.data as FormData).fields,
+              );
+              throw DioException(
+                requestOptions: options,
+                type: DioExceptionType.connectionError,
+              );
             default:
               throw StateError('Unexpected request: ${options.path}');
           }
@@ -229,7 +251,6 @@ void main() {
           matchPeopleUseCase: templateBloc.matchPeopleUseCase,
           createPersonUseCase: templateBloc.createPersonUseCase,
           getPersonHistoryUseCase: templateBloc.getPersonHistoryUseCase,
-          verifyInspectionUseCase: templateBloc.verifyInspectionUseCase,
           loadInspectionListUseCase: templateBloc.loadInspectionListUseCase,
           loadOrdinancesUseCase: templateBloc.loadOrdinancesUseCase,
           getMarketSectionsUseCase: templateBloc.getMarketSectionsUseCase,
@@ -421,13 +442,28 @@ void main() {
       expect(paperField(tester, 'RECORDED VIOLATOR:'), 'Juan Dela Cruz');
       expect(paperField(tester, 'CONFIRMED PERSON:'), 'Juan Dela Cruz');
 
-      // Verify sends the record name with the chosen person.
-      await tester.ensureVisible(find.text('Verify ticket'));
-      await tester.tap(find.text('Verify ticket'));
+      // Submit sends the record name with the chosen person.
+      await tester.ensureVisible(find.text('Submit Ticket'));
+      await tester.tap(find.text('Submit Ticket'));
       await flush(tester);
-      expect(verifyBodies, hasLength(1));
-      expect(verifyBodies.single['paper_violator_name'], 'Juan Dela Cruz');
-      expect(verifyBodies.single['person_id'], 31);
+      await tester.tap(
+        find.byWidgetPredicate(
+          (w) => w is AppPrimaryButton && w.label.startsWith('Issue ticket '),
+        ),
+      );
+      for (
+        var attempt = 0;
+        attempt < 100 && submittedFields == null;
+        attempt++
+      ) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+      expect(submittedFields, isNotNull);
+      expect(submittedFields!['paper_violator_name'], 'Juan Dela Cruz');
+      expect(submittedFields!['person_id'], '31');
       expect(tester.takeException(), isNull);
     });
   });

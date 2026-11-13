@@ -8,53 +8,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_hive_model.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_assessment.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/ordinance_category.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_event.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 import '../../../inspection_list_ui_test.dart' show listBloc;
-import '../../auth/data/login_mobile_contract_test.dart' show reply;
 
-const input = VerifyInspectionInput(
-  fineAssessments: [FineAssessment(ordinanceId: 1, assessedAmount: 500)],
-  vendorId: 17,
-  personId: 31,
-  paperViolatorName: 'Juan Cruz',
-  paperReference: '000456',
-  issuePlace: 'Fish aisle near F-014',
-  description: 'Market aisle obstructed',
-  ordinanceIds: [1],
-  penaltyType: PenaltyType.cashFine,
-  evidenceCount: 1,
-);
-Map<String, Object?> verified(String snapshot) => {
-  'reviewed_calculation': snapshot,
-  'reviewed_business_snapshot': 'server-reviewed-business',
-  'business_snapshot': {
-    'business_name': 'Historical A',
-    'registered_owner_name': 'Original Owner',
-  },
-  'calculation': {
-    'total_payment_amount': 500,
-    'highest_severity': 'Minor',
-    'breakdown': [
-      {
-        'ordinance_id': 1,
-        'ordinance_no': '011',
-        'section': '66',
-        'payment_amount': 500,
-        'fine_kind': 'UpTo',
-        'minimum_fine': 100,
-        'maximum_fine': 1000,
-        'severity': 'Minor',
-        'offense_number': 1,
-        'is_duplicate': false,
-      },
-    ],
-  },
-};
 void main() {
   setUpAll(() {
     final adapter = OrdinanceHiveModelAdapter();
@@ -64,7 +23,7 @@ void main() {
   });
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
   test(
-    'citation submission preserves reviewed identity through the real use case and multipart boundary',
+    'citation submission preserves the confirmed identity through the real use case and multipart boundary',
     () async {
       final original = FlutterImageCompressPlatform.instance;
       FlutterImageCompressPlatform.instance = BoundaryImageCompressor();
@@ -97,13 +56,13 @@ void main() {
       });
       bloc.add(
         NewInspectionSubmitted(
-          fineAssessments: input.fineAssessments,
+          fineAssessments: const [
+            FineAssessment(ordinanceId: 1, assessedAmount: 500),
+          ],
           personId: 31,
           paperViolatorName: 'Juan Cruz',
           paperReference: '000456',
           issuePlace: 'Fish aisle near F-014',
-          reviewedCalculation: 'server-reviewed-calculation',
-          reviewedBusinessSnapshot: 'server-reviewed-business',
           vendorId: 17,
           enforcerId: 7,
           marketSectionId: 1,
@@ -120,63 +79,14 @@ void main() {
       final fields = await captured.future.timeout(const Duration(seconds: 5));
       expect(fields['person_id'], '31');
       expect(fields['paper_violator_name'], 'Juan Cruz');
-      expect(fields['reviewed_calculation'], 'server-reviewed-calculation');
-      expect(fields['reviewed_business_snapshot'], 'server-reviewed-business');
+      expect(fields.keys, isNot(contains('reviewed_calculation')));
+      expect(fields.keys, isNot(contains('reviewed_business_snapshot')));
       expect(fields['vendor_id'], '17');
       expect(fields['paper_reference'], '000456');
       expect(fields['issue_place'], 'Fish aisle near F-014');
       expect(jsonDecode(fields['fine_assessments']!), [
         {'ordinance_id': 1, 'assessed_amount': 500.0},
       ]);
-    },
-  );
-  test(
-    'a new review can verify while the cancelled review response is ignored',
-    () async {
-      final first = Completer<Response<Object?>>();
-      final firstRequest = Completer<RequestOptions>();
-      var calls = 0;
-      final bloc = await listBloc((options) async {
-        expect(options.path, '/enforcer/tickets/verify');
-        expect(options.data['vendor_id'], 17);
-        expect(options.data['person_id'], 31);
-        expect(options.data['paper_reference'], '000456');
-        expect(options.data['issue_place'], 'Fish aisle near F-014');
-        expect(options.data['fine_assessments'], [
-          {'ordinance_id': 1, 'assessed_amount': 500.0},
-        ]);
-        if (++calls == 1) {
-          firstRequest.complete(options);
-          return first.future;
-        }
-        return reply(options, verified('second-review'));
-      });
-      bloc.add(InspectionVerificationRequested(input));
-      final options = await firstRequest.future;
-      bloc.invalidateVerification();
-      final next = bloc.stream
-          .firstWhere((state) => state is InspectionVerified)
-          .timeout(const Duration(seconds: 3));
-      bloc.add(InspectionVerificationRequested(input));
-      try {
-        final state = await next as InspectionVerified;
-        expect(state.verification.reviewedCalculation, 'second-review');
-        expect(
-          state.verification.reviewedBusinessSnapshot,
-          'server-reviewed-business',
-        );
-        expect(
-          state.verification.businessSnapshot?.businessName,
-          'Historical A',
-        );
-      } finally {
-        first.complete(reply(options, verified('cancelled-review')));
-      }
-      await Future<void>.delayed(Duration.zero);
-      expect(
-        (bloc.state as InspectionVerified).verification.reviewedCalculation,
-        'second-review',
-      );
     },
   );
 }

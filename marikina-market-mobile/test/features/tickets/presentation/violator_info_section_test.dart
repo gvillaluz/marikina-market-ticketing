@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/business_snapshot.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/violator_info_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 
@@ -16,7 +15,6 @@ Map<String, String> lines(WidgetTester tester) => {
 
 Future<void> show(
   WidgetTester tester, {
-  BusinessSnapshot? snapshot,
   String? personAddress,
   bool isTicket = true,
   int? personId = 31,
@@ -26,7 +24,6 @@ Future<void> show(
       body: SingleChildScrollView(
         child: ViolatorInfoSection(
           vendor: vendor,
-          businessSnapshot: snapshot,
           personId: personId,
           personFullName: 'Juan Dela Cruz',
           personAddress: personAddress,
@@ -39,31 +36,7 @@ Future<void> show(
 );
 
 void main() {
-  const snapshot = BusinessSnapshot(
-    businessAccountNumber: 'TEST-12',
-    businessName: 'Synthetic Market Goods',
-    registeredOwnerName: 'Synthetic Vendor',
-    businessType: 'Public',
-    stallNumber: 'A-12',
-    marketSectionName: 'Section A',
-    businessAddress: '14 Business Lane',
-  );
-
-  testWidgets('reviewed business: business and violator addresses differ', (
-    tester,
-  ) async {
-    await show(
-      tester,
-      snapshot: snapshot,
-      personAddress: '31 Synthetic Market Lane',
-    );
-    final shown = lines(tester);
-    expect(shown['BUSINESS ADDRESS:'], '14 Business Lane');
-    expect(shown['VIOLATOR ADDRESS:'], '31 Synthetic Market Lane');
-    expect(shown.containsKey('ADDRESS:'), isFalse);
-  });
-
-  testWidgets('before Verify: current business address is labelled too', (
+  testWidgets('business and violator addresses are labelled separately', (
     tester,
   ) async {
     await show(tester, personAddress: '31 Synthetic Market Lane');
@@ -76,7 +49,6 @@ void main() {
   testWidgets('warnings show no address lines', (tester) async {
     await show(
       tester,
-      snapshot: snapshot,
       personAddress: '31 Synthetic Market Lane',
       isTicket: false,
     );

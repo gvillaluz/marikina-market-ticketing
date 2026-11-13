@@ -23,7 +23,6 @@ public class UnregisteredTicketTests
         var request = fixture.Request(type);
         request.VendorId = null;
         request.MarketSectionId = ActiveSection;
-        request.ReviewedBusinessSnapshot = null;
         return request;
     }
 
@@ -111,53 +110,6 @@ public class UnregisteredTicketTests
         Assert.Equal(1, fixture.EmailCalls);
         Assert.Single(fixture.NotificationsSaved);
         Assert.Equal(1, fixture.ComplianceCalls);
-    }
-
-    private static VerifyInspectionRequest VerifyRequest(int? business, int? section) => new()
-    {
-        VendorId = business, MarketSectionId = section, PersonId = 31, PaperViolatorName = "Juan Cruz",
-        PaperReference = "000456", IssuePlace = "Palengke gate 2", OrdinanceIds = [1],
-        Description = "Market identification card not displayed", PenaltyType = PenaltyType.CashFine,
-        EvidenceCount = 2, PaperTicketPhotoCount = 1, SupportingEvidenceCount = 1
-    };
-
-    [Fact]
-    public async Task Verify_works_for_an_unregistered_vendor_and_the_result_can_be_submitted()
-    {
-        using var fixture = new InspectionNotificationTests.Fixture();
-
-        var verified = await fixture.Service.VerifyInspectionAsync(VerifyRequest(null, ActiveSection));
-
-        Assert.Null(fixture.CreatedTicket);
-        Assert.Null(verified.BusinessSnapshot);
-        Assert.Null(verified.ReviewedBusinessSnapshot);
-        Assert.Equal(500m, verified.Calculation.TotalPaymentAmount);
-        var request = Unregistered(fixture, ViolationType.Ticket);
-        request.ReviewedCalculation = verified.ReviewedCalculation;
-        var saved = await fixture.Service.CreateTicketAsync(request);
-        Assert.Null(saved.VendorId);
-    }
-
-    [Theory]
-    [InlineData(null, null, typeof(DataValidation.ValidationException))]
-    [InlineData(null, 99, typeof(RecordNotFoundException))]
-    [InlineData(null, 9, typeof(DataValidation.ValidationException))]
-    public async Task Verify_needs_a_business_or_a_valid_active_section(int? business, int? section, Type expected)
-    {
-        using var fixture = new InspectionNotificationTests.Fixture();
-
-        var error = await Assert.ThrowsAsync(expected, () => fixture.Service.VerifyInspectionAsync(VerifyRequest(business, section)));
-
-        Assert.Contains("market section", error.Message, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
-    public async Task Verify_still_catches_a_same_day_duplicate_for_an_unregistered_vendor()
-    {
-        using var fixture = new InspectionNotificationTests.Fixture { PersonHasDuplicate = true };
-
-        await Assert.ThrowsAsync<DuplicateOrdinanceException>(
-            () => fixture.Service.VerifyInspectionAsync(VerifyRequest(null, ActiveSection)));
     }
 
     [Fact]

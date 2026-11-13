@@ -10,34 +10,23 @@ class AutoFillBtn extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onPressed,
-    super.key
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) => Expanded(
     child: OutlinedButton(
       style: OutlinedButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         padding: const EdgeInsets.all(15),
-        side: BorderSide(
-          color: AppColors.primary,
-          width: 2
-        ),
+        side: BorderSide(color: AppColors.primary, width: 2),
       ),
-      onPressed: onPressed, 
+      onPressed: onPressed,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         spacing: 5,
-        children: [
-          Icon(
-            icon,
-            size: 30,
-          ),
-          Text(label)
-        ],
-      )
+        children: [Icon(icon, size: 30), Text(label)],
+      ),
     ),
   );
 }

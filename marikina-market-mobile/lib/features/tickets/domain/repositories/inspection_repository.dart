@@ -1,7 +1,5 @@
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_candidate.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/person_ticket_history.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_verification.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/params/save_inspection_params.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/fine_summary.dart';
@@ -28,9 +26,6 @@ abstract class InspectionRepository {
   Future<Result<PageResult<PersonTicketHistory>>> getPersonHistory(
     int personId,
     int offset,
-  );
-  Future<Result<InspectionVerification>> verifyInspection(
-    VerifyInspectionInput input,
   );
 
   Future<Result<PageResult<InspectionTicketSummary>>> loadInspections(

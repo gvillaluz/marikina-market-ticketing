@@ -1,7 +1,6 @@
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/match_people_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/create_person_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/get_person_history_use_case.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/use_cases/verify_inspection_use_case.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -84,7 +83,6 @@ Future<InspectionBloc> listBloc(
     matchPeopleUseCase: MatchPeopleUseCase(repository),
     createPersonUseCase: CreatePersonUseCase(repository),
     getPersonHistoryUseCase: GetPersonHistoryUseCase(repository),
-    verifyInspectionUseCase: VerifyInspectionUseCase(repository),
     loadInspectionListUseCase: LoadInspectionListUseCase(repository),
     loadOrdinancesUseCase: LoadOrdinancesUseCase(repository),
     getMarketSectionsUseCase: GetMarketSectionsUseCase(repository),

@@ -69,9 +69,7 @@ class SaveInspectionTicketUseCase
           params.paperReference!.trim().length > 200 ||
           params.issuePlace!.trim().length > 500) {
         return Result.failure(
-          ValidationFailure(
-            'Enter the reviewed control number and issue place.',
-          ),
+          ValidationFailure('Enter the control number and issue place.'),
         );
       }
       if (params.paperTicketPhoto == null ||
@@ -97,15 +95,13 @@ class SaveInspectionTicketUseCase
     }
 
     return await _repository.saveNewInspection(
-      // Preserve the confirmed identity and Verify snapshot across this boundary.
+      // Preserve the confirmed identity across this boundary.
       SaveInspectionParams(
         fineAssessments: params.fineAssessments,
         personId: params.personId,
         paperViolatorName: params.paperViolatorName,
         paperReference: params.paperReference?.trim(),
         issuePlace: params.issuePlace?.trim(),
-        reviewedCalculation: params.reviewedCalculation,
-        reviewedBusinessSnapshot: params.reviewedBusinessSnapshot,
         vendorId: params.vendorId,
         marketSectionId: params.marketSectionId,
         enforcerId: params.enforcerId,
