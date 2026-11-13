@@ -76,14 +76,29 @@ void main() {
           isTicket ? findsOneWidget : findsNothing,
         );
         if (isTicket) {
-          final row = find.ancestor(
-            of: find.text('2nd offense'),
-            matching: find.byType(Align),
-          );
+          final badge = find
+              .ancestor(
+                of: find.text('2nd offense'),
+                matching: find.byWidgetPredicate(
+                  (widget) =>
+                      widget is Container &&
+                      (widget.decoration as BoxDecoration?)?.color != null,
+                ),
+              )
+              .first;
           expect(
-            tester.getTopLeft(row).dy -
+            tester.getTopLeft(badge).dy -
                 tester.getBottomLeft(find.text('Section 8')).dy,
             12,
+          );
+          // Offense badge and fine amount share one row, badge on the left.
+          expect(
+            tester.getCenter(find.text('2nd offense')).dy,
+            closeTo(tester.getCenter(find.text('₱1,500.00')).dy, 1),
+          );
+          expect(
+            tester.getTopRight(find.text('2nd offense')).dx,
+            lessThan(tester.getTopLeft(find.text('₱1,500.00')).dx),
           );
         }
         expect(tester.takeException(), isNull);
@@ -118,6 +133,32 @@ void main() {
       ),
     );
     expect(find.text('₱1,234,567.89'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('penalty detail values sit at the right edge', (tester) async {
+    tester.view.physicalSize = const Size(390, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: TicketPenaltyDetail(
+              severity: Severity.moderate,
+              penaltyType: PenaltyType.cashFine,
+              dueDate: DateTime(2026, 10, 26),
+              totalFineAmount: 1000,
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.getTopLeft(find.text('PENALTY TYPE:')).dx, 0);
+    expect(tester.getTopRight(find.text('CashFine')).dx, 390);
+    expect(tester.getTopRight(find.text('Moderate')).dx, closeTo(390 - 10, 1));
     expect(tester.takeException(), isNull);
   });
 

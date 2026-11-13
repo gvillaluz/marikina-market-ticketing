@@ -210,7 +210,11 @@ void main() {
       expect(find.text('BUSINESS ID:'), findsNothing);
       expect(find.text('TRADE NAME:'), findsNothing);
       expect(find.text('REGISTERED OWNER:'), findsNothing);
-      expect(find.textContaining('Juan Cruz'), findsWidgets);
+      // A ticket names the recorded violator; a warning has no name line.
+      expect(
+        find.textContaining('Juan Cruz'),
+        type == 'Ticket' ? findsWidgets : findsNothing,
+      );
     });
   }
 

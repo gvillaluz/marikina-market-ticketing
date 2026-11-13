@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_detail_evidence_section.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_evidence_group.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ticket_detail_model.dart';
 import 'business_snapshot_test.dart' show record;
 
@@ -19,7 +20,7 @@ void main() {
       ),
     );
     expect(find.text('Unclassified evidence'), findsOneWidget);
-    expect(find.text('Paper ticket photo'), findsNothing);
+    expect(find.text('Paper ticket'), findsNothing);
     expect(find.text('Supporting evidence'), findsNothing);
   });
   testWidgets('saved paper and supporting groups use typed response items', (
@@ -67,20 +68,21 @@ void main() {
         ),
       ),
     );
-    expect(find.text('Paper ticket photo'), findsOneWidget);
+    expect(find.text('Paper ticket'), findsOneWidget);
     expect(find.text('Supporting evidence'), findsOneWidget);
     expect(find.text('Unclassified evidence'), findsNothing);
     final groups = tester
-        .widgetList<TicketDetailEvidenceSection>(
-          find.byType(TicketDetailEvidenceSection),
-        )
-        .where((item) => !item.isTicket)
+        .widgetList<TicketEvidenceGroup>(find.byType(TicketEvidenceGroup))
         .toList();
-    expect(groups[0].evidences, ['https://example.test/paper.jpg']);
-    expect(groups[1].evidences, [
+    expect(groups[0].large, isTrue);
+    expect(groups[0].urls, ['https://example.test/paper.jpg']);
+    expect(groups[1].large, isFalse);
+    expect(groups[1].urls, [
       'https://example.test/support-one.jpg',
       'https://example.test/support-two.jpg',
     ]);
+    expect(find.text('1 photo'), findsOneWidget);
+    expect(find.text('2 photos'), findsOneWidget);
   });
   testWidgets('warnings do not acquire citation photo classification', (
     tester,
@@ -93,7 +95,7 @@ void main() {
       ),
     );
     expect(find.text('Unclassified evidence'), findsNothing);
-    expect(find.text('Paper ticket photo'), findsNothing);
+    expect(find.text('Paper ticket'), findsNothing);
     expect(find.text('Supporting evidence'), findsNothing);
   });
 }
