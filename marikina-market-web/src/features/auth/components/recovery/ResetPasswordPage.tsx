@@ -1,4 +1,5 @@
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { PASSWORD_RULE_HINT } from "@/features/profile";
 import styles from "./ResetPasswordPage.module.css";
 import { useRecoveryReset } from "../../hooks/useRecoveryReset";
 
@@ -30,7 +31,7 @@ const ResetPasswordPage = ({
   return (
     <>
       <p id="recovery-password-description" className={styles.description}>
-        Use at least 8 characters and include both letters and numbers.
+        {PASSWORD_RULE_HINT}
       </p>
       <form className={styles.form} onSubmit={submit}>
         <label className={styles.label}>
