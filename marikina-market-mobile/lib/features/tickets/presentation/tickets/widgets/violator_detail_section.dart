@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/enums/business_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
@@ -61,10 +62,12 @@ class ViolatorDetailSection extends StatelessWidget {
                 label: 'BUSINESS TYPE:',
                 value: ticket.businessSnapshot!.businessType ?? 'Unavailable',
               ),
-              TicketPaperField(
-                label: 'STALL/UNIT NO:',
-                value: ticket.businessSnapshot!.stallNumber ?? 'Unavailable',
-              ),
+              if (ticket.businessSnapshot!.businessType !=
+                  BusinessType.private.value)
+                TicketPaperField(
+                  label: 'STALL/UNIT NO:',
+                  value: ticket.businessSnapshot!.stallNumber ?? 'Unavailable',
+                ),
               TicketPaperField(
                 label: 'MARKET SECTION:',
                 value:
@@ -86,10 +89,11 @@ class ViolatorDetailSection extends StatelessWidget {
                 label: "BUSINESS ID:",
                 value: ticket.businessAccountNumber ?? 'Unavailable',
               ),
-              TicketPaperField(
-                label: "STALL/UNIT NO:",
-                value: ticket.stallNumber ?? 'N/A',
-              ),
+              if (ticket.businessType != BusinessType.private)
+                TicketPaperField(
+                  label: "STALL/UNIT NO:",
+                  value: ticket.stallNumber ?? 'N/A',
+                ),
               TicketPaperField(
                 label: "TRADE NAME:",
                 value: ticket.tradeName ?? 'Unavailable',
@@ -105,12 +109,6 @@ class ViolatorDetailSection extends StatelessWidget {
                 value:
                     ticket.paperViolatorName ?? 'Unconfirmed (legacy record)',
               ),
-            TicketPaperField(
-              label: 'CONFIRMED PERSON:',
-              value: ticket.personId == null
-                  ? 'Unconfirmed (legacy record)'
-                  : '${ticket.personFullName ?? 'Person'} · Person ${ticket.personId}',
-            ),
           ],
         ),
       ],

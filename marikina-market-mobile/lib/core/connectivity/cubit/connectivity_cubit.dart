@@ -22,7 +22,7 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
   void _updateStatus(List<ConnectivityResult> results) async {
     final ConnectivityResult result = results.first;
 
-     if (result == ConnectivityResult.none) {
+    if (result == ConnectivityResult.none) {
       emit(ConnectivityStatus.offline);
       return;
     }

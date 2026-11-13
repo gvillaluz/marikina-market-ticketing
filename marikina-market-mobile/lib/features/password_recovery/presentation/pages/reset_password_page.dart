@@ -58,85 +58,89 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 constraints: const BoxConstraints(
                   maxWidth: AppTheme.authMaxWidth,
                 ),
-                child: BlocListener<PasswordRecoveryBloc, PasswordRecoveryState>(
-                  listener: (context, state) {
-                    if (state is ResetPasswordSuccessfully &&
-                        state.result.success) {
-                      context.goNamed(Routes.loginName);
-                    }
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    decoration: AppTheme.authCardDecoration(context),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const LoginCardHeader(),
-                        Padding(
-                          padding: AppTheme.authCardPadding,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Create a new password',
-                                style: AppTheme.authPageTitleStyle,
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                PasswordChangeCheck.hint,
-                                style: TextStyle(
-                                  color: AppTheme.authVerificationBodyColor,
-                                  fontSize: AppTheme.bodyFontSize,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              ResetPasswordFields(
-                                enabled: context
-                                    .select<PasswordRecoveryBloc, bool>(
-                                      (bloc) =>
-                                          bloc.state is! ResetPasswordLoading,
+                child:
+                    BlocListener<PasswordRecoveryBloc, PasswordRecoveryState>(
+                      listener: (context, state) {
+                        if (state is ResetPasswordSuccessfully &&
+                            state.result.success) {
+                          context.goNamed(Routes.loginName);
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        decoration: AppTheme.authCardDecoration(context),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const LoginCardHeader(),
+                            Padding(
+                              padding: AppTheme.authCardPadding,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Create a new password',
+                                    style: AppTheme.authPageTitleStyle,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    PasswordChangeCheck.hint,
+                                    style: TextStyle(
+                                      color: AppTheme.authVerificationBodyColor,
+                                      fontSize: AppTheme.bodyFontSize,
                                     ),
-                                newPasswordController: newPasswordController,
-                                confirmNewPasswordController:
-                                    confirmNewPasswordController,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  ResetPasswordFields(
+                                    enabled: context
+                                        .select<PasswordRecoveryBloc, bool>(
+                                          (bloc) =>
+                                              bloc.state
+                                                  is! ResetPasswordLoading,
+                                        ),
+                                    newPasswordController:
+                                        newPasswordController,
+                                    confirmNewPasswordController:
+                                        confirmNewPasswordController,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  BlocBuilder<
+                                    PasswordRecoveryBloc,
+                                    PasswordRecoveryState
+                                  >(
+                                    builder: (context, state) {
+                                      final error = switch (state) {
+                                        ResetPasswordFailed(:final message) =>
+                                          message,
+                                        _ => null,
+                                      };
+                                      return Column(
+                                        children: [
+                                          AuthBtn(
+                                            onPressed: () => _submit(context),
+                                            isLoading:
+                                                state is ResetPasswordLoading,
+                                            label: 'Change Password',
+                                          ),
+                                          if (error != null) ...[
+                                            const SizedBox(height: 12),
+                                            AuthErrorNotice(message: error),
+                                          ],
+                                          BackToLoginButton(
+                                            enabled:
+                                                state is! ResetPasswordLoading,
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 20),
-                              BlocBuilder<
-                                PasswordRecoveryBloc,
-                                PasswordRecoveryState
-                              >(
-                                builder: (context, state) {
-                                  final error = switch (state) {
-                                    ResetPasswordFailed(:final message) =>
-                                      message,
-                                    _ => null,
-                                  };
-                                  return Column(
-                                    children: [
-                                      AuthBtn(
-                                        onPressed: () => _submit(context),
-                                        isLoading:
-                                            state is ResetPasswordLoading,
-                                        label: 'Change Password',
-                                      ),
-                                      if (error != null) ...[
-                                        const SizedBox(height: 12),
-                                        AuthErrorNotice(message: error),
-                                      ],
-                                      BackToLoginButton(
-                                        enabled: state is! ResetPasswordLoading,
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
               ),
             ),
           ),

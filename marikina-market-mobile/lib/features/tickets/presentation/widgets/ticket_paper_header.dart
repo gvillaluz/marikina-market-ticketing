@@ -61,7 +61,9 @@ class TicketPaperHeader extends StatelessWidget {
                     style: AppTheme.ticketPaperLabelStyle,
                   ),
                   Text(
-                    paperReference ?? 'Unavailable (legacy record)',
+                    paperReference == null
+                        ? 'Unavailable (legacy record)'
+                        : '#$paperReference',
                     textAlign: TextAlign.right,
                     style: AppTheme.ticketPaperControlStyle,
                   ),

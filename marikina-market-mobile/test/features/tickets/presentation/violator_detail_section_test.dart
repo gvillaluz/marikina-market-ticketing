@@ -26,15 +26,44 @@ void main() {
     expect(find.text('BUS-123'), findsOneWidget);
     expect(find.text('ADDRESS:'), findsOneWidget);
     expect(find.text('Address is unavailable.'), findsOneWidget);
+    expect(find.text('STALL/UNIT NO:'), findsOneWidget);
+    expect(find.text('CONFIRMED PERSON:'), findsNothing);
   });
+
+  for (final isTicket in [true, false]) {
+    testWidgets('hides stall/unit number for a private business '
+        '(ticket=$isTicket)', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ViolatorDetailSection(
+              ticket: _ticket(
+                address: 'Marikina',
+                type: 'Private',
+                businessType: BusinessType.private,
+              ),
+              isTicket: isTicket,
+            ),
+          ),
+        ),
+      );
+      expect(find.text('STALL/UNIT NO:'), findsNothing);
+      expect(find.text('BUSINESS ID:'), findsOneWidget);
+    });
+  }
 }
 
-TicketDetail _ticket({required String? address}) => TicketDetail(
+TicketDetail _ticket({
+  required String? address,
+  String type = 'Public',
+  BusinessType businessType = BusinessType.public,
+}) => TicketDetail(
   businessSnapshot: BusinessSnapshot(
     businessAccountNumber: 'BUS-123',
     businessName: 'Market Store',
     registeredOwnerName: 'Jane Doe',
-    businessType: 'Public',
+    businessType: type,
+    stallNumber: 'A-12',
     marketSectionName: 'Section A',
     businessAddress: address,
   ),
@@ -42,7 +71,8 @@ TicketDetail _ticket({required String? address}) => TicketDetail(
   enforcerId: 2,
   vendorId: 3,
   violationType: ViolationType.ticket,
-  businessType: BusinessType.public,
+  businessType: businessType,
+  stallNumber: 'A-12',
   businessAccountNumber: 'BUS-123',
   tradeName: 'Market Store',
   lastName: 'Doe',

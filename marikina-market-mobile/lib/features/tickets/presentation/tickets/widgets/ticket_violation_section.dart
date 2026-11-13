@@ -107,11 +107,9 @@ class TicketViolationSection extends StatelessWidget {
 
                   if (isTicket) ...[
                     const SizedBox(height: AppTheme.ticketSmallGap),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                    Row(
                       children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
+                        Flexible(
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 5,
@@ -121,7 +119,8 @@ class TicketViolationSection extends StatelessWidget {
                               color: _getBgColor(ordinance.offenseNumber),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Wrap(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               spacing: AppTheme.ticketTinyGap,
                               children: [
                                 Icon(
@@ -129,13 +128,15 @@ class TicketViolationSection extends StatelessWidget {
                                   color: _getFontColor(ordinance.offenseNumber),
                                   size: 15,
                                 ),
-                                Text(
-                                  '${ordinance.offenseNumber.toOrdinal()} offense',
-                                  style: TextStyle(
-                                    color: _getFontColor(
-                                      ordinance.offenseNumber,
+                                Flexible(
+                                  child: Text(
+                                    '${ordinance.offenseNumber.toOrdinal()} offense',
+                                    style: TextStyle(
+                                      color: _getFontColor(
+                                        ordinance.offenseNumber,
+                                      ),
+                                      fontSize: AppTheme.captionFontSize,
                                     ),
-                                    fontSize: AppTheme.captionFontSize,
                                   ),
                                 ),
                               ],
@@ -143,9 +144,8 @@ class TicketViolationSection extends StatelessWidget {
                           ),
                         ),
                         if (penaltyType == PenaltyType.cashFine) ...[
-                          const SizedBox(height: AppTheme.ticketTinyGap),
-                          Align(
-                            alignment: Alignment.centerRight,
+                          const SizedBox(width: AppTheme.ticketSmallGap),
+                          Expanded(
                             child: Text(
                               _currencyFormat.format(ordinance.paymentAmount),
                               textAlign: TextAlign.right,

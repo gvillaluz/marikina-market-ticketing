@@ -23,7 +23,6 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/violation_details_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/violator_info_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_detail_content.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_penalty_detail.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_violation_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/violator_detail_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_header.dart';
@@ -156,40 +155,41 @@ Future<void> showPaper(WidgetTester tester, double width, Widget child) async {
 }
 
 void main() {
-  testWidgets('cash ordinance price sits at bottom right of its card', (
-    tester,
-  ) async {
-    await showPaper(
-      tester,
-      400,
-      paper(isTicket: true, control: 'TKT-2026-0042'),
-    );
-    final price = find.descendant(
-      of: find.byType(TicketViolationSection),
-      matching: find.text('₱1,500.00'),
-    );
-    final card = find
-        .ancestor(
-          of: price,
-          matching: find.byWidgetPredicate(
-            (widget) =>
-                widget is Container &&
-                widget.decoration is BoxDecoration &&
-                (widget.decoration! as BoxDecoration).borderRadius ==
-                    BorderRadius.circular(10),
-          ),
-        )
-        .first;
-    expect(
-      tester.getBottomRight(price).dx,
-      closeTo(tester.getBottomRight(card).dx - 13, 1),
-    );
-    expect(
-      tester.getBottomRight(price).dy,
-      closeTo(tester.getBottomRight(card).dy - 11, 1),
-    );
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'cash ordinance price sits at the right of its card, level with the badge',
+    (tester) async {
+      await showPaper(
+        tester,
+        400,
+        paper(isTicket: true, control: 'TKT-2026-0042'),
+      );
+      final price = find.descendant(
+        of: find.byType(TicketViolationSection),
+        matching: find.text('₱1,500.00'),
+      );
+      final card = find
+          .ancestor(
+            of: price,
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is Container &&
+                  widget.decoration is BoxDecoration &&
+                  (widget.decoration! as BoxDecoration).borderRadius ==
+                      BorderRadius.circular(10),
+            ),
+          )
+          .first;
+      expect(
+        tester.getBottomRight(price).dx,
+        closeTo(tester.getBottomRight(card).dx - 13, 1),
+      );
+      expect(
+        tester.getCenter(price).dy,
+        closeTo(tester.getCenter(find.text('1st offense')).dy, 1),
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
   for (final penalty in [
     PenaltyType.bloodDonation,
     PenaltyType.communityService,
@@ -227,7 +227,9 @@ void main() {
               ),
             ),
           );
-          final shown = paperNumber ?? 'Unavailable (legacy record)';
+          final shown = paperNumber == null
+              ? 'Unavailable (legacy record)'
+              : '#$paperNumber';
           expect(find.text('CONTROL NUMBER:'), findsOneWidget);
           expect(find.text(shown), findsOneWidget);
           final title = tester.getRect(find.text('VIOLATION TICKET'));
@@ -331,17 +333,17 @@ void main() {
       expect(find.textContaining('WARNING REFERENCE'), findsNothing);
       if (isTicket) {
         expect(find.text('CONTROL NUMBER:'), findsOneWidget);
-        expect(find.text('000456'), findsOneWidget);
+        expect(find.text('#000456'), findsOneWidget);
         expect(find.textContaining('TKT-2026-0042'), findsNothing);
         expect(find.text('Fish aisle near F-014'), findsOneWidget);
         expect(find.text('PENDING'), findsNothing);
         // 20px page padding + 20px paper padding puts the right edge at 440.
-        expect(tester.getTopRight(find.text('000456')).dx, closeTo(440, 1));
+        expect(tester.getTopRight(find.text('#000456')).dx, closeTo(440, 1));
       } else {
         // A warning has no printed number; its own number is its control number.
         expect(find.text('CONTROL NUMBER:'), findsNothing);
         expect(
-          find.textContaining('CONTROL NUMBER: TKT-2026-0042'),
+          find.textContaining('CONTROL NUMBER: #TKT-2026-0042'),
           findsOneWidget,
         );
       }
@@ -364,16 +366,19 @@ void main() {
         width,
         paper(isTicket: true, control: 'TKT-2026-0042', paperNumber: control),
       );
-      expect(find.text(control), findsOneWidget);
-      final number = tester.widget<Text>(find.text(control));
+      expect(find.text('#$control'), findsOneWidget);
+      final number = tester.widget<Text>(find.text('#$control'));
       expect(number.maxLines, isNull);
       expect(number.overflow, isNot(TextOverflow.ellipsis));
       final title = tester.getRect(find.text('VIOLATION TICKET'));
-      final controlRect = tester.getRect(find.text(control));
+      final controlRect = tester.getRect(find.text('#$control'));
       expect(title.left, lessThan(controlRect.left));
       expect(title.top, lessThan(controlRect.bottom));
       expect(controlRect.top, lessThan(title.bottom));
-      expect(tester.getTopRight(find.text(control)).dx, closeTo(width - 40, 1));
+      expect(
+        tester.getTopRight(find.text('#$control')).dx,
+        closeTo(width - 40, 1),
+      );
       expect(tester.takeException(), isNull);
       await capturePaper(tester, 'paper-long-control-${width.toInt()}');
     });
@@ -792,18 +797,6 @@ void main() {
         categories: warning.categories,
         isTicket: false,
         issuedAt: warning.issuedAt,
-      ),
-      'saved penalty, cash fine': TicketPenaltyDetail(
-        severity: Severity.high,
-        penaltyType: PenaltyType.cashFine,
-        dueDate: DateTime.utc(2026, 10, 12),
-        totalFineAmount: 1500,
-      ),
-      'saved penalty, community service': TicketPenaltyDetail(
-        severity: Severity.minor,
-        penaltyType: PenaltyType.communityService,
-        dueDate: DateTime.utc(2026, 10, 12),
-        communityHrs: 4,
       ),
       'ticket copy card': copyCard(isTicket: true),
       'warning copy card': copyCard(isTicket: false),

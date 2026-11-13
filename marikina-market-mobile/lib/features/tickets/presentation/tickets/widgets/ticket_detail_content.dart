@@ -168,7 +168,7 @@ class TicketDetailContent extends StatelessWidget {
         ),
         if (!isTicket)
           Text(
-            'CONTROL NUMBER: ${ticket.controlNumber ?? 'Unavailable (legacy record)'}',
+            'CONTROL NUMBER: ${ticket.controlNumber == null ? 'Unavailable (legacy record)' : '#${ticket.controlNumber}'}',
           ),
         if (isTicket && ticket.ticketStatus != null) ...[
           const SizedBox(height: AppTheme.ticketSmallGap),
@@ -301,14 +301,18 @@ class TicketDetailContent extends StatelessWidget {
           const SizedBox(height: AppTheme.ticketSmallGap),
 
           Text(
-            isTicket ? 'Photo Evidence Record' : 'Paper warning photo',
+            isTicket ? 'Ticket Photos' : 'Paper warning photo',
             style: TextStyle(
               color: AppColors.primary,
               fontSize: AppTheme.sectionHeadingFontSize,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const Text('Photos attached to this inspection record.'),
+          Text(
+            isTicket
+                ? 'The scanned paper ticket and any supporting photos.'
+                : 'Photos attached to this inspection record.',
+          ),
 
           const SizedBox(height: 10),
 
