@@ -1,128 +1,168 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Lock, KeyRound, ShieldCheck, ArrowLeft } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { authApi } from "@/api/endpoints/auth.api";
-import { useToast } from "@/components/ui/Toast/useToast";
-import { PASSWORD_RULE_HINT, validatePasswordForm } from "@/features/profile";
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  KeyRound,
+  LoaderCircle,
+  LockKeyhole,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
+import { PASSWORD_RULE_HINT } from "@/features/profile";
+import type { PasswordValues } from "@/features/profile/profile.validation";
+import AuthLayout from "../components/AuthLayout";
+import { useMandatoryChangePassword } from "../hooks/useMandatoryChangePassword";
 import styles from "./ChangePasswordPage.module.css";
-import { getApiErrorMessage } from "@/utils/apiErrors";
+
+const FIELDS: {
+  name: keyof PasswordValues;
+  id: string;
+  label: string;
+  noun: string;
+  placeholder: string;
+  autoComplete: string;
+  Icon: LucideIcon;
+}[] = [
+  {
+    name: "currentPassword",
+    id: "mandatory-current-password",
+    label: "Current password",
+    noun: "current password",
+    placeholder: "Enter current password",
+    autoComplete: "current-password",
+    Icon: LockKeyhole,
+  },
+  {
+    name: "newPassword",
+    id: "mandatory-new-password",
+    label: "New password",
+    noun: "new password",
+    placeholder: "Enter new password",
+    autoComplete: "new-password",
+    Icon: KeyRound,
+  },
+  {
+    name: "confirmNewPassword",
+    id: "mandatory-confirm-password",
+    label: "Confirm new password",
+    noun: "confirm new password",
+    placeholder: "Re-enter new password",
+    autoComplete: "new-password",
+    Icon: ShieldCheck,
+  },
+];
 
 export default function ChangePasswordPage() {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { logout } = useAuth();
-  const { showToast } = useToast();
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    const [firstError] = Object.values(
-      validatePasswordForm({
-        currentPassword,
-        newPassword,
-        confirmNewPassword: confirmPassword,
-      }),
-    );
-    if (firstError) return setError(firstError);
-    setLoading(true);
-    try {
-      await authApi.mandatoryChangePassword({
-        currentPassword,
-        newPassword,
-        confirmNewPassword: confirmPassword,
-      });
-      showToast({
-        title: "Password changed",
-        description: "Please sign in again with your new password.",
-        variant: "success",
-      });
-      logout();
-    } catch (err: unknown) {
-      setError(
-        getApiErrorMessage(err, "Failed to change password. Please try again."),
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const model = useMandatoryChangePassword();
   return (
-    <div className={`route-motion ${styles.page}`}>
+    <AuthLayout subtext="Admin Access">
       <button
+        className={styles.back}
         type="button"
-        onClick={() => navigate(-1)}
-        className={styles.backButton}
+        onClick={model.backToSignIn}
+        disabled={model.loading}
       >
-        <ArrowLeft size={16} />
-        Back Home
+        <ArrowLeft size={15} aria-hidden="true" />
+        Back to sign in
       </button>
-      <div className={styles.card}>
-        <div className={styles.brandPanel}>
-          <div className={styles.seal}>
-            <div className={styles.sealMark}>SEAL</div>
-          </div>
-          <h2 className={styles.brandTitle}>
-            Marikina Public Market
-            <br />
-            Inspection System
-          </h2>
-          <p className={styles.brandSubtitle}>Admin Access</p>
-        </div>
-        <div className={styles.formPanel}>
-          <h1 className={styles.heading}>CHANGE PASSWORD</h1>
-          <form onSubmit={handleSubmit} className={styles.form} noValidate>
-            <div>
-              <label className={styles.label}>Current Password</label>
-              <div className={styles.inputWrapper}>
-                <Lock className={styles.inputIcon} size={16} />
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
-                  className={styles.input}
-                />
+      <h2 className={styles.heading}>CHANGE PASSWORD</h2>
+      <p className={styles.description}>
+        For your security, change the temporary password you were given before
+        you continue.
+      </p>
+      <form
+        className={styles.form}
+        onSubmit={async (event) => {
+          const firstWrong = await model.submit(event);
+          if (firstWrong)
+            document
+              .getElementById(FIELDS.find((f) => f.name === firstWrong)!.id)
+              ?.focus();
+        }}
+        aria-busy={model.loading}
+        noValidate
+      >
+        {FIELDS.map(
+          ({ name, id, label, noun, placeholder, autoComplete, Icon }) => {
+            const fieldError = model.fieldErrors[name];
+            const isNew = name === "newPassword";
+            const describedBy =
+              [fieldError ? `${id}-error` : "", isNew ? `${id}-hint` : ""]
+                .filter(Boolean)
+                .join(" ") || undefined;
+            return (
+              <div className={styles.field} key={name}>
+                <label className={styles.label} htmlFor={id}>
+                  {label}
+                </label>
+                <div className={styles.inputWrapper}>
+                  <Icon className={styles.icon} size={18} aria-hidden="true" />
+                  <input
+                    id={id}
+                    type={model.shown[name] ? "text" : "password"}
+                    className={styles.input}
+                    value={model.values[name]}
+                    onChange={(event) => model.change(name, event.target.value)}
+                    placeholder={placeholder}
+                    autoComplete={autoComplete}
+                    maxLength={128}
+                    disabled={model.loading}
+                    aria-invalid={Boolean(fieldError)}
+                    aria-describedby={describedBy}
+                  />
+                  <button
+                    className={styles.toggle}
+                    type="button"
+                    onClick={() => model.toggleShown(name)}
+                    disabled={model.loading}
+                    aria-label={`${model.shown[name] ? "Hide" : "Show"} ${noun}`}
+                    aria-pressed={model.shown[name]}
+                  >
+                    {model.shown[name] ? (
+                      <EyeOff size={16} aria-hidden="true" />
+                    ) : (
+                      <Eye size={16} aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
+                {isNew && (
+                  <p className={styles.hint} id={`${id}-hint`}>
+                    {PASSWORD_RULE_HINT}
+                  </p>
+                )}
+                {fieldError && (
+                  <span
+                    className={styles.fieldError}
+                    id={`${id}-error`}
+                    role="alert"
+                  >
+                    {fieldError}
+                  </span>
+                )}
               </div>
-            </div>
-            <div>
-              <label className={styles.label}>New Password</label>
-              <div className={styles.inputWrapper}>
-                <KeyRound className={styles.inputIcon} size={16} />
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
-                  className={styles.input}
-                />
-              </div>
-              <p className={styles.hint}>{PASSWORD_RULE_HINT}</p>
-            </div>
-            <div>
-              <label className={styles.label}>Confirm New Password</label>
-              <div className={styles.inputWrapper}>
-                <ShieldCheck className={styles.inputIcon} size={16} />
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter new password"
-                  className={styles.input}
-                />
-              </div>
-            </div>
-            {error && <p className={styles.error}>{error}</p>}
-            <button type="submit" disabled={loading} className={styles.submit}>
-              {loading ? "SAVING..." : "SAVE PASSWORD"}
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
+            );
+          },
+        )}
+        {model.error && (
+          <p className={styles.error} role="alert">
+            {model.error}
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={model.loading}
+          className={styles.submit}
+        >
+          {model.loading && (
+            <LoaderCircle
+              className={styles.spinner}
+              size={16}
+              aria-hidden="true"
+            />
+          )}
+          {model.loading ? "Saving…" : "SAVE PASSWORD"}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }
