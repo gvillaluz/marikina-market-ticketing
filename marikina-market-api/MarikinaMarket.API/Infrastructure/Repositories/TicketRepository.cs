@@ -186,6 +186,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     PaperReference = t.PaperReference, IssuePlace = t.IssuePlace,
                     RegisteredOwnerName = t.Vendor == null ? null : t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName,
                     EnforcerId = t.EnforcerId,
+                    EnforcerLastName = t.Enforcer!.LastName,
+                    EnforcerFirstName = t.Enforcer.FirstName,
                     ControlNumber = t.ControlNumber ?? null,
                     Type = t.Type,
                     BusinessType = t.Vendor == null ? null : (BusinessType?)t.Vendor.Type,

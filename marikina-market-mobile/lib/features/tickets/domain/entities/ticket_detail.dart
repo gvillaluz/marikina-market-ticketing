@@ -16,6 +16,7 @@ class TicketDetail {
   final int ticketId;
   final String? controlNumber;
   final int enforcerId;
+  final String enforcerName;
   final int? vendorId;
   final ViolationType violationType;
   final BusinessType? businessType;
@@ -50,6 +51,7 @@ class TicketDetail {
     required this.ticketId,
     this.controlNumber,
     required this.enforcerId,
+    required this.enforcerName,
     required this.vendorId,
     required this.violationType,
     required this.businessType,

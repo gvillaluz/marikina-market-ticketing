@@ -56,6 +56,8 @@ public class AdminTicketDetailTests
         var enforcerDetail = await new TicketRepository(context).GetTicketDetailAsync(42);
         Assert.Equal("000456", enforcerDetail!.PaperReference);
         Assert.Equal("Fish aisle near F-014", enforcerDetail.IssuePlace);
+        Assert.Equal("Santos", enforcerDetail.EnforcerLastName);
+        Assert.Equal("Juan", enforcerDetail.EnforcerFirstName);
     }
 
     [Fact]

@@ -58,16 +58,3 @@
   flex-direction: column;
   gap: 6px;
 }
-
-.signatureRow {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  column-gap: 24px;
-  margin-top: 8px;
-}
-
-.signatureField {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}

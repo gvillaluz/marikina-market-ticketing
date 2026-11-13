@@ -45,17 +45,6 @@ const TicketModalSkeleton: FC = () => {
         <SkeletonBlock width="50%" height="11px" />
         <SkeletonBlock width="100%" height="56px" radius="8px" />
       </div>
-
-      <div className={styles.signatureRow}>
-        <div className={styles.signatureField}>
-          <SkeletonBlock width="100%" height="1px" />
-          <SkeletonBlock width="60%" height="12px" />
-        </div>
-        <div className={styles.signatureField}>
-          <SkeletonBlock width="100%" height="1px" />
-          <SkeletonBlock width="60%" height="12px" />
-        </div>
-      </div>
     </div>
   );
 };

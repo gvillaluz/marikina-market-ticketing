@@ -1,5 +1,6 @@
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_status_badge.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_header.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_issuer.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_notice.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
-import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/submit_community_service_log_params.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail_content_data.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
@@ -166,10 +166,6 @@ class TicketDetailContent extends StatelessWidget {
             color: AppColors.mediumGrey,
           ),
         ),
-        if (!isTicket)
-          Text(
-            'CONTROL NUMBER: ${ticket.controlNumber == null ? 'Unavailable (legacy record)' : '#${ticket.controlNumber}'}',
-          ),
         if (isTicket && ticket.ticketStatus != null) ...[
           const SizedBox(height: AppTheme.ticketSmallGap),
           TicketStatusBadge(status: ticket.ticketStatus!),
@@ -256,41 +252,9 @@ class TicketDetailContent extends StatelessWidget {
 
               Padding(
                 padding: const EdgeInsets.only(left: 20, right: 20),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: AppTheme.ticketSmallGap,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Divider(),
-                          const Text('Issued By:'),
-                          const Text(
-                            'Market Officer',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text('Marikina City Public Market'),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Divider(),
-                          const Text('Issued To:'),
-                          const Text(
-                            'Market Vendor',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            'Date: ${DateTimeFormatter.getDate(ticket.issuedAt)}',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                child: TicketPaperIssuer(
+                  enforcerName: ticket.enforcerName,
+                  issuedAt: ticket.issuedAt,
                 ),
               ),
             ],

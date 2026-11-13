@@ -17,6 +17,7 @@ class TicketDetailModel {
   final int ticketId;
   final String? controlNumber;
   final int enforcerId;
+  final String enforcerName;
   final int? vendorId;
   final ViolationType violationType;
   final BusinessType? businessType;
@@ -51,6 +52,7 @@ class TicketDetailModel {
     required this.ticketId,
     this.controlNumber,
     required this.enforcerId,
+    required this.enforcerName,
     required this.vendorId,
     required this.violationType,
     required this.businessType,
@@ -86,6 +88,8 @@ class TicketDetailModel {
       ticketId: json['ticket_id'] as int,
       controlNumber: json['control_number'] as String?,
       enforcerId: json['enforcer_id'] as int,
+      enforcerName:
+          '${json['enforcer_last_name']}, ${json['enforcer_first_name']}',
       vendorId: json['vendor_id'] as int?,
       personId: json['person_id'] as int?,
       personFullName: json['person_full_name'] as String?,
@@ -150,6 +154,7 @@ class TicketDetailModel {
       ticketId: ticketId,
       controlNumber: controlNumber,
       enforcerId: enforcerId,
+      enforcerName: enforcerName,
       vendorId: vendorId,
       personId: personId,
       personFullName: personFullName,

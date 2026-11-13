@@ -65,6 +65,7 @@ TicketDetail ticketDetail({
     issuePlace: isTicket ? 'Fish aisle near F-014' : null,
     controlNumber: control,
     enforcerId: 7,
+    enforcerName: 'Reyes, Ana',
     vendorId: vendorId,
     violationType: isTicket ? ViolationType.ticket : ViolationType.warning,
     businessType: BusinessType.public,
@@ -340,12 +341,9 @@ void main() {
         // 20px page padding + 20px paper padding puts the right edge at 440.
         expect(tester.getTopRight(find.text('#000456')).dx, closeTo(440, 1));
       } else {
-        // A warning has no printed number; its own number is its control number.
+        // A warning shows no control number anywhere on the page.
         expect(find.text('CONTROL NUMBER:'), findsNothing);
-        expect(
-          find.textContaining('CONTROL NUMBER: #TKT-2026-0042'),
-          findsOneWidget,
-        );
+        expect(find.textContaining('CONTROL NUMBER'), findsNothing);
       }
       expect(tester.takeException(), isNull);
       await capturePaper(

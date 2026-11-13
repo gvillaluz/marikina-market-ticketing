@@ -1,0 +1,28 @@
+.issuerSection {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  align-items: end;
+  gap: 30px;
+  margin-top: 2rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.value {
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid #1a1c1e;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1c1e;
+  overflow-wrap: anywhere;
+}
+
+.caption {
+  font-size: 0.7rem;
+  color: var(--neutral-500);
+}
