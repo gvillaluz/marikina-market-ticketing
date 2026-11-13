@@ -329,23 +329,10 @@
 
 .heroPanelBrand small {
   margin-top: 0.2rem;
-  color: #8190a2;
+  color: #5d7086;
   font-size: 0.7rem;
 }
 
-.liveBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.55rem;
-  border-radius: 99px;
-  background: #eaf6ef;
-  color: #237644;
-  font-size: 0.68rem;
-  font-weight: 700;
-}
-
-.liveBadge i,
 .heroPanelFoot span {
   width: 7px;
   height: 7px;
@@ -360,7 +347,7 @@
 .panelCaption {
   display: block;
   margin: 0.1rem 0 0.75rem;
-  color: #8492a4;
+  color: #5d7086;
   font-size: 0.63rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -405,7 +392,7 @@
 
 .roleRow small {
   margin-top: 0.15rem;
-  color: #8391a2;
+  color: #5d7086;
   font-size: 0.7rem;
 }
 
@@ -442,7 +429,7 @@
 }
 
 .eyebrow {
-  color: var(--accent);
+  color: #9a6529;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.25em;
@@ -664,7 +651,7 @@
   font-weight: 600;
 }
 .levelHigh {
-  background: var(--accent);
+  background: #9a6529;
   color: #fff;
 }
 .levelMedium {
@@ -683,6 +670,102 @@
 }
 .roleTitle {
   font-size: 1.125rem;
+}
+.roleWho {
+  margin-top: 0.35rem;
+  color: #5d7086;
+  font-size: 0.875rem;
+}
+.sampleBadge {
+  margin-left: auto;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.faqList {
+  display: flex;
+  max-width: 48rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 3rem auto 0;
+}
+.faqItem {
+  border: 1px solid #e0e8f1;
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+.faqQuestion {
+  min-height: 44px;
+  padding: 0.9rem 1.25rem;
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+.faqAnswer {
+  padding: 0 1.25rem 1.1rem;
+  color: var(--text-body);
+  line-height: 1.65;
+}
+.footer {
+  padding: 2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--primary);
+  color: #e5e7eb;
+}
+.footerInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.footerBrand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.footerBrand img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: contain;
+}
+.footerBrand span {
+  display: flex;
+  flex-direction: column;
+}
+.footerBrand strong {
+  font-size: 0.875rem;
+}
+.footerBrand small {
+  font-size: 0.75rem;
+}
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+.footerLinks a {
+  padding: 0.5rem 0;
+  color: #e5e7eb;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.footerLinks a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.navLinks a:focus-visible,
+.loginLink:focus-visible,
+.heroSecondary:focus-visible,
+.faqQuestion:focus-visible,
+.footerLinks a:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
 }
 .platform {
   padding: 0.25rem 0.75rem;
@@ -796,6 +879,7 @@
   place-items: center;
   border-radius: 12px;
   background: #f6ecdf;
+  color: #9a6529;
   font-size: 1rem !important;
 }
 

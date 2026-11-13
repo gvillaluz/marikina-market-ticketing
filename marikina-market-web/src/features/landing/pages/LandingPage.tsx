@@ -68,7 +68,9 @@ function Navbar() {
           <a href="#top" className={styles.activeNavLink}>
             Home
           </a>
-          <a href="#features">About</a>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#faq">Questions</a>
           <a href="#contact">Contact</a>
         </nav>
 
@@ -104,7 +106,8 @@ function Hero() {
             </Link>
           </div>
           <div className={styles.heroTrust}>
-            <span aria-hidden>✓</span> A more connected market community
+            <span aria-hidden>✓</span> Every inspection recorded with photo
+            evidence
           </div>
         </div>
         <div className={styles.heroPanel} aria-label="Market system overview">
@@ -116,9 +119,6 @@ function Hero() {
                 <small>One connected system</small>
               </span>
             </div>
-            <span className={styles.liveBadge}>
-              <i /> Online
-            </span>
           </div>
           <div className={styles.heroPanelBody}>
             <span className={styles.panelCaption}>
@@ -152,16 +152,28 @@ function Hero() {
 
 const featureCards = [
   {
-    title: "Time-Series Analysis",
-    desc: "Market officers can log violations during daily rounds, capturing every incident with photo evidence and timestamps for a complete record.",
+    title: "Field inspections",
+    desc: "Enforcers record each inspection on their phone, with photos as evidence and a timestamp.",
   },
   {
-    title: "Frequency Distribution",
-    desc: "Trend lines, peak periods, and recurring violation types are surfaced across market sections, turning raw tickets into clear pattern.",
+    title: "Warnings and tickets",
+    desc: "Issue a warning or a violation ticket during the round. Administrators review each submitted ticket.",
   },
   {
-    title: "AI Decision Support",
-    desc: "A weighted scoring model ranks vendor risk and auto-suggests inspection actions, reviewed by the Administrator through natural language.",
+    title: "Business and person records",
+    desc: "One searchable record of every business and person, and what has been recorded against them.",
+  },
+  {
+    title: "Analytics",
+    desc: "See which violation types and market sections need attention, and how that changes over time.",
+  },
+  {
+    title: "Recommended actions",
+    desc: "Suggested inspection actions are ranked for the administrator to review and decide on.",
+  },
+  {
+    title: "Reports and audit trail",
+    desc: "Export compliance reports. Every action taken on a record is logged.",
   },
 ];
 
@@ -170,8 +182,9 @@ function Features() {
     <section id="features" className={styles.lightSection}>
       <div className={styles.container}>
         <SectionHeading
-          eyebrow="System Features"
-          title="Key implementing technologies of the system"
+          eyebrow="Features"
+          title="What the system does"
+          subtext="Everything the market office needs, from the daily round to the compliance report."
         />
         <div className={`${styles.cardGrid} ${styles.threeColumns}`}>
           {featureCards.map((c) => (
@@ -192,23 +205,23 @@ function Features() {
 const processSteps = [
   {
     num: "01",
-    title: "Tickets Logged",
-    desc: "Market officers issue tickets for violations during daily round inspections.",
+    title: "Ticket logged",
+    desc: "Market enforcers issue tickets for violations during daily round inspections.",
   },
   {
     num: "02",
-    title: "Patterns aggregated",
-    desc: "Time-series analysis and frequency distribution surface trend lines, peak periods, and recurring violation types across market sections.",
+    title: "Patterns found",
+    desc: "Tickets are grouped over time to show trends, peak periods, and repeat violations across market sections.",
   },
   {
     num: "03",
-    title: "Sections and vendors ranked",
-    desc: "Aggregation and ranking builds a market-section hotspot ranking, while a weighted scoring model ranks vendor risk.",
+    title: "Sections and businesses ranked",
+    desc: "Market sections are ranked by how many problems they have, and businesses are ranked by risk.",
   },
   {
     num: "04",
-    title: "AI inspection recommendations",
-    desc: "The Administrator reviews the AI suggested actions in NLP.",
+    title: "Actions suggested",
+    desc: "The administrator reviews the AI-suggested inspection actions and decides what to do.",
   },
 ];
 
@@ -238,7 +251,7 @@ function ProcessStep({
 
 function Process() {
   return (
-    <section className={styles.tintedSection}>
+    <section id="how-it-works" className={styles.tintedSection}>
       <div className={styles.container}>
         <SectionHeading
           eyebrow="PROCESS"
@@ -280,7 +293,7 @@ function AnalyticsPreview() {
         <SectionHeading
           eyebrow="ANALYTICS DASHBOARD"
           title="What the Administrator dashboard shows"
-          subtext="Violation type distribution and market-section hotspot ranking, two of the five analytics modules, translated into a helpful analytics."
+          subtext="Violation type distribution and market-section hotspot ranking, two of the five analytics modules, shown here with example figures."
         />
 
         {/* Mock dashboard card */}
@@ -291,6 +304,7 @@ function AnalyticsPreview() {
             <span className={styles.analyticsHeaderText}>
               Administrator / Analytics — Violation Type Distribution
             </span>
+            <span className={styles.sampleBadge}>Sample data</span>
           </div>
 
           {/* body */}
@@ -346,7 +360,8 @@ function AnalyticsPreview() {
 
 const roles = [
   {
-    name: "Market Enforcer",
+    name: "Market Enforcers",
+    who: "Field staff using the mobile app",
     platform: "Mobile",
     bullets: [
       "Search the business records mid-inspection",
@@ -355,7 +370,8 @@ const roles = [
     ],
   },
   {
-    name: "Administrator",
+    name: "Administrators",
+    who: "Head Admin and Admin Officer",
     platform: "Web",
     bullets: [
       "Review submitted tickets and update vendor status",
@@ -385,6 +401,7 @@ function WhoItsFor() {
                 <h3 className={styles.roleTitle}>{r.name}</h3>
                 <span className={styles.platform}>{r.platform}</span>
               </div>
+              <p className={styles.roleWho}>{r.who}</p>
               <ul className={styles.bulletList}>
                 {r.bullets.map((b) => (
                   <li key={b} className={styles.bulletItem}>
@@ -401,18 +418,80 @@ function WhoItsFor() {
   );
 }
 
+const faqItems = [
+  {
+    question: "Who can sign in?",
+    answer:
+      "Administrators (Head Admin and Admin Officer) and Market Enforcers. Each account only sees the functions for its role.",
+  },
+  {
+    question: "How do I register my business?",
+    answer:
+      "Contact the market office. Staff add and update business records in the system for you.",
+  },
+  {
+    question: "What is recorded in an inspection?",
+    answer:
+      "The inspection is recorded with photo evidence and a timestamp, and any warning or violation ticket is added to the business's record.",
+  },
+  {
+    question: "How are records kept safe?",
+    answer:
+      "Access is role-based, and every action taken on a record is written to an audit trail.",
+  },
+];
+
+function Faq() {
+  return (
+    <section id="faq" className={styles.lightSection}>
+      <div className={styles.container}>
+        <SectionHeading eyebrow="QUESTIONS" title="Common questions" />
+        <div className={styles.faqList}>
+          {faqItems.map((item) => (
+            <details key={item.question} className={styles.faqItem}>
+              <summary className={styles.faqQuestion}>{item.question}</summary>
+              <p className={styles.faqAnswer}>{item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ClosingCta() {
   return (
     <section id="contact" className={styles.ctaSection}>
       <div className={`${styles.container} ${styles.centered}`}>
-        <h2 className={styles.ctaTitle}>Business records</h2>
+        <h2 className={styles.ctaTitle}>For business owners</h2>
         <p className={styles.ctaCopy}>
-          Businesses and their owners do not have system login accounts.
-          Contact the market office to register or update your business
-          details.
+          Businesses and their owners do not have system login accounts. Contact
+          the market office to register or update your business details.
         </p>
       </div>
     </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className={styles.footer}>
+      <div className={`${styles.container} ${styles.footerInner}`}>
+        <div className={styles.footerBrand}>
+          <img src={citySeal} alt="" />
+          <span>
+            <strong>Marikina Public Market Inspection System</strong>
+            <small>Marikina City</small>
+          </span>
+        </div>
+        <nav className={styles.footerLinks} aria-label="Footer navigation">
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#faq">Questions</a>
+          <Link to="/admin/login">Administrator login</Link>
+        </nav>
+      </div>
+    </footer>
   );
 }
 
@@ -426,7 +505,9 @@ export default function LandingPage() {
       <Process />
       <AnalyticsPreview />
       <WhoItsFor />
+      <Faq />
       <ClosingCta />
+      <Footer />
     </div>
   );
 }
