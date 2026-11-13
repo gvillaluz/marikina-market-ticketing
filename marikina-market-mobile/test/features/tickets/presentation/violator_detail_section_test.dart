@@ -69,6 +69,7 @@ TicketDetail _ticket({
   ),
   ticketId: 1,
   enforcerId: 2,
+  enforcerName: 'Reyes, Ana',
   vendorId: 3,
   violationType: ViolationType.ticket,
   businessType: businessType,

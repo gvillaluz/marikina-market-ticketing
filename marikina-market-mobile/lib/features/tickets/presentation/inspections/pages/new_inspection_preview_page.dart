@@ -4,6 +4,7 @@ import '../../../domain/enums/fine_kind.dart';
 import '../widgets/form/assessed_fine_field.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/person_history_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_header.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_issuer.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +12,6 @@ import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
-import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_form_data.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
@@ -382,49 +382,9 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
 
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 10,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Divider(),
-                                      const Text('Issued By:'),
-                                      const Text(
-                                        'Market Officer',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text('Marikina City Public Market'),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Divider(),
-                                      const Text('Issued To:'),
-                                      const Text(
-                                        'Market Vendor',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        isTicket
-                                            ? 'Date: ${DateTimeFormatter.getDate(DateTime.now())}'
-                                            : 'Date assigned when saved',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                            child: TicketPaperIssuer(
+                              enforcerName: widget.formData.enforcerName,
+                              issuedAt: DateTime.now(),
                             ),
                           ),
                         ],

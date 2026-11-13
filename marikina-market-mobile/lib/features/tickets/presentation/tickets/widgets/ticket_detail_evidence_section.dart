@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_evidence.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_evidence_grid.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_evidence_group.dart';
 
 class TicketDetailEvidenceSection extends StatelessWidget {
@@ -33,7 +32,14 @@ class TicketDetailEvidenceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!isTicket) return _buildPhotos(context);
+    if (!isTicket) {
+      return TicketEvidenceGroup(
+        title: 'Paper warning',
+        icon: Icons.description_outlined,
+        urls: evidences,
+        large: true,
+      );
+    }
     final paper = _urlsFor('PaperTicket');
     final supporting = _urlsFor('Supporting');
     final unclassified = evidenceItems.isEmpty ? evidences : _urlsFor(null);
@@ -63,14 +69,4 @@ class TicketDetailEvidenceSection extends StatelessWidget {
       ],
     );
   }
-
-  Widget _buildPhotos(BuildContext context) => Container(
-    padding: AppTheme.ticketCardPadding,
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: AppTheme.ticketCardRadius,
-      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-    ),
-    child: TicketEvidenceGrid(urls: evidences),
-  );
 }

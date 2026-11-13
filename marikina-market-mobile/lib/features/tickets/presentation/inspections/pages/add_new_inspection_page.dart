@@ -523,6 +523,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
               : null,
           issuePlace: _issuePlaceController.text.trim(),
           enforcerId: widget.user.userId,
+          enforcerName: '${widget.user.lastName}, ${widget.user.firstName}',
           vendorSummary: _vendorSummary,
           unregisteredSection: _unregisteredSection,
           fineSummary: _localFineSummary,

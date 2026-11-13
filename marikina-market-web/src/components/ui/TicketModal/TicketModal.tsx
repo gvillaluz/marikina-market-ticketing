@@ -6,9 +6,9 @@ import brandLogo from "../../../assets/icons/Marikina_City_Seal.svg (1).webp";
 import TicketViolationInfoSection from "./modal/TicketViolatorInfoSection";
 import TicketViolationDetailsSection from "./modal/TicketViolationDetailsSection";
 import TicketPenaltyDetailsSection from "./modal/TicketPenaltyDetailsSection";
-import TicketSignatureSection from "./modal/TicketSignatureSection";
 import TicketPhotoEvidenceSection from "./modal/TicketPhotoEvidenceSection";
 import TicketExportPanel from "./modal/TicketExportPanel";
+import TicketIssuerSection from "./modal/TicketIssuerSection";
 
 import { createPortal } from "react-dom";
 
@@ -113,9 +113,9 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
                   <TicketPenaltyDetailsSection detail={ticket} />
                 )}
 
-                <TicketSignatureSection
-                  enforcerName={`${ticket?.enforcerLastName}, ${ticket?.enforcerFirstName}`}
-                  vendorName={isTicket ? `${ticket?.lastName}, ${ticket?.firstName}` : (ticket?.personFullName || "Unconfirmed (legacy record)")}
+                <TicketIssuerSection
+                  enforcerName={`${ticket.enforcerLastName}, ${ticket.enforcerFirstName}`}
+                  issuedAt={ticket.issuedAt}
                 />
               </>
             )}

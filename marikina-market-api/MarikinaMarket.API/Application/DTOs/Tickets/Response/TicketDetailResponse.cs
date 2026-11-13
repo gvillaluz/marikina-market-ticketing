@@ -11,6 +11,8 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
         public string? IssuePlace { get; set; }
         public int TicketId { get; set; }
         public int EnforcerId { get; set; }
+        public required string EnforcerLastName { get; set; }
+        public required string EnforcerFirstName { get; set; }
         public int? VendorId { get; set; }
         public int? PersonId { get; set; }
         public string? PersonFullName { get; set; }

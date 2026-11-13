@@ -74,6 +74,7 @@ void main() {
                       paperReference: isTicket ? '000456' : null,
                       issuePlace: isTicket ? 'Fish aisle near F-014' : null,
                       enforcerId: 7,
+                      enforcerName: 'Reyes, Ana',
                       vendorSummary: vendor,
                       fineSummary: isTicket
                           ? FineSummary(

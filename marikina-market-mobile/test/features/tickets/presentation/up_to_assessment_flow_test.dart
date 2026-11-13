@@ -93,6 +93,7 @@ void main() {
     final draft = InspectionFormData(
       vendorSummary: vendor,
       enforcerId: 7,
+      enforcerName: 'Reyes, Ana',
       personId: 31,
       paperViolatorName: 'Synthetic Vendor',
       paperReference: 'S2-0002',
@@ -154,6 +155,7 @@ void main() {
         final draft = InspectionFormData(
           vendorSummary: vendor,
           enforcerId: 7,
+          enforcerName: 'Reyes, Ana',
           personId: 31,
           paperViolatorName: 'Synthetic Vendor',
           paperReference: 'S2-0001',
