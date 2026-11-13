@@ -43,7 +43,7 @@ void main() {
   });
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
 
-  testWidgets('inspection card shows the paper control number only', (
+  testWidgets('inspection card does not show control number or issue place', (
     tester,
   ) async {
     await show(
@@ -53,27 +53,13 @@ void main() {
           ...inspectionResponse,
           'paper_reference': '000456',
         }).toEntity(),
+        expanded: false,
+        onToggle: () {},
       ),
     );
-    expect(find.text('Control number: 000456'), findsOneWidget);
-    expectNoOldLabels();
-  });
-
-  testWidgets('inspection card for an old ticket without a paper number', (
-    tester,
-  ) async {
-    await show(
-      tester,
-      InspectionCard(
-        ticketSummary: InspectionSummaryModel.fromJson(
-          inspectionResponse,
-        ).toEntity(),
-      ),
-    );
-    expect(
-      find.text('Control number: Unavailable (legacy record)'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('Control number'), findsNothing);
+    expect(find.textContaining('Issue place'), findsNothing);
+    expect(find.textContaining('000456'), findsNothing);
     expectNoOldLabels();
   });
 

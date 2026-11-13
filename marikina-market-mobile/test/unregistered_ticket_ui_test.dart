@@ -173,6 +173,8 @@ void main() {
         tester,
         InspectionCard(
           ticketSummary: InspectionSummaryModel.fromJson(record).toEntity(),
+          expanded: false,
+          onToggle: () {},
         ),
       );
       _expectUnregisteredWording();

@@ -184,6 +184,8 @@ void main() {
                   ticketSummary: InspectionSummaryModel.fromJson(
                     inspectionResponse,
                   ).toEntity(),
+                  expanded: true,
+                  onToggle: () {},
                 ),
               ),
             ),

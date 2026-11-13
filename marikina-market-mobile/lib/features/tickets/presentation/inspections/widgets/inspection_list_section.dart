@@ -8,9 +8,18 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_list_notice.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_list_footer.dart';
 
-class InspectionListSection extends StatelessWidget {
+class InspectionListSection extends StatefulWidget {
   final VoidCallback? onRetry;
   const InspectionListSection({super.key, this.onRetry});
+
+  @override
+  State<InspectionListSection> createState() => _InspectionListSectionState();
+}
+
+class _InspectionListSectionState extends State<InspectionListSection> {
+  int? _expandedTicketId;
+
+  VoidCallback? get onRetry => widget.onRetry;
 
   @override
   Widget build(
@@ -73,7 +82,16 @@ class InspectionListSection extends StatelessWidget {
                 return Padding(
                   key: ValueKey(ticket.ticketId),
                   padding: AppTheme.inspectionItemPadding,
-                  child: InspectionCard(ticketSummary: ticket),
+                  child: InspectionCard(
+                    ticketSummary: ticket,
+                    expanded: _expandedTicketId == ticket.ticketId,
+                    onToggle: () => setState(
+                      () => _expandedTicketId =
+                          _expandedTicketId == ticket.ticketId
+                          ? null
+                          : ticket.ticketId,
+                    ),
+                  ),
                 );
               },
               childCount: state.ticketSummary.length + 2,
