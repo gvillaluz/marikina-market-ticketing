@@ -62,7 +62,9 @@ test('warning has one classified paper photo and no supporting-photo section', (
 isTicket: false,
     images: ['paper-warning.jpg'], evidenceItems: [{ id: 1, role: 'PaperTicket', sortOrder: 0, url: 'paper-warning.jpg' }]  
 }));
-  assert.match(html, /Paper warning photo/);
+  assert.match(html, /Warning Photos/);
+  assert.match(html, /Paper warning/);
+  assert.match(html, /1 photo/);
   assert.match(html, /paper-warning.jpg/);
   assert.doesNotMatch(html, /Supporting evidence/);
 });

@@ -16,6 +16,7 @@ let source = ts.transpileModule(await readFile(new URL('../../components/ui/Tick
 for (const match of [...source.matchAll(/from\s+["']([^"']+)["']/g)]) {
   const name = match[1];
   const target = name.endsWith('.css') ? data('export default {};')
+    : name.includes('TicketPhotoEvidenceGroup') ? data(`import React from '${react}'; export default ({label,images})=>React.createElement('div',null,React.createElement('h6',null,label),images.map(url=>React.createElement('img',{key:url,src:url,alt:url})));`)
     : name.includes('TicketEvidenceGallery') ? data(`import React from '${react}'; export default ({images})=>React.createElement('div',null,images.map(url=>React.createElement('img',{key:url,src:url,alt:url})));`)
     : pathToFileURL(require.resolve(name)).href;
   source = source.replaceAll(JSON.stringify(name), JSON.stringify(target));
@@ -28,7 +29,8 @@ test('citation roles stay distinct and supporting photos keep their order', () =
     {id:1, role:'PaperTicket', sortOrder:0, url:'paper.jpg'},
     {id:2, role:'Supporting', sortOrder:0, url:'support-one.jpg'},
   ]});
-  assert.match(html,/Paper ticket photo/);
+  assert.match(html,/Ticket Photos/);
+  assert.match(html,/Paper ticket/);
   assert.match(html,/Supporting evidence/);
   assert.ok(html.indexOf('support-one.jpg') < html.indexOf('support-two.jpg'));
   assert.doesNotMatch(html,/old-flat.jpg|Unclassified evidence/);
@@ -37,5 +39,5 @@ test('legacy photos remain explicitly unclassified without guessed roles', () =>
   const html = render({images:['legacy.jpg']});
   assert.match(html,/Unclassified evidence/);
   assert.match(html,/legacy.jpg/);
-  assert.doesNotMatch(html,/Paper ticket photo|Supporting evidence/);
+  assert.doesNotMatch(html,/Paper ticket|Supporting evidence/);
 });
