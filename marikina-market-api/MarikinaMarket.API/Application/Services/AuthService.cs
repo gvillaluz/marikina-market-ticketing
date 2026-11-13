@@ -648,14 +648,33 @@ namespace MarikinaMarket.API.Application.Services
                 };
 
             if (_audit?.Entry is not null) _audit.Entry.TargetId = user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            var result = await _repository.ResetPasswordByUsernameAsync(user, request.ResetToken, request.NewPassword);
-
-            if (!result.Succeeded) 
-                return new ResetPasswordResponse
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var result = await _repository.ResetPasswordByUsernameAsync(user, request.ResetToken, request.NewPassword);
+                if (result.Succeeded && user.MustChangePassword)
                 {
-                    Success = false,
-                    Message = "Failed to reset password."
-                };
+                    user.MustChangePassword = false;
+                    result = await _repository.UpdateUserAsync(user);
+                }
+
+                if (!result.Succeeded)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return new ResetPasswordResponse
+                    {
+                        Success = false,
+                        Message = ResetPasswordFailureMessage(result)
+                    };
+                }
+
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
 
             await SetUserAuditActorAsync(user);
             return new ResetPasswordResponse
@@ -663,6 +682,23 @@ namespace MarikinaMarket.API.Application.Services
                 Success = true,
                 Message = "Password reset successfully."
             };
+        }
+
+        private static string ResetPasswordFailureMessage(IdentityResult result)
+        {
+            if (result.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.InvalidToken)))
+                return "Your reset session has expired. Please start again.";
+
+            var ruleCodes = new[]
+            {
+                nameof(IdentityErrorDescriber.PasswordTooShort),
+                nameof(IdentityErrorDescriber.PasswordRequiresDigit),
+                nameof(IdentityErrorDescriber.PasswordRequiresUpper)
+            };
+            if (result.Errors.Any(e => ruleCodes.Contains(e.Code)))
+                return "Use at least 8 characters, with a number and a capital letter.";
+
+            return "Failed to reset password.";
         }
 
         private string? MaskEmail(string email)
