@@ -1,0 +1,25 @@
+workflows:
+  ios-simulator:
+    name: iPhone simulator build
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: 3.47.9
+      xcode: latest
+      groups:
+        - ios_simulator
+    scripts:
+      - name: Get packages
+        working_directory: marikina-market-mobile
+        script: flutter pub get
+      - name: Build for the simulator
+        working_directory: marikina-market-mobile
+        script: |
+          flutter build ios --simulator \
+            --dart-define=API_BASE_URL="$API_BASE_URL" \
+            --dart-define=FIREBASE_IOS_API_KEY="$FIREBASE_IOS_API_KEY"
+      - name: Zip the app
+        working_directory: marikina-market-mobile/build/ios/iphonesimulator
+        script: zip -r "$CM_BUILD_DIR/Runner-simulator.zip" Runner.app
+    artifacts:
+      - Runner-simulator.zip
