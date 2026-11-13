@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
+import 'package:marikina_market_mobile/core/utils/password_change_check.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
@@ -37,8 +38,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     context.read<PasswordRecoveryBloc>().add(
       ResetPassword(
         widget.args.username,
-        newPasswordController.text.trim(),
-        confirmNewPasswordController.text.trim(),
+        newPasswordController.text,
+        confirmNewPasswordController.text,
         widget.args.resetToken,
       ),
     );
@@ -82,7 +83,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                               ),
                               const SizedBox(height: 4),
                               const Text(
-                                'Use at least 8 characters with a combination of letters and numbers.',
+                                PasswordChangeCheck.hint,
                                 style: TextStyle(
                                   color: AppTheme.authVerificationBodyColor,
                                   fontSize: AppTheme.bodyFontSize,
@@ -108,9 +109,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                   final error = switch (state) {
                                     ResetPasswordFailed(:final message) =>
                                       message,
-                                    ResetPasswordSuccessfully(:final result)
-                                        when !result.success =>
-                                      result.message,
                                     _ => null,
                                   };
                                   return Column(

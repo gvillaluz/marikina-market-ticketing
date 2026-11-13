@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
-import 'package:marikina_market_mobile/features/password_recovery/domain/entities/reset_password_result.dart';
+import 'package:marikina_market_mobile/core/utils/password_change_check.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/find_account_use_case.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/reset_password_use_case.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/send_otp_use_case.dart';
@@ -110,17 +110,18 @@ class PasswordRecoveryBloc
     Emitter<PasswordRecoveryState> emit,
   ) async {
     if (_busy) return;
-    _busy = true;
-    if (event.newPassword != event.confirmNewPassword) {
-      emit(
-        ResetPasswordSuccessfully(
-          ResetPasswordResult(
-            success: false,
-            message: 'Confirm password must match new password.',
-          ),
-        ),
-      );
+    final problem =
+        PasswordChangeCheck.newPasswordProblem(event.newPassword) ??
+        (event.confirmNewPassword.isEmpty
+            ? 'Confirm your new password.'
+            : event.confirmNewPassword != event.newPassword
+            ? 'Passwords do not match.'
+            : null);
+    if (problem != null) {
+      emit(ResetPasswordFailed(problem));
+      return;
     }
+    _busy = true;
 
     emit(ResetPasswordLoading());
 
@@ -137,7 +138,7 @@ class PasswordRecoveryBloc
         if (data.success) {
           emit(ResetPasswordSuccessfully(data));
         } else {
-          emit(ResetPasswordSuccessfully(data));
+          emit(ResetPasswordFailed(data.message));
         }
 
       case ResultFailure(:final failure):
