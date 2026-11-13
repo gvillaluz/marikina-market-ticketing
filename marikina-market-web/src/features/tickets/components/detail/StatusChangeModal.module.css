@@ -1,0 +1,22 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-xl) 1.5rem;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.summary {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.8125rem;
+  text-align: center;
+  color: var(--text-heading);
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+}

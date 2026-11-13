@@ -7,9 +7,7 @@ import {
   FileWarning,
   AlertCircle,
   ImageIcon,
-  ListChecks,
   HelpCircle,
-  Settings,
 } from "lucide-react";
 import TicketDetailHeader from "../components/detail/TicketDetailHeader";
 import DetailCard from "../components/detail/DetailCard";
@@ -17,17 +15,18 @@ import InfoField from "../components/detail/InfoField";
 import StatusPill from "../components/detail/StatusPill";
 import EvidenceThumbnail from "../components/detail/EvidenceThumbnail";
 import FineSummaryBox from "../components/detail/FineSummaryBox";
-import StatusOptionCard from "../components/detail/StatusOptionCard";
+import StatusChangeModal from "../components/detail/StatusChangeModal";
+import ControlNumber from "../components/detail/ControlNumber";
+import ViolationItem from "../components/detail/ViolationItem";
 import TicketDetailFooter from "../components/detail/TicketDetailFooter";
 import styles from "./TicketDetailPage.module.css";
-import { RecordStatus, Severity } from "@/api/types/common.types";
 import InfoRowField from "../components/detail/InfoRowField";
 import {
   daysLeft,
   formatCurrency,
   formatDate,
+  formatControlNumberLabel,
   formatDateTime,
-  formatControlNumber,
   UNREGISTERED_VENDOR,
 } from "@/utils/formatters";
 import TicketDetailSkeleton from "../components/detail/TicketDetailSkeleton";
@@ -38,50 +37,14 @@ import EvidenceSection from "../components/detail/EvidenceSection";
 import TicketPhotoEvidenceSection from "@/components/ui/TicketModal/modal/TicketPhotoEvidenceSection";
 import { useUpdateStatus } from "../hooks/useUpdateStatus";
 import { TicketModal } from "../../../components/ui/TicketModal/TicketModal";
-import Modal from "@/components/ui/Modal";
 import { useTicketStatusSelection } from "../hooks/useTicketStatusSelection";
 import { useDisclosure } from "../hooks/useDisclosure";
 import { getApiErrorMessage } from "@/utils/apiErrors";
 import PersonTicketHistory from "../components/PersonTicketHistory";
 import TicketChangeHistory from "../components/detail/TicketChangeHistory";
 
-const STATUS_OPTIONS = [
-  {
-    value: "Pending",
-    title: "Pending",
-    description: "Ticket remains open and pending.",
-  },
-  { value: "Paid", title: "Paid", description: "Fine has been fully settled." },
-  {
-    value: "Contested",
-    title: "Contested",
-    description: "Vendor disputed the ticket, under review.",
-  },
-  {
-    value: "Waived",
-    title: "Waived",
-    description: "Fine dismissed, no payment required.",
-  },
-  {
-    value: "Cleared",
-    title: "Cleared",
-    description: "Resolved via community service or blood donation.",
-  },
-  {
-    value: "Overdue",
-    title: "Overdue",
-    description: "The settlement due date has passed.",
-  },
-  {
-    value: "InProgress",
-    title: "In Progress",
-    description: "Settlement is in progress.",
-  },
-];
-
 const TicketDetailPage: FC = () => {
   const { id } = useParams();
-  const statusOptions = useDisclosure();
   const { ticket, refetch, isLoading, isError, error } = useTicketDetails(
     Number(id),
   );
@@ -91,14 +54,30 @@ const TicketDetailPage: FC = () => {
     availableStatuses,
     canUpdateStatus,
     receiptUrls,
+    resetSelection,
   } = useTicketStatusSelection(ticket);
   const { mutateAsync: updateStatus, isPending } = useUpdateStatus(Number(id));
   const totalFineAmount = getTicketTotalFineAmount(ticket);
 
   const recordModal = useDisclosure();
-  const confirmModal = useDisclosure();
+  const statusModal = useDisclosure();
 
   const handleRetry = () => refetch();
+
+  const closeStatusModal = () => {
+    statusModal.close();
+    resetSelection();
+  };
+
+  const confirmStatusChange = async () => {
+    if (!canUpdateStatus || selectedStatus === undefined || !ticket) return;
+    try {
+      await updateStatus({ newStatus: selectedStatus, version: ticket.version });
+      statusModal.close();
+    } catch {
+      // stays open, error toast already shown via onError in the hook
+    }
+  };
 
   if (isLoading) {
     return (
@@ -130,7 +109,7 @@ const TicketDetailPage: FC = () => {
       <Breadcrumb
         items={[
           { label: "Tickets", to: "/tickets" },
-          { label: formatControlNumber(ticket?.controlNumber) },
+          { label: formatControlNumberLabel(ticket?.controlNumber) },
         ]}
       />
 
@@ -177,7 +156,7 @@ const TicketDetailPage: FC = () => {
 
         <DetailCard title="TICKET PARAMETERS" icon={ClipboardList}>
           <div className={styles.fieldGrid}>
-            <InfoField label="CONTROL NUMBER" value={formatControlNumber(ticket.controlNumber)} />
+            <InfoField label="CONTROL NUMBER" value={<ControlNumber value={ticket.controlNumber} />} />
             <InfoField label="ISSUE PLACE" value={ticket.issuePlace || "Unavailable (legacy record)"} />
             <InfoField
               label="DATE ISSUED"
@@ -203,10 +182,12 @@ const TicketDetailPage: FC = () => {
           >
             <div className={styles.stack}>
               {ticket?.violations.map((violation, i) => (
-                <InfoField
+                <ViolationItem
                   key={i}
-                  label="VIOLATION TYPE / ORDINANCE"
-                  value={`Ord No. ${violation.ordinanceNo}, Series of ${violation.series} — ${violation.section ? `Section ${violation.section}` : "Section unavailable"}${violation.specificCategory ? ` — ${violation.specificCategory}` : ""}`}
+                  ordinanceNo={violation.ordinanceNo}
+                  series={violation.series}
+                  section={violation.section}
+                  specificCategory={violation.specificCategory}
                 />
               ))}
               <div className={styles.descriptionBlock}>
@@ -226,117 +207,74 @@ const TicketDetailPage: FC = () => {
             </div>
           </DetailCard>
 
-          <DetailCard
-            title="PENALTY & SETTLEMENT STATUS"
-            icon={AlertCircle}
-            showDivider
-          >
-            <div className={styles.stack}>
-              <InfoField
-                label="PENALTY TYPE"
-                value={formatPenaltyType(ticket?.penaltyType)}
-              />
-              {ticket.penaltyType === "CashFine" && (
-                <FineSummaryBox
-                  amount={
-                    totalFineAmount == null
-                      ? "—"
-                      : formatCurrency(totalFineAmount)
-                  }
+          <div className={styles.sideColumn}>
+            <DetailCard
+              title="PENALTY & SETTLEMENT STATUS"
+              icon={AlertCircle}
+              showDivider
+            >
+              <div className={styles.stack}>
+                <InfoField
+                  label="PENALTY TYPE"
+                  value={formatPenaltyType(ticket?.penaltyType)}
                 />
-              )}
-              {ticket.dueDate && (
-                <div className={styles.fieldFlex}>
-                  <InfoRowField
-                    label="DUE DATE"
-                    value={
-                      <span
-                        className={styles.dueDate}
-                      >{`${formatDateTime(ticket.dueDate)} (${daysLeft(ticket.dueDate)})`}</span>
+                {ticket.penaltyType === "CashFine" && (
+                  <FineSummaryBox
+                    amount={
+                      totalFineAmount == null
+                        ? "—"
+                        : formatCurrency(totalFineAmount)
                     }
                   />
-                </div>
-              )}
-              {ticket.penaltyType === "CashFine" && (
-                <div className={styles.noteBox}>
-                  <HelpCircle className={styles.helpIcon} />
-                  <span>
-                    Settlement must be paid at the Marikina City Treasury Office
-                    during municipal business hours.
-                  </span>
-                </div>
-              )}
-            </div>
-          </DetailCard>
-        </div>
+                )}
+                {ticket.dueDate && (
+                  <div className={styles.fieldFlex}>
+                    <InfoRowField
+                      label="DUE DATE"
+                      value={
+                        <span
+                          className={styles.dueDate}
+                        >{`${formatDateTime(ticket.dueDate)} (${daysLeft(ticket.dueDate)})`}</span>
+                      }
+                    />
+                  </div>
+                )}
+                {ticket.penaltyType === "CashFine" && (
+                  <div className={styles.noteBox}>
+                    <HelpCircle className={styles.helpIcon} />
+                    <span>
+                      Settlement must be paid at the Marikina City Treasury Office
+                      during municipal business hours.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </DetailCard>
 
-        <DetailCard
-          title="SETTLEMENT VERIFICATION"
-          icon={ImageIcon}
-          full
-        >
-          <p className={styles.cardSubtitle}>
-            Proof of settlement submitted by the enforcer, used as the basis
-            for updating the record.
-          </p>
-          {receiptUrls.length === 0 ? (
-            <EvidenceThumbnail caption="Media not provided" />
-          ) : (
-            <EvidenceSection images={receiptUrls} />
-          )}
-        </DetailCard>
-
-        <TicketChangeHistory ticketId={ticket.ticketId} />
-
-        {statusOptions.isOpen && (
-          <DetailCard
-            title="UPDATE TICKET STATUS"
-            icon={ListChecks}
-            full
-            dashedBorder
-          >
-            <div
-              id="ticket-status-options"
-              className={styles.statusOptionsPanel}
+            <DetailCard
+              title="SETTLEMENT VERIFICATION"
+              icon={ImageIcon}
+              showDivider
             >
               <p className={styles.cardSubtitle}>
-                Select the most appropriate status for this ticket.
+                Proof of settlement submitted by the enforcer, used as the basis
+                for updating the record.
               </p>
-              <div className={styles.statusOptions}>
-                {STATUS_OPTIONS.filter((option) =>
-                  availableStatuses.includes(option.value as RecordStatus),
-                ).map((option) => (
-                  <StatusOptionCard
-                    key={option.value}
-                    title={option.title}
-                    description={option.description}
-                    selected={selectedStatus === option.value}
-                    onClick={() =>
-                      setSelectedStatus(option.value as RecordStatus)
-                    }
-                  />
-                ))}
-              </div>
-            </div>
-          </DetailCard>
-        )}
+              {receiptUrls.length === 0 ? (
+                <p className={styles.noProof}>No proof submitted yet.</p>
+              ) : (
+                <EvidenceSection images={receiptUrls} />
+              )}
+            </DetailCard>
+          </div>
+        </div>
+
+        <TicketChangeHistory ticketId={ticket.ticketId} />
       </div>
 
       <TicketDetailFooter
         onViewFullRecord={recordModal.open}
-        onChangeStatus={() => {
-          if (!statusOptions.isOpen) {
-            statusOptions.open();
-            return;
-          }
-          if (selectedStatus === ticket?.status) {
-            statusOptions.close();
-            return;
-          }
-          if (!canUpdateStatus) return;
-          confirmModal.open();
-        }}
-        statusOptionsOpen={statusOptions.isOpen}
+        onChangeStatus={statusModal.open}
         canChangeStatus={isTicket}
       />
 
@@ -348,63 +286,18 @@ const TicketDetailPage: FC = () => {
         />
       )}
 
-      {confirmModal.isOpen && (
-        <Modal
-          open={confirmModal.isOpen}
-          onClose={confirmModal.close}
-          footer={
-            <>
-              <button
-                className={styles.modalCancel}
-                onClick={confirmModal.close}
-              >
-                Cancel
-              </button>
-              <button
-                className={styles.modalConfirm}
-                disabled={isPending || !canUpdateStatus}
-                onClick={async () => {
-                  if (
-                    !canUpdateStatus ||
-                    selectedStatus === undefined ||
-                    !ticket
-                  )
-                    return;
-                  try {
-                    await updateStatus({
-                      newStatus: selectedStatus,
-                      version: ticket.version,
-                    });
-                    confirmModal.close();
-                    statusOptions.close();
-                  } catch {
-                    // stays open, error toast already shown via onError in the hook
-                  }
-                }}
-              >
-                {isPending ? "Updating…" : "Confirm Update"}
-              </button>
-            </>
-          }
-          size="sm"
-        >
-          <div className={styles.modalContent}>
-            <div className={styles.iconContainer}>
-              <Settings
-                size={24}
-                className={styles.settingsIcon}
-                color="#000000"
-              />
-            </div>
-            <h2 className={styles.modalTitle}>Confirm Status Update</h2>
-            <p>
-              Are you sure you want to update the status for Ticket{" "}
-              <strong>{formatControlNumber(ticket?.controlNumber)}</strong>?
-              This action will be recorded in the audit log.
-            </p>
-          </div>
-        </Modal>
-      )}
+      <StatusChangeModal
+        open={statusModal.isOpen}
+        controlNumber={ticket.controlNumber}
+        currentStatus={ticket.status}
+        selectedStatus={selectedStatus}
+        availableStatuses={availableStatuses}
+        canUpdate={canUpdateStatus}
+        isPending={isPending}
+        onSelect={setSelectedStatus}
+        onConfirm={() => void confirmStatusChange()}
+        onClose={closeStatusModal}
+      />
     </div>
   );
 };

@@ -6,14 +6,12 @@ import Button from "@/components/ui/Button/Button";
 interface TicketDetailFooterProps {
   onViewFullRecord: () => void;
   onChangeStatus: () => void;
-  statusOptionsOpen: boolean;
   canChangeStatus: boolean;
 }
 
 const TicketDetailFooter: FC<TicketDetailFooterProps> = ({
   onViewFullRecord,
   onChangeStatus,
-  statusOptionsOpen,
   canChangeStatus,
 }) => {
   return (
@@ -31,8 +29,6 @@ const TicketDetailFooter: FC<TicketDetailFooterProps> = ({
           variant="primary"
           icon={<SquareCheck size={18} aria-hidden="true" />}
           onClick={onChangeStatus}
-          aria-expanded={statusOptionsOpen}
-          aria-controls="ticket-status-options"
         >
           Change Status
         </Button>

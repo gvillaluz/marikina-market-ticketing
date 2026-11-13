@@ -138,8 +138,8 @@ test('person history names an unregistered vendor and still flags an old record'
     businessName: null, registeredOwnerName: null, businessSnapshot: null };
   globalThis.personHistoryState = { isPending: false, isError: false, items: [item, { ...item, ticketId: 3, paperReference: '000300', businessName: 'Aling Nena' }], hasNextPage: false };
   const html = text(render(await component('features/tickets/components/PersonTicketHistory.tsx'), { personId: 31 }));
-  assert.ok(html.includes(`Control number000456Pending${UNREGISTERED}`));
-  assert.ok(html.includes(`Control number000300Pending${UNAVAILABLE}`));
+  assert.ok(html.includes(`Control number#000456Pending${UNREGISTERED}`));
+  assert.ok(html.includes(`Control number#000300Pending${UNAVAILABLE}`));
 });
 
 test('pending settlements name an unregistered vendor and show its market section', async () => {

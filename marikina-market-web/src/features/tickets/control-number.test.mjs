@@ -108,7 +108,7 @@ test('record popup shows one control number box for tickets, warnings and old ti
 
 test('ticket detail header shows the control number', async () => {
   const Header = await component('features/tickets/components/detail/TicketDetailHeader.tsx');
-  assert.match(text(render(Header, { controlNo: '000456', status: 'Pending', lastUpdated: '' })), /^000456/);
+  assert.match(text(render(Header, { controlNo: '000456', status: 'Pending', lastUpdated: '' })), /^#000456/);
   assert.match(text(render(Header, { controlNo: null, status: 'Pending', lastUpdated: '' })), /^Unavailable \(legacy record\)/);
 });
 
@@ -117,7 +117,7 @@ test('person history shows "Control number" only', async () => {
     status: 'Pending', enforcerName: 'Santos', assessedCashFine: null, outstandingCashFine: 0, businessSnapshot: null };
   globalThis.personHistoryState = { isPending: false, isError: false, items: [item, { ...item, ticketId: 3, paperReference: null, controlNumber: '8' }], hasNextPage: false };
   const html = text(render(await component('features/tickets/components/PersonTicketHistory.tsx'), { personId: 1 }));
-  assert.match(html, /Control number000456/);
+  assert.match(html, /Control number#000456/);
   assert.match(html, /Control numberUnavailable \(legacy record\)/);
   assert.doesNotMatch(html, OLD_LABELS);
 });
