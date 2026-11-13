@@ -5,6 +5,8 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field_group.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_section_title.dart';
 
 class TicketPenaltyDetail extends StatelessWidget {
@@ -54,27 +56,15 @@ class TicketPenaltyDetail extends StatelessWidget {
     style: AppTheme.ticketPaperValueStyle,
   );
 
-  // Label at the left edge, value at the right edge. When both do not fit on
-  // one line, the value drops under the label.
-  Widget _row(String label, Widget value) => SizedBox(
-    width: double.infinity,
-    child: Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      spacing: AppTheme.ticketSmallGap,
-      runSpacing: AppTheme.ticketTinyGap,
-      children: [
-        Text(label, style: AppTheme.ticketPaperLabelStyle),
-        value,
-      ],
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
     final penalty =
         penaltyType == PenaltyType.communityService && communityHrs != null
-        ? '${penaltyType.value} ($communityHrs hrs)'
+        ? '${penaltyType.value}\n($communityHrs hrs)'
         : penaltyType.value;
+
+    final dueText =
+        '${DateTimeFormatter.getDate(dueDate)}\n(5 days from issuance)';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -85,32 +75,39 @@ class TicketPenaltyDetail extends StatelessWidget {
         ),
         const SizedBox(height: AppTheme.ticketSmallGap),
 
-        Column(
+        TicketPaperFieldGroup(
           spacing: AppTheme.ticketSmallGap,
-          children: [
-            _row(
-              'SEVERITY:',
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: _getBgColor(),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                child: Text(
-                  severity.value,
-                  style: TextStyle(color: _getColor()),
+          fields: [
+            TicketPaperField(
+              label: 'SEVERITY:',
+              value: severity.value,
+              valueWidget: Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: _getBgColor(),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  child: Text(
+                    severity.value,
+                    style: TextStyle(color: _getColor()),
+                  ),
                 ),
               ),
             ),
-            _row('PENALTY TYPE:', _valueText(penalty)),
-            _row(
-              'DUE DATE:',
-              _valueText(
-                '${DateTimeFormatter.getDate(dueDate)}, (5 days from issuance)',
-              ),
+            TicketPaperField(
+              label: 'PENALTY TYPE:',
+              value: penalty,
+              valueWidget: _valueText(penalty),
+            ),
+            TicketPaperField(
+              label: 'DUE DATE:',
+              value: dueText,
+              valueWidget: _valueText(dueText),
             ),
           ],
         ),
