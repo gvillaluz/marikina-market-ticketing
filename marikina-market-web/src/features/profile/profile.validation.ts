@@ -82,19 +82,20 @@ export function validateProfileForm(
   return errors;
 }
 
+export function newPasswordError(value: string): string | undefined {
+  if (value.length < 8 || !/\d/.test(value) || !/[A-Z]/.test(value))
+    return "Use at least 8 characters, with a number and a capital letter.";
+  return undefined;
+}
+
 export function validatePasswordForm(
   values: PasswordValues,
 ): Partial<Record<keyof PasswordValues, string>> {
   const errors: Partial<Record<keyof PasswordValues, string>> = {};
   if (!values.currentPassword)
     errors.currentPassword = "Enter your current password.";
-  if (
-    values.newPassword.length < 8 ||
-    !/\d/.test(values.newPassword) ||
-    !/[A-Z]/.test(values.newPassword)
-  )
-    errors.newPassword =
-      "Use at least 8 characters, with a number and a capital letter.";
+  const newPassword = newPasswordError(values.newPassword);
+  if (newPassword) errors.newPassword = newPassword;
   if (!values.confirmNewPassword)
     errors.confirmNewPassword = "Confirm your new password.";
   else if (values.confirmNewPassword !== values.newPassword)

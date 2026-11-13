@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { authApi } from "@/api/endpoints/auth.api";
+import { newPasswordError } from "@/features/profile";
 import { getApiErrorMessage } from "@/utils/apiErrors";
 
 export function useRecoveryReset(
@@ -47,12 +48,9 @@ export function useRecoveryReset(
       event.preventDefault();
       if (busy.current) return;
       setError("");
-      if (newPassword.length < 8) {
-        setError("Your password must be at least 8 characters long.");
-        return;
-      }
-      if (!/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword)) {
-        setError("Your password must include both letters and numbers.");
+      const passwordProblem = newPasswordError(newPassword);
+      if (passwordProblem) {
+        setError(passwordProblem);
         return;
       }
       if (newPassword !== confirmPassword) {
@@ -66,8 +64,18 @@ export function useRecoveryReset(
       busy.current = true;
       setLoading(true);
       try {
-        await authApi.resetPassword({ username, newPassword, resetToken });
-        if (mounted.current) onComplete();
+        const result = await authApi.resetPassword({
+          username,
+          newPassword,
+          resetToken,
+        });
+        if (!mounted.current) return;
+        if (result.success) onComplete();
+        else
+          setError(
+            result.message ||
+              "Could not reset your password. Please try again.",
+          );
       } catch (failure) {
         if (mounted.current)
           setError(

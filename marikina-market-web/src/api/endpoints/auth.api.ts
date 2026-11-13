@@ -26,6 +26,11 @@ export interface SendCodeResponse {
   codeExpirySeconds: number;
 }
 
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface VerifyCodeResponse {
   success: boolean;
   message: string;
@@ -101,7 +106,13 @@ export const authApi = {
     return data;
   },
 
-  async resetPassword(input: ResetPasswordInput): Promise<void> {
-    await client.post("/auth/reset-password", input);
+  async resetPassword(
+    input: ResetPasswordInput,
+  ): Promise<ResetPasswordResponse> {
+    const { data } = await client.post<ResetPasswordResponse>(
+      "/auth/reset-password",
+      input,
+    );
+    return data;
   },
 };
