@@ -297,7 +297,7 @@ void main() {
   testWidgets('8b: Change section clears the violator chosen for an '
       'unregistered vendor', (tester) async {
     await openEntryPage(tester);
-    await tester.tap(find.text('Unregistered'));
+    await tester.tap(find.text('Illegal'));
     await flush(tester);
     await tester.tap(find.text('Meat Section'));
     await flush(tester);

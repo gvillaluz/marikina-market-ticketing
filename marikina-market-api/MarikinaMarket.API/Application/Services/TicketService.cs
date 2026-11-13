@@ -1858,7 +1858,7 @@ namespace MarikinaMarket.API.Application.Services
         }
 
         private static string? BusinessLabel(Ticket ticket)
-            => ticket.VendorId is null ? "Unregistered vendor" : ticket.Vendor?.BusinessName;
+            => ticket.VendorId is null ? "Illegal Vendor" : ticket.Vendor?.BusinessName;
 
         private const int OrdinanceShortcutLimit = 5;
         private const int MostViolatedDays = 30;
