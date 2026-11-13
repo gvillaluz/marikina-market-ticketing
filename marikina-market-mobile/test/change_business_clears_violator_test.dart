@@ -152,7 +152,6 @@ void main() {
         matchPeopleUseCase: templateBloc.matchPeopleUseCase,
         createPersonUseCase: templateBloc.createPersonUseCase,
         getPersonHistoryUseCase: templateBloc.getPersonHistoryUseCase,
-        verifyInspectionUseCase: templateBloc.verifyInspectionUseCase,
         loadInspectionListUseCase: templateBloc.loadInspectionListUseCase,
         loadOrdinancesUseCase: templateBloc.loadOrdinancesUseCase,
         getMarketSectionsUseCase: templateBloc.getMarketSectionsUseCase,

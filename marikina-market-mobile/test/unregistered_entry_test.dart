@@ -12,7 +12,6 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dar
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ordinance_hive_model.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/market_section.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/vendor_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_bloc.dart';
@@ -59,22 +58,6 @@ final sectionList = [
 ];
 
 const meat = MarketSection(id: 5, name: 'Meat Section');
-
-VerifyInspectionInput verifyInput({int? vendorId, int? marketSectionId}) =>
-    VerifyInspectionInput(
-      vendorId: vendorId,
-      marketSectionId: marketSectionId,
-      personId: 31,
-      paperViolatorName: 'Juan Cruz',
-      paperReference: '000456',
-      issuePlace: 'Near gate 2',
-      description: 'Aisle blocked',
-      ordinanceIds: [1],
-      penaltyType: PenaltyType.cashFine,
-      evidenceCount: 2,
-      paperTicketPhotoCount: 1,
-      supportingEvidenceCount: 1,
-    );
 
 Future<void> showCard(
   WidgetTester tester,
@@ -162,42 +145,6 @@ void main() {
   });
 
   group('requests without a business', () {
-    test('verify sends the market section and no business', () async {
-      final bodies = <Map<String, Object?>>[];
-      final bloc = await listBloc((options) async {
-        bodies.add(Map<String, Object?>.from(options.data as Map));
-        throw DioException(
-          requestOptions: options,
-          type: DioExceptionType.connectionError,
-        );
-      });
-      bloc.add(
-        InspectionVerificationRequested(verifyInput(marketSectionId: 5)),
-      );
-      await bloc.stream.firstWhere(
-        (state) => state is InspectionVerificationError,
-      );
-      expect(bodies.single['vendor_id'], isNull);
-      expect(bodies.single['market_section_id'], 5);
-    });
-
-    test('verify for a registered business sends no market section', () async {
-      final bodies = <Map<String, Object?>>[];
-      final bloc = await listBloc((options) async {
-        bodies.add(Map<String, Object?>.from(options.data as Map));
-        throw DioException(
-          requestOptions: options,
-          type: DioExceptionType.connectionError,
-        );
-      });
-      bloc.add(InspectionVerificationRequested(verifyInput(vendorId: 12)));
-      await bloc.stream.firstWhere(
-        (state) => state is InspectionVerificationError,
-      );
-      expect(bodies.single['vendor_id'], 12);
-      expect(bodies.single['market_section_id'], isNull);
-    });
-
     test('saving sends the market section and leaves out the business', () async {
       final original = FlutterImageCompressPlatform.instance;
       FlutterImageCompressPlatform.instance = BoundaryImageCompressor();
@@ -485,10 +432,6 @@ void main() {
         expect(find.text('TRADE NAME:'), findsNothing);
         expect(find.text('REGISTERED OWNER:'), findsNothing);
         expect(find.text('STALL/UNIT NO:'), findsNothing);
-        expect(
-          find.textContaining('Verify to review the business'),
-          findsNothing,
-        );
       },
     );
 

@@ -37,7 +37,6 @@ import 'features/tickets/data/models/ordinance_model_test.dart'
 import 'inspection_list_ui_test.dart' show listBloc;
 import 'inspection_preview_navigation_test.dart' show flush, formAction, vendor;
 import 'ordinance_shortcuts_test.dart' show withNoShortcuts;
-import 'unregistered_entry_test.dart' show verifyInput;
 import 'violator_picker_test.dart'
     show chooseViolator, inReview, inSheet, noContent, typeName;
 
@@ -110,27 +109,6 @@ void main() {
         );
   });
 
-  group('Verify shows what the server found', () {
-    for (final message in [
-      'A citation with this control number already exists. Review the control number before submitting.',
-      'This person already has an active citation for a selected ordinance today. Review and verify again.',
-    ]) {
-      test('a conflict is reported in the server\'s words: $message', () async {
-        final bloc = await listBloc((options) async {
-          throw conflict(options, message);
-        });
-        bloc.add(InspectionVerificationRequested(verifyInput(vendorId: 12)));
-        final state = await bloc.stream.firstWhere(
-          (state) =>
-              state is InspectionVerificationError ||
-              state is InspectionVerified,
-        );
-        expect(state, isA<InspectionVerificationError>());
-        expect((state as InspectionVerificationError).message, message);
-      });
-    }
-  });
-
   group('the ordinance list refuses a repeat', () {
     Future<List<Object?>> openSheet(
       WidgetTester tester, {
@@ -189,7 +167,7 @@ void main() {
       );
       expect(
         find.text(
-          'This person already has an active citation for a selected ordinance today. Change the selection and verify again.',
+          'This person already has an active citation for a selected ordinance today. Change the selection.',
         ),
         findsOneWidget,
       );
@@ -313,7 +291,6 @@ void main() {
           matchPeopleUseCase: templateBloc.matchPeopleUseCase,
           createPersonUseCase: templateBloc.createPersonUseCase,
           getPersonHistoryUseCase: templateBloc.getPersonHistoryUseCase,
-          verifyInspectionUseCase: templateBloc.verifyInspectionUseCase,
           loadInspectionListUseCase: templateBloc.loadInspectionListUseCase,
           loadOrdinancesUseCase: templateBloc.loadOrdinancesUseCase,
           getMarketSectionsUseCase: templateBloc.getMarketSectionsUseCase,
@@ -425,7 +402,7 @@ void main() {
         }
         expect(find.byType(NewInspectionPreviewPage), findsNothing);
         expect(
-          requests.where((r) => r.path == '/enforcer/tickets/verify'),
+          requests.where((r) => r.path == '/enforcer/tickets/new-inspection'),
           isEmpty,
         );
       });

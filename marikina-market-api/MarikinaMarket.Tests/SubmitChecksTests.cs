@@ -16,57 +16,63 @@ using Xunit;
 
 namespace MarikinaMarket.Tests;
 
-// Submit (criterion 8): the server checks everything again when the enforcer presses Submit.
+// Submit with no Verify step: the server checks everything when the enforcer presses Submit.
 // The ticket, ordinance and person queries are the real ones, run over an in-memory list of
-// tickets, so a ticket saved here is seen by the next Verify or Submit. Photo storage is faked.
+// tickets, so a ticket saved here is seen by the next Submit. Photo storage is faked.
 public class SubmitChecksTests
 {
     [Fact]
-    public async Task A_fine_changed_by_the_office_after_Verify_is_refused_until_verified_again()
+    public async Task Submit_saves_a_ticket_with_no_reviewed_values()
     {
         using var world = new World();
 
-        // One earlier ticket on Sec. 12: this one is the 2nd offense, P1,000.00.
-        var verified = await world.Service.VerifyInspectionAsync(world.VerifyRequest());
-        Assert.Equal(1000m, verified.Calculation.TotalPaymentAmount);
+        // One earlier ticket on Sec. 12 (another day): this one is the 2nd offense, P1,000.00.
+        var saved = await world.Service.CreateTicketAsync(world.Submit());
 
-        // The office changes the Sec. 12 2nd-offense fine before the enforcer presses Submit.
-        world.Sec12.PenaltyTiers.Single(tier => tier.OffenseNumber == 2).PenaltyAmount = 1200m;
-
-        var error = await Assert.ThrowsAsync<ConcurrencyConflictException>(
-            () => world.Service.CreateTicketAsync(world.Submit(verified)));
-        Assert.Equal("Offense history or the calculated fine changed. Review and verify again before submitting.", error.Message);
-        // Refused before any photo was uploaded; nothing was saved.
-        Assert.Single(world.Tickets);
-        Assert.Equal(0, world.UploadCalls);
-        Assert.Equal(0, world.Commits);
-
-        // The refused Submit did not count: Verify again still says 2nd offense, now P1,200.00.
-        var again = await world.Service.VerifyInspectionAsync(world.VerifyRequest());
-        var line = Assert.Single(again.Calculation.Breakdown);
-        Assert.Equal(2, line.OffenseNumber);
-        Assert.Equal(1200m, line.PaymentAmount);
-
-        // Submitting what was just verified saves the ticket with the new fine.
-        var saved = await world.Service.CreateTicketAsync(world.Submit(again));
         Assert.Equal(2, world.Tickets.Count);
         var ticket = world.Tickets.Single(t => t.Id == saved.Id);
-        Assert.Equal(1200m, ticket.TotalPaymentAmount);
+        Assert.Equal(1000m, ticket.TotalPaymentAmount);
         var violation = Assert.Single(ticket.TicketViolations);
         Assert.Equal(2, violation.OffenseCount);
-        Assert.Equal(1200m, violation.PenaltyAmount);
+        Assert.Equal(1000m, violation.PenaltyAmount);
         Assert.Equal(1, world.UploadCalls);
         Assert.Equal(1, world.Commits);
+    }
+
+    [Fact]
+    public async Task The_saved_fine_uses_the_history_at_the_moment_of_Submit()
+    {
+        using var world = new World();
+        // Another officer's ticket on Sec. 12 (already paid, another day) was saved before this Submit:
+        // this one is now the 3rd offense, P1,500.00.
+        world.AddTicket(id: 2, ordinance: world.Sec12, status: TicketStatus.Paid,
+            issuedAt: new DateTime(2026, 11, 2, 2, 0, 0, DateTimeKind.Utc), paperReference: "000200", vendorId: 17);
+
+        var saved = await world.Service.CreateTicketAsync(world.Submit());
+
+        var ticket = world.Tickets.Single(t => t.Id == saved.Id);
+        Assert.Equal(3, Assert.Single(ticket.TicketViolations).OffenseCount);
+        Assert.Equal(1500m, ticket.TotalPaymentAmount);
+    }
+
+    [Fact]
+    public async Task The_saved_fine_uses_the_fine_the_office_set_at_the_moment_of_Submit()
+    {
+        using var world = new World();
+        world.Sec12.PenaltyTiers.Single(tier => tier.OffenseNumber == 2).PenaltyAmount = 1200m;
+
+        var saved = await world.Service.CreateTicketAsync(world.Submit());
+
+        Assert.Equal(1200m, world.Tickets.Single(t => t.Id == saved.Id).TotalPaymentAmount);
     }
 
     [Fact]
     public async Task Sending_the_same_ticket_again_after_a_lost_answer_adds_no_second_offense()
     {
         using var world = new World();
-        var verified = await world.Service.VerifyInspectionAsync(world.VerifyRequest());
 
         // The first Submit is saved: Juan now has two Sec. 12 tickets; both photos were uploaded once.
-        await world.Service.CreateTicketAsync(world.Submit(verified));
+        await world.Service.CreateTicketAsync(world.Submit());
         Assert.Equal(2, world.Tickets.Count);
         Assert.Equal(2, world.Sec12.TicketViolations.Count);
         Assert.Equal(1, world.UploadCalls);
@@ -74,14 +80,15 @@ public class SubmitChecksTests
 
         // The phone never heard back and sends exactly the same ticket again.
         var repeat = await Assert.ThrowsAsync<ConcurrencyConflictException>(
-            () => world.Service.CreateTicketAsync(world.Submit(verified)));
+            () => world.Service.CreateTicketAsync(world.Submit()));
         Assert.Equal("A citation with this control number already exists. Review the control number before submitting.", repeat.Message);
 
         // The enforcer types a new control number and sends the same ticket once more.
-        var retyped = world.Submit(verified);
+        var retyped = world.Submit();
         retyped.PaperReference = "000457";
         var duplicate = await Assert.ThrowsAsync<DuplicateOrdinanceException>(() => world.Service.CreateTicketAsync(retyped));
         Assert.Equal(world.Sec12.Id, Assert.Single(duplicate.DuplicateOrdinances).OrdinanceId);
+        Assert.Equal("This person already has an active citation for a selected ordinance today. Review the ordinances.", duplicate.Message);
 
         // Still one new ticket and one new offense; no more photos were uploaded.
         Assert.Equal(2, world.Tickets.Count);
@@ -94,21 +101,11 @@ public class SubmitChecksTests
     public async Task Submit_repeats_the_same_day_duplicate_check_for_an_unregistered_vendor()
     {
         using var world = new World();
-        var verify = world.VerifyRequest();
-        verify.VendorId = null;
-        verify.MarketSectionId = World.ActiveSection;
-        verify.OrdinanceIds = [world.Sec13.Id];
-
-        // No Sec. 13 ticket yet: 1st offense, P200.00.
-        var verified = await world.Service.VerifyInspectionAsync(verify);
-        Assert.Equal(200m, verified.Calculation.TotalPaymentAmount);
-        Assert.Null(verified.ReviewedBusinessSnapshot);
-
         // Another officer saves a Sec. 13 ticket for Juan, with no business, before this Submit.
         world.AddTicket(id: 2, ordinance: world.Sec13, status: TicketStatus.Pending,
             issuedAt: DateTime.UtcNow, paperReference: "000300", vendorId: null);
 
-        var submit = world.Submit(verified);
+        var submit = world.Submit();
         submit.VendorId = null;
         submit.MarketSectionId = World.ActiveSection;
         submit.Ordinances = [world.Sec13.Id];
@@ -119,6 +116,60 @@ public class SubmitChecksTests
         Assert.Equal(2, world.Tickets.Count);
         Assert.Equal(0, world.UploadCalls);
         Assert.Equal(0, world.Commits);
+    }
+
+    [Theory]
+    [InlineData("used control number", typeof(ConcurrencyConflictException), "A citation with this control number already exists. Review the control number before submitting.")]
+    [InlineData("no control number", typeof(System.ComponentModel.DataAnnotations.ValidationException), "Enter the control number and issue place before submitting.")]
+    [InlineData("no paper photo", typeof(InvalidRequestException), "Exactly one paper ticket photo and at least one supporting photo are required for tickets.")]
+    [InlineData("no supporting photo", typeof(InvalidRequestException), "Exactly one paper ticket photo and at least one supporting photo are required for tickets.")]
+    [InlineData("2 service hours", typeof(InvalidRequestException), "Community service requires a minimum of 3 hours.")]
+    public async Task Submit_refuses_each_incomplete_ticket_before_any_photo_is_uploaded(string problem, Type expected, string message)
+    {
+        using var world = new World();
+        var submit = world.Submit();
+        switch (problem)
+        {
+            case "used control number": submit.PaperReference = "000100"; break;
+            case "no control number": submit.PaperReference = " "; break;
+            case "no paper photo": submit.PaperTicketPhoto = []; break;
+            case "no supporting photo": submit.SupportingEvidenceFiles = []; break;
+            case "2 service hours": submit.PenaltyType = PenaltyType.CommunityService; submit.CommunityServiceHours = 2; break;
+        }
+
+        var error = await Assert.ThrowsAsync(expected, () => world.Service.CreateTicketAsync(submit));
+
+        Assert.Equal(message, error.Message);
+        Assert.Single(world.Tickets);
+        Assert.Equal(0, world.UploadCalls);
+        Assert.Equal(0, world.Commits);
+    }
+
+    [Fact]
+    public async Task A_save_that_collides_with_another_citation_says_to_check_the_history_and_submit_again()
+    {
+        using var world = new World();
+        world.CommitError = new DbUpdateException("Synthetic conflicting save",
+            new Npgsql.PostgresException("Synthetic conflict", "ERROR", "ERROR", Npgsql.PostgresErrorCodes.SerializationFailure));
+
+        var error = await Assert.ThrowsAsync<ConcurrencyConflictException>(() => world.Service.CreateTicketAsync(world.Submit()));
+
+        Assert.Equal("Another citation changed this person’s history. Check this person’s history and submit again.", error.Message);
+    }
+
+    [Fact]
+    public void The_verify_route_and_the_reviewed_values_no_longer_exist()
+    {
+        var api = typeof(TicketService).Assembly;
+        Assert.Null(typeof(ITicketService).GetMethod("VerifyInspectionAsync"));
+        Assert.Null(typeof(CreateTicketRequest).GetProperty("ReviewedCalculation"));
+        Assert.Null(typeof(CreateTicketRequest).GetProperty("ReviewedBusinessSnapshot"));
+        Assert.Null(api.GetType("MarikinaMarket.API.Application.DTOs.Tickets.Request.VerifyInspectionRequest"));
+        Assert.Null(api.GetType("MarikinaMarket.API.Application.DTOs.Tickets.Response.InspectionVerificationResponse"));
+        var routes = typeof(MarikinaMarket.API.Presentation.Controllers.EnforcerTicketController).GetMethods()
+            .SelectMany(method => method.GetCustomAttributes<Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute>())
+            .Select(attribute => attribute.Template);
+        Assert.DoesNotContain("verify", routes);
     }
 
     // Juan Dela Cruz (person 31) at Reyes Fresh Fish (business 17). Sec. 12 has fixed fines of
@@ -132,6 +183,7 @@ public class SubmitChecksTests
         public Ordinance Sec12 { get; } = Ordinance(5, "12", "Market ID", 500m, 1000m, 1500m);
         public Ordinance Sec13 { get; } = Ordinance(6, "13", "Public places", 200m);
         public int UploadCalls, UploadedFiles, Commits;
+        public Exception? CommitError;
         public TicketService Service { get; }
         private readonly AppDbContext _context = new(new DbContextOptionsBuilder<AppDbContext>().Options);
 
@@ -163,7 +215,11 @@ public class SubmitChecksTests
                     : new() { Id = ActiveSection, Name = "Meat and Poultry", Description = "Synthetic" }));
             var unit = ReviewBoundaryProxy.Create<IUnitOfWork>((method, args) =>
             {
-                if (method.Name == nameof(IUnitOfWork.CommitAsync)) Commits++;
+                if (method.Name == nameof(IUnitOfWork.CommitAsync))
+                {
+                    if (CommitError is not null) throw CommitError;
+                    Commits++;
+                }
                 return Done(method);
             });
             var storage = ReviewBoundaryProxy.Create<IStorageService>((method, args) =>
@@ -190,19 +246,11 @@ public class SubmitChecksTests
             Save(ticket);
         }
 
-        public VerifyInspectionRequest VerifyRequest() => new()
-        {
-            VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz", PaperReference = "000456",
-            IssuePlace = "Fish aisle near F-014", OrdinanceIds = [Sec12.Id], Description = "Market identification card not displayed",
-            PenaltyType = PenaltyType.CashFine, EvidenceCount = 2, PaperTicketPhotoCount = 1, SupportingEvidenceCount = 1
-        };
-
-        // What the phone sends after a Verify: the same details, the photos and the verified answer.
-        public CreateTicketRequest Submit(InspectionVerificationResponse verified) => new()
+        // What the phone sends: the details and the photos.
+        public CreateTicketRequest Submit() => new()
         {
             VendorId = 17, EnforcerId = 8, Type = ViolationType.Ticket, PersonId = 31, PaperViolatorName = "Juan Cruz",
             PaperReference = "000456", IssuePlace = "Fish aisle near F-014",
-            ReviewedBusinessSnapshot = verified.ReviewedBusinessSnapshot, ReviewedCalculation = verified.ReviewedCalculation,
             Description = "Market identification card not displayed", PenaltyType = PenaltyType.CashFine,
             Ordinances = [Sec12.Id], PaperTicketPhoto = [Photo("paper.jpg")], SupportingEvidenceFiles = [Photo("stall.jpg")]
         };

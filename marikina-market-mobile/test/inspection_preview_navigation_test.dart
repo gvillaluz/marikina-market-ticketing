@@ -239,36 +239,6 @@ void main() {
                   return noContent(options);
                 case '/vendor/12/people':
                   return reply(options, []);
-                case '/enforcer/tickets/verify':
-                  return reply(options, {
-                    'reviewed_calculation': 'reviewed-calculation',
-                    'reviewed_business_snapshot': 'reviewed-business',
-                    'business_snapshot': {
-                      'business_account_number': 'TEST-12',
-                      'business_name': 'Synthetic Market Goods',
-                      'registered_owner_name': 'Synthetic Vendor',
-                      'business_type': 'Public',
-                      'stall_number': 'A-12',
-                      'market_section_name': 'Section A',
-                      'business_address': 'Synthetic Street, Marikina',
-                    },
-                    'calculation': {
-                      'total_payment_amount': 100,
-                      'highest_severity': 'Minor',
-                      'breakdown': [
-                        {
-                          'ordinance_id': 1,
-                          'ordinance_no': ordinanceResponse['ordinance_no'],
-                          'section': '53',
-                          'payment_amount': 100,
-                          'fine_kind': 'Fixed',
-                          'severity': 'Minor',
-                          'offense_number': 1,
-                          'is_duplicate': false,
-                        },
-                      ],
-                    },
-                  });
                 case '/ordinance':
                   return reply(options, [ordinanceResponse]);
                 case '/enforcer/tickets/warning-check':
@@ -325,7 +295,6 @@ void main() {
               matchPeopleUseCase: templateBloc.matchPeopleUseCase,
               createPersonUseCase: templateBloc.createPersonUseCase,
               getPersonHistoryUseCase: templateBloc.getPersonHistoryUseCase,
-              verifyInspectionUseCase: templateBloc.verifyInspectionUseCase,
               loadInspectionListUseCase: templateBloc.loadInspectionListUseCase,
               loadOrdinancesUseCase: templateBloc.loadOrdinancesUseCase,
               getMarketSectionsUseCase: templateBloc.getMarketSectionsUseCase,
@@ -612,10 +581,6 @@ void main() {
               (widget) =>
                   widget is AppPrimaryButton && widget.label == 'Submit Ticket',
             );
-            expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
-            await tester.ensureVisible(find.text('Verify ticket'));
-            await tester.tap(find.text('Verify ticket'));
-            await flush(tester);
             expect(
               tester.widget<AppPrimaryButton>(submit).onPressed,
               isNotNull,
@@ -646,7 +611,10 @@ void main() {
                     widget is AppPrimaryButton &&
                     widget.label == 'Submit Ticket',
               );
-              expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
+              expect(
+                tester.widget<AppPrimaryButton>(submit).onPressed,
+                isNotNull,
+              );
               final updated = tester
                   .widget<NewInspectionPreviewPage>(
                     find.byType(NewInspectionPreviewPage),
@@ -657,13 +625,6 @@ void main() {
                     ? updated.paperReference
                     : updated.issuePlace,
                 value,
-              );
-              await tester.ensureVisible(find.text('Verify ticket'));
-              await tester.tap(find.text('Verify ticket'));
-              await flush(tester);
-              expect(
-                tester.widget<AppPrimaryButton>(submit).onPressed,
-                isNotNull,
               );
             }
           }

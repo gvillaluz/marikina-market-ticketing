@@ -26,39 +26,6 @@ namespace MarikinaMarket.Tests;
 
 public class InspectionNotificationTests
 {
-    [Theory]
-    [InlineData("BusinessAccountNumber")]
-    [InlineData("BusinessName")]
-    [InlineData("RegisteredOwnerName")]
-    [InlineData("BusinessType")]
-    [InlineData("StallNumber")]
-    [InlineData("MarketSectionName")]
-    [InlineData("BusinessAddress")]
-    public async Task Registry_change_requires_review_without_upload_or_save(string field)
-    {
-        using var fixture = new Fixture();
-        var request = fixture.Request(ViolationType.Ticket);
-        typeof(BusinessSnapshotResponse).GetProperty(field)!.SetValue(fixture.Snapshot, field == "BusinessType" ? "Private" : "Changed synthetic value");
-        await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.CreateTicketAsync(request));
-        Assert.Null(fixture.CreatedTicket);
-        Assert.Equal(0, fixture.UploadCalls);
-        Assert.True(fixture.RolledBack);
-    }
-
-    [Theory]
-    [InlineData("{")]
-    [InlineData("{}")]
-    [InlineData("null")]
-    public async Task Malformed_snapshot_review_is_rejected_without_upload(string review)
-    {
-        using var fixture = new Fixture();
-        var request = fixture.Request(ViolationType.Ticket);
-        request.ReviewedBusinessSnapshot = review;
-        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => fixture.Service.CreateTicketAsync(request));
-        Assert.Null(fixture.CreatedTicket);
-        Assert.Equal(0, fixture.UploadCalls);
-    }
-
     [Fact]
     public async Task Saved_snapshot_is_independent_of_later_registry_values()
     {
@@ -77,18 +44,6 @@ public class InspectionNotificationTests
     }
 
     [Fact]
-    public async Task Snapshot_review_is_required_before_any_upload_or_save()
-    {
-        using var fixture = new Fixture();
-        var request = fixture.Request(ViolationType.Ticket);
-        request.ReviewedBusinessSnapshot = null;
-        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(
-            () => fixture.Service.CreateTicketAsync(request));
-        Assert.Equal(0, fixture.UploadCalls);
-        Assert.Null(fixture.CreatedTicket);
-    }
-
-    [Fact]
     public async Task Paper_metadata_is_required_before_any_upload_or_save()
     {
         using var fixture = new Fixture();
@@ -102,43 +57,16 @@ public class InspectionNotificationTests
     }
 
     [Fact]
-    public async Task Paper_metadata_is_required_when_verifying_without_writing()
-    {
-        using var fixture = new Fixture();
-        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(
-            () => fixture.Service.VerifyInspectionAsync(new()
-            {
-                VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
-                OrdinanceIds = [1], Description = "Market identification card not displayed",
-                PenaltyType = PenaltyType.CashFine, EvidenceCount = 2, PaperTicketPhotoCount = 1, SupportingEvidenceCount = 1
-            }));
-        Assert.Null(fixture.CreatedTicket);
-        Assert.Equal(0, fixture.UploadCalls);
-    }
-
-    [Fact]
     public async Task Disabled_community_service_is_rejected_before_evidence_upload()
     {
         using var fixture = new Fixture { HighSeverity = true, AllowCommunityService = false };
         var request = fixture.Request(ViolationType.Ticket);
         request.PenaltyType = PenaltyType.CommunityService;
         request.CommunityServiceHours = 3;
-        request.ReviewedCalculation = request.ReviewedCalculation!.Replace("Minor", "High");
         await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => fixture.Service.CreateTicketAsync(request));
         Assert.Equal(0, fixture.UploadCalls);
         Assert.Null(fixture.CreatedTicket);
     }
-    [Fact]
-    public async Task Stale_review_requires_verification_before_upload_or_save()
-    {
-        using var fixture = new Fixture();
-        var request = fixture.Request(ViolationType.Ticket);
-        request.ReviewedCalculation = request.ReviewedCalculation!.Replace("\"offense_number\":1", "\"offense_number\":2");
-        await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.CreateTicketAsync(request));
-        Assert.Null(fixture.CreatedTicket);
-        Assert.Equal(0, fixture.UploadCalls);
-    }
-
     [Fact]
     public async Task Concurrent_citation_collision_is_a_controlled_conflict()
     {
@@ -148,23 +76,10 @@ public class InspectionNotificationTests
         Assert.False(fixture.Committed);
     }
     [Fact]
-    public async Task Verify_does_not_save_and_submission_preserves_paper_and_confirmed_identity()
+    public async Task Submission_preserves_paper_and_confirmed_identity()
     {
         using var fixture = new Fixture();
-        var verified = await fixture.Service.VerifyInspectionAsync(new()
-        {
-            VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
-            PaperReference = "000456", IssuePlace = "Fish aisle near F-014",
-            OrdinanceIds = [1], Description = "Market identification card not displayed",
-            PenaltyType = PenaltyType.CashFine, EvidenceCount = 2, PaperTicketPhotoCount = 1, SupportingEvidenceCount = 1
-        });
-        Assert.Null(fixture.CreatedTicket);
-        Assert.Equal(0, fixture.UploadCalls);
-        Assert.Equal(500m, verified.Calculation.TotalPaymentAmount);
-        Assert.Equal(1, Assert.Single(verified.Calculation.Breakdown).OffenseNumber);
         var request = fixture.Request(ViolationType.Ticket);
-        request.ReviewedCalculation = verified.ReviewedCalculation;
-        request.ReviewedBusinessSnapshot = verified.ReviewedBusinessSnapshot;
         var saved = await fixture.Service.CreateTicketAsync(request);
         Assert.Equal(31, saved.PersonId);
         Assert.Equal("Juan Dela Cruz", saved.PersonFullName);
@@ -209,16 +124,9 @@ public class InspectionNotificationTests
     }
 
     [Fact]
-    public async Task Existing_paper_reference_blocks_verify_and_save_without_upload()
+    public async Task Existing_paper_reference_blocks_save_without_upload()
     {
         using var fixture = new Fixture { ExistingPaperReference = true };
-        await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.VerifyInspectionAsync(new()
-        {
-            VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz",
-            PaperReference = "000456", IssuePlace = "Fish aisle near F-014",
-            OrdinanceIds = [1], Description = "Synthetic citation",
-            PenaltyType = PenaltyType.CashFine, EvidenceCount = 2, PaperTicketPhotoCount = 1, SupportingEvidenceCount = 1
-        }));
         await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.Service.CreateTicketAsync(fixture.Request(ViolationType.Ticket)));
         Assert.Null(fixture.CreatedTicket);
         Assert.Equal(0, fixture.UploadCalls);
@@ -242,17 +150,6 @@ public class InspectionNotificationTests
         Assert.False(fixture.Committed);
     }
 
-    [Fact]
-    public async Task Malformed_review_is_rejected_before_upload_or_save()
-    {
-        using var fixture = new Fixture();
-        var request = fixture.Request(ViolationType.Ticket);
-        request.ReviewedCalculation = "{\"breakdown\":null}";
-        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(
-            () => fixture.Service.CreateTicketAsync(request));
-        Assert.Null(fixture.CreatedTicket);
-        Assert.Equal(0, fixture.UploadCalls);
-    }
     [Theory]
     [InlineData(ViolationType.Warning)]
     [InlineData(ViolationType.Ticket)]
@@ -537,24 +434,6 @@ public class InspectionNotificationTests
         request.PaperTicketPhoto = Enumerable.Range(0, papers).Select(i => Photo($"paper{i}.jpg")).ToList();
         request.SupportingEvidenceFiles = Enumerable.Range(0, supporting).Select(i => Photo($"support{i}.jpg")).ToList();
         await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.Service.CreateTicketAsync(request));
-        Assert.Equal(0, fixture.UploadCalls);
-        Assert.Null(fixture.CreatedTicket);
-    }
-
-    [Theory]
-    [InlineData(0, 1, 1)]
-    [InlineData(2, 1, 3)]
-    [InlineData(1, 0, 1)]
-    [InlineData(1, 1, 3)]
-    public async Task Verify_rejects_invalid_category_counts_without_writing(int papers, int supporting, int total)
-    {
-        using var fixture = new Fixture();
-        await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.Service.VerifyInspectionAsync(new()
-        {
-            VendorId = 17, PersonId = 31, PaperViolatorName = "Juan Cruz", PaperReference = "000456",
-            IssuePlace = "Fish aisle", OrdinanceIds = [1], Description = "Market ID not displayed",
-            PenaltyType = PenaltyType.CashFine, EvidenceCount = total, PaperTicketPhotoCount = papers, SupportingEvidenceCount = supporting
-        }));
         Assert.Equal(0, fixture.UploadCalls);
         Assert.Null(fixture.CreatedTicket);
     }
@@ -854,9 +733,6 @@ public class InspectionNotificationTests
             PaperViolatorName = type == ViolationType.Ticket ? "Juan Cruz" : null,
             PaperReference = type == ViolationType.Ticket ? "000456" : null,
             IssuePlace = "Fish aisle near F-014",
-            ReviewedBusinessSnapshot = JsonSerializer.Serialize(Snapshot,
-                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }),
-            ReviewedCalculation = "{\"total_payment_amount\":500,\"highest_severity\":\"Minor\",\"allow_blood_donation\":true,\"allow_community_service\":true,\"breakdown\":[{\"ordinance_id\":1,\"ordinance_no\":\"011\",\"section\":\"MKT-001\",\"offense_number\":1,\"payment_amount\":500,\"severity\":\"Minor\",\"allow_blood_donation\":true,\"allow_community_service\":true}]}",
             Description = "Market identification card not displayed", PenaltyType = PenaltyType.CashFine,
             Ordinances = [1], PaperTicketPhoto = [Photo("paper.jpg")],
             SupportingEvidenceFiles = type == ViolationType.Ticket ? [Photo("stall.jpg")] : []

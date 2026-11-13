@@ -135,7 +135,6 @@ void main() {
         matchPeopleUseCase: template.matchPeopleUseCase,
         createPersonUseCase: template.createPersonUseCase,
         getPersonHistoryUseCase: template.getPersonHistoryUseCase,
-        verifyInspectionUseCase: template.verifyInspectionUseCase,
         loadInspectionListUseCase: template.loadInspectionListUseCase,
         loadOrdinancesUseCase: template.loadOrdinancesUseCase,
         getMarketSectionsUseCase: template.getMarketSectionsUseCase,

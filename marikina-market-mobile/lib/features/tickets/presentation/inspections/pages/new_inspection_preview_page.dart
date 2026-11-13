@@ -1,9 +1,7 @@
-import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_verification.dart';
 import '../../../domain/entities/fine_assessment.dart';
 import '../../../domain/entities/fine_summary.dart';
 import '../../../domain/enums/fine_kind.dart';
 import '../widgets/form/assessed_fine_field.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/person_history_sheet.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_header.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
@@ -22,7 +20,6 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/bloc/inspection_state.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/dialogs/duplicate_warning_conflict_dialog.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/duplicate_ticket_dialog.dart';
-import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/fine_changed_notice.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/penalty_details_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/photo_evidence_preview_section.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/preview/process_loading_overlay.dart';
@@ -40,10 +37,9 @@ class NewInspectionPreviewPage extends StatefulWidget {
 
 class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
   bool _isConfirmationOpen = false;
-  bool _verifying = false, _submissionUncertain = false;
-  InspectionVerification? _verification;
-  String? _verificationMessage;
-  InspectionBloc? _inspectionBloc;
+  bool _submissionUncertain = false;
+  // The server's answer to the last Submit, when it refused or was not heard.
+  String? _serverMessage;
   late Map<int, String> _assessmentTexts;
   FineSummary? _assessmentBasis;
 
@@ -76,14 +72,32 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
   FineSummary? get _localFineSummary =>
       _assessmentBasis?.withAssessments(_assessedAmounts);
 
+  // What is still missing before a ticket can be submitted, or null when the
+  // ticket is complete.
+  String? get _missingMessage {
+    final data = widget.formData;
+    if (_localFineSummary?.isAssessable != true) {
+      return 'Complete the assessed fines and confirm the applicable penalty configuration before submitting.';
+    }
+    if ((data.paperReference?.trim().isEmpty ?? true) ||
+        (data.issuePlace?.trim().isEmpty ?? true)) {
+      return 'Enter the control number and issue place.';
+    }
+    if (data.paperTicketPhoto == null || (data.evidences?.isEmpty ?? true)) {
+      return 'One paper ticket photo and at least one supporting photo are required for tickets.';
+    }
+    return null;
+  }
+
+  bool get _ticketIncomplete =>
+      _missingMessage != null ||
+      widget.formData.personId == null ||
+      widget.formData.penaltyType == null;
+
   void _changeAssessment(int id, String text) {
-    _inspectionBloc?.invalidateVerification();
     setState(() {
       _assessmentTexts[id] = text;
-      _verification = null;
-      _verifying = false;
-      _verificationMessage =
-          'Information changed. Verify again before submitting.';
+      _serverMessage = null;
     });
   }
 
@@ -91,12 +105,8 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
   void didUpdateWidget(covariant NewInspectionPreviewPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.formData, widget.formData)) {
-      _inspectionBloc?.invalidateVerification();
       _assessmentBasis = widget.formData.fineSummary;
-      _verification = null;
-      _verifying = false;
-      _verificationMessage =
-          'Information changed. Verify again before submitting.';
+      _serverMessage = null;
       _assessmentTexts = {
         for (final amount in widget.formData.fineAssessments)
           amount.ordinanceId: amount.assessedAmount.toStringAsFixed(2),
@@ -104,76 +114,9 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _inspectionBloc = context.read<InspectionBloc>();
-  }
-
-  @override
-  void dispose() {
-    _inspectionBloc?.invalidateVerification();
-    super.dispose();
-  }
-
-  void _verify() {
-    final data = widget.formData;
-    if (_localFineSummary?.isAssessable != true) {
-      setState(
-        () => _verificationMessage =
-            'Complete the assessed fines and confirm the applicable penalty configuration before verifying.',
-      );
-      return;
-    }
-    if ((data.paperReference?.trim().isEmpty ?? true) ||
-        (data.issuePlace?.trim().isEmpty ?? true)) {
-      setState(
-        () => _verificationMessage =
-            'Enter the reviewed control number and issue place.',
-      );
-      return;
-    }
-    if (data.paperTicketPhoto == null || (data.evidences?.isEmpty ?? true)) {
-      setState(
-        () => _verificationMessage =
-            'One paper ticket photo and at least one supporting photo are required for tickets.',
-      );
-      return;
-    }
-    if (data.personId == null ||
-        data.penaltyType == null ||
-        _verifying ||
-        _submissionUncertain) {
-      return;
-    }
-    context.read<InspectionBloc>().add(
-      InspectionVerificationRequested(
-        VerifyInspectionInput(
-          vendorId: data.vendorSummary?.id,
-          marketSectionId: data.unregisteredSection?.id,
-          personId: data.personId!,
-          paperViolatorName: data.paperViolatorName ?? '',
-          paperReference: data.paperReference,
-          issuePlace: data.issuePlace,
-          description: data.description,
-          ordinanceIds: data.ordinances.map((o) => o.id).toList(),
-          fineAssessments: _fineAssessments,
-          penaltyType: data.penaltyType!,
-          communityServiceHours: data.communityServiceHrs,
-          evidenceCount:
-              (data.evidences?.length ?? 0) +
-              (data.paperTicketPhoto == null ? 0 : 1),
-          paperTicketPhotoCount: data.paperTicketPhoto == null ? 0 : 1,
-          supportingEvidenceCount: data.evidences?.length ?? 0,
-        ),
-      ),
-    );
-  }
-
   void _submit(BuildContext context) {
     if (widget.formData.ticketType == ViolationType.ticket &&
-        (_verification == null ||
-            _verification!.calculation.isAssessable != true)) {
+        _ticketIncomplete) {
       return;
     }
     final categories = widget.formData.ordinances
@@ -187,8 +130,6 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
         paperViolatorName: widget.formData.paperViolatorName,
         paperReference: widget.formData.paperReference,
         issuePlace: widget.formData.issuePlace,
-        reviewedCalculation: _verification?.reviewedCalculation,
-        reviewedBusinessSnapshot: _verification?.reviewedBusinessSnapshot,
         paperTicketPhoto: widget.formData.paperTicketPhoto,
         vendorId: widget.formData.vendorSummary?.id,
         enforcerId: widget.formData.enforcerId,
@@ -211,7 +152,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
     final ViolationType ticketType = widget.formData.ticketType;
     final bool isTicket = ticketType == ViolationType.ticket;
 
-    final fineSummary = _verification?.calculation ?? _localFineSummary;
+    final fineSummary = _localFineSummary;
     final highest = fineSummary?.severity;
 
     final penaltyType = widget.formData.penaltyType;
@@ -229,29 +170,6 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
       ),
       body: BlocListener<InspectionBloc, InspectionState>(
         listener: (context, state) async {
-          if (state is InspectionVerificationLoading) {
-            setState(() {
-              _verifying = true;
-              _verification = null;
-              _verificationMessage = null;
-            });
-          }
-          if (state is InspectionVerified) {
-            setState(() {
-              _verifying = false;
-              _verification = state.verification;
-              _assessmentBasis = state.verification.calculation;
-              _verificationMessage =
-                  'Verified. Review the business details, calculated offense positions and fine before submitting.';
-            });
-          }
-          if (state is InspectionVerificationError) {
-            setState(() {
-              _verifying = false;
-              _verification = null;
-              _verificationMessage = state.message;
-            });
-          }
           if (state is SubmitNewTicketLoading) {
             showDialog(
               context: context,
@@ -297,10 +215,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
           }
 
           if (state is DuplicationConflictInspection) {
-            setState(() {
-              _verification = null;
-              _verificationMessage = state.message;
-            });
+            setState(() => _serverMessage = state.message);
             disposeDialog();
 
             if (!context.mounted) return;
@@ -333,19 +248,15 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
 
           if (state is InspectionSubmitConnectionError) {
             setState(() {
-              _verification = null;
               _submissionUncertain = true;
-              _verificationMessage = state.message;
+              _serverMessage = state.message;
             });
             disposeDialog();
             showSnackbar(state.message);
           }
 
           if (state is InspectionSubmitError) {
-            setState(() {
-              _verification = null;
-              _verificationMessage = state.message;
-            });
+            setState(() => _serverMessage = state.message);
             disposeDialog();
             showSnackbar(state.message);
           }
@@ -411,7 +322,6 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: ViolatorInfoSection(
                               vendor: widget.formData.vendorSummary,
-                              businessSnapshot: _verification?.businessSnapshot,
                               personId: widget.formData.personId,
                               personFullName: widget.formData.personFullName,
                               personAddress: widget.formData.personAddress,
@@ -436,11 +346,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                               fine: fineSummary,
                               ordinances: widget.formData.ordinances,
                               isTicket: isTicket,
-                              marketSection:
-                                  _verification
-                                      ?.businessSnapshot
-                                      ?.marketSectionName ??
-                                  widget.formData.marketSection.name,
+                              marketSection: widget.formData.marketSection.name,
                               description: widget.formData.description,
                             ),
                           ),
@@ -633,13 +539,10 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                             onChanged: (value) =>
                                 _changeAssessment(item.ordinanceId, value),
                           ),
-                      if (_verificationMessage != null)
-                        Text(_verificationMessage!),
-                      FineChangedNotice(
-                        copied: widget.formData.fineSummary,
-                        verified: _verification?.calculation,
-                        penaltyType: penaltyType,
-                      ),
+                      if (_serverMessage != null)
+                        Text(_serverMessage!)
+                      else if (_missingMessage != null)
+                        Text(_missingMessage!),
                       TextButton(
                         onPressed: () async {
                           final checked = await PersonHistorySheet.show(
@@ -655,16 +558,6 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                           }
                         },
                         child: const Text('Check person citation history'),
-                      ),
-                      AppPrimaryButton(
-                        label: 'Verify ticket',
-                        iconData: Icons.fact_check_outlined,
-                        isLoading: _verifying,
-                        onPressed:
-                            _submissionUncertain ||
-                                _localFineSummary?.isAssessable != true
-                            ? null
-                            : _verify,
                       ),
                     ],
                     if (!isTicket)
@@ -686,20 +579,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
                       iconData: Icons.gavel,
                       onPressed:
                           _submissionUncertain ||
-                              (isTicket &&
-                                  (_verification == null ||
-                                      _verification?.calculation.isAssessable !=
-                                          true ||
-                                      // With no business there is no business
-                                      // snapshot to review.
-                                      (widget.formData.vendorSummary != null &&
-                                          (_verification?.businessSnapshot ==
-                                                  null ||
-                                              _verification
-                                                      ?.reviewedBusinessSnapshot ==
-                                                  null)) ||
-                                      _verifying ||
-                                      _submissionUncertain))
+                              (isTicket && _ticketIncomplete)
                           ? null
                           : () async {
                               if (_isConfirmationOpen ||

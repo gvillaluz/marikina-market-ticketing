@@ -47,9 +47,8 @@ import 'unregistered_entry_test.dart' show sectionList;
 import 'violator_picker_test.dart' show chooseViolator, inReview, noContent;
 
 // Faster entry B2, the whole entry page for an unregistered vendor: choose
-// Illegal, pick the market section, type the place, then Next, Verify
-// and (for tickets) a section change that forces Verify again, and finally
-// Submit. The network is fake and refuses the save, so nothing is uploaded;
+// Illegal, pick the market section, type the place, then Next, (for tickets)
+// a section change, and finally Submit. The network is fake and refuses the save, so nothing is uploaded;
 // the test reads what the page tried to send.
 
 const calculation = {
@@ -107,7 +106,6 @@ void main() {
       FlutterImageCompressPlatform.instance = BoundaryImageCompressor();
       addTearDown(() => FlutterImageCompressPlatform.instance = compressor);
       final paths = <String>[];
-      final verifyBodies = <Map<String, Object?>>[];
       Map<String, Object?>? warningCheckBody;
       Map<String, String>? savedFields;
       final template = await tester.runAsync(
@@ -140,14 +138,6 @@ void main() {
               return reply(options, []);
             case '/enforcer/tickets/fine-summary':
               return reply(options, calculation);
-            case '/enforcer/tickets/verify':
-              verifyBodies.add(Map<String, Object?>.from(options.data as Map));
-              return reply(options, {
-                'reviewed_calculation': 'reviewed-calculation',
-                'reviewed_business_snapshot': null,
-                'business_snapshot': null,
-                'calculation': calculation,
-              });
             case '/enforcer/tickets/new-inspection':
               savedFields = Map.fromEntries((options.data as FormData).fields);
               throw DioException(
@@ -198,7 +188,6 @@ void main() {
           matchPeopleUseCase: templateBloc.matchPeopleUseCase,
           createPersonUseCase: templateBloc.createPersonUseCase,
           getPersonHistoryUseCase: templateBloc.getPersonHistoryUseCase,
-          verifyInspectionUseCase: templateBloc.verifyInspectionUseCase,
           loadInspectionListUseCase: templateBloc.loadInspectionListUseCase,
           loadOrdinancesUseCase: templateBloc.loadOrdinancesUseCase,
           getMarketSectionsUseCase: templateBloc.getMarketSectionsUseCase,
@@ -425,21 +414,11 @@ void main() {
       expect(find.text('TRADE NAME:'), findsNothing);
 
       if (isTicket) {
-        expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
-        await tester.ensureVisible(find.text('Verify ticket'));
-        await tester.tap(find.text('Verify ticket'));
-        await flush(tester);
-        expect(verifyBodies.single['vendor_id'], isNull);
-        expect(verifyBodies.single['market_section_id'], 5);
         expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNotNull);
 
-        // A different section is a change: Verify is needed again.
+        // Going back and choosing a different section.
         router.pop();
         await flush(tester);
-        expect(
-          find.text('Information changed. Verify again before submitting.'),
-          findsNothing,
-        );
         await tester.ensureVisible(find.byTooltip('Change section'));
         await tester.tap(find.byTooltip('Change section'));
         await flush(tester);
@@ -450,17 +429,8 @@ void main() {
         expect(inReview(find.text('Change')), findsNothing);
         await chooseJuan();
         await chooseOrdinance();
-        expect(
-          find.text('Information changed. Verify again before submitting.'),
-          findsOneWidget,
-        );
         final changed = await openReview();
         expect(changed.formData.unregisteredSection?.id, 7);
-        expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNull);
-        await tester.ensureVisible(find.text('Verify ticket'));
-        await tester.tap(find.text('Verify ticket'));
-        await flush(tester);
-        expect(verifyBodies.last['market_section_id'], 7);
         expect(tester.widget<AppPrimaryButton>(submit).onPressed, isNotNull);
       }
 

@@ -75,25 +75,6 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   bool get _hasBusinessOrSection =>
       _vendorSummary != null || _unregisteredSection != null;
   PersonCandidate? _confirmedPerson;
-  bool _hasOpenedReview = false;
-  int? _reviewInformation;
-  int get _currentInformation => Object.hashAll([
-    _vendorSummary?.id,
-    _unregisteredSection?.id,
-    _confirmedPerson?.id,
-    _paperReferenceController.text,
-    _issuePlaceController.text,
-    _selectedType,
-    _ticketDescriptionController.text,
-    _communityHrsController.text,
-    _selectedPenaltyType,
-    ..._selectedOrdinances.map((item) => item.id),
-    ...(_assessmentTexts.keys.toList()..sort()).map(
-      (id) => '$id:${_assessmentTexts[id]}',
-    ),
-    _paperTicketPhoto?.path,
-    ..._capturedEvidences.map((file) => file.path),
-  ]);
   FineSummary? _fineSummary;
   final Map<int, String> _assessmentTexts = {};
 
@@ -344,7 +325,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
         _showOrdinanceConflictBanner(
           title: 'Existing ticket ordinances',
           message:
-              'This person already has an active citation for these ordinances today. Review the selection before verifying.',
+              'This person already has an active citation for these ordinances today. Review the selection before submitting.',
           ordinances: duplicateOrdinances,
         );
       }
@@ -527,11 +508,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
       communityHrs = int.tryParse(_communityHrsController.text.trim());
     }
 
-    setState(() {
-      _isOpeningPreview = true;
-      _hasOpenedReview = true;
-      _reviewInformation = _currentInformation;
-    });
+    setState(() => _isOpeningPreview = true);
     try {
       await context.pushNamed<void>(
         Routes.newInspectionPreviewName,
@@ -691,14 +668,6 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           onChanged: (person) =>
                               setState(() => _setViolator(person)),
                         ),
-                        if (isTicket &&
-                            _hasOpenedReview &&
-                            _reviewInformation != _currentInformation) ...[
-                          const Text(
-                            'Information changed. Verify again before submitting.',
-                          ),
-                          const SizedBox(height: AppTheme.inspectionSmallGap),
-                        ],
 
                         FormSection(
                           title: 'Violation',

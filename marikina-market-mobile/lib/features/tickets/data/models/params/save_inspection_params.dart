@@ -6,9 +6,8 @@ import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_t
 class SaveInspectionParams {
   final List<FineAssessment> fineAssessments;
   final String? paperReference, issuePlace;
-  final String? reviewedBusinessSnapshot;
   final int? personId;
-  final String? paperViolatorName, personFullName, reviewedCalculation;
+  final String? paperViolatorName, personFullName;
   final int? vendorId;
   final int marketSectionId;
   final int enforcerId;
@@ -27,8 +26,6 @@ class SaveInspectionParams {
     this.personId,
     this.paperViolatorName,
     this.personFullName,
-    this.reviewedCalculation,
-    this.reviewedBusinessSnapshot,
     required this.vendorId,
     required this.marketSectionId,
     required this.enforcerId,

@@ -11,10 +11,7 @@ class InspectionFormData {
   final List<FineAssessment> fineAssessments;
   final String? paperReference, issuePlace;
   final int? personId;
-  final String? paperViolatorName,
-      personFullName,
-      personAddress,
-      reviewedCalculation;
+  final String? paperViolatorName, personFullName, personAddress;
   final int enforcerId;
   // A business, or the market section when the vendor is not registered.
   final VendorSummary? vendorSummary;
@@ -36,7 +33,6 @@ class InspectionFormData {
     this.paperViolatorName,
     this.personFullName,
     this.personAddress,
-    this.reviewedCalculation,
     required this.enforcerId,
     this.vendorSummary,
     this.unregisteredSection,

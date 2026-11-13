@@ -715,16 +715,7 @@ void main() {
     );
 
     final sections = <String, Widget>{
-      'preview violator, reviewed ticket': ViolatorInfoSection(
-        vendor: registered,
-        businessSnapshot: snapshot,
-        isTicket: true,
-        personId: 31,
-        personFullName: 'Juan Dela Cruz',
-        personAddress: '31 Synthetic Market Lane',
-        paperViolatorName: 'Juan Dela Cruz',
-      ),
-      'preview violator, ticket before Verify': const ViolatorInfoSection(
+      'preview violator, ticket': const ViolatorInfoSection(
         vendor: registered,
         isTicket: true,
         personId: 31,

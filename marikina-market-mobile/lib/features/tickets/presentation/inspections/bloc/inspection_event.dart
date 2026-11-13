@@ -3,7 +3,6 @@ export './business_people_requested.dart';
 export './owner_person_requested.dart';
 export './owner_person_add_requested.dart';
 export './market_sections_requested.dart';
-export './inspection_verification_requested.dart';
 export './person_history_requested.dart';
 export './person_creation_requested.dart';
 export './person_matches_requested.dart';
@@ -94,9 +93,8 @@ class NewWarningSubmitted extends InspectionEvent {
 class NewInspectionSubmitted extends InspectionEvent {
   final List<FineAssessment> fineAssessments;
   final String? paperReference, issuePlace;
-  final String? reviewedBusinessSnapshot;
   final int? personId;
-  final String? paperViolatorName, reviewedCalculation;
+  final String? paperViolatorName;
   final int? vendorId;
   final int enforcerId;
   final int marketSectionId;
@@ -115,8 +113,6 @@ class NewInspectionSubmitted extends InspectionEvent {
     this.issuePlace,
     this.personId,
     this.paperViolatorName,
-    this.reviewedCalculation,
-    this.reviewedBusinessSnapshot,
     required this.vendorId,
     required this.enforcerId,
     required this.marketSectionId,

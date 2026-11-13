@@ -160,10 +160,6 @@ namespace MarikinaMarket.API.Presentation.Controllers
             return Ok(await _service.GetPersonFineSummaryAsync(request.OrdinanceIds, request.PersonId.Value));
         }
 
-        [HttpPost("verify")]
-        public async Task<ActionResult<InspectionVerificationResponse>> Verify([FromBody] VerifyInspectionRequest request)
-            => Ok(await _service.VerifyInspectionAsync(request));
-
         [HttpPost("warning-check")]
         public async Task<ActionResult<List<WarningOrdinance>>> GetWarningOrdinances([FromBody] FineSummaryRequest request)
         {

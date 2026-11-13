@@ -1,7 +1,5 @@
 import 'package:marikina_market_mobile/features/tickets/data/models/person_candidate_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/person_ticket_history_model.dart';
-import 'package:marikina_market_mobile/features/tickets/data/models/inspection_verification_model.dart';
-import 'package:marikina_market_mobile/features/tickets/domain/entities/verify_inspection_input.dart';
 import 'dart:io';
 import 'dart:convert';
 
@@ -35,9 +33,6 @@ abstract class InspectionRemoteDataSource {
   Future<PageResultModel<PersonTicketHistoryModel>> getPersonHistory(
     int personId,
     int offset,
-  );
-  Future<InspectionVerificationModel> verifyInspection(
-    VerifyInspectionInput input,
   );
 
   Future<PageResultModel<InspectionSummaryModel>> loadInspections(
@@ -331,7 +326,6 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
         "paper_reference": params.paperReference?.trim(),
         "issue_place": params.issuePlace?.trim(),
         "paper_violator_name": params.paperViolatorName,
-        "reviewed_calculation": params.reviewedCalculation,
         "fine_assessments": jsonEncode(
           params.fineAssessments
               .map(
@@ -342,7 +336,6 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
               )
               .toList(),
         ),
-        "reviewed_business_snapshot": params.reviewedBusinessSnapshot,
         "market_section_id": params.marketSectionId,
         "enforcer_id": params.enforcerId,
         "type": params.ticketType.value,
@@ -479,37 +472,5 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
       response.data,
       PersonTicketHistoryModel.fromJson,
     );
-  });
-  @override
-  Future<InspectionVerificationModel> verifyInspection(
-    VerifyInspectionInput input,
-  ) => _personRequest(() async {
-    final response = await apiClient.post(
-      '/enforcer/tickets/verify',
-      data: {
-        'vendor_id': input.vendorId,
-        'market_section_id': input.marketSectionId,
-        'person_id': input.personId,
-        'paper_reference': input.paperReference?.trim(),
-        'issue_place': input.issuePlace?.trim(),
-        'paper_violator_name': input.paperViolatorName,
-        'ordinance_ids': input.ordinanceIds,
-        'fine_assessments': input.fineAssessments
-            .map(
-              (assessment) => {
-                'ordinance_id': assessment.ordinanceId,
-                'assessed_amount': assessment.assessedAmount,
-              },
-            )
-            .toList(),
-        'description': input.description,
-        'penalty_type': input.penaltyType.value,
-        'community_service_hours': input.communityServiceHours,
-        'evidence_count': input.evidenceCount,
-        'paper_ticket_photo_count': input.paperTicketPhotoCount,
-        'supporting_evidence_count': input.supportingEvidenceCount,
-      },
-    );
-    return InspectionVerificationModel.fromJson(response.data);
   });
 }
