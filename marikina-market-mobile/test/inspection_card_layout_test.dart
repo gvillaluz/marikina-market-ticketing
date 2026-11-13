@@ -39,11 +39,33 @@ InspectionTicketSummary ticket({
   updatedAt: DateTime.utc(2026, 10, 7, 8),
 );
 
+InspectionTicketSummary warning() => InspectionTicketSummary(
+  ticketId: 43,
+  ticketType: ViolationType.warning,
+  personFullName: 'Maria Santos',
+  vendorId: 12,
+  vendorFirstName: 'Maria',
+  vendorLastName: 'Santos',
+  businessName: 'Market Goods',
+  marketSectionId: 1,
+  marketSection: 'Section A',
+  enforcerId: 7,
+  businessType: null,
+  businessAccountNumber: null,
+  stallNumber: '12',
+  severity: Severity.moderate,
+  ordinance: const ['Keep the stall clean.'],
+  issuedAt: DateTime.utc(2026, 10, 7, 8),
+  overDueDate: null,
+  updatedAt: DateTime.utc(2026, 10, 7, 8),
+);
+
 Future<void> show(
   WidgetTester tester,
   InspectionTicketSummary summary, {
   double width = 360,
   double textScale = 1,
+  bool expanded = true,
 }) async {
   tester.view.physicalSize = Size(width, 900);
   tester.view.devicePixelRatio = 1;
@@ -56,7 +78,13 @@ Future<void> show(
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: InspectionCard(ticketSummary: summary),
+              child: StatefulBuilder(
+                builder: (context, setState) => InspectionCard(
+                  ticketSummary: summary,
+                  expanded: expanded,
+                  onToggle: () => setState(() => expanded = !expanded),
+                ),
+              ),
             ),
           ),
         ),
@@ -160,5 +188,52 @@ void main() {
     await tester.tap(find.text('View Details'));
     await tester.pumpAndSettle();
     expect(find.text('details opened'), findsOneWidget);
+  });
+
+  testWidgets('View Details is hidden until the card is tapped', (
+    tester,
+  ) async {
+    await show(tester, ticket(stall: '12'), expanded: false);
+    expect(find.text('View Details'), findsNothing);
+    await tester.tap(find.text('Market Goods'));
+    await tester.pumpAndSettle();
+    expect(find.text('View Details'), findsOneWidget);
+    expect(find.text('details opened'), findsNothing);
+    await tester.tap(find.text('Market Goods'));
+    await tester.pumpAndSettle();
+    expect(find.text('View Details'), findsNothing);
+  });
+
+  testWidgets('a ticket card shows no control number or issue place', (
+    tester,
+  ) async {
+    await show(tester, ticket(stall: '12'));
+    expect(find.textContaining('Control number'), findsNothing);
+    expect(find.textContaining('Issue place'), findsNothing);
+  });
+
+  testWidgets('a warning card shows the person name with no label', (
+    tester,
+  ) async {
+    await show(tester, warning());
+    expect(find.text('Maria Santos'), findsOneWidget);
+    expect(find.textContaining('Confirmed person'), findsNothing);
+  });
+
+  testWidgets('the card shrinks while pressed and returns on release', (
+    tester,
+  ) async {
+    await show(tester, ticket(stall: '12'), expanded: false);
+    double scale() =>
+        tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale;
+    expect(scale(), 1);
+    final press = await tester.startGesture(
+      tester.getCenter(find.text('Market Goods')),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(scale(), AppTheme.inspectionCardPressedScale);
+    await press.up();
+    await tester.pumpAndSettle();
+    expect(scale(), 1);
   });
 }

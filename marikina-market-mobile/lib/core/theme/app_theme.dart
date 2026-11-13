@@ -113,6 +113,9 @@ class AppTheme {
   static const inspectionSmallGap = 12.0;
   static const inspectionTinyGap = 6.0;
   static const inspectionCardRadius = BorderRadius.all(Radius.circular(16));
+  static const inspectionCardPressedScale = 0.97;
+  static const inspectionCardPressDuration = Duration(milliseconds: 100);
+  static const inspectionCardExpandDuration = Duration(milliseconds: 200);
   static const inspectionTitleStyle = pageTitleStyle;
   static const inspectionHeadingStyle = sectionHeadingStyle;
   static const inspectionBodyStyle = bodyTextStyle;

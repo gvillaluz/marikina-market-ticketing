@@ -109,6 +109,8 @@ void main() {
                 ...inspectionResponse,
                 'ordinance_names': _labels,
               }).toEntity(),
+              expanded: true,
+              onToggle: () {},
             );
       await tester.pumpWidget(
         MaterialApp(
