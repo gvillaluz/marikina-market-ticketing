@@ -249,14 +249,14 @@ public class AuthAuditTests
         var fixture = new AuthAuditFixture();
         await using var host = await fixture.HostAsync();
         var response = await host.SendAsync(HttpMethod.Post, "/api/Auth/reset-password", null,
-            "{\"username\":\"user8\",\"new_password\":\"updated-password-123\",\"reset_token\":\"" + token + "\"}");
+            "{\"username\":\"user8\",\"new_password\":\"Updated-password-123\",\"reset_token\":\"" + token + "\"}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var log = Assert.Single(host.Repository.Logs);
         Assert.Equal(actor, log.UserId);
         Assert.Equal("8", log.TargetId);
         Assert.Equal(result, log.Result);
         Assert.DoesNotContain(token, JsonSerializer.Serialize(log));
-        Assert.DoesNotContain("updated-password", JsonSerializer.Serialize(log));
+        Assert.DoesNotContain("Updated-password", JsonSerializer.Serialize(log));
     }
 }
 
