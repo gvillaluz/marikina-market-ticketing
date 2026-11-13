@@ -125,84 +125,113 @@ const BarChartIcon = (
 
 const SettingsIcon = <Settings size={18} strokeWidth={2} />;
 
-const NAV_ITEMS: NavItem[] = [
+interface NavGroup {
+  label?: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
   {
-    to: "/dashboard",
-    label: "Dashboard",
-    icon: HouseIcon,
-    allowedRoles: STAFF_ROLES,
+    items: [
+      {
+        to: "/dashboard",
+        label: "Dashboard",
+        icon: HouseIcon,
+        allowedRoles: STAFF_ROLES,
+      },
+    ],
   },
   {
-    to: "/inspections",
-    label: "Inspections",
-    icon: DocumentIcon,
-    allowedRoles: STAFF_ROLES,
+    label: "Field work",
+    items: [
+      {
+        to: "/inspections",
+        label: "Inspections",
+        icon: DocumentIcon,
+        allowedRoles: STAFF_ROLES,
+      },
+      {
+        to: "/tickets",
+        label: "Tickets",
+        icon: TicketIcon,
+        allowedRoles: STAFF_ROLES,
+      },
+      {
+        to: "/enforcers",
+        label: "Enforcers",
+        icon: EnforcerIcon,
+        allowedRoles: STAFF_ROLES,
+      },
+    ],
   },
   {
-    to: "/tickets",
-    label: "Tickets",
-    icon: TicketIcon,
-    allowedRoles: STAFF_ROLES,
+    label: "Records",
+    items: [
+      {
+        to: "/admin/vendors",
+        label: "Businesses",
+        icon: VendorIcon,
+        allowedRoles: ADMIN_ROLES,
+      },
+      {
+        to: "/vendors",
+        label: "Businesses",
+        icon: VendorIcon,
+        allowedRoles: ["MarketEnforcer", "MarketVendor"],
+      },
+      {
+        to: "/admin/persons",
+        label: "Persons",
+        icon: <UsersRound size={18} strokeWidth={2} />,
+        allowedRoles: ADMIN_ROLES,
+      },
+    ],
   },
   {
-    to: "/enforcers",
-    label: "Enforcers",
-    icon: EnforcerIcon,
-    allowedRoles: STAFF_ROLES,
+    label: "Insights",
+    items: [
+      {
+        to: "/analytics",
+        label: "Analytics",
+        icon: BarChartIcon,
+        allowedRoles: ADMIN_ROLES,
+      },
+      {
+        to: "/recommendations",
+        label: "Recommended Actions",
+        icon: <Lightbulb size={18} strokeWidth={2} />,
+        allowedRoles: ADMIN_ROLES,
+      },
+      {
+        to: "/admin/reports",
+        label: "Reports",
+        icon: DocumentIcon,
+        allowedRoles: ADMIN_ROLES,
+      },
+    ],
   },
   {
-    to: "/admin/vendors",
-    label: "Businesses",
-    icon: VendorIcon,
-    allowedRoles: ADMIN_ROLES,
-  },
-  {
-    to: "/admin/persons",
-    label: "Persons",
-    icon: <UsersRound size={18} strokeWidth={2} />,
-    allowedRoles: ADMIN_ROLES,
-  },
-  {
-    to: "/analytics",
-    label: "Analytics",
-    icon: BarChartIcon,
-    allowedRoles: ADMIN_ROLES,
-  },
-  {
-    to: "/recommendations",
-    label: "Recommended Actions",
-    icon: <Lightbulb size={18} strokeWidth={2} />,
-    allowedRoles: ADMIN_ROLES,
-  },
-  {
-    to: "/admin/reports",
-    label: "Reports",
-    icon: DocumentIcon,
-    allowedRoles: ADMIN_ROLES,
-  },
-  {
-    to: "/vendors",
-    label: "Businesses",
-    icon: VendorIcon,
-    allowedRoles: ["MarketEnforcer", "MarketVendor"],
-  },
-  {
-    to: "/admin/accounts",
-    label: "Accounts",
-    icon: <UsersRound size={18} strokeWidth={2} />,
-    allowedRoles: HEAD_ADMIN_ROLES,
-  },
-  {
-    to: "/admin/audit-logs",
-    label: "Audit Logs",
-    icon: <History size={18} strokeWidth={2} />,
-    allowedRoles: ADMIN_ROLES,
-  },
-  {
-    to: "/system/configuration",
-    label: "Configurations",
-    icon: SettingsIcon,
-    allowedRoles: ADMIN_ROLES,
+    label: "Administration",
+    items: [
+      {
+        to: "/admin/accounts",
+        label: "Accounts",
+        icon: <UsersRound size={18} strokeWidth={2} />,
+        allowedRoles: HEAD_ADMIN_ROLES,
+      },
+      {
+        to: "/admin/audit-logs",
+        label: "Audit Logs",
+        icon: <History size={18} strokeWidth={2} />,
+        allowedRoles: ADMIN_ROLES,
+      },
+      {
+        to: "/system/configuration",
+        label: "Configurations",
+        icon: SettingsIcon,
+        allowedRoles: ADMIN_ROLES,
+      },
+    ],
   },
 ];
 
@@ -219,9 +248,12 @@ const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
     ? [user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")
     : "User";
 
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => user?.role && item.allowedRoles.includes(user.role),
-  );
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(
+      (item) => user?.role && item.allowedRoles.includes(user.role),
+    ),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <>
@@ -253,22 +285,36 @@ const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
         >
           <div className={styles.section}>
             <nav className={styles.nav}>
-              {visibleItems.map((item) => {
-                const isActive = location.pathname === item.to;
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    className={`${styles.link} ${isActive ? styles.active : ""}`}
-                    onClick={onClose}
-                    title={item.label}
-                    aria-label={item.label}
-                  >
-                    <span className={styles.linkIcon}>{item.icon}</span>
-                    <span className={styles.linkLabel}>{item.label}</span>
-                  </NavLink>
-                );
-              })}
+              {visibleGroups.map((group) => (
+                <div
+                  key={group.label ?? "overview"}
+                  className={styles.group}
+                  role={group.label ? "group" : undefined}
+                  aria-label={group.label}
+                >
+                  {group.label && (
+                    <span className={styles.groupLabel} aria-hidden="true">
+                      {group.label}
+                    </span>
+                  )}
+                  {group.items.map((item) => {
+                    const isActive = location.pathname === item.to;
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className={`${styles.link} ${isActive ? styles.active : ""}`}
+                        onClick={onClose}
+                        title={item.label}
+                        aria-label={item.label}
+                      >
+                        <span className={styles.linkIcon}>{item.icon}</span>
+                        <span className={styles.linkLabel}>{item.label}</span>
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              ))}
             </nav>
           </div>
           {/* Footer — user pill + log out */}

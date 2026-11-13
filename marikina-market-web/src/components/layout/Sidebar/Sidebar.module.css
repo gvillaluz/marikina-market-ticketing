@@ -65,6 +65,14 @@
   display: none;
 }
 
+.collapsed .groupLabel {
+  height: 1px;
+  margin: 0 0.75rem;
+  padding: 0;
+  background-color: rgba(255, 255, 255, 0.18);
+  font-size: 0;
+}
+
 .collapsed .link {
   width: 44px;
   margin-left: auto;
@@ -131,7 +139,22 @@
 .nav {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
   gap: 0.125rem;
+}
+
+.groupLabel {
+  padding: 0 0.75rem 0.25rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .link {
