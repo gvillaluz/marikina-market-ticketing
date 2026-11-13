@@ -93,40 +93,46 @@ void main() {
   });
 
   for (final card in ['inspection', 'ticket']) {
-    testWidgets(
-      'regression $card card displays complete ordinance labels at 280px',
-      (tester) async {
-        tester.view.physicalSize = const Size(280, 900);
-        tester.view.devicePixelRatio = 1;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-        final widget = card == 'ticket'
-            ? TicketCard(
-                ticketSummary: TicketSummaryModel.fromJson(_summary).toEntity(),
-              )
-            : InspectionCard(
-                ticketSummary: InspectionSummaryModel.fromJson({
-                  ...inspectionResponse,
-                  'ordinance_names': _labels,
-                }).toEntity(),
-              );
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: AppTheme.light,
-            home: Scaffold(
-              body: SingleChildScrollView(
-                padding: AppTheme.ticketCardPadding,
-                child: widget,
-              ),
+    testWidgets('regression $card card shows its ordinance labels at 280px', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(280, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final widget = card == 'ticket'
+          ? TicketCard(
+              ticketSummary: TicketSummaryModel.fromJson(_summary).toEntity(),
+            )
+          : InspectionCard(
+              ticketSummary: InspectionSummaryModel.fromJson({
+                ...inspectionResponse,
+                'ordinance_names': _labels,
+              }).toEntity(),
+            );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              padding: AppTheme.ticketCardPadding,
+              child: widget,
             ),
           ),
-        );
+        ),
+      );
+      if (card == 'inspection') {
+        // The Inspections card shows the first ordinance and counts the rest.
+        expect(find.text(_labels.first), findsOneWidget);
+        expect(find.text(_labels.last), findsNothing);
+        expect(find.text('+1 more ordinance'), findsOneWidget);
+      } else {
         for (final label in _labels) {
           expect(find.text(label), findsOneWidget);
         }
-        expect(tester.takeException(), isNull);
-      },
-    );
+      }
+      expect(tester.takeException(), isNull);
+    });
   }
 
   final malformedPages = <String, Object?>{

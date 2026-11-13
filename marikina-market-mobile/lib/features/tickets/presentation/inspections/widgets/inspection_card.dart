@@ -6,12 +6,15 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/inspection_ticket_summary.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_icon_line.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/inspection_severity_badge.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/unregistered_vendor.dart';
 
 class InspectionCard extends StatelessWidget {
   final InspectionTicketSummary ticketSummary;
   const InspectionCard({super.key, required this.ticketSummary});
+
+  static const _shownOrdinanceCount = 1;
 
   void _openDetails(BuildContext context) => context.pushNamed(
     Routes.ticketDetailName,
@@ -25,18 +28,22 @@ class InspectionCard extends StatelessWidget {
     final fromSnapshot =
         ticketSummary.ticketType == ViolationType.ticket &&
         !ticketSummary.isUnregistered;
-    final stall = (fromSnapshot
-        ? (ticketSummary.businessSnapshot?.stallNumber ?? 'Unavailable')
-        : ticketSummary.stallNumber);
+    final section = fromSnapshot
+        ? ticketSummary.businessSnapshot?.marketSectionName
+        : ticketSummary.marketSection;
+    final stall = fromSnapshot
+        ? ticketSummary.businessSnapshot?.stallNumber
+        : ticketSummary.stallNumber;
     final location = [
-      (fromSnapshot
-          ? (ticketSummary.businessSnapshot?.marketSectionName ?? 'Unavailable')
-          : ticketSummary.marketSection),
-      if (stall != null && stall.trim().isNotEmpty) stall,
-      ticketSummary.ticketType == ViolationType.ticket
-          ? (ticketSummary.paperViolatorName ?? 'Unconfirmed (legacy record)')
-          : 'Confirmed person: ${ticketSummary.personFullName ?? 'Unconfirmed (legacy record)'}',
+      if (section != null && section.trim().isNotEmpty) section,
+      if (stall != null && stall.trim().isNotEmpty) 'Stall $stall',
     ].join(' • ');
+    final person = ticketSummary.ticketType == ViolationType.ticket
+        ? (ticketSummary.paperViolatorName ?? 'Unconfirmed (legacy record)')
+        : 'Confirmed person: ${ticketSummary.personFullName ?? 'Unconfirmed (legacy record)'}';
+    final shownOrdinances = ticketSummary.ordinance.take(_shownOrdinanceCount);
+    final hiddenOrdinances =
+        ticketSummary.ordinance.length - shownOrdinances.length;
     return Material(
       color: colors.surface,
       shape: RoundedRectangleBorder(
@@ -79,21 +86,28 @@ class InspectionCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppTheme.inspectionTinyGap),
-              Text(
-                location,
-                style: AppTheme.inspectionBodyStyle.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
+              if (location.isNotEmpty)
+                InspectionIconLine(icon: Icons.place_outlined, text: location),
+              InspectionIconLine(icon: Icons.person_outline, text: person),
               const SizedBox(height: AppTheme.inspectionSmallGap),
-              ...ticketSummary.ordinance.map(
+              ...shownOrdinances.map(
                 (ordinance) => Text(
                   ordinance,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTheme.inspectionBodyStyle.copyWith(
                     color: colors.onSurface,
                   ),
                 ),
               ),
+              if (hiddenOrdinances > 0)
+                Text(
+                  '+$hiddenOrdinances more ordinance${hiddenOrdinances == 1 ? '' : 's'}',
+                  style: AppTheme.inspectionBodyStyle.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               if (ticketSummary.ticketType == ViolationType.ticket) ...[
                 Text(
                   'Control number: ${ticketSummary.paperReference ?? 'Unavailable (legacy record)'}',
@@ -105,27 +119,30 @@ class InspectionCard extends StatelessWidget {
                 ),
               ],
               const Divider(),
-              Wrap(
-                spacing: AppTheme.inspectionTinyGap,
-                runSpacing: AppTheme.inspectionTinyGap,
-                crossAxisAlignment: WrapCrossAlignment.center,
+              Row(
                 children: [
                   Icon(
                     Icons.calendar_today_outlined,
                     size: AppTheme.inspectionIconSize,
                     color: colors.onSurfaceVariant,
                   ),
-                  Text(
-                    DateTimeFormatter.getShortDateTime(ticketSummary.issuedAt),
-                    style: AppTheme.inspectionBodyStyle.copyWith(
-                      color: colors.onSurfaceVariant,
+                  const SizedBox(width: AppTheme.inspectionTinyGap),
+                  Expanded(
+                    child: Text(
+                      DateTimeFormatter.getShortDateTime(
+                        ticketSummary.issuedAt,
+                      ),
+                      style: AppTheme.inspectionBodyStyle.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
               ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
+              const SizedBox(height: AppTheme.inspectionTinyGap),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.tonal(
                   onPressed: () => _openDetails(context),
                   child: const Text('View Details'),
                 ),
