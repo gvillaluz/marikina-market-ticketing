@@ -16,8 +16,7 @@ class NetworkInfoImpl implements NetworkInfo {
 
   @override
   Future<bool> get isConnected async {
-    final List<ConnectivityResult> results = await connectivity
-        .checkConnectivity();
+    final List<ConnectivityResult> results = await connectivity.checkConnectivity();
     final ConnectivityResult result = results.first;
 
     if (result == ConnectivityResult.none) {
@@ -28,15 +27,13 @@ class NetworkInfoImpl implements NetworkInfo {
   }
 
   @override
-  Stream<List<ConnectivityResult>> get onConnectivityChanged =>
-      connectivity.onConnectivityChanged;
+  Stream<List<ConnectivityResult>> get onConnectivityChanged => connectivity.onConnectivityChanged;
 
   @override
   Future<bool> get hasInternetAccess async {
     try {
-      final result = await InternetAddress.lookup(
-        'google.com',
-      ).timeout(const Duration(seconds: 5));
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(const Duration(seconds: 5));
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } on SocketException catch (_) {
       return false;

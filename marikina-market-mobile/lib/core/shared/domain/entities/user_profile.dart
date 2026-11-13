@@ -9,13 +9,5 @@ class Userprofile {
   final AccountStatus status;
   final DateTime createdAd;
 
-  Userprofile({
-    required this.userId,
-    required this.username,
-    required this.firstName,
-    required this.middleName,
-    required this.lastName,
-    required this.status,
-    required this.createdAd,
-  });
+  Userprofile({required this.userId, required this.username, required this.firstName, required this.middleName, required this.lastName, required this.status, required this.createdAd});
 }

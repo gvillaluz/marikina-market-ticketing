@@ -33,7 +33,10 @@ final class TokenValidationFailure extends Failure {
 final class ConflictFailure extends Failure {
   final List<DuplicateOrdinance> droppedOrdinances;
 
-  const ConflictFailure(this.droppedOrdinances, super.message);
+  const ConflictFailure(
+    this.droppedOrdinances,
+    super.message
+  );
 }
 
 final class DuplicateWarningFailure extends Failure {

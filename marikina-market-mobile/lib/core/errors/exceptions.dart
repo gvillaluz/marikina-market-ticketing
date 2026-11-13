@@ -39,7 +39,10 @@ class ConflictException implements Exception {
   final String message;
   final List<DuplicateInfoModel> droppedOrdinances;
 
-  ConflictException(this.message, this.droppedOrdinances);
+  ConflictException(
+    this.message,
+    this.droppedOrdinances
+  );
 }
 
 class DuplicateWarningException implements Exception {

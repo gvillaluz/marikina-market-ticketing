@@ -4,8 +4,7 @@ import 'package:marikina_market_mobile/core/notification/widgets/in_app_notifica
 
 class InAppNotificationOverlay {
   static OverlayEntry? _currentEntry;
-  static final GlobalKey<State<InAppNotificationBanner>> _bannerKey =
-      GlobalKey();
+  static final GlobalKey<State<InAppNotificationBanner>> _bannerKey = GlobalKey();
 
   static void show(
     OverlayState overlayState, {

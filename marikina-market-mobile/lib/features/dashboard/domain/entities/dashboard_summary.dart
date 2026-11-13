@@ -3,9 +3,5 @@ class DashboardSummary {
   final int warningsRecorded;
   final int totalRecorded;
 
-  DashboardSummary({
-    required this.ticketsRecorded,
-    required this.warningsRecorded,
-    required this.totalRecorded,
-  });
+  DashboardSummary({required this.ticketsRecorded, required this.warningsRecorded, required this.totalRecorded});
 }
