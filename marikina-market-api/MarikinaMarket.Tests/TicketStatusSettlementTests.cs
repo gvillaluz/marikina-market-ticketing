@@ -323,6 +323,34 @@ public class TicketStatusSettlementTests
         Assert.Equal(accent, Assert.Single(fixture.EmailAccents));
     }
 
+    // "Illegal Vendor" slice: a ticket with no business is named "Illegal Vendor" in the enforcer's phone notification.
+    [Fact]
+    public async Task Status_change_on_a_ticket_with_no_business_tells_the_enforcer_Illegal_Vendor()
+    {
+        var fixture = new Fixture(PenaltyType.CashFine);
+        fixture.Ticket.VendorId = null;
+
+        await fixture.UpdateAsync(TicketStatus.Waived);
+
+        var body = Assert.Single(fixture.EnforcerPushBodies);
+        Assert.Equal("Illegal Vendor — status changed from Pending to Waived.", body);
+        Assert.DoesNotContain("Unregistered", body);
+    }
+
+    [Fact]
+    public async Task Overdue_notice_on_a_ticket_with_no_business_tells_the_enforcer_Illegal_Vendor()
+    {
+        var fixture = new Fixture(PenaltyType.CashFine);
+        fixture.Ticket.VendorId = null;
+
+        var count = await fixture.Service.CheckAndNotifyOverdueTicketsAsync();
+
+        Assert.Equal(1, count);
+        var body = Assert.Single(fixture.EnforcerPushBodies);
+        Assert.Equal("Illegal Vendor's ticket is now overdue. It has not been paid or settled within 5 days of issuance.", body);
+        Assert.DoesNotContain("Unregistered", body);
+    }
+
     private sealed class Fixture
     {
         public Ticket Ticket { get; }
@@ -330,6 +358,7 @@ public class TicketStatusSettlementTests
         public List<string> Calls { get; } = [];
         public List<string> EmailBodies { get; } = [];
         public List<string> EmailAccents { get; } = [];
+        public List<string> EnforcerPushBodies { get; } = [];
 
         public Fixture(PenaltyType? penalty, string? failedNotification = null)
         {
@@ -344,6 +373,8 @@ public class TicketStatusSettlementTests
                 Calls.Add(method.Name);
                 if (method.Name == nameof(ITicketRepository.GetTicketByIdAsync))
                     return Task.FromResult<Ticket?>((int)args![0]! == 1 ? Ticket : null);
+                if (method.Name == nameof(ITicketRepository.GetNewlyOverdueTicketsAsync))
+                    return Task.FromResult(new List<Ticket> { Ticket });
                 if (method.Name == nameof(ITicketRepository.SetOriginalVersion))
                 {
                     Assert.Equal(7u, args![1]);
@@ -362,6 +393,8 @@ public class TicketStatusSettlementTests
                 Calls.Add(method.Name);
                 if (method.Name == failedNotification)
                     throw new InvalidOperationException("Simulated delivery failure.");
+                if (method.Name == nameof(INotificationService.SendPushNotificationAsync))
+                    EnforcerPushBodies.Add((string)args![2]!);
                 if (method.Name == nameof(INotificationService.SendEmailAsync))
                 {
                     EmailBodies.Add((string)args![2]!);
