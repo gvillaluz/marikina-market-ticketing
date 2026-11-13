@@ -51,6 +51,7 @@ export function useTicketStatusSelection(ticket: TicketDetail | undefined) {
   );
 
   return {
+    resetSelection: () => setSelectedStatus(ticket?.status),
     selectedStatus: currentSelection,
     setSelectedStatus: (status: RecordStatus) => {
       if (availableStatuses.includes(status)) setSelectedStatus(status);

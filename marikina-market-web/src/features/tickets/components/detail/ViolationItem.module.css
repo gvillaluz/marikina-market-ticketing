@@ -1,0 +1,15 @@
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ordinance {
+  font-size: 0.875rem;
+  color: #1a1c1e;
+}
+
+.section {
+  font-size: 0.8125rem;
+  color: var(--neutral-500);
+}

@@ -15,7 +15,15 @@
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 3fr 2fr;
+  align-items: start;
   gap: 1rem;
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .fieldGrid {
@@ -77,39 +85,15 @@
   gap: 10px;
 }
 
-.statusOptions {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-}
-
-.statusOptionsPanel {
-  animation: revealStatusOptions 180ms ease both;
-}
-
-@keyframes revealStatusOptions {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.noProof {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-body);
 }
 
 @media (max-width: 1100px) {
   .grid {
     grid-template-columns: 1fr;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .statusOptionsPanel {
-      animation: none;
-    }
-  }
-  .statusOptions {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -134,33 +118,6 @@
   color: #1a1c1e;
   min-height: 20px;
   font-style: italic;
-}
-
-.modalContent {
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.modalTitle {
-  font-size: 1.2rem;
-}
-
-.modalCancel {
-  padding: 7.5px 15px;
-  border: 2px solid #737781;
-  border-radius: 5px;
-  color: #1a1c1e;
-  font-size: 0.75rem;
-}
-
-.modalConfirm {
-  padding: 7.5px 15px;
-  background-color: #003d7a;
-  border-radius: 5px;
-  color: #fff;
-  font-size: 0.75rem;
 }
 
 .grid > * { min-width: 0; }

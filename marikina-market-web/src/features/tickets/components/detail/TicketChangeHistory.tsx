@@ -23,17 +23,28 @@ export default function TicketChangeHistory({ ticketId }: { ticketId: number }) 
       ) : history.entries.length === 0 ? (
         <p className={styles.message}>No recorded changes for this ticket.</p>
       ) : (
-        <ol className={styles.entries}>
-          {history.entries.map((entry, index) => (
-            <li key={`${entry.occurredAt}-${index}`} className={styles.entry}>
-              <strong className={styles.action}>{entry.action}</strong>
-              {entry.details && <span>{entry.details}</span>}
-              <span className={styles.meta}>
-                {entry.role ? `${entry.performedBy} (${USER_ROLE_LABELS[entry.role]})` : entry.performedBy} · {formatDateTime(entry.occurredAt)}
-              </span>
-            </li>
-          ))}
-        </ol>
+        <div className={styles.scroll}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th scope="col">Action</th>
+                <th scope="col">Details</th>
+                <th scope="col">By</th>
+                <th scope="col">When</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.entries.map((entry, index) => (
+                <tr key={`${entry.occurredAt}-${index}`}>
+                  <td className={styles.action}>{entry.action}</td>
+                  <td>{entry.details}</td>
+                  <td>{entry.role ? `${entry.performedBy} (${USER_ROLE_LABELS[entry.role]})` : entry.performedBy}</td>
+                  <td className={styles.when}>{formatDateTime(entry.occurredAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </DetailCard>
   );

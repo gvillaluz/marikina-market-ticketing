@@ -37,6 +37,12 @@ export function formatControlNumber(value: string | null | undefined): string {
   return value?.trim() || "Unavailable (legacy record)";
 }
 
+/** Control number shown with a "#" prefix; a missing number keeps the legacy text. */
+export function formatControlNumberLabel(value: string | null | undefined): string {
+  const number = value?.trim();
+  return number ? `#${number}` : formatControlNumber(value);
+}
+
 /** Format a number with thousands separators. */
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat('en-PH').format(value);

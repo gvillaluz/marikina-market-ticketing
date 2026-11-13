@@ -65,6 +65,7 @@ const TicketDetailSkeleton: FC = () => {
             </div>
           </div>
 
+          <div className={styles.sideColumn}>
           {/* PENALTY & SETTLEMENT STATUS */}
           <div className={styles.card}>
             <SkeletonBlock width="60%" height="11px" />
@@ -79,26 +80,23 @@ const TicketDetailSkeleton: FC = () => {
               <SkeletonBlock width="55%" height="13px" />
             </div>
           </div>
-        </div>
 
-        {/* SETTLEMENT VERIFICATION */}
-        <div className={`${styles.card} ${styles.full}`}>
-          <SkeletonBlock width="45%" height="11px" />
-          <div className={styles.divider} />
-          <SkeletonBlock width="60%" height="12px" />
-          <SkeletonBlock width="180px" height="72px" radius="6px" />
-        </div>
-
-        {/* UPDATE TICKET STATUS */}
-        <div className={`${styles.card} ${styles.full}`}>
-          <SkeletonBlock width="35%" height="11px" />
-          <div className={styles.divider} />
-          <SkeletonBlock width="45%" height="12px" />
-          <div className={styles.statusOptions}>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <SkeletonBlock key={i} width="100%" height="52px" radius="8px" />
-            ))}
+          {/* SETTLEMENT VERIFICATION */}
+          <div className={styles.card}>
+            <SkeletonBlock width="45%" height="11px" />
+            <div className={styles.divider} />
+            <SkeletonBlock width="60%" height="12px" />
+            <SkeletonBlock width="100%" height="120px" radius="6px" />
           </div>
+          </div>
+        </div>
+
+        {/* CHANGE HISTORY */}
+        <div className={`${styles.card} ${styles.full}`}>
+          <SkeletonBlock width="30%" height="11px" />
+          <div className={styles.divider} />
+          <SkeletonBlock width="100%" height="13px" />
+          <SkeletonBlock width="100%" height="13px" />
         </div>
       </div>
 
