@@ -1050,7 +1050,9 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         .Select(tv => tv.Ordinance!.OrdinanceNo)
                         .ToList(),
                     EnforcerFirstName = t.Enforcer!.FirstName,
-                    EnforcerLastName = t.Enforcer.LastName
+                    EnforcerLastName = t.Enforcer.LastName,
+                    PaperViolatorName = t.PaperViolatorName,
+                    PersonFullName = t.Person != null ? t.Person.FullName : null
                 })
                 .ToListAsync();
         }

@@ -113,6 +113,8 @@ export interface AdminVendorInspection {
   issuedAt: string;
   ordinanceNumbers: string[];
   enforcerName: string;
+  paperViolatorName: string | null;
+  personFullName: string | null;
 }
 
 export interface AdminVendorInspectionFilters {

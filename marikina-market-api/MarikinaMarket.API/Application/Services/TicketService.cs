@@ -1042,7 +1042,9 @@ namespace MarikinaMarket.API.Application.Services
                     OrdinanceNumbers = inspection.OrdinanceNumbers,
                     EnforcerName = FormatEnforcerName(
                         inspection.EnforcerFirstName,
-                        inspection.EnforcerLastName)
+                        inspection.EnforcerLastName),
+                    PaperViolatorName = inspection.PaperViolatorName,
+                    PersonFullName = inspection.PersonFullName
                 }).ToList(),
                 HasMore = hasMore,
                 Total = total

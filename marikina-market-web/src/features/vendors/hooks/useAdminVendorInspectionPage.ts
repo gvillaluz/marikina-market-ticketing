@@ -5,6 +5,7 @@ import type {
   AdminVendorInspectionFilters,
 } from "@/api/types/admin-vendor.types";
 import { formatControlNumber, formatDateTime } from "@/utils/formatters";
+import { formatInspectionViolator } from "../inspectionViolator";
 import { useAdminVendorInspectionHistory } from "./useAdminVendorInspectionHistory";
 
 const PAGE_SIZE = 10;
@@ -13,10 +14,18 @@ export type VendorInspectionTypeFilter = "all" | "Warning" | "Ticket";
 
 function exportInspectionRecords(rows: AdminVendorInspection[]) {
   const data = [
-    ["Control Number", "Type", "Date & Time", "Ordinance(s)", "Enforcer"],
+    [
+      "Control Number",
+      "Type",
+      "Violator",
+      "Date & Time",
+      "Ordinance(s)",
+      "Enforcer",
+    ],
     ...rows.map((row) => [
       formatControlNumber(row.controlNumber),
       String(row.type),
+      formatInspectionViolator(row),
       formatDateTime(row.issuedAt),
       row.ordinanceNumbers.join(", "),
       row.enforcerName,
