@@ -9,6 +9,7 @@ using MarikinaMarket.API.Infrastructure.Json;
 using MarikinaMarket.API.Infrastructure.BackgroundServices;
 using MarikinaMarket.API.Infrastructure.Persistence;
 using MarikinaMarket.API.Infrastructure.Repositories;
+using MarikinaMarket.API.Presentation;
 using MarikinaMarket.API.Presentation.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -225,4 +226,5 @@ if (!app.Environment.IsDevelopment()) {
 
 app.UseStaticFiles();
 app.MapControllers();
+app.MapWebsiteFallback();
 app.Run();

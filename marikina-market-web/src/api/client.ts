@@ -3,7 +3,6 @@ import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
 } from "axios";
-import env from "@/config/env";
 import { useAuthStore } from "@/store/store";
 import snakecaseKeys from "snakecase-keys";
 import camelcaseKeys from "camelcase-keys";
@@ -37,7 +36,7 @@ function isPublicAuthRequest(url?: string): boolean {
 }
 
 const client: AxiosInstance = axios.create({
-  baseURL: `${env.apiBaseUrl}/api`,
+  baseURL: "/api",
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",

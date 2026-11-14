@@ -68,6 +68,11 @@ export const authApi = {
     return data;
   },
 
+  // The server deletes the website's hidden sign-in cookie.
+  async logoutWeb(): Promise<void> {
+    await client.post("/auth/logout-web");
+  },
+
   async changePassword(input: ChangePasswordInput): Promise<void> {
     await client.post("/auth/change-password", input);
   },

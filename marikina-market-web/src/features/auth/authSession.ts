@@ -74,37 +74,47 @@ export function getAuthSessionVersion(): number {
 }
 
 export function refreshAccessToken(): Promise<TokenRefreshResponse> {
-  const session = getStoredAuthSession();
-  if (!session) {
+  if (!getStoredAuthSession()) {
     throw new RefreshSessionExpiredError(undefined, sessionVersion);
   }
+  return requestRefresh();
+}
 
+// After a page refresh the page has no pass in memory; the server signs the
+// user back in from its hidden cookie.
+export function restoreAuthSession(): Promise<TokenRefreshResponse> {
+  return requestRefresh();
+}
+
+function requestRefresh(): Promise<TokenRefreshResponse> {
   if (refreshRequest?.version === sessionVersion) return refreshRequest.promise;
 
   const requestVersion = sessionVersion;
-  const promise = requestWebAccessToken(session, requestVersion).finally(() => {
-    if (refreshRequest?.promise === promise) refreshRequest = null;
-  });
+  const currentToken = getStoredAuthSession()?.accessToken ?? null;
+  const promise = requestWebAccessToken(currentToken, requestVersion).finally(
+    () => {
+      if (refreshRequest?.promise === promise) refreshRequest = null;
+    },
+  );
   refreshRequest = { version: requestVersion, promise };
   return promise;
 }
 
 async function requestWebAccessToken(
-  session: StoredAuthSession,
+  expectedToken: string | null,
   requestVersion: number,
 ): Promise<TokenRefreshResponse> {
   try {
-    const refreshed = await authRefreshApi.refreshWeb(session.accessToken);
+    const refreshed = await authRefreshApi.refreshWeb();
     const accessTokenExpiration = getAccessTokenExpiration(
       refreshed.accessToken,
     );
     if (!accessTokenExpiration || accessTokenExpiration <= Date.now()) {
       throw new Error("The refresh service returned an invalid access token.");
     }
-    const currentSession = getStoredAuthSession();
     if (
       requestVersion !== sessionVersion ||
-      currentSession?.accessToken !== session.accessToken
+      (getStoredAuthSession()?.accessToken ?? null) !== expectedToken
     ) {
       throw new RefreshSessionExpiredError(
         "The session changed while refreshing. Please try again.",

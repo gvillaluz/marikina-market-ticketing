@@ -198,8 +198,13 @@ public class AuthAuditTests
     {
         var fixture = new AuthAuditFixture(role);
         await using var host = await fixture.HostAsync();
-        var response = await host.SendAsync(HttpMethod.Post, "/api/Auth/" + route, "HeadAdmin",
-            route == "refresh" ? "{\"refresh_token\":\"opaque-refresh-token\"}" : "{\"access_token\":\"opaque-access-token\"}");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/" + route);
+        request.Headers.Add("X-Test-Role", "HeadAdmin");
+        if (route == "refresh")
+            request.Content = new StringContent("{\"refresh_token\":\"opaque-refresh-token\"}", System.Text.Encoding.UTF8, "application/json");
+        else
+            request.Headers.Add("Cookie", "mmt_web_session=opaque-access-token");
+        var response = await host.Client.SendAsync(request);
         Assert.Equal(status, (int)response.StatusCode);
         Assert.Equal(status == 200 ? 1 : 0, fixture.TokensIssued);
         Assert.Empty(host.Repository.Logs);
@@ -266,6 +271,7 @@ internal sealed class AuthAuditFixture
     public OtpVerificationResult OtpResult { get; set; } = OtpVerificationResult.Success;
     public bool UseActualEmailService { get; set; }
     public int TokensIssued { get; private set; }
+    public List<string> ValidatedTokens { get; } = [];
     public List<(int? UserId, Role? Role)> EmailActors { get; } = [];
     private bool _generated;
     private readonly User _user = new()
@@ -317,8 +323,7 @@ internal sealed class AuthAuditFixture
         {
             "GenerateAccessToken" => GenerateToken(),
             "GenerateRefreshToken" => new RefreshToken { Token = "opaque-refresh-token", UserId = 8, ExpiresAt = DateTime.UtcNow.AddDays(60) },
-            "ValidateAccessTokenAsync" => Task.FromResult<ClaimsPrincipal?>(new ClaimsPrincipal(new ClaimsIdentity([
-                new Claim(ClaimTypes.NameIdentifier, "8"), new Claim("security_stamp", _user.SecurityStamp!)], "validated-token"))),
+            "ValidateAccessTokenAsync" => ValidateToken((string)args![0]!),
             _ => throw new InvalidOperationException("Unexpected token operation.")
         }));
         services.AddSingleton(Proxy<IUnitOfWork>((method, args) => method.Name == "SaveChangesAsync" ? Task.FromResult(1) : Task.CompletedTask));
@@ -340,6 +345,14 @@ internal sealed class AuthAuditFixture
     }
     private Task InvalidateOtp() { _generated = false; return Task.CompletedTask; }
     private Task<string> GenerateToken() { TokensIssued++; return Task.FromResult("opaque-access-token"); }
+    private Task<ClaimsPrincipal?> ValidateToken(string token)
+    {
+        ValidatedTokens.Add(token);
+        if (token == "expired-token") return Task.FromResult<ClaimsPrincipal?>(null);
+        var stamp = token == "old-password-token" ? "stamp-before-password-change" : _user.SecurityStamp!;
+        return Task.FromResult<ClaimsPrincipal?>(new ClaimsPrincipal(new ClaimsIdentity([
+            new Claim(ClaimTypes.NameIdentifier, "8"), new Claim("security_stamp", stamp)], "validated-token")));
+    }
     private static T Proxy<T>(Func<MethodInfo, object?[]?, object?> handler) where T : class
     {
         var proxy = DispatchProxy.Create<T, AuthAuditProxy>();

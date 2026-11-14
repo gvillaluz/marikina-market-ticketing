@@ -47,3 +47,11 @@ test("the forced password change still posts to /auth/mandatory-change-password"
   await api.mandatoryChangePassword(input);
   assert.equal(calls[0][0], "/auth/mandatory-change-password");
 });
+
+test("website sign-out posts to /auth/logout-web with no body so the server deletes the cookie", async () => {
+  const { api, calls } = harness();
+  await api.logoutWeb();
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][0], "/auth/logout-web");
+  assert.equal(calls[0][1], undefined);
+});
