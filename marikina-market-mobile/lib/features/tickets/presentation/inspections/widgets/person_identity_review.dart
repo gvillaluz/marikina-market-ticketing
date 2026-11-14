@@ -167,7 +167,7 @@ class _PersonIdentityReviewState extends State<PersonIdentityReview> {
             OutlinedButton.icon(
               onPressed: _findPerson,
               icon: const Icon(Icons.person_search_outlined),
-              label: Text(vendor == null ? 'Find violator' : 'Someone else'),
+              label: Text(vendor == null ? 'Find violator' : 'Helper'),
             ),
           ],
           const SizedBox(height: AppTheme.inspectionSmallGap),

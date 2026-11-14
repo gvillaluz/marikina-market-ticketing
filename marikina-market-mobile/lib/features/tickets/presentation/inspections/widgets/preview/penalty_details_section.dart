@@ -127,13 +127,6 @@ class PenaltyDetailsSection extends StatelessWidget {
               ],
             ),
           ),
-
-          const SizedBox(height: AppTheme.inspectionSmallGap),
-
-          const Text(
-            'Please settle the fine on or before the due date to avoid additional penalties',
-            style: AppTheme.inspectionCaptionStyle,
-          ),
         ],
       ],
     );

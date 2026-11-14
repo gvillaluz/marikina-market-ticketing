@@ -74,6 +74,7 @@ void main() {
           tester.getSize(panel).width,
           tester.getSize(find.byType(Scaffold)).width,
         );
+        expect(find.textContaining('Please settle the fine'), findsNothing);
       } else {
         expect(find.text('Total Fine Due:'), findsNothing);
         expect(find.textContaining('Please settle the fine'), findsNothing);

@@ -419,11 +419,9 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     setState(() {
       _vendorError = null;
       _vendorSummary = vendor;
-      _issuePlaceController.text = vendor.issuePlace;
     });
   }
 
-  // The place stays empty: the enforcer types where it happened.
   void _populateSection(MarketSection section) {
     setState(() {
       _vendorError = null;
@@ -431,12 +429,8 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
     });
   }
 
-  // The place that came from the business record goes with the business.
   void _clearVendor() {
     setState(() {
-      if (_issuePlaceController.text == _vendorSummary?.issuePlace) {
-        _issuePlaceController.clear();
-      }
       _vendorSummary = null;
       _setViolator(null);
     });

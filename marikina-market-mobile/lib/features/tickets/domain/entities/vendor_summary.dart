@@ -38,10 +38,4 @@ class VendorSummary {
 
   MarketSection get marketSection =>
       MarketSection(id: marketSectionId, name: marketSectionName);
-
-  // Where the ticket is issued, filled in from the business record.
-  String get issuePlace => [
-    marketSectionName,
-    if (stallNumber != null) 'Stall $stallNumber',
-  ].join(', ');
 }

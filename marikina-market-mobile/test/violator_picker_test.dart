@@ -26,7 +26,7 @@ import 'inspection_list_ui_test.dart' show listBloc;
 import 'inspection_preview_navigation_test.dart' show flush, vendor;
 
 // Choosing the violator on the entry page: the owner card first, then
-// "Someone else" (or "Find violator" without a business) opens a name search.
+// "Helper" (or "Find violator" without a business) opens a name search.
 // Synthetic people; expected texts are worked out by hand.
 
 Map<String, Object?> totals({
@@ -204,7 +204,7 @@ void main() {
       expect(find.text('2 tickets'), findsOneWidget);
       expect(find.text('₱500.00 unpaid'), findsOneWidget);
       expect(find.text('0 warnings'), findsNothing);
-      expect(find.text('Someone else'), findsOneWidget);
+      expect(find.text('Helper'), findsOneWidget);
       for (final removed in [
         'People at this business',
         'Registered owner of this business.',
@@ -234,7 +234,7 @@ void main() {
       semantics.dispose();
       expect(find.text('Change'), findsOneWidget);
       expect(find.text('History'), findsOneWidget);
-      expect(find.text('Someone else'), findsNothing);
+      expect(find.text('Helper'), findsNothing);
       expect(find.textContaining('Confirmed person:'), findsNothing);
       expect(find.byIcon(Icons.check_circle), findsOneWidget);
 
@@ -251,7 +251,7 @@ void main() {
       await tester.tap(find.text('Change'));
       await tester.pump();
       expect(reports.map((p) => p?.id), [40, null]);
-      expect(find.text('Someone else'), findsOneWidget);
+      expect(find.text('Helper'), findsOneWidget);
       await tester.tap(find.text('Synthetic Vendor'));
       await tester.pump();
       expect(reports.map((p) => p?.id), [40, null, 40]);
@@ -358,7 +358,7 @@ void main() {
       await showReview(tester, bloc!, (_) {}, settle: false);
       await tester.pump();
       expect(find.text('Loading owner…'), findsOneWidget);
-      expect(find.text('Someone else'), findsOneWidget);
+      expect(find.text('Helper'), findsOneWidget);
 
       first.complete();
       await flush(tester);
@@ -424,7 +424,7 @@ void main() {
       await tester.pump();
       await chooseViolator(
         tester,
-        button: 'Someone else',
+        button: 'Helper',
         typed: 'pedro',
         name: 'Pedro Reyes',
       );
@@ -539,7 +539,7 @@ void main() {
       expect(paths, isEmpty);
       expect(find.text('Violator'), findsOneWidget);
       expect(find.text('Find violator'), findsOneWidget);
-      expect(find.text('Someone else'), findsNothing);
+      expect(find.text('Helper'), findsNothing);
       expect(find.text('Owner'), findsNothing);
       expect(find.text('Add owner as person'), findsNothing);
     });
@@ -571,7 +571,7 @@ void main() {
       );
       final reports = <PersonCandidate?>[];
       await showReview(tester, bloc!, reports.add);
-      await tester.tap(find.text('Someone else'));
+      await tester.tap(find.text('Helper'));
       await flush(tester);
 
       // Before typing: the people already ticketed at this business.
@@ -912,7 +912,7 @@ void main() {
           return reply(options, [juan]);
         });
         await showReview(tester, bloc, (_) {});
-        await tester.tap(find.text('Someone else'));
+        await tester.tap(find.text('Helper'));
         await tester.pump();
         await tester.pump();
         expect(inSheet(find.text('Loading people…')), findsOneWidget);
@@ -932,7 +932,7 @@ void main() {
           return reply(options, [juan]);
         });
         await showReview(tester, bloc, (_) {});
-        await tester.tap(find.text('Someone else'));
+        await tester.tap(find.text('Helper'));
         await flush(tester);
         expect(
           inSheet(find.text('No internet connection. Please try again.')),
@@ -952,7 +952,7 @@ void main() {
           (options) async => reply(options, []),
         );
         await showReview(tester, bloc, (_) {});
-        await tester.tap(find.text('Someone else'));
+        await tester.tap(find.text('Helper'));
         await flush(tester);
         expect(inSheet(find.text('Type the name to search.')), findsOneWidget);
         expect(inSheet(find.text('Ticketed here')), findsNothing);

@@ -47,7 +47,7 @@ class SaveInspectionTicketUseCase
           params.description.length > 1000) {
         return Result.failure(
           ValidationFailure(
-            'Enter the warning description and actual issue place.',
+            'Enter the warning description and actual place of apprehension.',
           ),
         );
       }
@@ -69,7 +69,9 @@ class SaveInspectionTicketUseCase
           params.paperReference!.trim().length > 200 ||
           params.issuePlace!.trim().length > 500) {
         return Result.failure(
-          ValidationFailure('Enter the control number and issue place.'),
+          ValidationFailure(
+            'Enter the control number and place of apprehension.',
+          ),
         );
       }
       if (params.paperTicketPhoto == null ||

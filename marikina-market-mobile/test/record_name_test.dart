@@ -118,7 +118,7 @@ void main() {
     // Search with a short spelling and choose Pedro Reyes (person 3).
     await chooseViolator(
       tester,
-      button: 'Someone else',
+      button: 'Helper',
       typed: 'pedro',
       name: 'Pedro Reyes',
     );
@@ -136,7 +136,7 @@ void main() {
     // back.
     await chooseViolator(
       tester,
-      button: 'Someone else',
+      button: 'Helper',
       typed: 'P. Reyes',
       name: 'Pedro Reyes',
     );
@@ -316,7 +316,7 @@ void main() {
 
       Future<void> choosePerson(String typed) => chooseViolator(
         tester,
-        button: 'Someone else',
+        button: 'Helper',
         typed: typed,
         name: 'Juan Dela Cruz',
       );

@@ -81,7 +81,7 @@ class _NewInspectionPreviewPageState extends State<NewInspectionPreviewPage> {
     }
     if ((data.paperReference?.trim().isEmpty ?? true) ||
         (data.issuePlace?.trim().isEmpty ?? true)) {
-      return 'Enter the control number and issue place.';
+      return 'Enter the control number and place of apprehension.';
     }
     if (data.paperTicketPhoto == null || (data.evidences?.isEmpty ?? true)) {
       return 'One paper ticket photo and at least one supporting photo are required for tickets.';

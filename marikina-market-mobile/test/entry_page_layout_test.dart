@@ -386,7 +386,7 @@ void main() {
       final order = [
         top(tester, find.text('Paper details')),
         top(tester, find.text('Control number')),
-        top(tester, find.text('Issue place')),
+        top(tester, find.text('Place of Apprehension')),
         top(tester, find.text('Violator')),
         top(tester, find.text('Violation')),
         top(tester, find.text('Ordinance')),
@@ -418,7 +418,7 @@ void main() {
         expect(find.text('Control number'), findsNothing);
         final order = [
           top(tester, find.text('Paper details')),
-          top(tester, find.text('Issue place')),
+          top(tester, find.text('Place of Apprehension')),
           top(tester, find.text('Violator')),
           top(tester, find.text('Violation')),
           top(tester, find.text('Ordinance')),
@@ -439,6 +439,15 @@ void main() {
       await openPage(tester);
       await chooseBusiness(tester, bertsFish);
       await chooseOwnerAndOrdinance(tester);
+      // The card needs a place, and the place is no longer filled in.
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('warning-issue-place')),
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('warning-issue-place')),
+        'Fish aisle near F-014',
+      );
+      await tester.pump();
       expect(find.text('Copy these onto the paper warning'), findsOneWidget);
       final cardBottom = tester.getBottomLeft(find.byType(CopyToPaperCard)).dy;
       final labelTop = tester.getTopLeft(find.text('Paper warning photo')).dy;
@@ -448,53 +457,58 @@ void main() {
       );
     });
 
-    testWidgets('3d: a warning with no Issue place says where to enter it', (
-      tester,
-    ) async {
-      await openPage(tester);
-      await chooseBusiness(tester, bertsFish);
-      await tester.enterText(
-        find.byKey(const ValueKey('warning-issue-place')),
-        '',
-      );
-      await tester.ensureVisible(find.text('Next'));
-      await tester.tap(find.text('Next'));
-      await flush(tester);
-      expect(find.text('Enter where the warning was issued.'), findsOneWidget);
-    });
+    testWidgets(
+      '3d: a warning with no Place of Apprehension says where to enter it',
+      (tester) async {
+        await openPage(tester);
+        await chooseBusiness(tester, bertsFish);
+        await tester.enterText(
+          find.byKey(const ValueKey('warning-issue-place')),
+          '',
+        );
+        await tester.ensureVisible(find.text('Next'));
+        await tester.tap(find.text('Next'));
+        await flush(tester);
+        expect(
+          find.text('Enter where the warning was issued.'),
+          findsOneWidget,
+        );
+      },
+    );
 
-    testWidgets('4: warning has no control number and the same Issue place', (
-      tester,
-    ) async {
-      await openPage(tester);
-      await chooseBusiness(tester, bertsFish);
-      expect(find.byKey(const ValueKey('paper-reference')), findsNothing);
-      expect(find.text('Control number'), findsNothing);
-      expect(find.text('Issue place'), findsOneWidget);
-      expect(find.text('Paper warning photo'), findsOneWidget);
-      expect(find.text('Supporting evidence'), findsNothing);
-      TextField field(String key) => tester.widget<TextField>(
-        find.descendant(
-          of: find.byKey(ValueKey(key)),
-          matching: find.byType(TextField),
-        ),
-      );
-      final warningField = field('warning-issue-place');
-      expect(find.byKey(const ValueKey('issue-place')), findsNothing);
+    testWidgets(
+      '4: warning has no control number and the same Place of Apprehension',
+      (tester) async {
+        await openPage(tester);
+        await chooseBusiness(tester, bertsFish);
+        expect(find.byKey(const ValueKey('paper-reference')), findsNothing);
+        expect(find.text('Control number'), findsNothing);
+        expect(find.text('Place of Apprehension'), findsOneWidget);
+        expect(find.text('Paper warning photo'), findsOneWidget);
+        expect(find.text('Supporting evidence'), findsNothing);
+        TextField field(String key) => tester.widget<TextField>(
+          find.descendant(
+            of: find.byKey(ValueKey(key)),
+            matching: find.byType(TextField),
+          ),
+        );
+        final warningField = field('warning-issue-place');
+        expect(find.byKey(const ValueKey('issue-place')), findsNothing);
 
-      await chooseType(tester, ViolationType.ticket);
-      expect(find.text('Issue place'), findsOneWidget);
-      expect(find.byKey(const ValueKey('warning-issue-place')), findsNothing);
-      final ticketField = field('issue-place');
-      expect(warningField.decoration, ticketField.decoration);
-      expect(warningField.maxLength, ticketField.maxLength);
-      expect(warningField.minLines, ticketField.minLines);
-      expect(warningField.maxLines, ticketField.maxLines);
-      // The 0/500 counter is hidden on both.
-      expect(ticketField.decoration!.counterText, '');
-      expect(find.textContaining('/500'), findsNothing);
-      expect(find.textContaining('/200'), findsNothing);
-    });
+        await chooseType(tester, ViolationType.ticket);
+        expect(find.text('Place of Apprehension'), findsOneWidget);
+        expect(find.byKey(const ValueKey('warning-issue-place')), findsNothing);
+        final ticketField = field('issue-place');
+        expect(warningField.decoration, ticketField.decoration);
+        expect(warningField.maxLength, ticketField.maxLength);
+        expect(warningField.minLines, ticketField.minLines);
+        expect(warningField.maxLines, ticketField.maxLines);
+        // The 0/500 counter is hidden on both.
+        expect(ticketField.decoration!.counterText, '');
+        expect(find.textContaining('/500'), findsNothing);
+        expect(find.textContaining('/200'), findsNothing);
+      },
+    );
   });
 
   group('buttons', () {

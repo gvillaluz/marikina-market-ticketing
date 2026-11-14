@@ -32,7 +32,7 @@ void main() {
     await tester.pump();
 
     expect(changedType, isNull);
-    expect(find.text('How the violator pays'), findsOneWidget);
+    expect(find.text('Payment method'), findsOneWidget);
     hoursController.dispose();
   });
 

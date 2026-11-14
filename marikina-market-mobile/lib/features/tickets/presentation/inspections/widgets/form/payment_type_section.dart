@@ -59,7 +59,7 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'How the violator pays',
+          'Payment method',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
 

@@ -18,7 +18,7 @@ class PaperCitationFields extends StatelessWidget {
   String? _validatePlace(String? value) {
     if (value == null || value.trim().isEmpty) {
       return isTicket
-          ? 'Issue place is required.'
+          ? 'Place of Apprehension is required.'
           : 'Enter where the warning was issued.';
     }
     return isTicket && value.trim().length > 500
@@ -53,10 +53,13 @@ class PaperCitationFields extends StatelessWidget {
         ),
         const SizedBox(height: AppTheme.inspectionSmallGap),
       ],
-      const Text('Issue place', style: AppTheme.ticketPaperLabelStyle),
+      const Text(
+        'Place of Apprehension',
+        style: AppTheme.ticketPaperLabelStyle,
+      ),
       const SizedBox(height: AppTheme.inspectionTinyGap),
       Semantics(
-        label: 'Issue place',
+        label: 'Place of Apprehension',
         child: TextFormField(
           key: ValueKey(isTicket ? 'issue-place' : 'warning-issue-place'),
           controller: placeController,

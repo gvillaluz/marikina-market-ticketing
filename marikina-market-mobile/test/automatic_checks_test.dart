@@ -352,8 +352,8 @@ void main() {
 
     // Searches in the find sheet, then closes it without choosing anyone.
     Future<void> searchThenClose(WidgetTester tester, String name) async {
-      await tester.ensureVisible(inReview(find.text('Someone else')));
-      await tester.tap(inReview(find.text('Someone else')));
+      await tester.ensureVisible(inReview(find.text('Helper')));
+      await tester.tap(inReview(find.text('Helper')));
       await flush(tester);
       await typeName(tester, name);
     }
@@ -431,7 +431,7 @@ void main() {
 
       await chooseViolator(
         tester,
-        button: 'Someone else',
+        button: 'Helper',
         typed: 'Juan',
         name: 'Juan Dela Cruz',
       );

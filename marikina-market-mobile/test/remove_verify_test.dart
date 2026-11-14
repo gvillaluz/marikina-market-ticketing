@@ -38,7 +38,7 @@ import 'inspection_preview_navigation_test.dart' show flush, vendor;
 const needFines =
     'Complete the assessed fines and confirm the applicable penalty '
     'configuration before submitting.';
-const needNumber = 'Enter the control number and issue place.';
+const needNumber = 'Enter the control number and place of apprehension.';
 const needPhotos =
     'One paper ticket photo and at least one supporting photo are required '
     'for tickets.';
