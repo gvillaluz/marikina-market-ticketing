@@ -498,3 +498,47 @@ test("business editing loads saved fields and sends only editable fields", async
   assert.equal(h.writes[0][2].businessName, "Reyes Fresh Fish");
   for (const field of ["id", "createdAt", "status", "userId"]) assert.equal(field in h.writes[0][2], false);
 });
+
+// Synthetic records. Expected text worked out by hand: a ticket shows the name written on paper,
+// a warning shows the confirmed person, and an old ticket without a written name says so.
+const violatorRows = [
+  {
+    ticketId: 1, type: "Ticket", controlNumber: "000456", issuedAt: "2026-11-10T01:00:00Z",
+    ordinanceNumbers: ["2019-12"], enforcerName: "Test Officer", paperViolatorName: "Jose Ramos",
+    personFullName: "Jose P. Ramos", businessSnapshot: { businessName: "Aling Nena's Store" },
+  },
+  {
+    ticketId: 2, type: "Warning", controlNumber: "WRN-0011", issuedAt: "2026-11-09T01:00:00Z",
+    ordinanceNumbers: ["2019-12"], enforcerName: "Test Officer", paperViolatorName: null,
+    personFullName: "Maria Santos", businessSnapshot: null,
+  },
+  {
+    ticketId: 3, type: "Ticket", controlNumber: null, issuedAt: "2026-11-08T01:00:00Z",
+    ordinanceNumbers: [], enforcerName: "Test Officer", paperViolatorName: null,
+    personFullName: null, businessSnapshot: null,
+  },
+];
+
+test("business history shows a Violator column after Type with the recorded violator", () => {
+  const html = renderComponent("AdminVendorInspectionHistory", { ...historyProps, inspections: violatorRows });
+  const headers = [...html.matchAll(/<th[^>]*>(.*?)<\/th>/g)].map((match) => match[1].replace(/<[^>]*>/g, ""));
+  assert.deepEqual(headers, ["CONTROL NUMBER", "TYPE", "VIOLATOR", "DATE &amp; TIME", "ORDINANCE(S)", "ENFORCER", "ACTION"]);
+  const violatorCells = [...html.matchAll(/<tr[^>]*>(.*?)<\/tr>/g)].slice(1)
+    .map((row) => [...row[1].matchAll(/<td[^>]*>(.*?)<\/td>/g)][2][1].replace(/<[^>]*>/g, ""));
+  assert.deepEqual(violatorCells, ["Jose Ramos", "Maria Santos", "Unconfirmed (legacy record)"]);
+});
+
+test("business history export adds the Violator column after Type", () => {
+  const blobs = [];
+  const h = harness("features/vendors/hooks/useAdminVendorInspectionPage.ts", "useAdminVendorInspectionPage", {
+    Blob: class { constructor(parts) { blobs.push(parts.join("")); } },
+    URL: { createObjectURL: () => "blob:export", revokeObjectURL() { } },
+    document: { body: { appendChild() { } }, createElement: () => ({ click() { }, remove() { } }) },
+    window: { setTimeout() { } },
+  });
+  h.setQuery({ data: { items: violatorRows, total: 3, hasMore: false } });
+  h.render(70).exportCurrentPage();
+  const lines = blobs[0].split("\r\n");
+  assert.equal(lines[0], '"Control Number","Type","Violator","Date & Time","Ordinance(s)","Enforcer"');
+  assert.deepEqual(lines.slice(1).map((line) => line.split(",")[2]), ['"Jose Ramos"', '"Maria Santos"', '"Unconfirmed (legacy record)"']);
+});

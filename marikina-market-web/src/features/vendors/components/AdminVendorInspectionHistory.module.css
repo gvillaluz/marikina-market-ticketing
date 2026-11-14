@@ -76,7 +76,7 @@
 
 .inspectionTable {
   table-layout: fixed;
-  min-width: 680px;
+  min-width: 800px;
 }
 
 .inspectionTable :global(thead th) {

@@ -6,6 +6,7 @@ import Pagination from "@/components/ui/Pagination";
 import Table, { type Column } from "@/components/ui/Table";
 import type { AdminVendorInspection } from "@/api/types/admin-vendor.types";
 import { formatControlNumber, formatDateTime } from "@/utils/formatters";
+import { formatInspectionViolator } from "../inspectionViolator";
 import styles from "./AdminVendorInspectionHistory.module.css";
 
 const TYPE_OPTIONS = [
@@ -99,23 +100,30 @@ export default function AdminVendorInspectionHistory({
       ),
     },
     {
+      key: "violator",
+      header: "VIOLATOR",
+      width: "16%",
+      align: "left",
+      render: formatInspectionViolator,
+    },
+    {
       key: "issuedAt",
       header: "DATE & TIME",
-      width: "19%",
+      width: "15%",
       align: "left",
       render: (inspection) => formatDateTime(inspection.issuedAt),
     },
     {
       key: "ordinanceNumbers",
       header: "ORDINANCE(S)",
-      width: "23%",
+      width: "15%",
       align: "left",
       render: (inspection) => inspection.ordinanceNumbers.join(", ") || "—",
     },
     {
       key: "enforcerName",
       header: "ENFORCER",
-      width: "19%",
+      width: "15%",
       align: "center",
       render: (inspection) => inspection.enforcerName || "—",
     },

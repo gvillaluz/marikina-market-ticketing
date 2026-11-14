@@ -13,5 +13,7 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Internal
         public required List<string> OrdinanceNumbers { get; set; }
         public required string EnforcerFirstName { get; set; }
         public required string EnforcerLastName { get; set; }
+        public string? PaperViolatorName { get; set; }
+        public string? PersonFullName { get; set; }
     }
 }
