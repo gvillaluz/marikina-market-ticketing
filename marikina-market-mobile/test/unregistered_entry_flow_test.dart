@@ -305,7 +305,7 @@ void main() {
         );
       }
       // No business, so no owner card: "Find violator" is the only way.
-      expect(inReview(find.text('Someone else')), findsNothing);
+      expect(inReview(find.text('Helper')), findsNothing);
       Future<void> chooseJuan() => chooseViolator(
         tester,
         button: 'Find violator',

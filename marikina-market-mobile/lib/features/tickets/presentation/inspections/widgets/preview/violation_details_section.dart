@@ -189,7 +189,7 @@ class ViolationDetailsSection extends StatelessWidget {
                   : 'Assigned when saved',
             ),
             TicketPaperField(
-              label: 'ISSUE PLACE:',
+              label: 'PLACE OF APPREHENSION:',
               value: issuePlace ?? 'Unavailable (legacy record)',
             ),
             TicketPaperField(

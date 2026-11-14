@@ -356,7 +356,7 @@ void main() {
           await tester.pump();
           Future<void> selectPerson() => chooseViolator(
             tester,
-            button: 'Someone else',
+            button: 'Helper',
             typed: 'Juan Cruz',
             name: 'Juan Dela Cruz',
           );
@@ -371,7 +371,7 @@ void main() {
             expect(inReview(find.text('Juan Dela Cruz')), findsOneWidget);
             expect(inReview(find.text('Change')), findsOneWidget);
           }
-          // The issue place starts from the business record and stays editable.
+          // The place of apprehension starts empty: the enforcer types it.
           expect(
             tester
                 .widget<TextField>(
@@ -388,11 +388,11 @@ void main() {
                 )
                 .controller!
                 .text,
-            'Section A, Stall A-12',
+            '',
           );
           if (type == ViolationType.ticket) {
             expect(find.text('Control number'), findsOneWidget);
-            expect(find.text('Issue place'), findsOneWidget);
+            expect(find.text('Place of Apprehension'), findsOneWidget);
             await tester.ensureVisible(
               find.byKey(const ValueKey('paper-reference')),
             );

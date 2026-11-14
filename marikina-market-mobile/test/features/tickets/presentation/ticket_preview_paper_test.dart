@@ -122,6 +122,8 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(find.text('Section 8'), findsOneWidget);
+          expect(find.text('PLACE OF APPREHENSION:'), findsOneWidget);
+          expect(find.text('ISSUE PLACE:'), findsNothing);
           final ordinancePrice = find.descendant(
             of: find.byType(ViolationDetailsSection),
             matching: find.text('₱1,500.00'),
