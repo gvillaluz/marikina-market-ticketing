@@ -1,67 +1,136 @@
 import { useState } from "react";
-import { PRINT_COLUMN_OPTIONS } from "../../../utils/constants";
-import { usePrintExport } from "../hooks/usePrintExport";
-import type { PrintConfigPayload } from "../../../api/types/ticket.types";
+import { useToast } from "@/components/ui/Toast/useToast";
+import { getApiErrorMessage } from "@/utils/apiErrors";
+import {
+  downloadCsv,
+  fetchAllRows,
+  manilaDay,
+  type ExportColumn,
+  type RowPage,
+} from "@/utils/tableExport";
 
-type RecordType = PrintConfigPayload["types"][number];
+export type ExportRecordType = "Warning" | "Ticket";
+export type ExportFormField = "types" | "columns" | "dates";
 
-export function usePrintConfigForm(
-  initialTypes: RecordType[],
-  onExported: () => void,
-) {
-  const [types, setTypes] = useState<RecordType[]>(initialTypes);
-  const [columns, setColumns] = useState<PrintConfigPayload["columns"]>(
-    PRINT_COLUMN_OPTIONS.filter((column) => column.value !== "severity").map(
-      (c) => c.value,
-    ),
+export interface PrintConfigOptions<T> {
+  fileName: string;
+  columns: ExportColumn<T>[];
+  // Offered only on pages whose list holds more than one record type.
+  recordTypes?: ExportRecordType[];
+  fetchPage: (
+    offset: number,
+    type: ExportRecordType | undefined,
+  ) => Promise<RowPage<T>>;
+  onExported: () => void;
+}
+
+export function usePrintConfigForm<T extends { issuedAt: string | Date }>({
+  fileName,
+  columns,
+  recordTypes,
+  fetchPage,
+  onExported,
+}: PrintConfigOptions<T>) {
+  const [types, setTypes] = useState<ExportRecordType[]>(recordTypes ?? []);
+  const [columnKeys, setColumnKeys] = useState(
+    columns.map((column) => column.key),
   );
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [validationError, setValidationError] = useState("");
+  const [fieldError, setFieldError] = useState<{
+    field: ExportFormField;
+    message: string;
+  } | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: "error" | "empty";
+    message: string;
+  } | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const { showToast } = useToast();
 
-  const { mutate, isPending, isError, error } = usePrintExport();
-
-  const toggleType = (value: RecordType) => {
+  const toggleType = (value: ExportRecordType) => {
     setTypes((prev) =>
       prev.includes(value) ? prev.filter((t) => t !== value) : [...prev, value],
     );
   };
 
-  const toggleColumn = (value: PrintConfigPayload["columns"][number]) => {
-    setColumns((prev) =>
-      prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value],
+  const toggleColumn = (key: string) => {
+    setColumnKeys((prev) =>
+      prev.includes(key) ? prev.filter((c) => c !== key) : [...prev, key],
     );
   };
 
-  const handleGenerate = () => {
-    if (types.length === 0) {
-      setValidationError("Select at least one record type.");
+  const isInRange = (row: T) => {
+    const day = manilaDay(row.issuedAt);
+    return (!startDate || day >= startDate) && (!endDate || day <= endDate);
+  };
+
+  const handleGenerate = async () => {
+    if (isPending) return;
+    if (recordTypes && types.length === 0) {
+      setFieldError({ field: "types", message: "Select at least one record type." });
       return;
     }
-    if (columns.length === 0) {
-      setValidationError("Select at least one column to include.");
+    if (columnKeys.length === 0) {
+      setFieldError({
+        field: "columns",
+        message: "Select at least one column to include.",
+      });
       return;
     }
     if (startDate && endDate && startDate > endDate) {
-      setValidationError("The start date must be on or before the end date.");
+      setFieldError({
+        field: "dates",
+        message: "The start date must be on or before the end date.",
+      });
       return;
     }
 
-    setValidationError("");
-    mutate({ types, columns, startDate, endDate }, { onSuccess: onExported });
+    setFieldError(null);
+    setNotice(null);
+    setIsPending(true);
+    try {
+      const type = types.length === 1 ? types[0] : undefined;
+      const rows = (
+        await fetchAllRows((offset) => fetchPage(offset, type))
+      ).filter(isInRange);
+      if (rows.length === 0) {
+        setNotice({
+          kind: "empty",
+          message: `No records match these choices.${startDate || endDate ? " Try a wider date range." : ""}`,
+        });
+        return;
+      }
+      downloadCsv(
+        fileName,
+        columns.filter((column) => columnKeys.includes(column.key)),
+        rows,
+      );
+      showToast({ title: "Export downloaded", variant: "success" });
+      onExported();
+    } catch (error: unknown) {
+      setNotice({
+        kind: "error",
+        message: getApiErrorMessage(
+          error,
+          "Unable to generate the export. Please try again.",
+        ),
+      });
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return {
-    fields: { types, columns, startDate, endDate },
+    recordTypes,
+    columns: columns.map(({ key, header }) => ({ key, header })),
+    fields: { types, columnKeys, startDate, endDate },
     setFields: { setStartDate, setEndDate },
     toggleType,
     toggleColumn,
     handleGenerate,
     isPending,
-    isError,
-    error,
-    validationError,
+    fieldError,
+    notice,
   };
 }
-
-export type PrintConfigFormState = ReturnType<typeof usePrintConfigForm>;

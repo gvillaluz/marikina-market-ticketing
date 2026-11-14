@@ -1,9 +1,13 @@
 import { useState } from "react";
-import { usePrintConfigForm } from "@/features/inspections";
+import { ticketsApi } from "@/api/endpoints/tickets.api";
+import { useTableExport } from "@/hooks/useTableExport";
 import { getApiErrorMessage } from "@/utils/apiErrors";
+import { TICKET_COLUMNS } from "../ticketColumns";
 import { useTicketFilters } from "./useTicketFilters";
 import { useTickets } from "./useTickets";
 import { useTicketAnalytics } from "./useTicketAnalytics";
+import type { TicketSummary } from "@/api/types/ticket.types";
+import type { PrintConfigOptions } from "@/features/inspections";
 
 export function useTicketsPage() {
   const { filters, setFilters, queryParams } = useTicketFilters();
@@ -11,9 +15,19 @@ export function useTicketsPage() {
   const analytics = useTicketAnalytics();
   const [selectedTicketId, setSelectedTicketId] = useState(0);
   const [isExportOpen, setIsExportOpen] = useState(false);
-  const printConfig = usePrintConfigForm(["ticket"], () =>
-    setIsExportOpen(false),
-  );
+  const closeExport = () => setIsExportOpen(false);
+  const table = useTableExport({
+    title: "Ticket records",
+    fileName: "ticket-records.csv",
+    columns: TICKET_COLUMNS,
+    fetchPage: (offset) => ticketsApi.ticketList({ ...queryParams, offset }),
+  });
+  const exportOptions: PrintConfigOptions<TicketSummary> = {
+    fileName: "ticket-records.csv",
+    columns: TICKET_COLUMNS,
+    fetchPage: (offset) => ticketsApi.ticketList({ offset }),
+    onExported: closeExport,
+  };
   return {
     ...records,
     filters,
@@ -21,7 +35,7 @@ export function useTicketsPage() {
     analytics,
     selectedTicketId,
     isExportOpen,
-    printConfig,
+    exportOptions,
     errorMessage: records.isError
       ? getApiErrorMessage(
           records.error,
@@ -34,9 +48,11 @@ export function useTicketsPage() {
     openTicket: setSelectedTicketId,
     closeTicket: () => setSelectedTicketId(0),
     openExport: () => setIsExportOpen(true),
-    closeExport: () => setIsExportOpen(false),
+    closeExport,
     goToPage: (page: number) =>
       records.setPage(Math.min(Math.max(page, 1), records.totalPages)),
-    print: () => window.print(),
+    print: table.print,
+    printPreparing: table.preparing === "print",
+    printTable: table.printTable,
   };
 }

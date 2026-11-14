@@ -1,4 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
+import { PrintTable } from "@/components/ui/PrintTable";
 import AdminVendorCompliancePanel from "../components/AdminVendorCompliancePanel";
 import AdminCommunityServiceLogs from "../components/AdminCommunityServiceLogs";
 import AdminVendorRegistry from "../components/AdminVendorRegistry";
@@ -8,7 +9,8 @@ import { useAdminVendorsPage } from "../hooks/useAdminVendorsPage";
 import styles from "./AdminVendorsPage.module.css";
 
 export default function AdminVendorsPage() {
-  const { registry, compliance, businessForm } = useAdminVendorsPage();
+  const { registry, registryPrint, compliance, businessForm } =
+    useAdminVendorsPage();
   const communityServiceLogs = useAdminCommunityServiceLogs();
 
   return (
@@ -26,6 +28,7 @@ export default function AdminVendorsPage() {
         <AdminVendorCompliancePanel {...compliance} />
       </div>
       <AdminCreateVendorModal key={String(businessForm.businessId)} {...businessForm} />
+      <PrintTable {...registryPrint} />
     </div>
   );
 }

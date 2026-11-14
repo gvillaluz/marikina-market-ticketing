@@ -2,102 +2,116 @@ import { Download } from "lucide-react";
 import styles from "./PrintConfigModal.module.css";
 import { Modal } from "../../../components/ui/Modal";
 import { Button } from "../../../components/ui/Button";
-import { PRINT_COLUMN_OPTIONS } from "../../../utils/constants";
-import type { PrintConfigPayload } from "../../../api/types/ticket.types";
-import type { PrintConfigFormState } from "../hooks/usePrintConfigForm";
-import { getApiErrorMessage } from "@/utils/apiErrors";
+import {
+  usePrintConfigForm,
+  type ExportFormField,
+  type PrintConfigOptions,
+} from "../hooks/usePrintConfigForm";
 
-interface PrintConfigModalProps {
+interface PrintConfigModalProps<T> {
   isOpen: boolean;
   onClose: () => void;
-  form: PrintConfigFormState;
+  options: PrintConfigOptions<T>;
   title?: string;
 }
 
-const RECORD_TYPES: PrintConfigPayload["types"] = ["warning", "ticket"];
-const COLUMN_ORDER: PrintConfigPayload["columns"] = [
-  "controlNumber",
-  "type",
-  "issuedAt",
-  "vendor",
-  "status",
-  "section",
-  "severity",
-];
+const ERROR_IDS: Record<ExportFormField, string> = {
+  types: "export-types-error",
+  columns: "export-columns-error",
+  dates: "export-dates-error",
+};
 
-export function PrintConfigModal({
+export function PrintConfigModal<T extends { issuedAt: string | Date }>({
   isOpen,
   onClose,
-  form,
+  options,
   title = "Export Inspection Records",
-}: PrintConfigModalProps) {
+}: PrintConfigModalProps<T>) {
   const {
+    recordTypes,
+    columns,
     fields,
     setFields,
     toggleType,
     toggleColumn,
     handleGenerate,
     isPending,
-    isError,
-    error,
-    validationError,
-  } = form;
+    fieldError,
+    notice,
+  } = usePrintConfigForm(options);
+
+  const errorFor = (field: ExportFormField) =>
+    fieldError?.field === field ? (
+      <p id={ERROR_IDS[field]} className={styles.fieldError} role="alert">
+        {fieldError.message}
+      </p>
+    ) : null;
+  const describedBy = (field: ExportFormField) =>
+    fieldError?.field === field ? ERROR_IDS[field] : undefined;
 
   return (
     <Modal open={isOpen} title={title} onClose={onClose} size="md">
       <div className={styles.modalContent}>
         <p className={styles.description}>
-          Choose the records and fields to include. The export file type is
-          provided by the export service.
+          Choose the records and columns to include. The spreadsheet file
+          follows only these choices, not the page's search or filters.
         </p>
 
-        {(validationError || isError) && (
-          <p className={styles.errorText} role="alert">
-            {validationError ||
-              getApiErrorMessage(error, "Unable to generate the export. Please try again.")}
+        {notice && (
+          <p
+            className={
+              notice.kind === "error" ? styles.errorText : styles.emptyText
+            }
+            role={notice.kind === "error" ? "alert" : "status"}
+          >
+            {notice.message}
           </p>
         )}
 
-        <fieldset className={styles.section}>
-          <legend className={styles.sectionTitle}>Record type</legend>
-          <div className={`${styles.checkGrid} ${styles.typePanel}`}>
-            {RECORD_TYPES.map((value) => (
-              <label className={styles.checkItem} key={value}>
+        {recordTypes && (
+          <fieldset
+            className={styles.section}
+            aria-describedby={describedBy("types")}
+          >
+            <legend className={styles.sectionTitle}>Record type</legend>
+            <div className={`${styles.checkGrid} ${styles.typePanel}`}>
+              {recordTypes.map((value) => (
+                <label className={styles.checkItem} key={value}>
+                  <input
+                    type="checkbox"
+                    checked={fields.types.includes(value)}
+                    onChange={() => toggleType(value)}
+                  />
+                  {value}
+                </label>
+              ))}
+            </div>
+            {errorFor("types")}
+          </fieldset>
+        )}
+
+        <fieldset
+          className={styles.section}
+          aria-describedby={describedBy("columns")}
+        >
+          <legend className={styles.sectionTitle}>Columns to include</legend>
+          <div className={`${styles.checkGrid} ${styles.columnsPanel}`}>
+            {columns.map((column) => (
+              <label className={styles.checkItem} key={column.key}>
                 <input
                   type="checkbox"
-                  checked={fields.types.includes(value)}
-                  onChange={() => toggleType(value)}
+                  checked={fields.columnKeys.includes(column.key)}
+                  onChange={() => toggleColumn(column.key)}
                 />
-                {value === "warning" ? "Warning" : "Ticket"}
+                {column.header}
               </label>
             ))}
           </div>
+          {errorFor("columns")}
         </fieldset>
 
         <fieldset className={styles.section}>
-          <legend className={styles.sectionTitle}>Columns to include</legend>
-          <div className={`${styles.checkGrid} ${styles.columnsPanel}`}>
-            {COLUMN_ORDER.map((value) => {
-              const column = PRINT_COLUMN_OPTIONS.find(
-                (option) => option.value === value,
-              );
-              if (!column) return null;
-              return (
-                <label className={styles.checkItem} key={column.value}>
-                  <input
-                    type="checkbox"
-                    checked={fields.columns.includes(column.value)}
-                    onChange={() => toggleColumn(column.value)}
-                  />
-                  {column.label}
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
-
-        <fieldset className={styles.section}>
-          <legend className={styles.sectionTitle}>Date range (optional)</legend>
+          <legend className={styles.sectionTitle}>Date issued (optional)</legend>
           <div className={styles.dateGrid}>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="export-start-date">
@@ -108,6 +122,7 @@ export function PrintConfigModal({
                 type="date"
                 className={styles.input}
                 value={fields.startDate}
+                aria-describedby={describedBy("dates")}
                 onChange={(event) =>
                   setFields.setStartDate(event.target.value)
                 }
@@ -122,10 +137,12 @@ export function PrintConfigModal({
                 type="date"
                 className={styles.input}
                 value={fields.endDate}
+                aria-describedby={describedBy("dates")}
                 onChange={(event) => setFields.setEndDate(event.target.value)}
               />
             </div>
           </div>
+          {errorFor("dates")}
         </fieldset>
 
         <div className={styles.footer}>
@@ -135,10 +152,10 @@ export function PrintConfigModal({
           <Button
             className={styles.exportDataButton}
             icon={<Download size={15} strokeWidth={1.8} />}
-            onClick={handleGenerate}
+            onClick={() => void handleGenerate()}
             loading={isPending}
           >
-            Download export
+            Download spreadsheet
           </Button>
         </div>
       </div>

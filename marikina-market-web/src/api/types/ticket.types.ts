@@ -130,27 +130,6 @@ export interface TicketRecord extends BaseRecordDetail {
   title?: string;
 }
 
-type PrintColumn =
-  | "controlNumber"
-  | "type"
-  | "issuedAt"
-  | "vendor"
-  | "status"
-  | "section"
-  | "severity";
-
-export interface PrintConfigPayload {
-  types: Array<"warning" | "ticket">;
-  columns: PrintColumn[];
-  startDate: string;
-  endDate: string;
-}
-
-export interface ExportResult {
-  fileUrl: string;
-  fileName: string;
-}
-
 export interface TicketHistoryEntry {
   action: string;
   details: string | null;

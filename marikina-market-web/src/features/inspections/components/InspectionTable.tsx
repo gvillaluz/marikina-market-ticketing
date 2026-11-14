@@ -4,8 +4,8 @@ import {
   RecordActions,
   RecordsState,
 } from "@/components/ui/Records";
-import { formatControlNumber, formatDateTime, UNREGISTERED_VENDOR } from "@/utils/formatters";
 import type { InspectionSummary } from "@/api/types/ticket.types";
+import { INSPECTION_COLUMNS } from "../inspections.utils";
 import styles from "./InspectionTable.module.css";
 
 interface InspectionTableProps {
@@ -40,51 +40,16 @@ export function InspectionTable({
           loading={isLoading}
           emptyMessage="No inspection records match your search or filters."
           columns={[
-            {
-              key: "controlNumber",
-              header: "Control number",
-              render: (row) => formatControlNumber(row.controlNumber),
-            },
-            {
-              key: "vendor",
-              header: "Violator",
-              render: (row) =>
-                row.type === "Ticket"
-                  ? `Recorded violator: ${row.paperViolatorName || "Unconfirmed (legacy record)"}`
-                  : `Confirmed person: ${row.personFullName || "Unconfirmed (legacy record)"}`,
-            },
-            {
-              key: "enforcer",
-              header: "Enforcer",
-              render: (row) =>
-                `${row.enforcerFirstName ?? ""} ${row.enforcerLastName ?? ""}`.trim() ||
-                "\u2014",
-            },
-            {
-              key: "tradeName",
-              header: "Business name",
-              render: (row) => row.vendorId === null ? UNREGISTERED_VENDOR : row.type === "Ticket" ? (row.businessSnapshot?.businessName || "Historical business details unavailable.") : (row.businessName || "\u2014"),
-            },
-            {
-              key: "registeredOwner",
-              header: "Registered owner",
-              render: (row) => row.vendorId === null ? "\u2014" : row.type === "Ticket" ? (row.businessSnapshot?.registeredOwnerName || "Historical business details unavailable.") : (row.registeredOwnerName || "\u2014"),
-            },
-            {
-              key: "section",
-              header: "Market section",
-              render: (row) => row.vendorId !== null && row.type === "Ticket" ? (row.businessSnapshot?.marketSectionName || "Historical business details unavailable.") : (row.marketSectionName || "\u2014"),
-            },
-            {
-              key: "type",
-              header: "Type",
-              render: (row) => <RecordBadge value={row.type} />,
-            },
-            {
-              key: "issuedAt",
-              header: "Issued at",
-              render: (row) => formatDateTime(row.issuedAt),
-            },
+            ...INSPECTION_COLUMNS.map((column) => ({
+              key: column.key,
+              header: column.header,
+              render: (row: InspectionSummary) =>
+                column.key === "type" ? (
+                  <RecordBadge value={column.value(row)} />
+                ) : (
+                  column.value(row)
+                ),
+            })),
             {
               key: "actions",
               header: "Actions",

@@ -1,4 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
+import { PrintTable } from "@/components/ui/PrintTable";
 import { Dropdown } from "@/components/ui/Dropdown";
 import {
   RecordsPanel,
@@ -93,6 +94,7 @@ export function InspectionsPage() {
             onPageChange={page.goToPage}
             onExport={page.openExport}
             onPrint={page.print}
+            printPreparing={page.printPreparing}
           />
         )}
       </RecordsPanel>
@@ -100,7 +102,7 @@ export function InspectionsPage() {
         <PrintConfigModal
           isOpen
           onClose={page.closeExport}
-          form={page.printConfig}
+          options={page.exportOptions}
         />
       )}
       {page.selectedTicketId !== 0 && (
@@ -110,6 +112,7 @@ export function InspectionsPage() {
           onClose={page.closeTicket}
         />
       )}
+      <PrintTable {...page.printTable} />
     </div>
   );
 }

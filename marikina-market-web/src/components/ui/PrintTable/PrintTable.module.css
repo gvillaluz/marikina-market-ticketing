@@ -1,0 +1,50 @@
+.hidden {
+  display: none;
+}
+
+.sheet {
+  font-family: inherit;
+  color: var(--print-text);
+  background: var(--print-surface);
+}
+
+.title {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--market-font-size-heading);
+  font-weight: 700;
+  color: var(--print-text);
+}
+
+.meta {
+  margin: 0 0 var(--space-md);
+  font-size: var(--market-font-size-caption);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--market-font-size-caption);
+  line-height: 1.4;
+}
+
+.table thead {
+  display: table-header-group;
+}
+
+.table tr {
+  break-inside: avoid;
+}
+
+.table th,
+.table td {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--print-text);
+  color: var(--print-text);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  font-weight: 700;
+  white-space: nowrap;
+}

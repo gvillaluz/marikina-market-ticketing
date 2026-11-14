@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   Download,
   Eye,
+  LoaderCircle,
   Pencil,
   Printer,
   RefreshCw,
@@ -21,6 +22,8 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge/Badge";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
 import Table, { type Column } from "@/components/ui/Table";
+import type { TableExportAction } from "@/hooks/useTableExport";
+import { getTypeLabel } from "../businessTableColumns";
 import StackedCell from "./StackedCell";
 import styles from "./AdminVendorRegistry.module.css";
 
@@ -49,13 +52,6 @@ function getScoreTone(score: number): BadgeTone {
   return "ticket";
 }
 
-function getTypeLabel(type: string | number | null | undefined): string {
-  if (type == null) return "Other";
-  return typeof type === "string"
-    ? type.replace(/([a-z])([A-Z])/g, "$1 $2")
-    : String(type);
-}
-
 function formatCount(count: number): string {
   return count === 0 ? "—" : String(count);
 }
@@ -79,8 +75,9 @@ interface AdminVendorRegistryProps {
   isError: boolean;
   errorMessage: string;
   refetch: () => void;
-  exportCurrentPage: () => void;
+  exportFile: () => void;
   print: () => void;
+  preparing: TableExportAction | null;
   onViewInspections: (vendor: AdminVendorSummary) => void;
 }
 
@@ -103,8 +100,9 @@ export default function AdminVendorRegistry({
   isError,
   errorMessage,
   refetch,
-  exportCurrentPage,
+  exportFile,
   print,
+  preparing,
   onViewInspections,
 }: AdminVendorRegistryProps) {
   const offset = (page - 1) * PAGE_SIZE;
@@ -287,18 +285,32 @@ export default function AdminVendorRegistry({
               <button
                 type="button"
                 className={styles.utilityButton}
-                disabled={vendors.length === 0}
-                onClick={exportCurrentPage}
+                disabled={vendors.length === 0 || preparing !== null}
+                aria-busy={preparing === "export"}
+                onClick={exportFile}
               >
-                <Download size={13} /> Export
+                {preparing === "export" ? (
+                  <LoaderCircle size={13} className="icon-spin" aria-hidden="true" />
+                ) : (
+                  <Download size={13} aria-hidden="true" />
+                )}
+                Export
               </button>
               <button
                 type="button"
                 className={styles.iconButton}
-                aria-label="Print business list"
+                aria-label={
+                  preparing === "print" ? "Preparing print" : "Print business list"
+                }
+                aria-busy={preparing === "print"}
+                disabled={vendors.length === 0 || preparing !== null}
                 onClick={print}
               >
-                <Printer size={14} />
+                {preparing === "print" ? (
+                  <LoaderCircle size={14} className="icon-spin" aria-hidden="true" />
+                ) : (
+                  <Printer size={14} aria-hidden="true" />
+                )}
               </button>
               <Pagination
                 compact

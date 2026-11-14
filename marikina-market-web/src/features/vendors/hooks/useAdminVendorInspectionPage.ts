@@ -1,52 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import useDebounce from "@/hooks/useDebounce";
-import type {
-  AdminVendorInspection,
-  AdminVendorInspectionFilters,
-} from "@/api/types/admin-vendor.types";
-import { formatControlNumber, formatDateTime } from "@/utils/formatters";
-import { formatInspectionViolator } from "../inspectionViolator";
+import type { AdminVendorInspectionFilters } from "@/api/types/admin-vendor.types";
+import { adminVendorsApi } from "@/api/endpoints/adminVendors.api";
+import { useTableExport } from "@/hooks/useTableExport";
+import { BUSINESS_HISTORY_COLUMNS } from "../businessTableColumns";
 import { useAdminVendorInspectionHistory } from "./useAdminVendorInspectionHistory";
 
 const PAGE_SIZE = 10;
 const SEARCH_DELAY_MS = 350;
 export type VendorInspectionTypeFilter = "all" | "Warning" | "Ticket";
-
-function exportInspectionRecords(rows: AdminVendorInspection[]) {
-  const data = [
-    [
-      "Control Number",
-      "Type",
-      "Violator",
-      "Date & Time",
-      "Ordinance(s)",
-      "Enforcer",
-    ],
-    ...rows.map((row) => [
-      formatControlNumber(row.controlNumber),
-      String(row.type),
-      formatInspectionViolator(row),
-      formatDateTime(row.issuedAt),
-      row.ordinanceNumbers.join(", "),
-      row.enforcerName,
-    ]),
-  ];
-  const csv = data
-    .map((record) =>
-      record.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","),
-    )
-    .join("\r\n");
-  const fileUrl = URL.createObjectURL(
-    new Blob([csv], { type: "text/csv;charset=utf-8" }),
-  );
-  const link = document.createElement("a");
-  link.href = fileUrl;
-  link.download = "vendor-inspection-history.csv";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(fileUrl), 1000);
-}
 
 export function useAdminVendorInspectionPage(vendorId: number) {
   const [search, setSearch] = useState("");
@@ -76,6 +38,13 @@ export function useAdminVendorInspectionPage(vendorId: number) {
     [debouncedSearch, offset, sortDirection, type],
   );
   const query = useAdminVendorInspectionHistory(vendorId, filters);
+  const table = useTableExport({
+    title: "Business inspection history",
+    fileName: "vendor-inspection-history.csv",
+    columns: BUSINESS_HISTORY_COLUMNS,
+    fetchPage: (offset) =>
+      adminVendorsApi.getInspectionHistory(vendorId, { ...filters, offset }),
+  });
   const totalPages =
     query.total === null
       ? page + (query.hasMore ? 1 : 0)
@@ -124,7 +93,9 @@ export function useAdminVendorInspectionPage(vendorId: number) {
     setSelectedTicketId(ticketId: number) {
       setSelection({ vendorId, ticketId });
     },
-    exportCurrentPage: () => exportInspectionRecords(query.inspections),
-    print: () => window.print(),
+    exportFile: table.exportFile,
+    print: table.print,
+    preparing: table.preparing,
+    printTable: table.printTable,
   };
 }

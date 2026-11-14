@@ -1,4 +1,4 @@
-import { Download, Eye, Printer, Search } from "lucide-react";
+import { Download, Eye, LoaderCircle, Printer, Search } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -6,6 +6,8 @@ import Pagination from "@/components/ui/Pagination";
 import Table, { type Column } from "@/components/ui/Table";
 import type { AdminVendorInspection } from "@/api/types/admin-vendor.types";
 import { formatControlNumber, formatDateTime } from "@/utils/formatters";
+import type { TableExportAction } from "@/hooks/useTableExport";
+import { isWarning } from "../businessTableColumns";
 import { formatInspectionViolator } from "../inspectionViolator";
 import styles from "./AdminVendorInspectionHistory.module.css";
 
@@ -18,10 +20,6 @@ const SORT_OPTIONS = [
   { value: "desc", label: "Date (Newest)" },
   { value: "asc", label: "Date (Oldest)" },
 ] as const;
-
-function isWarning(inspection: AdminVendorInspection): boolean {
-  return String(inspection.type).toLowerCase() === "warning";
-}
 
 interface AdminVendorInspectionHistoryProps {
   search: string;
@@ -43,6 +41,7 @@ interface AdminVendorInspectionHistoryProps {
   onRetry: () => void;
   onExport: () => void;
   onPrint: () => void;
+  preparing: TableExportAction | null;
   onView: (ticketId: number) => void;
 }
 
@@ -66,6 +65,7 @@ export default function AdminVendorInspectionHistory({
   onRetry,
   onExport,
   onPrint,
+  preparing,
   onView,
 }: AdminVendorInspectionHistoryProps) {
   const offset = (page - 1) * 10;
@@ -217,7 +217,8 @@ export default function AdminVendorInspectionHistory({
                   variant="outline"
                   size="sm"
                   icon={<Download size={13} aria-hidden="true" />}
-                  disabled={inspections.length === 0}
+                  disabled={inspections.length === 0 || preparing === "print"}
+                  loading={preparing === "export"}
                   onClick={onExport}
                 >
                   Export
@@ -225,10 +226,20 @@ export default function AdminVendorInspectionHistory({
                 <button
                   type="button"
                   className={styles.printButton}
-                  aria-label="Print inspection history"
+                  aria-label={
+                    preparing === "print"
+                      ? "Preparing print"
+                      : "Print inspection history"
+                  }
+                  aria-busy={preparing === "print"}
+                  disabled={inspections.length === 0 || preparing !== null}
                   onClick={onPrint}
                 >
-                  <Printer size={14} aria-hidden="true" />
+                  {preparing === "print" ? (
+                    <LoaderCircle size={14} className="icon-spin" aria-hidden="true" />
+                  ) : (
+                    <Printer size={14} aria-hidden="true" />
+                  )}
                 </button>
                 <Pagination
                   compact
