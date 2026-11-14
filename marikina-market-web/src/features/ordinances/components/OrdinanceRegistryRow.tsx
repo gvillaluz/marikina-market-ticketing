@@ -1,26 +1,41 @@
 import type { OrdinanceSummary } from "../ordinances.types";
 import { formatDate } from "@/utils/formatters";
+import SearchHighlight from "@/components/ui/SearchHighlight";
 import { CATEGORY_OPTIONS } from "../ordinances.constants";
 import controls from "./OrdinanceControls.module.css";
 import styles from "./OrdinanceRegistryRow.module.css";
 
 interface Props {
   ordinance: OrdinanceSummary;
+  search: string;
   disabled: boolean;
   onManage: () => void;
 }
 
 export default function OrdinanceRegistryRow({
   ordinance,
+  search,
   disabled,
   onManage,
 }: Props) {
   return (
     <tr className={styles.row}>
       <th scope="row" className={styles.identity}>
-        <strong>Ord No. {ordinance.ordinanceNo}, Series of {ordinance.series}</strong>
-        <span>{ordinance.section ? `Section ${ordinance.section}` : "Section unavailable"}</span>
-        <span>{ordinance.title}</span>
+        <strong>
+          Ord No. <SearchHighlight text={ordinance.ordinanceNo} search={search} />, Series of {ordinance.series}
+        </strong>
+        <span>
+          {ordinance.section ? (
+            <>
+              Section <SearchHighlight text={ordinance.section} search={search} />
+            </>
+          ) : (
+            "Section unavailable"
+          )}
+        </span>
+        <span>
+          <SearchHighlight text={ordinance.title} search={search} />
+        </span>
       </th>
       <td>
         {CATEGORY_OPTIONS.find((option) => option.value === ordinance.category)

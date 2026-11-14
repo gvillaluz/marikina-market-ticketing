@@ -1,9 +1,11 @@
 import styles from "./MarketSectionRow.module.css";
 import { Pencil } from "lucide-react";
 import type { MarketSectionResponse } from "@/api/types/market-section.types";
+import SearchHighlight from "@/components/ui/SearchHighlight";
 
 interface MarketSectionRowProps {
   section: MarketSectionResponse;
+  search: string;
   disabled: boolean;
   pending: boolean;
   onEdit: () => void;
@@ -12,6 +14,7 @@ interface MarketSectionRowProps {
 
 export default function MarketSectionRow({
   section,
+  search,
   disabled,
   pending,
   onEdit,
@@ -20,9 +23,11 @@ export default function MarketSectionRow({
   return (
     <tr aria-busy={pending}>
       <th scope="row" className={styles.nameCell}>
-        {section.name}
+        <SearchHighlight text={section.name} search={search} />
       </th>
-      <td>{section.description}</td>
+      <td>
+        <SearchHighlight text={section.description} search={search} />
+      </td>
       <td>{section.vendorCount.toLocaleString()}</td>
       <td>
         <span

@@ -40,6 +40,8 @@
   --records-danger-surface: #fff0f1;
   --records-violet-text: #68459b;
   --records-violet-surface: #f1ebfa;
+  --search-highlight-text: var(--text-heading);
+  --search-highlight-surface: #fde68a;
   --records-table-width: 58rem;
   --records-state-height: 12rem;
   --records-menu-height: 18rem;

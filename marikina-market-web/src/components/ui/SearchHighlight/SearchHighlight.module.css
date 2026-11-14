@@ -1,0 +1,5 @@
+.mark {
+  font-weight: 600;
+  color: var(--search-highlight-text);
+  background: var(--search-highlight-surface);
+}

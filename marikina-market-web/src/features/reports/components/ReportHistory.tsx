@@ -94,6 +94,7 @@ export default function ReportHistory({
             <ReportHistoryRow
               key={report.id}
               report={report}
+              search={history.search}
               onView={onView}
               disabled={viewDisabled || history.busy}
             />

@@ -2,8 +2,15 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ApiRequestError } from "@/utils/apiErrors";
 import { marketSectionApi } from "@/api/endpoints/marketSection.api";
+import type { MarketSectionResponse } from "@/api/types/market-section.types";
+import { exactMatchesFirst } from "@/utils/searchMatch";
 
 export const marketSectionsListKey = ["market_sections", "list"] as const;
+
+const searchedValues = (section: MarketSectionResponse) => [
+  section.name,
+  section.description,
+];
 
 export function useMarketSections() {
   const [search, setSearch] = useState("");
@@ -13,10 +20,14 @@ export function useMarketSections() {
   });
   const sections = query.data ?? [];
   const searchTerm = search.trim().toLocaleLowerCase();
-  const filteredSections = sections.filter(
-    (section) =>
-      section.name.toLocaleLowerCase().includes(searchTerm) ||
-      section.description.toLocaleLowerCase().includes(searchTerm),
+  const filteredSections = exactMatchesFirst(
+    sections.filter((section) =>
+      searchedValues(section).some((value) =>
+        value.toLocaleLowerCase().includes(searchTerm),
+      ),
+    ),
+    search,
+    searchedValues,
   );
   const serverMessage = query.error instanceof ApiRequestError
     ? query.error.serverMessage
