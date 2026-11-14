@@ -596,7 +596,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          'Choose Registered or Illegal, then find the vendor or pick the market section to begin.',
+                          'Choose Registered or Unregistered, then find the vendor or pick the market section to begin.',
                           style: TextStyle(
                             color: AppColors.mediumGrey,
                             fontSize: AppTheme.bodyFontSize,

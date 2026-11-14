@@ -112,7 +112,7 @@ Future<void> _show(WidgetTester tester, Widget child) => tester.pumpWidget(
 );
 
 void _expectUnregisteredWording() {
-  expect(find.text('Illegal Vendor'), findsOneWidget);
+  expect(find.text('Unregistered vendor'), findsOneWidget);
   expect(find.text('Historical business details unavailable.'), findsNothing);
 }
 
@@ -297,7 +297,7 @@ void main() {
     );
     await flush(tester);
     expect(find.text('000456'), findsOneWidget);
-    expect(find.text('Illegal Vendor'), findsOneWidget);
+    expect(find.text('Unregistered vendor'), findsOneWidget);
     expect(find.textContaining('Historical business details'), findsNothing);
   });
 }

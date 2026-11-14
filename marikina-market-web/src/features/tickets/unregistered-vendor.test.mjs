@@ -10,7 +10,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 // Slice B1: a ticket or warning for an unregistered vendor has no business. The server sends the market
 // section and the issue place and leaves the business id, name, owner, account number, stall and business
-// snapshot empty. Every screen that names a business says "Illegal Vendor" instead, and an old ticket
+// snapshot empty. Every screen that names a business says "Unregistered vendor" instead, and an old ticket
 // whose business details were never saved still says they are unavailable. Expected values are written by hand.
 const require = createRequire(import.meta.url);
 const src = fileURLToPath(new URL('../../', import.meta.url));
@@ -76,7 +76,7 @@ const column = (html, header) => {
     .filter(tds => tds.length > index).map(tds => text(tds[index][1]));
 };
 
-const UNREGISTERED = 'Illegal Vendor';
+const UNREGISTERED = 'Unregistered vendor';
 const UNAVAILABLE = 'Historical business details unavailable.';
 const DASH = '—';
 
@@ -85,7 +85,7 @@ const base = { enforcerId: 3, enforcerFirstName: 'Ramon', enforcerLastName: 'San
 const noBusiness = { vendorId: null, vendorFirstName: null, vendorLastName: null, stallNumber: null, businessName: null, registeredOwnerName: null };
 const ticket = { ...base, ...noBusiness, id: 11, ticketId: 11, type: 'Ticket', controlNumber: '000456', paperReference: '000456', severity: 'Minor', penaltyType: 'CashFine' };
 const warning = { ...base, ...noBusiness, id: 12, ticketId: 12, type: 'Warning', controlNumber: 'WRN-0012', paperReference: null, personFullName: 'Juan Cruz' };
-// An old ticket of a registered business whose snapshot was never saved: still "unavailable", never "Illegal Vendor".
+// An old ticket of a registered business whose snapshot was never saved: still "unavailable", never "unregistered".
 const legacy = { ...base, id: 3, ticketId: 3, type: 'Ticket', controlNumber: null, paperReference: null, paperViolatorName: null, marketSectionName: 'Dry Goods',
   vendorId: 10, vendorFirstName: 'Nena', vendorLastName: 'Cruz', stallNumber: '12', businessName: 'Aling Nena', registeredOwnerName: 'Nena Cruz', severity: 'Minor', penaltyType: 'CashFine' };
 
@@ -160,7 +160,7 @@ test('community service log names an unregistered vendor and has no account numb
     isLoading: false, isError: false, errorMessage: '', refetch: () => {}, getProgressStatus: () => 'pending' });
   assert.deepEqual(column(html, 'Vendor Name'), [UNREGISTERED]);
   assert.deepEqual(column(html, 'Business Account Number'), [DASH]);
-  assert.match(html, /Illegal Vendor community service hours completed/);
+  assert.match(html, /Unregistered vendor community service hours completed/);
   assert.doesNotMatch(text(html), /null|undefined/);
 });
 

@@ -256,7 +256,7 @@ void main() {
     });
   });
 
-  group('Registered / Illegal choice', () {
+  group('Registered / Unregistered choice', () {
     testWidgets('starts on Registered: search only, no QR scanning', (
       tester,
     ) async {
@@ -269,7 +269,7 @@ void main() {
       );
       await showCard(tester, bloc!);
       expect(find.text('Registered'), findsOneWidget);
-      expect(find.text('Illegal'), findsOneWidget);
+      expect(find.text('Unregistered'), findsOneWidget);
       expect(find.text('Search business'), findsOneWidget);
       expect(find.text('Scan QR Code'), findsNothing);
       expect(find.text('Search for a registered business.'), findsOneWidget);
@@ -277,7 +277,7 @@ void main() {
       expect(paths, isEmpty);
     });
 
-    testWidgets('Illegal lists the active sections; one tap picks one', (
+    testWidgets('Unregistered lists the active sections; one tap picks one', (
       tester,
     ) async {
       final bloc = await tester.runAsync(
@@ -285,7 +285,7 @@ void main() {
       );
       MarketSection? picked;
       await showCard(tester, bloc!, onSection: (section) => picked = section);
-      await tester.tap(find.text('Illegal'));
+      await tester.tap(find.text('Unregistered'));
       await flush(tester);
       expect(find.text('Search business'), findsNothing);
       expect(find.text('Market section'), findsOneWidget);
@@ -314,7 +314,7 @@ void main() {
         }),
       );
       await showCard(tester, bloc!);
-      await tester.tap(find.text('Illegal'));
+      await tester.tap(find.text('Unregistered'));
       await flush(tester);
       expect(
         find.text('No internet connection. Please try again.'),
@@ -334,7 +334,7 @@ void main() {
           () => listBloc((options) async => reply(options, [sectionList[1]])),
         );
         await showCard(tester, bloc!);
-        await tester.tap(find.text('Illegal'));
+        await tester.tap(find.text('Unregistered'));
         await flush(tester);
         expect(
           find.text('No active market sections. Ask the office to add one.'),
@@ -350,7 +350,7 @@ void main() {
         () => listBloc((options) async => reply(options, sectionList)),
       );
       await showCard(tester, bloc!);
-      await tester.tap(find.text('Illegal'));
+      await tester.tap(find.text('Unregistered'));
       await flush(tester);
       await tester.tap(find.text('Registered'));
       await flush(tester);
@@ -375,7 +375,7 @@ void main() {
             ),
           ),
         );
-        expect(find.text('Illegal Vendor'), findsOneWidget);
+        expect(find.text('Unregistered vendor'), findsOneWidget);
         expect(find.text('Meat Section'), findsOneWidget);
         await tester.tap(find.byTooltip('Change section'));
         expect(changed, 1);
@@ -416,7 +416,7 @@ void main() {
     });
 
     testWidgets(
-      'the review page says Illegal Vendor, with no business fields',
+      'the review page says Unregistered vendor, with no business fields',
       (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -428,7 +428,7 @@ void main() {
             ),
           ),
         );
-        expect(find.text('Illegal Vendor'), findsOneWidget);
+        expect(find.text('Unregistered vendor'), findsOneWidget);
         expect(find.text('TRADE NAME:'), findsNothing);
         expect(find.text('REGISTERED OWNER:'), findsNothing);
         expect(find.text('STALL/UNIT NO:'), findsNothing);
@@ -448,7 +448,7 @@ void main() {
           ),
         ),
       );
-      expect(find.text('Illegal Vendor'), findsNothing);
+      expect(find.text('Unregistered vendor'), findsNothing);
       expect(find.text('Synthetic Market Goods'), findsOneWidget);
     });
   });
