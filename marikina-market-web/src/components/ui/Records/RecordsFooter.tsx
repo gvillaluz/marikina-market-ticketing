@@ -1,4 +1,4 @@
-import { Download, Printer } from "lucide-react";
+import { Download, LoaderCircle, Printer } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
 import styles from "./RecordsFooter.module.css";
 
@@ -13,6 +13,7 @@ interface RecordsFooterProps {
   onPageChange: (page: number) => void;
   onExport?: () => void;
   onPrint?: () => void;
+  printPreparing?: boolean;
 }
 
 export function RecordsFooter({
@@ -26,6 +27,7 @@ export function RecordsFooter({
   onPageChange,
   onExport,
   onPrint,
+  printPreparing,
 }: RecordsFooterProps) {
   return (
     <footer className={styles.footer}>
@@ -41,7 +43,7 @@ export function RecordsFooter({
               <button
                 type="button"
                 onClick={onExport}
-                disabled={busy || total === 0}
+                disabled={busy || printPreparing}
               >
                 <Download size={14} strokeWidth={1.8} aria-hidden="true" />
                 Export
@@ -51,12 +53,22 @@ export function RecordsFooter({
               <button
                 type="button"
                 onClick={onPrint}
-                disabled={busy || total === 0}
+                disabled={busy || printPreparing || total === 0}
                 className={styles.print}
-                aria-label={`Print ${label}`}
+                aria-label={printPreparing ? "Preparing print" : `Print ${label}`}
+                aria-busy={printPreparing}
                 title={`Print ${label}`}
               >
-                <Printer size={15} strokeWidth={1.8} aria-hidden="true" />
+                {printPreparing ? (
+                  <LoaderCircle
+                    size={15}
+                    strokeWidth={1.8}
+                    className="icon-spin"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <Printer size={15} strokeWidth={1.8} aria-hidden="true" />
+                )}
               </button>
             )}
           </div>

@@ -69,7 +69,8 @@ function harness(file, hookName, extraGlobals = {}) {
     timers = new Map(),
     queries = [],
     navigation = [],
-    requests = [];
+    requests = [],
+    tableExports = [];
   let stateCursor = 0,
     effectCursor = 0,
     refCursor = 0,
@@ -137,6 +138,19 @@ function harness(file, hookName, extraGlobals = {}) {
           };
         },
       },
+      // Export/Print are covered by table-export.test.mjs; here we only
+      // check what each page hands to them.
+      "@/hooks/useTableExport": {
+        useTableExport(options) {
+          tableExports.push(options);
+          return {
+            preparing: null,
+            exportFile: options.fetchPage,
+            print: options.fetchPage,
+            printTable: { title: options.title, rows: null },
+          };
+        },
+      },
       "@/api/client": {
         default: {
           async get(...args) {
@@ -163,6 +177,7 @@ function harness(file, hookName, extraGlobals = {}) {
     queries,
     navigation,
     requests,
+    tableExports,
     writes,
     setWriteHandler(handler) { writeHandler = handler; },
     setQuery(value) {
@@ -229,32 +244,29 @@ test("registry filter/search changes start at page one and debounce blocks pagin
   assert.equal(h.render().registry.page, 1);
 });
 
-test("business list export names the owner column Registered Owner and the file business-registry.csv", async () => {
-  const blobs = [], links = [];
-  const h = harness("features/vendors/hooks/useAdminVendorsPage.ts", "useAdminVendorsPage", {
-    Blob: class { constructor(parts) { blobs.push(parts.join("")); } },
-    URL: { createObjectURL: () => "blob:export", revokeObjectURL() { } },
-    document: {
-      body: { appendChild() { } },
-      createElement() { const link = { click() { }, remove() { } }; links.push(link); return link; },
-    },
-    window: { setTimeout() { } },
-  });
-  h.setQuery({
-    data: {
-      items: [{
-        vendorId: 4, businessName: "Reyes Fresh Meats", businessAccountNumber: "0012345",
-        vendorName: "Juan Reyes", marketSectionName: "Meat", type: "Public",
-        complianceScore: 90, warningCount: 1, ticketCount: 2,
-      }],
-      total: 1, hasMore: false,
-    },
-  });
-  h.render().registry.exportCurrentPage();
-  assert.equal(links[0].download, "business-registry.csv");
-  const [header, row] = blobs[0].split("\r\n");
-  assert.equal(header, '"Business Account Number","Registered Owner","Market Section","Type","Compliance Score","Warnings","Tickets"');
-  assert.equal(row, '"0012345","Juan Reyes","Meat","Public","90%","1","2"');
+test("business list Export and Print collect every matching business with the table's columns", async () => {
+  const { toCsv } = load("utils/tableExport.ts");
+  const h = harness("features/vendors/hooks/useAdminVendorsPage.ts", "useAdminVendorsPage");
+  h.render().registry.setSection("2");
+  h.render();
+  const latest = h.tableExports.at(-1);
+  assert.equal(latest.fileName, "business-registry.csv");
+  assert.equal(latest.title, "Business registry");
+  await latest.fetchPage(20);
+  assert.equal(h.requests.at(-1)[0], "/admin/vendors");
+  assert.equal(h.requests.at(-1)[1].params.offset, 20);
+  assert.equal(h.requests.at(-1)[1].params.marketSectionId, 2);
+  const [header, row] = toCsv(latest.columns, [{
+    vendorId: 4, businessName: "Reyes Fresh Meats", businessAccountNumber: "0012345",
+    vendorName: "Juan Reyes", marketSectionName: "Meat", type: "Public",
+    complianceScore: 90, warningCount: 0, ticketCount: 2,
+  }]).split("\r\n");
+  assert.equal(header, '"Business name","Business account number","Registered owner","Market section","Type","Compliance score","Warnings","Tickets"');
+  assert.equal(row, '"Reyes Fresh Meats","0012345","Juan Reyes","Meat","Public","90%","0","2"');
+  const page = h.render();
+  assert.equal(page.registry.exportFile, h.tableExports.at(-1).fetchPage);
+  assert.equal(page.registry.print, h.tableExports.at(-1).fetchPage);
+  assert.equal(page.registryPrint.title, "Business registry");
 });
 
 test("business record page and its history never call the business a vendor", () => {
@@ -338,8 +350,9 @@ const registryProps = {
   isError: false,
   errorMessage: "Connection unavailable",
   refetch: noop,
-  exportCurrentPage: noop,
+  exportFile: noop,
   print: noop,
+  preparing: null,
   onViewInspections: noop,
 };
 const historyProps = {
@@ -362,6 +375,7 @@ const historyProps = {
   onRetry: noop,
   onExport: noop,
   onPrint: noop,
+  preparing: null,
   onView: noop,
 };
 function renderComponent(file, props) {
@@ -528,17 +542,19 @@ test("business history shows a Violator column after Type with the recorded viol
   assert.deepEqual(violatorCells, ["Jose Ramos", "Maria Santos", "Unconfirmed (legacy record)"]);
 });
 
-test("business history export adds the Violator column after Type", () => {
-  const blobs = [];
-  const h = harness("features/vendors/hooks/useAdminVendorInspectionPage.ts", "useAdminVendorInspectionPage", {
-    Blob: class { constructor(parts) { blobs.push(parts.join("")); } },
-    URL: { createObjectURL: () => "blob:export", revokeObjectURL() { } },
-    document: { body: { appendChild() { } }, createElement: () => ({ click() { }, remove() { } }) },
-    window: { setTimeout() { } },
-  });
-  h.setQuery({ data: { items: violatorRows, total: 3, hasMore: false } });
-  h.render(70).exportCurrentPage();
-  const lines = blobs[0].split("\r\n");
-  assert.equal(lines[0], '"Control Number","Type","Violator","Date & Time","Ordinance(s)","Enforcer"');
-  assert.deepEqual(lines.slice(1).map((line) => line.split(",")[2]), ['"Jose Ramos"', '"Maria Santos"', '"Unconfirmed (legacy record)"']);
+test("business history Export and Print collect every matching record with Business name and Violator columns", async () => {
+  const { toCsv } = load("utils/tableExport.ts");
+  const h = harness("features/vendors/hooks/useAdminVendorInspectionPage.ts", "useAdminVendorInspectionPage");
+  h.render(70).setType("Ticket");
+  h.render(70);
+  const options = h.tableExports.at(-1);
+  assert.equal(options.fileName, "vendor-inspection-history.csv");
+  await options.fetchPage(10);
+  assert.equal(h.requests.at(-1)[0], "/admin/vendors/70/inspections");
+  assert.equal(h.requests.at(-1)[1].params.offset, 10);
+  assert.equal(h.requests.at(-1)[1].params.ticketType, "Ticket");
+  const lines = toCsv(options.columns, violatorRows).split("\r\n");
+  assert.equal(lines[0], '"Control number","Business name","Type","Violator","Date & time","Ordinance(s)","Enforcer"');
+  assert.deepEqual(lines.slice(1).map((line) => line.split('","')[3]), ["Jose Ramos", "Maria Santos", "Unconfirmed (legacy record)"]);
+  assert.equal(h.render(70).exportFile, h.tableExports.at(-1).fetchPage);
 });

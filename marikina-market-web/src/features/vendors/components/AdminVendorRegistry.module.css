@@ -184,6 +184,7 @@
   padding: 0 var(--space-md);
 }
 
+.iconButton:disabled,
 .utilityButton:disabled {
   opacity: 0.45;
   cursor: not-allowed;

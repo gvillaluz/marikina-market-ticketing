@@ -7,7 +7,10 @@ import type {
   AdminVendorSummaryFilters,
   ComplianceScoreRange,
 } from "@/api/types/admin-vendor.types";
+import { adminVendorsApi } from "@/api/endpoints/adminVendors.api";
+import { useTableExport } from "@/hooks/useTableExport";
 import { ROUTES } from "@/routes/routePaths";
+import { BUSINESS_COLUMNS } from "../businessTableColumns";
 import { useAdminVendors } from "./useAdminVendors";
 import { useAdminVendorOverview } from "./useAdminVendorOverview";
 import { useAdminPendingSettlements } from "./useAdminPendingSettlements";
@@ -25,44 +28,6 @@ function isCommunityServiceSettlement(
     penaltyType.includes("communityservice") ||
     settlement.communityServiceHours != null
   );
-}
-
-function exportVendorPage(vendors: AdminVendorSummary[]) {
-  const rows = [
-    [
-      "Business Account Number",
-      "Registered Owner",
-      "Market Section",
-      "Type",
-      "Compliance Score",
-      "Warnings",
-      "Tickets",
-    ],
-    ...vendors.map((vendor) => [
-      vendor.businessAccountNumber,
-      vendor.vendorName,
-      vendor.marketSectionName,
-      vendor.type,
-      `${vendor.complianceScore}%`,
-      String(vendor.warningCount),
-      String(vendor.ticketCount),
-    ]),
-  ];
-  const csv = rows
-    .map((row) =>
-      row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","),
-    )
-    .join("\r\n");
-  const url = URL.createObjectURL(
-    new Blob([csv], { type: "text/csv;charset=utf-8" }),
-  );
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "business-registry.csv";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export function useAdminVendorsPage() {
@@ -91,6 +56,12 @@ export function useAdminVendorsPage() {
     [debouncedSearch, offset, section, complianceScore],
   );
   const vendorQuery = useAdminVendors(filters);
+  const table = useTableExport({
+    title: "Business registry",
+    fileName: "business-registry.csv",
+    columns: BUSINESS_COLUMNS,
+    fetchPage: (offset) => adminVendorsApi.list({ ...filters, offset }),
+  });
   const overviewQuery = useAdminVendorOverview();
   const settlementQuery = useAdminPendingSettlements(settlementOffset);
   const settlements = settlementQuery.settlements.filter(
@@ -107,6 +78,7 @@ export function useAdminVendorsPage() {
   );
 
   return {
+    registryPrint: table.printTable,
     businessForm: {
       open: businessOpen,
       businessId: editingBusinessId,
@@ -157,8 +129,9 @@ export function useAdminVendorsPage() {
       isError: vendorQuery.isError,
       errorMessage: vendorQuery.errorMessage,
       refetch: vendorQuery.refetch,
-      exportCurrentPage: () => exportVendorPage(vendorQuery.vendors),
-      print: () => window.print(),
+      exportFile: table.exportFile,
+      print: table.print,
+      preparing: table.preparing,
       onViewInspections: (vendor: AdminVendorSummary) =>
         navigate(ROUTES.adminVendorInspections(String(vendor.vendorId)), {
           state: {

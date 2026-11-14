@@ -206,6 +206,16 @@
   color: #52657a;
 }
 
+.printButton:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+
+.printButton:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
 .pagination {
   gap: 3px;
   margin: 0;
@@ -273,24 +283,5 @@
   .footerActions {
     width: 100%;
     justify-content: flex-end;
-  }
-}
-
-@media print {
-  .toolbar,
-  .footer,
-  .viewButton {
-    display: none !important;
-  }
-
-  @keyframes inspection-row-enter {
-    from {
-      opacity: 0;
-      transform: translateY(3px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 }

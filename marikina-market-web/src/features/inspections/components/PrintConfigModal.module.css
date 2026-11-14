@@ -125,6 +125,22 @@
   font-size: 0.78rem;
 }
 
+.emptyText {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--bg-page);
+  color: var(--text-heading);
+  font-size: 0.78rem;
+}
+
+.fieldError {
+  margin: var(--space-xs) 0 0;
+  color: var(--records-danger-text);
+  font-size: var(--market-font-size-small);
+}
+
 @media (max-width: 480px) {
   .modalContent {
     padding: 1rem;

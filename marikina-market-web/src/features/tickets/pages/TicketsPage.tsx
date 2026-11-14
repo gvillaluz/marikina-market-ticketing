@@ -1,4 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
+import { PrintTable } from "@/components/ui/PrintTable";
 import { Dropdown } from "@/components/ui/Dropdown";
 import {
   RecordsPanel,
@@ -144,6 +145,7 @@ export default function TicketsPage() {
             onPageChange={page.goToPage}
             onExport={page.openExport}
             onPrint={page.print}
+            printPreparing={page.printPreparing}
           />
         )}
       </RecordsPanel>
@@ -159,9 +161,10 @@ export default function TicketsPage() {
           isOpen
           title="Export Ticket Records"
           onClose={page.closeExport}
-          form={page.printConfig}
+          options={page.exportOptions}
         />
       )}
+      <PrintTable {...page.printTable} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
+import { PrintTable } from "@/components/ui/PrintTable";
 import type { AdminVendorInspectionNavigationState } from "@/api/types/admin-vendor.types";
 import { useAdminVendorProfile } from "../hooks/useAdminVendorProfile";
 import { useAdminVendorInspectionPage } from "../hooks/useAdminVendorInspectionPage";
@@ -113,8 +114,9 @@ export default function AdminVendorInspectionPage() {
           isError={inspectionPage.isError}
           errorMessage={inspectionPage.errorMessage}
           onRetry={() => void inspectionPage.refetch()}
-          onExport={inspectionPage.exportCurrentPage}
+          onExport={inspectionPage.exportFile}
           onPrint={inspectionPage.print}
+          preparing={inspectionPage.preparing}
           onView={inspectionPage.setSelectedTicketId}
         />
       </section>
@@ -125,6 +127,10 @@ export default function AdminVendorInspectionPage() {
           onClose={() => inspectionPage.setSelectedTicketId(0)}
         />
       )}
+      <PrintTable
+        {...inspectionPage.printTable}
+        title={`Inspection history: ${profile?.businessName || vendorName}`}
+      />
     </div>
   );
 }
