@@ -553,7 +553,7 @@ test("ordinance fields show specific category only for Others and label fines co
 
 test("registry shows ordinance section, legacy unavailability and specific category", () => {
   const Row = load("features/ordinances/components/OrdinanceRegistryRow.tsx").default;
-  const render = (ordinance) => renderToStaticMarkup(React.createElement(Row, { ordinance, disabled: false, onManage() { } }));
+  const render = (ordinance) => renderToStaticMarkup(React.createElement(Row, { ordinance, search: "", disabled: false, onManage() { } }));
   let html = render({ ...summary, section: "53", category: "Others", specificCategory: "Public access" });
   assert.match(html, /Section 53/);
   assert.match(html, /Public access/);
@@ -571,6 +571,35 @@ test("registry search matches sections and tolerates missing legacy sections", (
   const result = useOrdinances();
   assert.equal(result.ordinances.length, 1);
   assert.equal(result.ordinances[0].section, "53");
+});
+
+test("registry search puts whole-word matches first", () => {
+  const { useOrdinances } = load("features/ordinances/hooks/useOrdinances.ts", {
+    react: { useState: () => ["11", () => { }] },
+    "@/api/endpoints/ordinance.api": { ordinanceApi: { getAll: async () => [] } },
+    "@tanstack/react-query": {
+      useQuery: () => ({
+        data: [
+          { ...summary, id: 1, ordinanceNo: "111", title: "Stall rules" },
+          { ...summary, id: 2, ordinanceNo: "11", title: "Market sanitation" },
+          { ...summary, id: 3, ordinanceNo: "20", title: "Wet market" },
+        ],
+      }),
+    },
+  });
+  assert.deepEqual([...useOrdinances().ordinances.map((item) => item.id)], [2, 1]);
+});
+
+test("registry rows highlight the searched number, section and title", () => {
+  const Row = load("features/ordinances/components/OrdinanceRegistryRow.tsx").default;
+  const render = (search) => renderToStaticMarkup(React.createElement(Row, { ordinance: summary, search, disabled: false, onManage() { } }));
+  let html = render("sanit");
+  assert.match(html, /Market <mark class="mark">sanit<\/mark>ation/);
+  html = render("01");
+  assert.match(html, /Ord No\. <mark class="mark">01<\/mark>1, Series of 2026/);
+  html = render("53");
+  assert.match(html, /Section <mark class="mark">53<\/mark>/);
+  assert.doesNotMatch(render(""), /<mark/);
 });
 
 const scoringFields = {

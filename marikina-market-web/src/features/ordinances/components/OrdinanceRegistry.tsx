@@ -85,6 +85,7 @@ export default function OrdinanceRegistry({
             <OrdinanceRegistryRow
               key={item.id}
               ordinance={item}
+              search={directory.search}
               disabled={disabled}
               onManage={() => onManage(item)}
             />

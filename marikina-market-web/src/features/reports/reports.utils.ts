@@ -5,6 +5,7 @@ import type {
   ReportType,
   ReportMetric,
 } from "@/api/types/reports.types";
+import { exactMatchesFirst } from "@/utils/searchMatch";
 
 export const REPORT_TYPES: readonly ReportType[] = [
   "Warning",
@@ -102,19 +103,26 @@ export function filterReports(
   type: ReportType | "all",
 ): ReportHistoryItem[] {
   const term = search.trim().toLocaleLowerCase();
-  return items.filter(
-    (item) =>
-      (type === "all" || item.type === type) &&
-      (!term ||
-        [
-          String(item.id),
-          item.type,
-          item.generatedBy.name,
-          item.dateRange.from,
-          item.dateRange.to,
-          formatReportRange(item.dateRange),
-          formatReportDate(item.dateGenerated),
-        ].some((value) => value.toLocaleLowerCase().includes(term))),
+  const searchedValues = (item: ReportHistoryItem) => [
+    String(item.id),
+    item.type,
+    item.generatedBy.name,
+    item.dateRange.from,
+    item.dateRange.to,
+    formatReportRange(item.dateRange),
+    formatReportDate(item.dateGenerated),
+  ];
+  return exactMatchesFirst(
+    items.filter(
+      (item) =>
+        (type === "all" || item.type === type) &&
+        (!term ||
+          searchedValues(item).some((value) =>
+            value.toLocaleLowerCase().includes(term),
+          )),
+    ),
+    search,
+    searchedValues,
   );
 }
 export function reportCsv(report: ReportDocument): string {

@@ -3,16 +3,26 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import ts from "typescript";
 
+const searchSource = await readFile(
+  new URL("../../utils/searchMatch.ts", import.meta.url),
+  "utf8",
+);
+const searchOutput = ts.transpileModule(searchSource, {
+  compilerOptions: { module: ts.ModuleKind.ESNext },
+}).outputText;
+const searchModule = `data:text/javascript;base64,${Buffer.from(searchOutput).toString("base64")}`;
 const source = await readFile(
   new URL("./reports.utils.ts", import.meta.url),
   "utf8",
 );
-const output = ts.transpileModule(source, {
-  compilerOptions: {
-    module: ts.ModuleKind.ESNext,
-    target: ts.ScriptTarget.ES2020,
-  },
-}).outputText;
+const output = ts
+  .transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2020,
+    },
+  })
+  .outputText.replace('"@/utils/searchMatch"', JSON.stringify(searchModule));
 const {
   validateReportRange,
   reportPreset,
@@ -277,6 +287,19 @@ test("history search combines report type, dates, generator, and ID", () => {
   );
   assert.equal(filterReports([report], "", "Ticket").length, 0);
   assert.equal(filterReports([report], "missing", "all").length, 0);
+});
+test("history search puts whole-word matches first", () => {
+  const by = (id, name) => ({ ...report, id, generatedBy: { id, name } });
+  const items = [
+    by(2, "Ana Cruzado"),
+    report,
+    by(4, "Maria Santos"),
+    by(3, "Pedro Cruz"),
+  ];
+  assert.deepEqual(
+    filterReports(items, "cruz", "all").map((item) => item.id),
+    [1, 3, 2],
+  );
 });
 
 test("Warning summary and CSV hide tickets and preserve zero resolution metrics", () => {

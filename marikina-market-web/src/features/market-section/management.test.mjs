@@ -414,3 +414,37 @@ test("directory search handles empty/loading/error states and malformed lists be
   });
   await assert.rejects(marketSectionApi.getAll(), /market sections/i);
 });
+
+test("directory search puts whole-word matches first", () => {
+  const h = harness();
+  h.query({
+    data: [
+      { ...section, id: 1, name: "Meatballs Row", description: "Processed food" },
+      { ...section, id: 2, name: "Dry Goods", description: "Rice and sugar" },
+      { ...section, id: 3, name: "Fresh Meat", description: "Pork and beef" },
+    ],
+    isPending: false,
+    isFetching: false,
+    isError: false,
+  });
+  h.directory().setSearch("meat");
+  assert.deepEqual([...h.directory().sections.map((item) => item.id)], [3, 1]);
+});
+
+test("section rows highlight the searched name and description", () => {
+  const Row = load("features/market-section/components/MarketSectionRow.tsx").default;
+  const render = (search) =>
+    renderToStaticMarkup(
+      React.createElement(Row, {
+        section,
+        search,
+        disabled: false,
+        pending: false,
+        onEdit() {},
+        onToggle() {},
+      }),
+    );
+  assert.match(render("fresh"), /<mark class="mark">Fresh<\/mark> Produce/);
+  assert.match(render("VEGETABLE"), /Fruit and <mark class="mark">vegetable<\/mark> stalls/);
+  assert.doesNotMatch(render(""), /<mark/);
+});

@@ -132,6 +132,7 @@ export default function MarketSectionPage() {
               <MarketSectionRow
                 key={section.id}
                 section={section}
+                search={directory.search}
                 disabled={
                   !editor.canManage ||
                   editor.pendingId !== null ||
