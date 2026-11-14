@@ -47,7 +47,7 @@ import 'unregistered_entry_test.dart' show sectionList;
 import 'violator_picker_test.dart' show chooseViolator, inReview, noContent;
 
 // Faster entry B2, the whole entry page for an unregistered vendor: choose
-// Illegal, pick the market section, type the place, then Next, (for tickets)
+// Unregistered, pick the market section, type the place, then Next, (for tickets)
 // a section change, and finally Submit. The network is fake and refuses the save, so nothing is uploaded;
 // the test reads what the page tried to send.
 
@@ -255,14 +255,14 @@ void main() {
           .length;
       expect(ownerRequests, 1);
 
-      // Choose Illegal, then the market section from the office list.
-      await tester.tap(find.text('Illegal'));
+      // Choose Unregistered, then the market section from the office list.
+      await tester.tap(find.text('Unregistered'));
       await flush(tester);
       expect(find.text('Closed Section'), findsNothing);
       await tester.tap(find.text('Meat Section'));
       await flush(tester);
       expect(find.byType(UnregisteredSectionBanner), findsOneWidget);
-      expect(find.text('Illegal Vendor'), findsOneWidget);
+      expect(find.text('Unregistered vendor'), findsOneWidget);
       expect(find.text('Meat Section'), findsOneWidget);
       expect(find.text('Change Vendor'), findsNothing);
       expect(inReview(find.text('Owner')), findsNothing);
@@ -409,7 +409,7 @@ void main() {
       expect(review.formData.vendorSummary, isNull);
       expect(review.formData.unregisteredSection?.id, 5);
       expect(review.formData.issuePlace, 'Near gate 2');
-      expect(find.text('Illegal Vendor'), findsWidgets);
+      expect(find.text('Unregistered vendor'), findsWidgets);
       expect(find.text('Meat Section'), findsWidgets);
       expect(find.text('TRADE NAME:'), findsNothing);
 

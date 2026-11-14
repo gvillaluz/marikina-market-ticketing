@@ -323,9 +323,9 @@ public class TicketStatusSettlementTests
         Assert.Equal(accent, Assert.Single(fixture.EmailAccents));
     }
 
-    // "Illegal Vendor" slice: a ticket with no business is named "Illegal Vendor" in the enforcer's phone notification.
+    // "Unregistered vendor" slice: a ticket with no business is named "Unregistered vendor" in the enforcer's phone notification.
     [Fact]
-    public async Task Status_change_on_a_ticket_with_no_business_tells_the_enforcer_Illegal_Vendor()
+    public async Task Status_change_on_a_ticket_with_no_business_tells_the_enforcer_Unregistered_vendor()
     {
         var fixture = new Fixture(PenaltyType.CashFine);
         fixture.Ticket.VendorId = null;
@@ -333,12 +333,12 @@ public class TicketStatusSettlementTests
         await fixture.UpdateAsync(TicketStatus.Waived);
 
         var body = Assert.Single(fixture.EnforcerPushBodies);
-        Assert.Equal("Illegal Vendor — status changed from Pending to Waived.", body);
-        Assert.DoesNotContain("Unregistered", body);
+        Assert.Equal("Unregistered vendor — status changed from Pending to Waived.", body);
+        Assert.DoesNotContain("Illegal", body);
     }
 
     [Fact]
-    public async Task Overdue_notice_on_a_ticket_with_no_business_tells_the_enforcer_Illegal_Vendor()
+    public async Task Overdue_notice_on_a_ticket_with_no_business_tells_the_enforcer_Unregistered_vendor()
     {
         var fixture = new Fixture(PenaltyType.CashFine);
         fixture.Ticket.VendorId = null;
@@ -347,8 +347,8 @@ public class TicketStatusSettlementTests
 
         Assert.Equal(1, count);
         var body = Assert.Single(fixture.EnforcerPushBodies);
-        Assert.Equal("Illegal Vendor's ticket is now overdue. It has not been paid or settled within 5 days of issuance.", body);
-        Assert.DoesNotContain("Unregistered", body);
+        Assert.Equal("Unregistered vendor's ticket is now overdue. It has not been paid or settled within 5 days of issuance.", body);
+        Assert.DoesNotContain("Illegal", body);
     }
 
     private sealed class Fixture

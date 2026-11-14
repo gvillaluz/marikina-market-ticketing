@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 
-// Registered / Illegal, in the same style as the Ticket / Warning choice.
+// Registered / Unregistered, in the same style as the Ticket / Warning choice.
 class VendorKindToggle extends StatelessWidget {
   final bool isUnregistered;
   final ValueChanged<bool> onChange;
@@ -42,7 +42,7 @@ class VendorKindToggle extends StatelessWidget {
     spacing: AppTheme.inspectionTinyGap,
     children: [
       _option(context, 'Registered', false),
-      _option(context, 'Illegal', true),
+      _option(context, 'Unregistered', true),
     ],
   );
 }

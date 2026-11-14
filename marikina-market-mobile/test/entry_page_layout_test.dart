@@ -187,8 +187,8 @@ void main() {
   }
 
   Future<void> chooseSection(WidgetTester tester) async {
-    await tester.ensureVisible(find.text('Illegal'));
-    await tester.tap(find.text('Illegal'));
+    await tester.ensureVisible(find.text('Unregistered'));
+    await tester.tap(find.text('Unregistered'));
     await flush(tester);
     await tester.ensureVisible(find.text('Meat Section'));
     await tester.tap(find.text('Meat Section'));
@@ -272,11 +272,11 @@ void main() {
       await openPage(tester);
       expect(find.text('New Inspection'), findsOneWidget);
       expect(find.text('Registered'), findsOneWidget);
-      expect(find.text('Illegal'), findsOneWidget);
+      expect(find.text('Unregistered'), findsOneWidget);
       expect(find.text('Search business'), findsOneWidget);
       expect(find.text('Inspection details'), findsOneWidget);
       expect(
-        find.textContaining('Choose Registered or Illegal'),
+        find.textContaining('Choose Registered or Unregistered'),
         findsOneWidget,
       );
       expect(find.text('Find Vendor'), findsOneWidget);
@@ -291,11 +291,11 @@ void main() {
       expect(find.byType(Divider), findsOneWidget);
     });
 
-    testWidgets('1b: Illegal keeps its help text and section chips', (
+    testWidgets('1b: Unregistered keeps its help text and section chips', (
       tester,
     ) async {
       await openPage(tester);
-      await tester.tap(find.text('Illegal'));
+      await tester.tap(find.text('Unregistered'));
       await flush(tester);
       expect(find.text('Meat Section'), findsOneWidget);
       expect(find.text('Search business'), findsNothing);
@@ -355,7 +355,7 @@ void main() {
       await chooseSection(tester);
       final banner = find.byType(UnregisteredSectionBanner);
       expect(
-        find.descendant(of: banner, matching: find.text('Illegal Vendor')),
+        find.descendant(of: banner, matching: find.text('Unregistered vendor')),
         findsOneWidget,
       );
       expect(
@@ -577,8 +577,8 @@ void main() {
     testWidgets('6: start screen fits 320 px at 2x text', (tester) async {
       await openPage(tester, width: 320, textScale: 2);
       expect(tester.takeException(), isNull);
-      await tester.ensureVisible(find.text('Illegal'));
-      await tester.tap(find.text('Illegal'));
+      await tester.ensureVisible(find.text('Unregistered'));
+      await tester.tap(find.text('Unregistered'));
       await flush(tester);
       expect(find.text('Meat Section'), findsOneWidget);
       expect(tester.takeException(), isNull);
