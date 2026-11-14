@@ -32,6 +32,7 @@ import {
   invalidateAuthSession,
   refreshAccessToken,
   RefreshSessionExpiredError,
+  restoreAuthSession,
   storeAuthSession,
 } from "@/features/auth/authSession";
 
@@ -95,11 +96,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useLoginChallenge(completeLogin, challengeReady);
 
   const logout = useCallback(() => {
+    authApi.logoutWeb().catch(() =>
+      showToast({
+        title: "Sign-out not finished",
+        description:
+          "You are signed out on this page, but the server could not be reached. Close the browser to finish signing out.",
+        variant: "warning",
+      }),
+    );
     cancelLogin();
     invalidateAuthSession();
     void queryClient.cancelQueries();
     queryClient.clear();
-  }, [cancelLogin, queryClient]);
+  }, [cancelLogin, queryClient, showToast]);
 
   const clearMustChangePassword = useCallback(() => {
     setMustChangePassword(false);
@@ -112,14 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let retryTimer: number | undefined;
     const restoreSession = async () => {
       const restoreVersion = getAuthSessionVersion();
-      const storedSession = getStoredAuthSession();
-      if (!storedSession) {
-        setIsAuthReady(true);
-        return;
-      }
-
       try {
-        const refreshed = await refreshAccessToken();
+        const refreshed = await restoreAuthSession();
         const profile = await authApi.getMe(refreshed.accessToken);
         if (isCancelled || restoreVersion !== getAuthSessionVersion()) return;
 
@@ -136,8 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         if (isCancelled || restoreVersion !== getAuthSessionVersion()) return;
 
-        const latestSession = getStoredAuthSession();
-        if (isAuthenticationFailure(error) || !latestSession) {
+        if (isAuthenticationFailure(error)) {
           invalidateAuthSession(restoreVersion);
           setIsAuthReady(true);
           return;

@@ -52,10 +52,6 @@ export interface LoginChallenge {
   expiresAt: number;
 }
 
-export interface AccessTokenRefreshRequest {
-  accessToken: string;
-}
-
 export interface TokenRefreshResponse {
   accessToken: string;
   mustChangePassword: boolean;

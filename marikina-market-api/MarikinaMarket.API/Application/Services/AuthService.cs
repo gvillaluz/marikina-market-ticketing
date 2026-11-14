@@ -412,9 +412,12 @@ namespace MarikinaMarket.API.Application.Services
             };
         }
 
-        public async Task<LoginResponse> RefreshAccessTokenAsync(AccessTokenRefreshRequest request)
+        public async Task<LoginResponse> RefreshAccessTokenAsync(string? accessToken)
         {
-            var principal = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
+            if (string.IsNullOrEmpty(accessToken))
+                throw new SessionExpiredException("Invalid access token. Please log in again.");
+
+            var principal = await _tokenService.ValidateAccessTokenAsync(accessToken);
             var userIdValue = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (!int.TryParse(userIdValue, out var userId) || userId <= 0)

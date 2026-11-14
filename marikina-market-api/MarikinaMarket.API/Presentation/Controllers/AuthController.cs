@@ -1,4 +1,5 @@
-﻿using MarikinaMarket.API.Application.DTOs.Auth.Request;
+﻿using MarikinaMarket.API.Application;
+using MarikinaMarket.API.Application.DTOs.Auth.Request;
 using MarikinaMarket.API.Application.DTOs.Auth.Response;
 using MarikinaMarket.API.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -13,9 +14,20 @@ namespace MarikinaMarket.API.Presentation.Controllers
     [Authorize]
     public class AuthController : ControllerBase
     {
+        private const string WebSessionCookie = "mmt_web_session";
         private readonly IAuthService _service;
 
         public AuthController(IAuthService service) => _service = service;
+
+        // Holds the website's pass so a page refresh can sign the user back in. Page scripts cannot read it,
+        // it is sent only to the sign-in routes, and it is deleted when the browser closes.
+        private static CookieOptions WebSessionCookieOptions() => new()
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/api/auth"
+        };
 
         [AllowAnonymous]
         [HttpPost("logout")]
@@ -45,7 +57,11 @@ namespace MarikinaMarket.API.Presentation.Controllers
         [AllowAnonymous]
         [HttpPost("verify-login")]
         public async Task<ActionResult<LoginResponse>> VerifyLogin([FromBody] LoginVerificationRequest request)
-            => Ok(await _service.VerifyLoginAsync(request));
+        {
+            var response = await _service.VerifyLoginAsync(request);
+            Response.Cookies.Append(WebSessionCookie, response.AccessToken, WebSessionCookieOptions());
+            return Ok(response);
+        }
 
         [AllowAnonymous]
         [HttpPost("verify-login-mobile")]
@@ -74,12 +90,27 @@ namespace MarikinaMarket.API.Presentation.Controllers
 
         [AllowAnonymous]
         [HttpPost("refresh-web")]
-        public async Task<ActionResult<LoginResponse>> RefreshAccessToken([FromBody] AccessTokenRefreshRequest request)
+        public async Task<ActionResult<LoginResponse>> RefreshAccessToken()
         {
-            if (request == null)
-                return BadRequest("Request data must not be null or empty.");
+            try
+            {
+                var response = await _service.RefreshAccessTokenAsync(Request.Cookies[WebSessionCookie]);
+                Response.Cookies.Append(WebSessionCookie, response.AccessToken, WebSessionCookieOptions());
+                return Ok(response);
+            }
+            catch (Exception exception) when (exception is SessionExpiredException or UnauthorizedAccessException)
+            {
+                Response.Cookies.Delete(WebSessionCookie, WebSessionCookieOptions());
+                throw;
+            }
+        }
 
-            return Ok(await _service.RefreshAccessTokenAsync(request));
+        [AllowAnonymous]
+        [HttpPost("logout-web")]
+        public ActionResult<LogoutResponse> LogoutWeb()
+        {
+            Response.Cookies.Delete(WebSessionCookie, WebSessionCookieOptions());
+            return Ok(new LogoutResponse());
         }
 
         [HttpPost("mandatory-change-password")]
