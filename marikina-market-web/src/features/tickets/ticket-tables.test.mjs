@@ -8,6 +8,8 @@ import ts from 'typescript';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
+process.env.TZ = 'Asia/Manila';
+
 const require = createRequire(import.meta.url);
 const src = fileURLToPath(new URL('../../', import.meta.url));
 const url = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
@@ -79,5 +81,20 @@ test('inspection table shows business name, registered owner and violator for ti
   assert.ok(!shown.includes('Trade name') && !shown.includes('Person'));
   assert.deepEqual(cells(html, 'Business name'), ['Nena Fresh Fish', 'Lopez Vegetables', unavailable]);
   assert.deepEqual(cells(html, 'Registered owner'), ['Nena Dela Cruz', 'Pedro Lopez', unavailable]);
-  assert.deepEqual(cells(html, 'Violator'), ['Recorded violator: Jun Reyes', 'Confirmed person: Ana Lopez', 'Recorded violator: Unconfirmed (legacy record)']);
+  assert.deepEqual(cells(html, 'Violator'), ['Jun Reyes', 'Ana Lopez', 'Unconfirmed (legacy record)']);
+});
+
+// Issued at shows the date on the first line and the time on the second (2026-10-30T02:15:00Z is 10:15 AM in Manila).
+const lines = (html, label) =>
+  [...html.matchAll(new RegExp(`<td[^>]*data-label="${label}"[^>]*>([\\s\\S]*?)</td>`, 'g'))]
+    .map(m => [...m[1].matchAll(/<span[^>]*>([^<]*)<\/span>/g)].map(s => s[1]));
+
+test('both tables show Issued at as the date above the time', () => {
+  const tickets = renderToStaticMarkup(React.createElement(MemoryRouter, null,
+    React.createElement(TicketList, { tickets: [ticket], onView: () => {} })));
+  const inspections = renderToStaticMarkup(React.createElement(InspectionTable, {
+    rows: [{ ...ticket, ticketId: 41, type: 'Ticket' }], isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {},
+  }));
+  assert.deepEqual(lines(tickets, 'Issued at'), [['Oct 30, 2026', '10:15 AM']]);
+  assert.deepEqual(lines(inspections, 'Issued at'), [['Oct 30, 2026', '10:15 AM']]);
 });

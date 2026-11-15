@@ -1,10 +1,6 @@
 import type { InspectionSummary } from "@/api/types/ticket.types";
 import type { ExportColumn } from "@/utils/tableExport";
-import {
-  formatControlNumber,
-  formatDateTime,
-  UNREGISTERED_VENDOR,
-} from "@/utils/formatters";
+import { formatControlNumber, formatDateTime } from "@/utils/formatters";
 
 const UNAVAILABLE = "Historical business details unavailable.";
 
@@ -13,15 +9,15 @@ export const INSPECTION_COLUMNS: ExportColumn<InspectionSummary>[] = [
   {
     key: "controlNumber",
     header: "Control number",
-    value: (row) => formatControlNumber(row.controlNumber),
+    value: (row) =>
+      row.type === "Warning" ? "—" : formatControlNumber(row.controlNumber),
   },
   {
     key: "violator",
     header: "Violator",
     value: (row) =>
-      row.type === "Ticket"
-        ? `Recorded violator: ${row.paperViolatorName || "Unconfirmed (legacy record)"}`
-        : `Confirmed person: ${row.personFullName || "Unconfirmed (legacy record)"}`,
+      (row.type === "Ticket" ? row.paperViolatorName : row.personFullName) ||
+      "Unconfirmed (legacy record)",
   },
   {
     key: "enforcer",
@@ -35,7 +31,7 @@ export const INSPECTION_COLUMNS: ExportColumn<InspectionSummary>[] = [
     header: "Business name",
     value: (row) =>
       row.vendorId === null
-        ? UNREGISTERED_VENDOR
+        ? "UNREGISTERED"
         : row.type === "Ticket"
           ? row.businessSnapshot?.businessName || UNAVAILABLE
           : row.businessName || "—",

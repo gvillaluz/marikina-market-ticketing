@@ -149,8 +149,8 @@ public class AdminControlNumberTests
 
     [Theory]
     [InlineData("000456", new[] { 1 })]
-    [InlineData("wrn-0011", new[] { 2 })]  // any capitalisation
-    [InlineData("WRN-0011", new[] { 2 })]
+    [InlineData("wrn-0011", new int[0])]   // warning numbers are hidden on the website, so not searched
+    [InlineData("WRN-0011", new int[0])]
     [InlineData("7", new int[0])]
     [InlineData("8", new int[0])]
     public async Task Inspections_search_matches_the_shown_number_only(string search, int[] expectedIds)
@@ -163,7 +163,7 @@ public class AdminControlNumberTests
 
     [Theory]
     [InlineData("000456", new[] { 1 })]    // printed numbers were not searched here before
-    [InlineData("wrn-0011", new[] { 2 })]
+    [InlineData("wrn-0011", new int[0])]   // warning numbers are hidden on the website, so not searched
     [InlineData("7", new int[0])]
     [InlineData("8", new int[0])]
     public async Task Business_history_search_matches_the_shown_number_only(string search, int[] expectedIds)

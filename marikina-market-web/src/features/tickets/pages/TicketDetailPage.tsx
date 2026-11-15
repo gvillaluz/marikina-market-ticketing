@@ -109,12 +109,18 @@ const TicketDetailPage: FC = () => {
       <Breadcrumb
         items={[
           { label: "Tickets", to: "/tickets" },
-          { label: formatControlNumberLabel(ticket?.controlNumber) },
+          {
+            label: isTicket
+              ? formatControlNumberLabel(ticket.controlNumber)
+              : "Written warning",
+          },
         ]}
       />
 
       <TicketDetailHeader
-        controlNo={ticket?.controlNumber}
+        title={
+          isTicket ? <ControlNumber value={ticket.controlNumber} /> : "Written warning"
+        }
         status={isTicket ? ticket.status : undefined}
         lastUpdated={formatDateTime(ticket?.updatedAt || "")}
       />
@@ -156,7 +162,7 @@ const TicketDetailPage: FC = () => {
 
         <DetailCard title="TICKET PARAMETERS" icon={ClipboardList}>
           <div className={styles.fieldGrid}>
-            <InfoField label="CONTROL NUMBER" value={<ControlNumber value={ticket.controlNumber} />} />
+            {isTicket && <InfoField label="CONTROL NUMBER" value={<ControlNumber value={ticket.controlNumber} />} />}
             <InfoField label="ISSUE PLACE" value={ticket.issuePlace || "Unavailable (legacy record)"} />
             <InfoField
               label="DATE ISSUED"

@@ -1,6 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import Table from "@/components/ui/Table";
-import { RecordBadge, RecordActions } from "@/components/ui/Records";
+import {
+  RecordBadge,
+  RecordActions,
+  RecordDateTime,
+} from "@/components/ui/Records";
 import type { TicketSummary } from "@/api/types/ticket.types";
 import { formatControlNumber } from "@/utils/formatters";
 import styles from "./TicketList.module.css";
@@ -38,6 +42,8 @@ export default function TicketList({
           render: (ticket: TicketSummary) =>
             BADGE_COLUMNS.has(column.key) ? (
               <RecordBadge value={column.value(ticket)} />
+            ) : column.key === "issuedAt" ? (
+              <RecordDateTime value={ticket.issuedAt} />
             ) : (
               column.value(ticket)
             ),

@@ -64,7 +64,7 @@ function renderPage(record) {
   globalThis.detailPageState = { ticket: record, refetch: () => {}, isLoading: false, isError: false, error: null };
   return text(renderToStaticMarkup(React.createElement(MemoryRouter, null, React.createElement(TicketDetailPage))));
 }
-// The words between the header's control number and "Last updated" are the status shown in the header.
+// The words between the header's title (control number, or "Written warning") and "Last updated" are the status shown in the header.
 const headerStatus = (html, controlNumber) => html.match(new RegExp(`${controlNumber}([A-Za-z ]*)Last updated`))[1];
 
 const detail = { enforcerFirstName: 'Ramon', enforcerLastName: 'Santos', marketSectionName: 'Meat and Poultry',
@@ -77,14 +77,14 @@ const ticket = { ...detail, ticketId: 11, type: 'Ticket', controlNumber: '000456
 
 test('a warning shows no status and no Change Status button', () => {
   const html = renderPage(warning);
-  assert.equal(headerStatus(html, 'WRN-0012'), '');
+  assert.equal(headerStatus(html, 'Written warningWritten warning'), ''); // breadcrumb, then the header's title (no number for warnings)
   assert.ok(!html.includes('Change Status'));
   assert.ok(html.includes('View Full Ticket Record'));
 });
 
 test('a warning that still holds an old status shows no status and no Change Status button', () => {
   const html = renderPage({ ...warning, status: 'Pending' });
-  assert.equal(headerStatus(html, 'WRN-0012'), '');
+  assert.equal(headerStatus(html, 'Written warningWritten warning'), ''); // breadcrumb, then the header's title (no number for warnings)
   assert.ok(!html.includes('Change Status'));
 });
 

@@ -9,8 +9,8 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 // Control number Part 2: every website screen shows the control number the server sends
-// (printed number for a ticket, WRN number for a warning) and "Unavailable (legacy record)"
-// for an old ticket without a printed number. Expected values are written by hand.
+// (the printed number) for a ticket and "Unavailable (legacy record)" for an old ticket without a printed number.
+// A warning's number is never shown: tables show "—" and other places leave it out. Expected values are written by hand.
 const require = createRequire(import.meta.url);
 const src = fileURLToPath(new URL('../../', import.meta.url));
 const url = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
@@ -20,6 +20,11 @@ const stubs = {
   './modal/TicketSettlementSection': 'export default () => null;',
   './modal/TicketPhotoEvidenceSection': 'export default () => null;',
   '../hooks/usePersonTicketHistory': 'export const usePersonTicketHistory = () => globalThis.personHistoryState;',
+  '../hooks/useTicketDetails': 'export const useTicketDetails = () => globalThis.detailPageState;',
+  '@/components/ui/TicketModal/modal/TicketPhotoEvidenceSection': 'export default () => null;',
+  '../hooks/useTicketStatusSelection': 'export const useTicketStatusSelection = () => ({ selectedStatus: null, setSelectedStatus() {}, availableStatuses: [], canUpdateStatus: false, receiptUrls: [] });',
+  '../hooks/useUpdateStatus': 'export const useUpdateStatus = () => ({ mutateAsync: async () => {}, isPending: false });',
+  '../components/detail/TicketChangeHistory': 'export default () => null;',
 };
 const cache = new Map();
 async function load(file) {
@@ -85,31 +90,52 @@ test('tickets list has one control number column', async () => {
   assert.doesNotMatch(html, OLD_LABELS);
 });
 
-test('inspections list shows the control number for tickets and warnings', async () => {
+test('inspections list shows the control number for tickets and a dash for warnings', async () => {
   const html = render(await component('features/inspections/components/InspectionTable.tsx', 'InspectionTable'), {
     rows: [ticket, warning, legacy], isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {} });
-  assert.deepEqual(cells(html, 'Control number'), ['000456', 'WRN-0011', LEGACY]);
+  assert.deepEqual(cells(html, 'Control number'), ['000456', '—', LEGACY]);
   assert.doesNotMatch(html, OLD_LABELS);
 });
 
 const detail = { ...ticket, violations: [], categories: [], description: 'Synthetic', issuePlace: 'Stall 12', lastName: 'Cruz', firstName: 'Nena',
   businessName: 'Aling Nena', businessAccountNumber: 'ACC-100', businessType: 'Public', address: '', evidenceItems: [], ticketEvidences: [] };
 
-test('record popup shows one control number box for tickets, warnings and old tickets', async () => {
-  const TicketModal = await component('components/ui/TicketModal/TicketModal.tsx', 'TicketModal');
-  for (const [record, number] of [[detail, '000456'], [{ ...detail, ...warning }, 'WRN-0011'], [{ ...detail, ...legacy }, LEGACY]]) {
-    globalThis.ticketModalState = { ticket: record, isLoading: false, isError: false, isTicket: record.type === 'Ticket', ticketPaperRef: null, busyAction: null, exportError: null };
-    const html = render(TicketModal, { isOpen: true, ticketId: record.ticketId, onClose: () => {} });
+const modal = async record => {
+  globalThis.ticketModalState = { ticket: record, isLoading: false, isError: false, isTicket: record.type === 'Ticket', ticketPaperRef: null, busyAction: null, exportError: null };
+  return render(await component('components/ui/TicketModal/TicketModal.tsx', 'TicketModal'), { isOpen: true, ticketId: record.ticketId, onClose: () => {} });
+};
+
+test('record popup shows one control number box for tickets and old tickets', async () => {
+  for (const [record, number] of [[detail, '000456'], [{ ...detail, ...legacy }, LEGACY]]) {
+    const html = await modal(record);
     assert.equal((html.match(/CONTROL NO\./g) || []).length, 1);
     assert.ok(text(html).includes(`CONTROL NO.${number}`), number);
     assert.doesNotMatch(html, OLD_LABELS);
   }
 });
 
-test('ticket detail header shows the control number', async () => {
-  const Header = await component('features/tickets/components/detail/TicketDetailHeader.tsx');
-  assert.match(text(render(Header, { controlNo: '000456', status: 'Pending', lastUpdated: '' })), /^#000456/);
-  assert.match(text(render(Header, { controlNo: null, status: 'Pending', lastUpdated: '' })), /^Unavailable \(legacy record\)/);
+test('record popup leaves out the control number for warnings', async () => {
+  assert.doesNotMatch(await modal({ ...detail, ...warning }), /CONTROL NO\.|WRN-0011/);
+});
+
+const detailPage = async record => {
+  globalThis.personHistoryState = { isPending: false, isError: false, items: [], hasNextPage: false };
+  globalThis.detailPageState = { ticket: record, refetch: () => {}, isLoading: false, isError: false, error: null };
+  globalThis.ticketModalState = { ticket: record, isLoading: false, isError: false, isTicket: record.type === 'Ticket', ticketPaperRef: null, busyAction: null, exportError: null };
+  return text(render(await component('features/tickets/pages/TicketDetailPage.tsx'), {}));
+};
+
+test('ticket page shows the control number in the breadcrumb, title and details', async () => {
+  const html = await detailPage(detail);
+  assert.match(html, /^Tickets#000456#000456/);
+  assert.match(html, /CONTROL NUMBER#000456/);
+  assert.match(await detailPage({ ...detail, ...legacy }), /CONTROL NUMBERUnavailable \(legacy record\)/);
+});
+
+test('warning page leaves out the control number and is titled "Written warning"', async () => {
+  const html = await detailPage({ ...detail, ...warning });
+  assert.match(html, /^TicketsWritten warningWritten warning/);
+  assert.doesNotMatch(html, /WRN-0011|CONTROL NUMBER/);
 });
 
 test('person history shows "Control number" only', async () => {
@@ -126,8 +152,11 @@ test('compliance activity and pending settlements show the control number', asyn
   const Activity = await component('features/vendors/components/compliance/ComplianceActivityRow.tsx');
   const Settlement = await component('features/vendors/components/compliance/SettlementCard.tsx');
   const base = { businessAccountNumber: 'ACC-100', vendorName: 'Cruz, Nena', issuedAt: '2026-11-01T02:00:00Z' };
-  for (const [row, number] of [[{ ...ticket, ...base }, '000456'], [{ ...warning, ...base }, 'WRN-0011'], [{ ...legacy, ...base }, LEGACY]])
+  for (const [row, number] of [[{ ...ticket, ...base }, '000456'], [{ ...legacy, ...base }, LEGACY]])
     assert.ok(text(render(Activity, { activity: row })).includes(`ACC-100 · ${number}`), number);
+  const warningText = text(render(Activity, { activity: { ...warning, ...base } }));
+  assert.ok(warningText.includes('ACC-100'));
+  assert.doesNotMatch(warningText, /WRN-0011|·/);
   for (const [row, number] of [[{ ...ticket, ...base }, '000456'], [{ ...legacy, ...base }, LEGACY]]) {
     const html = text(render(Settlement, { settlement: { ...row, dueDate: '2026-11-06T02:00:00Z', totalPaymentAmount: 100, communityServiceHours: null } }));
     assert.ok(html.includes(`ACC-100 · ${number}`), number);
@@ -135,9 +164,9 @@ test('compliance activity and pending settlements show the control number', asyn
   }
 });
 
-test('enforcer inspection list shows the control number', async () => {
+test('enforcer inspection list shows the control number for tickets and a dash for warnings', async () => {
   const html = render(await component('features/enforcers/components/performance/EnforcerInspectionList.tsx'), { records: [ticket, warning, legacy], onView: () => {} });
-  assert.deepEqual(column(html, 'Control number'), ['000456', 'WRN-0011', LEGACY]);
+  assert.deepEqual(column(html, 'Control number'), ['000456', '—', LEGACY]);
   assert.doesNotMatch(html, OLD_LABELS);
 });
 
@@ -152,12 +181,14 @@ test('community service log shows the control number', async () => {
   assert.doesNotMatch(html, OLD_LABELS);
 });
 
-test('business inspection history shows the control number for tickets and warnings', async () => {
+test('business inspection history shows the control number for tickets and a dash for warnings', async () => {
   const rows = [ticket, warning, legacy].map(row => ({ ...row, ordinanceNumbers: [], enforcerName: 'Santos' }));
   const html = render(await component('features/vendors/components/AdminVendorInspectionHistory.tsx'), {
     search: '', onSearchChange: () => {}, type: 'all', onTypeChange: () => {}, sortDirection: 'desc', onSortDirectionChange: () => {},
     page: 1, totalPages: 1, onPageChange: () => {}, inspections: rows, total: 3, hasMore: false, isLoading: false, isFetching: false,
     isError: false, errorMessage: '', onRetry: () => {}, onExport: () => {}, onPrint: () => {}, onView: () => {} });
-  assert.deepEqual(column(html, 'CONTROL NUMBER').map(cell => cell.split('Historical')[0]), ['000456', 'WRN-0011', LEGACY]);
+  assert.deepEqual(column(html, 'CONTROL NUMBER').map(cell => cell.split('Historical')[0]), ['000456', '—', LEGACY]);
+  const { BUSINESS_HISTORY_COLUMNS } = await import(await load(path.join(src, 'features/vendors/businessTableColumns.ts')));
+  assert.deepEqual(rows.map(row => BUSINESS_HISTORY_COLUMNS[0].value(row)), ['000456', '—', LEGACY]); // Export and Print
   assert.doesNotMatch(html, /N\/A|CTRL #/);
 });

@@ -37,7 +37,7 @@ export function InspectionsPage() {
           search={page.filters.search}
           onSearch={page.setFilters.setSearch}
           searchLabel="Search inspection records"
-          placeholder="Search control number or vendor..."
+          placeholder="Search number, violator, enforcer or business"
         >
           <Dropdown
             triggerId="inspections-type-filter"

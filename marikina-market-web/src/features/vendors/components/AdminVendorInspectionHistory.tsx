@@ -80,7 +80,7 @@ export default function AdminVendorInspectionHistory({
       align: "left",
       render: (inspection) => (
         <strong className={styles.controlNumber}>
-          {formatControlNumber(inspection.controlNumber)}
+          {isWarning(inspection) ? "—" : formatControlNumber(inspection.controlNumber)}
           {!isWarning(inspection) && <><br />{inspection.businessSnapshot?.businessName || "Historical business details unavailable."}</>}
         </strong>
       ),
