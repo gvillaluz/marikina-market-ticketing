@@ -42,7 +42,8 @@ export const BUSINESS_HISTORY_COLUMNS: ExportColumn<AdminVendorInspection>[] = [
   {
     key: "controlNumber",
     header: "Control number",
-    value: (row) => formatControlNumber(row.controlNumber),
+    value: (row) =>
+      isWarning(row) ? "—" : formatControlNumber(row.controlNumber),
   },
   {
     key: "businessName",

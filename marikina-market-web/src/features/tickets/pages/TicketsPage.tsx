@@ -88,7 +88,7 @@ export default function TicketsPage() {
           search={page.filters.search}
           onSearch={page.setFilters.setSearch}
           searchLabel="Search tickets"
-          placeholder="Search control number or vendor..."
+          placeholder="Search number, violator, enforcer or business"
         >
           <Dropdown
             triggerId="tickets-status-filter"

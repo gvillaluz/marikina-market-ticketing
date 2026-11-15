@@ -18,7 +18,9 @@ function getRecordFileName(
   const recordName =
     ticket.type === "Ticket" ? "Violation-Ticket" : "Written-Warning";
   const controlNumber =
-    ticket.controlNumber?.replace(/[^\w-]/g, "-") || ticketId;
+    (ticket.type === "Ticket" &&
+      ticket.controlNumber?.replace(/[^\w-]/g, "-")) ||
+    ticketId;
   return `${recordName}-${controlNumber}`;
 }
 

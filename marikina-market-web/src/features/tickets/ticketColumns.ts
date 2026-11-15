@@ -1,10 +1,6 @@
 import type { TicketSummary } from "@/api/types/ticket.types";
 import type { ExportColumn } from "@/utils/tableExport";
-import {
-  formatControlNumber,
-  formatDateTime,
-  UNREGISTERED_VENDOR,
-} from "@/utils/formatters";
+import { formatControlNumber, formatDateTime } from "@/utils/formatters";
 import { formatPenaltyType } from "./tickets.utils";
 
 const UNAVAILABLE = "Historical business details unavailable.";
@@ -28,7 +24,7 @@ export const TICKET_COLUMNS: ExportColumn<TicketSummary>[] = [
     header: "Business name",
     value: (ticket) =>
       ticket.vendorId === null
-        ? UNREGISTERED_VENDOR
+        ? "UNREGISTERED"
         : ticket.businessSnapshot?.businessName || UNAVAILABLE,
   },
   {

@@ -91,7 +91,7 @@ const legacy = { ...base, id: 3, ticketId: 3, type: 'Ticket', controlNumber: nul
 
 test("tickets list names the unregistered vendor and uses the ticket's own market section", async () => {
   const html = render(await component('features/tickets/components/TicketList.tsx'), { tickets: [ticket, legacy], onView: () => {} });
-  assert.deepEqual(cells(html, 'Business name'), [UNREGISTERED, UNAVAILABLE]);
+  assert.deepEqual(cells(html, 'Business name'), ['UNREGISTERED', UNAVAILABLE]);
   assert.deepEqual(cells(html, 'Registered owner'), [DASH, UNAVAILABLE]);
   assert.deepEqual(cells(html, 'Market section'), ['Meat and Poultry', UNAVAILABLE]);
   assert.deepEqual(cells(html, 'Violator'), ['Juan Cruz', 'Unconfirmed (legacy record)']);
@@ -100,7 +100,7 @@ test("tickets list names the unregistered vendor and uses the ticket's own marke
 test('inspections list names the unregistered vendor for tickets and warnings', async () => {
   const html = render(await component('features/inspections/components/InspectionTable.tsx', 'InspectionTable'), {
     rows: [ticket, warning, legacy], isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {} });
-  assert.deepEqual(cells(html, 'Business name'), [UNREGISTERED, UNREGISTERED, UNAVAILABLE]);
+  assert.deepEqual(cells(html, 'Business name'), ['UNREGISTERED', 'UNREGISTERED', UNAVAILABLE]);
   assert.deepEqual(cells(html, 'Registered owner'), [DASH, DASH, UNAVAILABLE]);
   assert.deepEqual(cells(html, 'Market section'), ['Meat and Poultry', 'Meat and Poultry', UNAVAILABLE]);
 });

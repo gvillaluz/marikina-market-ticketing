@@ -16,6 +16,14 @@ export function formatDate(value: string | Date | null | undefined, options?: In
   }).format(date);
 }
 
+/** Format only the time, e.g. "10:15 AM". */
+export function formatTime(value: string | Date): string {
+  return new Intl.DateTimeFormat('en-PH', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
 /** Format a full date-time string. */
 export function formatDateTime(value: string | Date): string {
   return formatDate(value, {

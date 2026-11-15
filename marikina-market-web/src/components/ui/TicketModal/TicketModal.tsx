@@ -96,12 +96,14 @@ export function TicketModal({ isOpen, ticketId, onClose }: TicketModalProps) {
                       {isTicket ? "VIOLATION TICKET" : "WRITTEN WARNING TICKET"}
                     </span>
                   </div>
-                  <div className={styles.controlNo}>
-                    <span className={styles.controlLabel}>CONTROL NO.</span>
-                    <span className={styles.controlValue}>
-                      {formatControlNumber(ticket.controlNumber)}
-                    </span>
-                  </div>
+                  {isTicket && (
+                    <div className={styles.controlNo}>
+                      <span className={styles.controlLabel}>CONTROL NO.</span>
+                      <span className={styles.controlValue}>
+                        {formatControlNumber(ticket.controlNumber)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <hr className={styles.divider} />

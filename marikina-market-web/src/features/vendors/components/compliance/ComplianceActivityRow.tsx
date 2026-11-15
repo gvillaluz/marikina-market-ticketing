@@ -49,8 +49,9 @@ export default function ComplianceActivityRow({
           <strong>{activity.vendorName}</strong>.
         </p>
         <span className={styles.activityVendor}>
-          {activity.businessAccountNumber} ·{" "}
-          {formatControlNumber(activity.controlNumber)}
+          {activity.businessAccountNumber}
+          {activity.type !== "Warning" &&
+            ` · ${formatControlNumber(activity.controlNumber)}`}
         </span>
       </div>
       <span className={styles.activityTime}>

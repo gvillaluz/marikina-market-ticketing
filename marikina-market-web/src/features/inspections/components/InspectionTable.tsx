@@ -2,6 +2,7 @@ import Table from "@/components/ui/Table";
 import {
   RecordBadge,
   RecordActions,
+  RecordDateTime,
   RecordsState,
 } from "@/components/ui/Records";
 import type { InspectionSummary } from "@/api/types/ticket.types";
@@ -46,6 +47,8 @@ export function InspectionTable({
               render: (row: InspectionSummary) =>
                 column.key === "type" ? (
                   <RecordBadge value={column.value(row)} />
+                ) : column.key === "issuedAt" ? (
+                  <RecordDateTime value={row.issuedAt} />
                 ) : (
                   column.value(row)
                 ),

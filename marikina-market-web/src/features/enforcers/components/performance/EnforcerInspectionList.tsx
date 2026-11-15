@@ -28,7 +28,10 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
         {
           key: "controlNumber",
           header: "Control number",
-          render: (record) => formatControlNumber(record.controlNumber),
+          render: (record) =>
+            record.type === "Warning"
+              ? "—"
+              : formatControlNumber(record.controlNumber),
         },
         {
           key: "issuedAt",

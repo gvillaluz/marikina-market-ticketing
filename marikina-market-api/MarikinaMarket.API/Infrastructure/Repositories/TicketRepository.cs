@@ -646,13 +646,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
             if (!string.IsNullOrWhiteSpace(filters.Search))
             {
-                var search = filters.Search.Trim();
+                var search = filters.Search.Trim().ToLower();
                 query = query.Where(t =>
-                    ((t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference) ?? "").ToLower().Contains(search.ToLower()) ||
-                    (t.Vendor != null && t.Vendor.OwnerLastName.Contains(search)) ||
-                    (t.Vendor != null && t.Vendor.OwnerFirstName.Contains(search)) ||
-                    (t.Vendor != null && t.Vendor.BusinessName.Contains(search)) ||
-                    (t.Vendor != null && t.Vendor.BusinessAccountNumber.Contains(search)));
+                    (t.Type == ViolationType.Ticket && t.PaperReference != null && t.PaperReference.ToLower().Contains(search)) ||
+                    ((t.Type == ViolationType.Ticket ? t.PaperViolatorName : t.Person != null ? t.Person.FullName : null) ?? "").ToLower().Contains(search) ||
+                    (t.Enforcer!.FirstName + " " + t.Enforcer.LastName).ToLower().Contains(search) ||
+                    (t.SnapshotBusinessName != null && t.SnapshotBusinessName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.OwnerLastName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.OwnerFirstName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.BusinessName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && t.Vendor.BusinessAccountNumber.ToLower().Contains(search)));
             }
 
             return query;
@@ -674,6 +677,9 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 var search = filters.Search.Trim().ToLower();
                 query = query.Where(t =>
                     (t.PaperReference != null && t.PaperReference.ToLower().Contains(search)) ||
+                    (t.PaperViolatorName != null && t.PaperViolatorName.ToLower().Contains(search)) ||
+                    (t.Enforcer!.FirstName + " " + t.Enforcer.LastName).ToLower().Contains(search) ||
+                    (t.SnapshotBusinessName != null && t.SnapshotBusinessName.ToLower().Contains(search)) ||
                     (t.Vendor != null && t.Vendor.OwnerLastName.ToLower().Contains(search)) ||
                     (t.Vendor != null && t.Vendor.OwnerFirstName.ToLower().Contains(search)) ||
                     (t.Vendor != null && t.Vendor.BusinessName.ToLower().Contains(search)) ||
@@ -1318,7 +1324,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             {
                 var search = filters.Search.Trim().ToLower();
                 tickets = tickets.Where(t =>
-                    ((t.Type == ViolationType.Warning ? t.ControlNumber : t.PaperReference) ?? "").ToLower().Contains(search) ||
+                    (t.Type == ViolationType.Ticket && t.PaperReference != null && t.PaperReference.ToLower().Contains(search)) ||
                     t.TicketViolations.Any(tv => tv.Ordinance!.OrdinanceNo.ToLower().Contains(search)));
             }
 
