@@ -47,46 +47,6 @@ Web/reporting revision scope: business/person administration without mandatory v
 
 Exit: each approved slice passes its automated and live acceptance checks, unresolved prerequisites are resolved or explicitly deferred, and the user approves returning to the numbered verification phases. Record implementation, automated checks and E2E separately; incomplete work is not passed.
 
-### Closed so far
-
-- ✅ Ordinance revision, slice 1 — closed 2026-10-31
-- ✅ Ordinance revision, slice 2 — closed 2026-11-01
-- ✅ Ordinance revision, slice 3 — closed 2026-11-01
-- ✅ Part 1, business records, paper tickets and settlement (criteria 1–7) — closed 2026-10-30
-- ✅ Vendor-end removal, mobile only — closed 2026-11-02
-- ✅ Step 7, slice 1: web ticket tables — complete 2026-11-06 (merged as PR #1)
-- ✅ Step 7, slice 2: ticket change history (server + website) — complete 2026-11-07
-- ✅ Web and reporting slice 2: business and person management (website) — complete 2026-11-07 (PR #5)
-- ✅ Step 7, slice 3a: dashboard (server + website; Admin Officer and non-zero "today" counts not checked live) — closed 2026-11-11 (merged as PR #17). Notes: [docs/closed-work/website-step-7/slice-3a-dashboard.md](docs/closed-work/website-step-7/slice-3a-dashboard.md)
-- ✅ Step 7, slice 3b: reports page and downloads (website; no app change, one new server test and a live check; Admin Officer and the empty-history message not checked live) — closed 2026-11-11. Notes: [docs/closed-work/website-step-7/slice-3b-reports.md](docs/closed-work/website-step-7/slice-3b-reports.md)
-- ✅ Step 7, slice 3c: analytics charts (website; one new server test and a live check; warnings and tickets shown apart in the section chart and hotspot table; Admin Officer not checked live) — closed 2026-11-11 (PR #19). Notes: [docs/closed-work/website-step-7/slice-3c-analytics.md](docs/closed-work/website-step-7/slice-3c-analytics.md)
-- ✅ Step 7, slice 3d: the enforcer's weekly phone summary (server; "This week's overview" now counts Monday to Sunday in Manila time instead of a UTC rolling 7 days; one new server test and a live check; not checked on a real phone) — closed 2026-11-11 (PR #21). Notes: [docs/closed-work/website-step-7/slice-3d-enforcer-week.md](docs/closed-work/website-step-7/slice-3d-enforcer-week.md)
-- ✅ Admin end: warnings have no status (server refuses a status change on a warning; the website shows no status and no Change Status for one; Admin Officer not checked live) — closed 2026-11-11 (PR #20). Notes: [docs/closed-work/admin-end/warnings-no-status.md](docs/closed-work/admin-end/warnings-no-status.md)
-- ✅ Admin end: warning pages show no due date and every record page shows its last-updated time (website and admin ticket detail; one additive response field; Head Admin checked live; Admin Officer not checked live) — closed 2026-11-11 (PR #23). Notes: [docs/closed-work/admin-end/admin-record-dates.md](docs/closed-work/admin-end/admin-record-dates.md)
-- ✅ Admin end: enforcer performance page fixes (11 problems: no crashes or blank failures, errors with Try again, Manila months, resolution rate from tickets only, enforcer-only profiles, correct paging; server + website; Head Admin checked live 20/21, the miss a wrong check expectation; "No inspections yet" and Admin Officer not checked live) — closed 2026-11-11 (PR #25). Notes: [docs/closed-work/admin-end/enforcer-performance-fixes.md](docs/closed-work/admin-end/enforcer-performance-fixes.md)
-- ✅ Faster entry A1 (find the business and the violator) — complete 2026-11-06
-- ✅ Faster entry A2a (ordinance shortcuts and title search) — complete 2026-11-06
-- ✅ Faster entry A2b (copy-to-paper card) — complete 2026-11-07
-- ✅ Faster entry A3 (business search by owner or address) — complete 2026-11-09 (PR #7)
-- ✅ Faster entry A2c (paper ticket scanner; Android checked, iPhone not tested) — complete 2026-11-09 (PR #8)
-- ✅ Faster entry B1 (the system holds and shows tickets and warnings for unregistered vendors: server, phone, website) — complete 2026-11-09 (PR #9)
-- ✅ Faster entry B2 (Registered / Unregistered choice and section entry on the phone; QR scanning removed; checked live on Android, iPhone not tested) — complete 2026-11-10 (PR #10)
-- ✅ Faster entry: choosing the violator (owner shown first with one tap, "Add owner as person" in one tap, "Someone else" name search; server routes for the owner person; Change Vendor/section clear the violator; checked by the user on their own phone, no recorded results; iPhone not tested) — closed 2026-11-12 (PR #28). Notes: [docs/closed-work/faster-entry/violator-picker.md](docs/closed-work/faster-entry/violator-picker.md)
-- ✅ Faster entry: entry page layout and buttons (phone only; compact banners with Change link, four grouped sections, one outlined button style; checked by the user on their own phone, no recorded results; iPhone not tested) — closed 2026-11-12. Notes: [docs/closed-work/faster-entry/entry-page-layout.md](docs/closed-work/faster-entry/entry-page-layout.md)
-- ✅ Control number Part 1 (server messages and phone) — complete 2026-11-07
-- ✅ Control number Part 2 (website) — complete 2026-11-07
-- ✅ Phone-only fixes (review-page addresses, Warning ↔ Ticket keeps the person, notification wording) — complete 2026-11-08 (PR #6)
-- ✅ Local OCR feasibility — dropped 2026-11-04 by user decision (not passed); replaced by faster in-app entry
-- ✅ Faster entry — closed 2026-11-10 (A1, A2a, A2b, A2c, A3, B1 and B2 done); the timing test was dropped by user decision, so the speed-up was not measured
-- ✅ Automatic checks (Scanning, calculation and verification, criterion 3; tests and live check only) — closed 2026-11-10
-- ✅ Review and Verify (Scanning, calculation and verification, criterion 5; tests and live check only) — closed 2026-11-10
-- ✅ Submit and Verify again (Scanning, calculation and verification, criterion 6; earlier evidence plus one new test) — closed 2026-11-10
-- ✅ Calculated counts and the violator's name (Scanning, calculation and verification, criterion 7; tests only; the name comes from the chosen person's record) — closed 2026-11-10
-- ✅ The server's checks at Submit (Scanning, calculation and verification, criterion 8; earlier evidence plus three new server tests) — closed 2026-11-11
-- ✅ Scanning, calculation and verification (Revision step 4; all 8 criteria; remaining phone, live and iPhone checks belong to Phases 1, 2 and 4) — closed 2026-11-11
-- ✅ Website vendor sign-up leftovers removed (website plus the server's 9 old sign-up routes; no schema change; Admin Officer not checked live) — closed 2026-11-11 (PR #22). Notes: [docs/closed-work/website-step-7/vendor-signup-leftovers.md](docs/closed-work/website-step-7/vendor-signup-leftovers.md)
-- ✅ Step 7, next web and reporting slices: recommended actions, administrator review (step 4; Mark as reviewed and Dismiss, audit log, reviews carried over per run; 22 of 22 live checks; Admin Officer and the review-again-after-a-gap rule proved by tests only) — closed 2026-11-13 (PR #49). Notes: [docs/closed-work/recommended-actions/step-4-administrator-review.md](docs/closed-work/recommended-actions/step-4-administrator-review.md)
-
 ## Scanning, calculation and verification (✅ closed 2026-11-11)
 
 Goal: Enter → Automatic check → Review/edit → Verify → Submit. The enforcer fills in the app, then copies to the paper ticket.
