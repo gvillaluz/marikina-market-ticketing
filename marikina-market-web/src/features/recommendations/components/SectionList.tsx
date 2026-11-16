@@ -18,7 +18,7 @@ export default function SectionList({
     <section className={styles.list} aria-labelledby="recommendation-sections">
       <header className={styles.header}>
         <h2 id="recommendation-sections" className={styles.heading}>
-          Sections
+          Streets
         </h2>
         <p className={styles.summary}>{statusSummary(sections)}</p>
       </header>

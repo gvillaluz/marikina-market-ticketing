@@ -4,6 +4,9 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
+using MarikinaMarket.API.Application;
+using MarikinaMarket.API.Application.DTOs.Tickets.Request;
+using MarikinaMarket.API.Application.DTOs.Vendor.Request;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Application.Services;
@@ -19,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Xunit;
+using DataValidation = System.ComponentModel.DataAnnotations;
 
 namespace MarikinaMarket.Tests;
 
@@ -92,6 +96,80 @@ public class MarketSectionManagementTests
             using var count = await host.Send(HttpMethod.Get, "/api/marketsection/count", "MarketEnforcer");
             Assert.Equal(active ? 1 : 0, (await count.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("count").GetInt32());
         }
+    }
+
+    // The list now holds market streets, so every message the office can see says "market street".
+    [Fact]
+    public async Task Error_messages_say_market_street()
+    {
+        await using var host = await MarketSectionManagementHost.Create();
+        using var duplicate = await host.Send(HttpMethod.Post, "/api/marketsection", "AdminOfficer", new { name = "Fresh Produce", description = "Duplicate name" });
+        using var bakery = await host.Send(HttpMethod.Post, "/api/marketsection", "AdminOfficer", new { name = "Bakery", description = "Bread stalls" });
+        var bakeryId = (await bakery.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
+        using var editDuplicate = await host.Send(HttpMethod.Put, $"/api/marketsection/{bakeryId}", "AdminOfficer", new { name = "Fresh Produce", description = "Duplicate name" });
+        using var zeroEdit = await host.Send(HttpMethod.Put, "/api/marketsection/0", "AdminOfficer", new { name = "Bakery", description = "Bread stalls" });
+        using var zeroStatus = await host.Send(HttpMethod.Patch, "/api/marketsection/0/active", "AdminOfficer", new { is_active = true });
+        using var absentEdit = await host.Send(HttpMethod.Put, "/api/marketsection/999", "AdminOfficer", new { name = "Bread", description = "Bread stalls" });
+        using var absentStatus = await host.Send(HttpMethod.Patch, "/api/marketsection/999/active", "AdminOfficer", new { is_active = true });
+
+        Assert.Contains("A market street with this name already exists.", await duplicate.Content.ReadAsStringAsync());
+        Assert.Contains("A market street with this name already exists.", await editDuplicate.Content.ReadAsStringAsync());
+        Assert.Contains("Market street ID must be greater than zero.", await zeroEdit.Content.ReadAsStringAsync());
+        Assert.Contains("Market street ID must be greater than zero.", await zeroStatus.Content.ReadAsStringAsync());
+        Assert.Contains("Market street not found.", await absentEdit.Content.ReadAsStringAsync());
+        Assert.Contains("Market street not found.", await absentStatus.Content.ReadAsStringAsync());
+        var missing = await Assert.ThrowsAsync<InvalidRequestException>(() => new MarketSectionService(null!).CreateAsync(null!));
+        Assert.Equal("Market street data is required.", missing.Message);
+    }
+
+    [Fact]
+    public void Filter_errors_say_market_street()
+    {
+        static string Error(object filter)
+        {
+            var results = new List<DataValidation.ValidationResult>();
+            DataValidation.Validator.TryValidateObject(filter, new DataValidation.ValidationContext(filter), results, true);
+            return Assert.Single(results).ErrorMessage!;
+        }
+
+        Assert.Equal("Market street must be a positive number.", Error(new AdminVendorSummaryFilter { MarketSectionId = 0 }));
+        Assert.Equal("Market street must be a positive number.", Error(new TicketSummaryFilters { MarketSectionId = 0 }));
+        Assert.Equal("Market street must be a positive number.", Error(new InspectionSummaryFilters { MarketSectionId = 0 }));
+    }
+
+    [Fact]
+    public async Task Audit_log_labels_say_market_street()
+    {
+        var items = new List<MarketSection> { new() { Id = 2, Name = "Fresh Produce", Description = "Fruit and vegetable stalls", IsActive = true } };
+        var repository = ReviewBoundaryProxy.Create<IMarketSectionRepository>((method, args) => method.Name switch
+        {
+            "GetById" => Task.FromResult(items.SingleOrDefault(item => item.Id == (int)args[0]!)),
+            "NameExistsAsync" => Task.FromResult(false),
+            "GetVendorCountAsync" => Task.FromResult(0),
+            "AddAsync" => AddSection(items, (MarketSection)args[0]!),
+            "SaveChangesAsync" => Task.CompletedTask,
+            _ => throw new InvalidOperationException(method.Name)
+        });
+        await using var host = await AuditHost.CreateAsync(services =>
+            services.AddSingleton<IMarketSectionService>(new MarketSectionService(repository)));
+
+        using var create = await host.SendAsync(HttpMethod.Post, "/api/marketsection", body: """{"name":"Bakery","description":"Bread stalls"}""");
+        using var edit = await host.SendAsync(HttpMethod.Put, "/api/marketsection/2", body: """{"name":"Produce","description":"Produce stalls"}""");
+        using var status = await host.SendAsync(HttpMethod.Patch, "/api/marketsection/2/active", body: """{"is_active":false}""");
+
+        Assert.Equal([HttpStatusCode.Created, HttpStatusCode.OK, HttpStatusCode.NoContent], new[] { create.StatusCode, edit.StatusCode, status.StatusCode });
+        Assert.Equal([
+            "Market street creation completed successfully.",
+            "Market street update completed successfully.",
+            "Market street status update completed successfully."
+        ], host.Repository.Logs.Select(log => log.Details));
+    }
+
+    private static Task AddSection(List<MarketSection> items, MarketSection section)
+    {
+        section.Id = items.Max(item => item.Id) + 1;
+        items.Add(section);
+        return Task.CompletedTask;
     }
 }
 

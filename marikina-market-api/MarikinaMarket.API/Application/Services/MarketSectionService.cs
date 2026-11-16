@@ -26,7 +26,7 @@ namespace MarikinaMarket.API.Application.Services
             ValidateRequest(request);
             var name = request.Name.Trim();
             if (await _repository.NameExistsAsync(name))
-                throw new InvalidRequestException("A market section with this name already exists.");
+                throw new InvalidRequestException("A market street with this name already exists.");
 
             var section = new MarketSection
             {
@@ -43,13 +43,13 @@ namespace MarikinaMarket.API.Application.Services
         public async Task<MarketSectionResponse> UpdateAsync(int id, SaveMarketSectionRequest request)
         {
             if (id <= 0)
-                throw new InvalidRequestException("Market section ID must be greater than zero.");
+                throw new InvalidRequestException("Market street ID must be greater than zero.");
             ValidateRequest(request);
             var section = await _repository.GetById(id)
-                ?? throw new RecordNotFoundException("Market section not found.");
+                ?? throw new RecordNotFoundException("Market street not found.");
             var name = request.Name.Trim();
             if (await _repository.NameExistsAsync(name, id))
-                throw new InvalidRequestException("A market section with this name already exists.");
+                throw new InvalidRequestException("A market street with this name already exists.");
 
             var description = request.Description.Trim();
             if (section.Name != name) section.Name = name;
@@ -61,7 +61,7 @@ namespace MarikinaMarket.API.Application.Services
         private static void ValidateRequest(SaveMarketSectionRequest request)
         {
             if (request is null)
-                throw new InvalidRequestException("Market section data is required.");
+                throw new InvalidRequestException("Market street data is required.");
             if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 150)
                 throw new InvalidRequestException("Name is required and must not exceed 150 characters.");
             if (string.IsNullOrWhiteSpace(request.Description) || request.Description.Trim().Length > 500)
@@ -88,12 +88,12 @@ namespace MarikinaMarket.API.Application.Services
         public async Task UpdateActiveStatusAsync(int marketSectionId, bool isActive)
         {
             if (marketSectionId <= 0)
-                throw new InvalidRequestException("Market section ID must be greater than zero.");
+                throw new InvalidRequestException("Market street ID must be greater than zero.");
 
             var section = await _repository.GetById(marketSectionId);
 
             if (section is null)
-                throw new RecordNotFoundException("Market section not found.");
+                throw new RecordNotFoundException("Market street not found.");
 
             section.IsActive = isActive;
             await _repository.SaveChangesAsync();

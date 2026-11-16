@@ -93,7 +93,7 @@ test("tickets list names the unregistered vendor and uses the ticket's own marke
   const html = render(await component('features/tickets/components/TicketList.tsx'), { tickets: [ticket, legacy], onView: () => {} });
   assert.deepEqual(cells(html, 'Business name'), ['UNREGISTERED', UNAVAILABLE]);
   assert.deepEqual(cells(html, 'Registered owner'), [DASH, UNAVAILABLE]);
-  assert.deepEqual(cells(html, 'Market section'), ['Meat and Poultry', UNAVAILABLE]);
+  assert.deepEqual(cells(html, 'Market street'), ['Meat and Poultry', UNAVAILABLE]);
   assert.deepEqual(cells(html, 'Violator'), ['Juan Cruz', 'Unconfirmed (legacy record)']);
 });
 
@@ -102,7 +102,7 @@ test('inspections list names the unregistered vendor for tickets and warnings', 
     rows: [ticket, warning, legacy], isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {} });
   assert.deepEqual(cells(html, 'Business name'), ['UNREGISTERED', 'UNREGISTERED', UNAVAILABLE]);
   assert.deepEqual(cells(html, 'Registered owner'), [DASH, DASH, UNAVAILABLE]);
-  assert.deepEqual(cells(html, 'Market section'), ['Meat and Poultry', 'Meat and Poultry', UNAVAILABLE]);
+  assert.deepEqual(cells(html, 'Market street'), ['Meat and Poultry', 'Meat and Poultry', UNAVAILABLE]);
 });
 
 const detail = { ...ticket, violations: [], categories: [], description: 'Synthetic', lastName: null, firstName: null, businessAccountNumber: null,
@@ -126,7 +126,7 @@ test('ticket page shows the unregistered vendor, its market section and place', 
   globalThis.ticketModalState = { ticket: detail, isLoading: false, isError: false, isTicket: true, ticketPaperRef: null, busyAction: null, exportError: null };
   const html = text(render(await component('features/tickets/pages/TicketDetailPage.tsx'), {}));
   assert.ok(html.includes(`VENDOR${UNREGISTERED}`));
-  assert.ok(html.includes('MARKET SECTIONMeat and Poultry'));
+  assert.ok(html.includes('MARKET STREETMeat and Poultry'));
   assert.ok(html.includes('ISSUE PLACEPalengke gate 2'));
   assert.ok(!html.includes(UNAVAILABLE));
   assert.ok(!html.includes('BUSINESS ACCOUNT NUMBER') && !html.includes('BUSINESS NAME') && !html.includes('REGISTERED OWNER'));
@@ -184,5 +184,5 @@ test('enforcer inspection list shows the unregistered section and no owner or st
   const html = render(await component('features/enforcers/components/performance/EnforcerInspectionList.tsx'), { records: [ticket, warning], onView: () => {} });
   assert.deepEqual(column(html, 'Registered owner'), [DASH, DASH]);
   assert.deepEqual(column(html, 'Stall No.'), [DASH, DASH]);
-  assert.deepEqual(column(html, 'Section'), ['Meat and Poultry', 'Meat and Poultry']);
+  assert.deepEqual(column(html, 'Market street'), ['Meat and Poultry', 'Meat and Poultry']);
 });

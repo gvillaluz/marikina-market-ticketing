@@ -346,7 +346,7 @@ test("W3: a run with no cards shows the summary, the plain message and the no-re
   assert.ok(words.includes("Period: 12 Oct 2026 – 11 Nov 2026"), words);
   assert.ok(words.includes("Records read: 21"), words);
   assert.ok(
-    words.includes("No section has a recommendation for this period."),
+    words.includes("No street has a recommendation for this period."),
     words,
   );
   assert.ok(
@@ -371,7 +371,7 @@ test("W3: cards keep the server order and the empty no-recommendation line is le
     },
   }));
   assert.ok(words.indexOf("Fish and Seafood") < words.indexOf("Dry Goods"));
-  assert.doesNotMatch(words, /No recommendation for|No section has/);
+  assert.doesNotMatch(words, /No recommendation for|No street has/);
 });
 
 test("W3: an error shows the server's message with Try again", () => {
@@ -658,7 +658,7 @@ test("L3: when every section is dismissed the list and the card still show them"
   );
   const words = text(html);
   assert.doesNotMatch(words, /Every recommendation has been dismissed/);
-  assert.doesNotMatch(words, /No section has a recommendation/);
+  assert.doesNotMatch(words, /No street has a recommendation/);
   assert.equal(openCardTitle(html), "Fish and Seafood");
   assert.ok(words.includes("Dismissed by Maria Santos"), words);
   assert.deepEqual(buttonLabels(html.split("<article")[1]), []);

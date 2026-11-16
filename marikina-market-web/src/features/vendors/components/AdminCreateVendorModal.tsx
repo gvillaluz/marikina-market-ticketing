@@ -2,7 +2,8 @@ import { useId } from "react";
 import Modal from "@/components/ui/Modal";
 import { Dropdown } from "@/components/ui/Dropdown";
 import type { SaveBusinessRequest } from "@/api/types/admin-vendor.types";
-import { MARKET_SECTION_OPTIONS, VENDOR_TYPE_OPTIONS } from "../registration.constants";
+import { LOADING_STREETS, useMarketSectionOptions } from "@/hooks/useMarketSectionOptions";
+import { VENDOR_TYPE_OPTIONS } from "../registration.constants";
 import BusinessFormActions from "./BusinessFormActions";
 import BusinessTextField from "./BusinessTextField";
 import { useBusinessForm } from "../hooks/useBusinessForm";
@@ -13,6 +14,8 @@ export default function AdminCreateVendorModal({ open, businessId, onClose, onSa
   const fieldId = useId();
   const state = useBusinessForm(open, businessId, onSaved, onClose);
   const { form, errors, saving, update } = state;
+  const streets = useMarketSectionOptions();
+  const streetMessage = errors.marketSectionId ?? streets.activeOptionsMessage;
   const disabled = saving || state.loading || Boolean(state.loadError);
   return (
     <Modal open={open} onClose={onClose} closeDisabled={saving} size="lg"
@@ -52,13 +55,13 @@ export default function AdminCreateVendorModal({ open, businessId, onClose, onSa
                 {errors.businessType && <small id={`${fieldId}-type-error`} role="alert">{errors.businessType}</small>}
               </div>
               <div className={styles.dropdownField}>
-                <span>Market Section<b> *</b></span>
-                <Dropdown fullWidth ariaLabel="Market Section" value={String(form.marketSectionId || "")}
+                <span>Market Street<b> *</b></span>
+                <Dropdown fullWidth ariaLabel="Market Street" value={String(form.marketSectionId || "")}
                   triggerId={`${fieldId}-section`} invalid={Boolean(errors.marketSectionId)}
-                  describedBy={errors.marketSectionId ? `${fieldId}-section-error` : undefined}
-                  triggerLabel={MARKET_SECTION_OPTIONS.find(option => Number(option.value) === form.marketSectionId)?.label ?? "Select market section"}
-                  options={MARKET_SECTION_OPTIONS} onChange={value => update("marketSectionId", Number(value))} disabled={saving} />
-                {errors.marketSectionId && <small id={`${fieldId}-section-error`} role="alert">{errors.marketSectionId}</small>}
+                  describedBy={streetMessage ? `${fieldId}-section-error` : undefined}
+                  triggerLabel={streets.isLoading ? LOADING_STREETS : streets.nameOf(String(form.marketSectionId)) ?? "Select market street"}
+                  options={streets.activeOptions} onChange={value => update("marketSectionId", Number(value))} disabled={saving || streets.isLoading} />
+                {streetMessage && <small id={`${fieldId}-section-error`} role="alert">{streetMessage}</small>}
               </div>
               <BusinessTextField name="stallNumber" label="Stall Number" required={form.businessType === "Public"} form={form} errors={errors} disabled={disabled} onChange={update} />
             </div>

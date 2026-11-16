@@ -66,7 +66,7 @@ test('ticket list shows business name, registered owner and violator as separate
   assert.deepEqual(cells(html, 'Business name'), ['Nena Fresh Fish', unavailable]);
   assert.deepEqual(cells(html, 'Registered owner'), ['Nena Dela Cruz', unavailable]);
   assert.deepEqual(cells(html, 'Violator'), ['Jun Reyes', 'Unconfirmed (legacy record)']);
-  assert.deepEqual(cells(html, 'Market section'), ['Fish Section', unavailable]);
+  assert.deepEqual(cells(html, 'Market street'), ['Fish Section', unavailable]);
 });
 
 test('inspection table shows business name, registered owner and violator for tickets and warnings', () => {

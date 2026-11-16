@@ -419,11 +419,11 @@ test("ticket and inspection exports use exactly the on-screen columns, without A
   }));
   assert.deepEqual(plain(TICKET_COLUMNS.map((c) => c.header)), [
     "Control number", "Enforcer", "Business name", "Registered owner", "Violator",
-    "Market section", "Status", "Penalty", "Severity", "Issued at",
+    "Market street", "Status", "Penalty", "Severity", "Issued at",
   ]);
   assert.deepEqual(plain(INSPECTION_COLUMNS.map((c) => c.header)), [
     "Control number", "Violator", "Enforcer", "Business name", "Registered owner",
-    "Market section", "Type", "Issued at",
+    "Market street", "Type", "Issued at",
   ]);
   assert.deepEqual(headers(ticketHtml), [...plain(TICKET_COLUMNS.map((c) => c.header)), "Actions"]);
   assert.deepEqual(headers(inspectionHtml), [...plain(INSPECTION_COLUMNS.map((c) => c.header)), "Actions"]);

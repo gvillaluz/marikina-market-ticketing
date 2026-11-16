@@ -24,14 +24,14 @@ export default function MarketSectionPage() {
               ? ROUTES.systemConfiguration
               : undefined,
           },
-          { label: "Market Sections" },
+          { label: "Market Streets" },
         ]}
       />
 
       <PageHeader
         className={styles.header}
-        title="Market Sections"
-        subtitle="Manage market areas used for vendor profiles, registration, and tickets."
+        title="Market Streets"
+        subtitle="Manage market streets used for vendor profiles, registration, and tickets."
         actions={
           <button
             type="button"
@@ -46,7 +46,7 @@ export default function MarketSectionPage() {
             onClick={() => editor.launch()}
           >
             <Plus size={16} aria-hidden="true" />
-            Add Section
+            Add Street
           </button>
         }
       />
@@ -58,14 +58,14 @@ export default function MarketSectionPage() {
         <div className={styles.directoryHeader}>
           <div>
             <h2 id="section-directory-title" className={styles.directoryTitle}>
-              Section Directory
+              Street Directory
             </h2>
             <p className={styles.directoryDescription}>
               {directory.hasData
-                ? `${directory.total} ${directory.total === 1 ? "section" : "sections"} configured`
+                ? `${directory.total} ${directory.total === 1 ? "street" : "streets"} configured`
                 : directory.isLoading
-                  ? "Loading sections…"
-                  : "Sections unavailable"}
+                  ? "Loading streets…"
+                  : "Streets unavailable"}
             </p>
           </div>
           <div className={styles.search}>
@@ -78,8 +78,8 @@ export default function MarketSectionPage() {
             <input
               type="search"
               className={styles.searchInput}
-              aria-label="Search market sections"
-              placeholder="Search sections..."
+              aria-label="Search market streets"
+              placeholder="Search streets..."
               value={directory.search}
               onChange={(event) => directory.setSearch(event.target.value)}
             />
@@ -102,11 +102,11 @@ export default function MarketSectionPage() {
 
         <RegistryTable
           className={styles.table}
-          ariaLabel="Market sections table"
+          ariaLabel="Market streets table"
           labelledBy="section-directory-title"
           busy={directory.isFetching}
           columns={[
-            { label: "Section Name", className: styles.nameColumn },
+            { label: "Street Name", className: styles.nameColumn },
             { label: "Description", className: styles.descriptionColumn },
             { label: "Vendors", className: styles.vendorColumn },
             { label: "Status", className: styles.statusColumn },
@@ -116,15 +116,15 @@ export default function MarketSectionPage() {
           {directory.isLoading ? (
             <tr>
               <td colSpan={5} className={styles.message}>
-                <span role="status">Loading market sections…</span>
+                <span role="status">Loading market streets…</span>
               </td>
             </tr>
           ) : directory.hasData && directory.sections.length === 0 ? (
             <tr>
               <td colSpan={5} className={styles.message}>
                 {directory.total === 0
-                  ? "No market sections configured yet."
-                  : "No sections match your search."}
+                  ? "No market streets configured yet."
+                  : "No streets match your search."}
               </td>
             </tr>
           ) : (
@@ -149,7 +149,7 @@ export default function MarketSectionPage() {
         {directory.hasData && (
           <p className={styles.footer} role="status">
             Showing {directory.sections.length} of {directory.total}{" "}
-            {directory.total === 1 ? "section" : "sections"}
+            {directory.total === 1 ? "street" : "streets"}
           </p>
         )}
       </section>
@@ -161,8 +161,8 @@ export default function MarketSectionPage() {
           aria-hidden="true"
         />
         <p>
-          Sections assigned to vendor profiles cannot be deleted. Mark unused
-          sections inactive to preserve historical records.
+          Streets assigned to vendor profiles cannot be deleted. Mark unused
+          streets inactive to preserve historical records.
         </p>
       </aside>
       <MarketSectionModal editor={editor} />

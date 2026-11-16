@@ -5,7 +5,7 @@ export const AUDIT_MODULE_OPTIONS = [
   { value: "Ordinances", label: "Ordinances" },
   { value: "Vendors", label: "Vendors" },
   { value: "Tickets", label: "Tickets" },
-  { value: "MarketSections", label: "Market Sections" },
+  { value: "MarketSections", label: "Market Streets" },
   { value: "Backups", label: "Data & Backups" },
   { value: "Reports", label: "Reports" },
   { value: "Notifications", label: "Notifications" },

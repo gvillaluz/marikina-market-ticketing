@@ -15,7 +15,7 @@ export function useMarketSectionCount() {
     error: query.isError
       ? getApiErrorMessage(
           query.error,
-          "Unable to load market sections. Please try again.",
+          "Unable to load market streets. Please try again.",
         )
       : "",
     retry: () => {

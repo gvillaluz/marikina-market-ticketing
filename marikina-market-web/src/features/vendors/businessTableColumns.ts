@@ -26,7 +26,7 @@ export const BUSINESS_COLUMNS: ExportColumn<AdminVendorSummary>[] = [
     value: (v) => v.businessAccountNumber,
   },
   { key: "registeredOwner", header: "Registered owner", value: (v) => v.vendorName },
-  { key: "section", header: "Market section", value: (v) => v.marketSectionName },
+  { key: "section", header: "Market street", value: (v) => v.marketSectionName },
   { key: "type", header: "Type", value: (v) => getTypeLabel(v.type) },
   {
     key: "complianceScore",

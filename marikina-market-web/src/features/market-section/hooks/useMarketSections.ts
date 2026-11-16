@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ApiRequestError } from "@/utils/apiErrors";
 import { marketSectionApi } from "@/api/endpoints/marketSection.api";
 import type { MarketSectionResponse } from "@/api/types/market-section.types";
+import { marketSectionsListKey } from "@/hooks/useMarketSectionOptions";
 import { exactMatchesFirst } from "@/utils/searchMatch";
-
-export const marketSectionsListKey = ["market_sections", "list"] as const;
 
 const searchedValues = (section: MarketSectionResponse) => [
   section.name,
@@ -42,7 +41,7 @@ export function useMarketSections() {
     isLoading: query.isPending,
     isFetching: query.isFetching,
     isError: query.isError,
-    errorMessage: serverMessage || "Unable to load market sections. Please try again.",
+    errorMessage: serverMessage || "Unable to load market streets. Please try again.",
     retry: () => { void query.refetch(); },
   };
 }

@@ -84,7 +84,7 @@ export default function RecommendationsPage() {
             </div>
           ) : (
             <p className={styles.message}>
-              No section has a recommendation for this period.
+              No street has a recommendation for this period.
             </p>
           )}
           <SectionsWithoutRecommendation

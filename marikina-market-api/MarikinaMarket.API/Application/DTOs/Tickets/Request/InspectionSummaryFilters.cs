@@ -13,7 +13,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Request
         public ViolationType? Type { get; set; }
 
         [FromQuery(Name = "market_section_id")]
-        [Range(1, int.MaxValue, ErrorMessage = "MarketSectionId must be a positive number.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Market street must be a positive number.")]
         public int? MarketSectionId { get; set; }
     }
 }

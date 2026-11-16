@@ -10,7 +10,7 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Request
         public string? Search { get; set; }
 
         [FromQuery(Name = "market_section_id")]
-        [Range(1, int.MaxValue, ErrorMessage = "Market section must be a positive number.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Market street must be a positive number.")]
         public int? MarketSectionId { get; set; }
 
         [FromQuery(Name = "compliance_score")]

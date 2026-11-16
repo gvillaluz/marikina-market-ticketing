@@ -43,7 +43,7 @@ export const TICKET_COLUMNS: ExportColumn<TicketSummary>[] = [
   },
   {
     key: "section",
-    header: "Market section",
+    header: "Market street",
     value: (ticket) =>
       ticket.vendorId === null
         ? ticket.marketSectionName

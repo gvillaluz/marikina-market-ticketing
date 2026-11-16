@@ -56,14 +56,14 @@ const backup = {
 const surfaces = [
   {
     name: "sections",
-    path: "/system/market-section",
-    region: "Market sections table",
+    path: "/system/market-street",
+    region: "Market streets table",
     endpoint: "/api/marketsection",
-    headers: ["Section Name", "Description", "Vendors", "Status", "Actions"],
-    empty: "No market sections configured yet.",
-    loading: "Loading market sections…",
-    search: "Search market sections",
-    noMatch: "No sections match your search.",
+    headers: ["Street Name", "Description", "Vendors", "Status", "Actions"],
+    empty: "No market streets configured yet.",
+    loading: "Loading market streets…",
+    search: "Search market streets",
+    noMatch: "No streets match your search.",
   },
   {
     name: "ordinances",

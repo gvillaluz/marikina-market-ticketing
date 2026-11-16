@@ -242,7 +242,7 @@ test("both administrators reach market sections through Configurations without b
         }),
       ),
     );
-    assert.equal(html.includes('href="/system/market-section"'), false);
+    assert.equal(html.includes('href="/system/market-street"'), false);
     assert.equal(html.includes('href="/system/configuration"'), allowed);
     const Configuration = load(
       "features/configuration/pages/SystemConfigurationPage.tsx",
@@ -283,7 +283,7 @@ test("both administrators reach market sections through Configurations without b
         ),
       );
       assert.equal(
-        configurationHtml.includes('href="/system/market-section"'),
+        configurationHtml.includes('href="/system/market-street"'),
         true,
       );
       assert.equal(
@@ -412,7 +412,7 @@ test("directory search handles empty/loading/error states and malformed lists be
   const { marketSectionApi } = load("api/endpoints/marketSection.api.ts", {
     "@/api/client": { default: { get: async () => ({ data: {} }) } },
   });
-  await assert.rejects(marketSectionApi.getAll(), /market sections/i);
+  await assert.rejects(marketSectionApi.getAll(), /market streets/i);
 });
 
 test("directory search puts whole-word matches first", () => {

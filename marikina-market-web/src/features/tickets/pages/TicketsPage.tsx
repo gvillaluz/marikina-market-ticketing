@@ -9,10 +9,7 @@ import {
 } from "@/components/ui/Records";
 import { TicketModal } from "@/components/ui/TicketModal/TicketModal";
 import { PrintConfigModal } from "@/features/inspections";
-import {
-  MARKET_SECTION_LABELS,
-  type MarketSectionFilter,
-} from "@/api/types/common.types";
+import { useMarketSectionOptions } from "@/hooks/useMarketSectionOptions";
 import { formatCurrency, formatNumber } from "@/utils/formatters";
 import { useTicketsPage } from "../hooks/useTicketsPage";
 import type { TicketStatusFilter } from "../hooks/useTicketFilters";
@@ -30,6 +27,7 @@ const FILTERS: TicketStatusFilter[] = [
 ];
 export default function TicketsPage() {
   const page = useTicketsPage();
+  const streets = useMarketSectionOptions();
   const { stats } = page.analytics;
   return (
     <div className={styles.page}>
@@ -101,23 +99,13 @@ export default function TicketsPage() {
             options={FILTERS.map((value) => ({ value, label: value }))}
           />
           <Dropdown
-            triggerId="tickets-section-filter"
-            ariaLabel="Filter by market section"
-            triggerLabel={
-              page.filters.marketSection === "All Sections"
-                ? "All Sections"
-                : MARKET_SECTION_LABELS[page.filters.marketSection]
-            }
+            triggerId="tickets-street-filter"
+            ariaLabel="Filter by market street"
+            triggerLabel={streets.filterLabel(page.filters.marketSection)}
             value={page.filters.marketSection}
-            onChange={(value) =>
-              page.setFilters.setMarketSection(value as MarketSectionFilter)
-            }
-            options={[
-              { value: "All Sections", label: "All Sections" },
-              ...Object.entries(MARKET_SECTION_LABELS).map(
-                ([value, label]) => ({ value, label }),
-              ),
-            ]}
+            onChange={page.setFilters.setMarketSection}
+            options={streets.filterOptions}
+            disabled={streets.isLoading}
           />
         </RecordsToolbar>
         {page.errorMessage ? (
