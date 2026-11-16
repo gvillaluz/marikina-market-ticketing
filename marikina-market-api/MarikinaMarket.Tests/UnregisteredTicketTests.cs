@@ -176,7 +176,7 @@ public class UnregisteredTicketTests
             Person = new Person { Id = 31, FullName = "Juan Dela Cruz", Address = "12 Market Lane" },
             PaperViolatorName = "Juan Cruz", PaperReference = "000456", ControlNumber = "5",
             IssuePlace = "Palengke gate 2", MarketSectionId = 3, SnapshotMarketSectionName = "Meat and Poultry",
-            MarketSection = new MarketSection { Id = 3, Name = "Meat and Poultry", Description = "Synthetic" },
+            MarketSection = new MarketSection { Id = 3, Name = "Meat and Poultry" },
             EnforcerId = 8,
             Enforcer = new User
             {
@@ -336,7 +336,7 @@ public class UnregisteredTicketTests
             Id = business.Value, BusinessAccountNumber = $"MM-{business}", BusinessName = $"Synthetic business {business}",
             QrCodeValue = "sample", OwnerFirstName = "Juan", OwnerLastName = "Reyes"
         },
-        MarketSectionId = 3, MarketSection = new MarketSection { Id = 3, Name = "Meat and Poultry", Description = "Synthetic" },
+        MarketSectionId = 3, MarketSection = new MarketSection { Id = 3, Name = "Meat and Poultry" },
         IssuedAt = DateTime.UtcNow.AddDays(-daysAgo), UpdatedAt = DateTime.UtcNow.AddDays(-daysAgo)
     };
 

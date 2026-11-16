@@ -26,7 +26,7 @@ public class AdminControlNumberTests
 
     private static AppDbContext Context()
     {
-        var section = new MarketSection { Id = 1, Name = "Dry Goods", Description = "Synthetic" };
+        var section = new MarketSection { Id = 1, Name = "Dry Goods" };
         var business = new Business
         {
             Id = BusinessId, BusinessName = "Aling Nena's Store", StallNumber = "12", BusinessAccountNumber = "ACC-100",

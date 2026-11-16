@@ -676,8 +676,8 @@ public class InspectionNotificationTests
             var sections = ReviewBoundaryProxy.Create<IMarketSectionRepository>((method, args) =>
                 Task.FromResult<MarketSection?>((int)args[0]! switch
                 {
-                    3 => new() { Id = 3, Name = "Meat and Poultry", Description = "Synthetic" },
-                    9 => new() { Id = 9, Name = "Closed section", Description = "Synthetic", IsActive = false },
+                    3 => new() { Id = 3, Name = "Meat and Poultry" },
+                    9 => new() { Id = 9, Name = "Closed section", IsActive = false },
                     _ => null
                 }));
             var storage = ReviewBoundaryProxy.Create<IStorageService>((method, args) =>

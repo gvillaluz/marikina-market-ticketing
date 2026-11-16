@@ -260,7 +260,7 @@ internal sealed class VendorTicketHost : IAsyncDisposable
         other.OwnerFirstName = "Maria"; other.OwnerLastName = "Santos";
         vendor.StallNumber = "F-014";
         other.Type = BusinessType.Private;
-        var section = new MarketSection { Id = 1, Name = "Fish and Seafood Section", Description = "Fish vendors" };
+        var section = new MarketSection { Id = 1, Name = "Fish and Seafood Section" };
         var market = Ordinance(2, "104", "Market Identification Card");
         var posting = Ordinance(3, "123", "Posting of \"Pahihintuloy sa Paghahanapbuhay\"");
         var weights = Ordinance(5, "160", "Weights and Measures");

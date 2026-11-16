@@ -77,7 +77,6 @@ function load(relative, overrides = {}, cache = new Map()) {
 const section = {
   id: 2,
   name: "Fresh Produce",
-  description: "Fruit and vegetable stalls",
   isActive: true,
   vendorCount: 12,
 };
@@ -298,26 +297,33 @@ test("blank and overlength section drafts cannot make requests", async () => {
   const h = harness();
   h.render().launch();
   h.render().submit();
-  assert.match(h.render().error, /required/);
+  assert.equal(h.render().error, "Street name is required.");
   h.render().setName("a".repeat(151));
-  h.render().setDescription("Produce stalls");
   h.render().submit();
   await h.settle();
   assert.equal(h.requests.length, 0);
   assert.match(h.render().error, /150/);
-  h.render().setName("Produce");
-  h.render().setDescription("a".repeat(501));
+});
+
+// Slice 3: a street has a name only; the request carries nothing else.
+test("a street is saved with its name only", async () => {
+  const h = harness();
+  h.render().launch();
+  h.render().setName(" Shoe Avenue ");
   h.render().submit();
   await h.settle();
-  assert.equal(h.requests.length, 0);
-  assert.match(h.render().error, /500/);
+  assert.equal(
+    JSON.stringify(h.requests),
+    JSON.stringify([["post", "/marketsection", { name: "Shoe Avenue" }]]),
+  );
+  assert.equal("description" in h.render(), false);
+  assert.equal("setDescription" in h.render(), false);
 });
 
 test("create and edit preserve errors, save once and refresh list/count caches", async () => {
   const h = harness("AdminOfficer");
   h.render().launch();
   h.render().setName(" Bakery ");
-  h.render().setDescription(" Bread stalls ");
   let finish;
   h.defer(
     new Promise((resolve) => {
@@ -334,7 +340,6 @@ test("create and edit preserve errors, save once and refresh list/count caches",
   finish();
   await h.settle();
   assert.equal(h.list.at(-1).name, "Bakery");
-  assert.equal(h.list.at(-1).description, "Bread stalls");
   assert.equal(h.render().open, false);
   assert.ok(
     h.invalidations.some((key) => key.join("/") === "market_sections/list"),
@@ -393,7 +398,7 @@ test("status toggles send an object, preserve the old status on failure and reco
 
 test("directory search handles empty/loading/error states and malformed lists become errors", async () => {
   const h = harness();
-  h.directory().setSearch("vegetable");
+  h.directory().setSearch("produce");
   assert.equal(h.directory().sections.length, 1);
   h.directory().setSearch("bakery");
   assert.equal(h.directory().sections.length, 0);
@@ -419,9 +424,9 @@ test("directory search puts whole-word matches first", () => {
   const h = harness();
   h.query({
     data: [
-      { ...section, id: 1, name: "Meatballs Row", description: "Processed food" },
-      { ...section, id: 2, name: "Dry Goods", description: "Rice and sugar" },
-      { ...section, id: 3, name: "Fresh Meat", description: "Pork and beef" },
+      { ...section, id: 1, name: "Meatballs Row" },
+      { ...section, id: 2, name: "Dry Goods" },
+      { ...section, id: 3, name: "Fresh Meat" },
     ],
     isPending: false,
     isFetching: false,
@@ -431,8 +436,10 @@ test("directory search puts whole-word matches first", () => {
   assert.deepEqual([...h.directory().sections.map((item) => item.id)], [3, 1]);
 });
 
-test("section rows highlight the searched name and description", () => {
-  const Row = load("features/market-section/components/MarketSectionRow.tsx").default;
+test("section rows highlight the searched name and have no description cell", () => {
+  const Row = load(
+    "features/market-section/components/MarketSectionRow.tsx",
+  ).default;
   const render = (search) =>
     renderToStaticMarkup(
       React.createElement(Row, {
@@ -445,6 +452,62 @@ test("section rows highlight the searched name and description", () => {
       }),
     );
   assert.match(render("fresh"), /<mark class="mark">Fresh<\/mark> Produce/);
-  assert.match(render("VEGETABLE"), /Fruit and <mark class="mark">vegetable<\/mark> stalls/);
   assert.doesNotMatch(render(""), /<mark/);
+  assert.equal(render("").match(/<td/g).length, 3);
+});
+
+test("the street list loads without descriptions", async () => {
+  const { marketSectionApi } = load("api/endpoints/marketSection.api.ts", {
+    "@/api/client": { default: { get: async () => ({ data: [section] }) } },
+  });
+  assert.deepEqual(await marketSectionApi.getAll(), [section]);
+});
+
+test("the table and the street form have no description", () => {
+  const { default: Page } = load(
+    "features/market-section/pages/MarketSectionPage.tsx",
+    {
+      "@/components/ui/Modal": {
+        default: ({ open, children }) =>
+          open ? React.createElement("div", null, children) : null,
+      },
+      "@/features/market-section/hooks/useMarketSections": {
+        useMarketSections: () => ({
+          search: "",
+          setSearch() {},
+          sections: [section],
+          total: 1,
+          hasData: true,
+          isLoading: false,
+          isFetching: false,
+          isError: false,
+          errorMessage: "",
+          retry() {},
+        }),
+      },
+      "@/features/market-section/hooks/useMarketSectionEditor": {
+        useMarketSectionEditor: () => ({
+          open: true,
+          selected: null,
+          name: "",
+          setName() {},
+          error: "",
+          canManage: true,
+          canOpenConfiguration: true,
+          isSaving: false,
+          pendingId: null,
+          launch() {},
+          close() {},
+          submit() {},
+          toggle() {},
+        }),
+      },
+    },
+  );
+  const html = renderToStaticMarkup(
+    React.createElement(MemoryRouter, null, React.createElement(Page)),
+  );
+  assert.match(html, /Street Name/);
+  assert.doesNotMatch(html, />Description</);
+  assert.doesNotMatch(html, /<textarea/);
 });

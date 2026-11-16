@@ -25,9 +25,6 @@ export default function MarketSectionRow({
       <th scope="row" className={styles.nameCell}>
         <SearchHighlight text={section.name} search={search} />
       </th>
-      <td>
-        <SearchHighlight text={section.description} search={search} />
-      </td>
       <td>{section.vendorCount.toLocaleString()}</td>
       <td>
         <span

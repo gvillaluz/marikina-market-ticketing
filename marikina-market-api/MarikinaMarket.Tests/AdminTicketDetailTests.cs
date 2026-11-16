@@ -40,7 +40,7 @@ public class AdminTicketDetailTests
                 QrCodeValue = "synthetic-vendor-42", StallNumber = businessType == BusinessType.Public ? "A-12" : null,
                 OwnerFirstName = user.FirstName, OwnerLastName = user.LastName, Email = user.Email
             },
-            MarketSection = new MarketSection { Name = "Dry Goods", Description = "Dry goods section" },
+            MarketSection = new MarketSection { Name = "Dry Goods" },
             Enforcer = user
         };
         using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);
@@ -74,7 +74,7 @@ public class AdminTicketDetailTests
             Id = 43, Description = "Loose cart near gate", Type = ViolationType.Warning,
             IssuedAt = new DateTime(2026, 11, 8, 2, 0, 0, DateTimeKind.Utc), UpdatedAt = updatedAt,
             IssuePlace = "Palengke gate 2",
-            MarketSection = new MarketSection { Name = "Dry Goods", Description = "Dry goods section" },
+            MarketSection = new MarketSection { Name = "Dry Goods" },
             Enforcer = enforcer
         };
         using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);

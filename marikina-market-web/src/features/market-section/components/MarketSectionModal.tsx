@@ -64,21 +64,6 @@ export default function MarketSectionModal({ editor }: Props) {
               className={styles.input}
             />
           </div>
-          <div>
-            <label htmlFor="section-description" className={styles.label}>
-              Description
-            </label>
-            <textarea
-              id="section-description"
-              required
-              maxLength={500}
-              value={editor.description}
-              disabled={editor.isSaving}
-              onChange={(event) => editor.setDescription(event.target.value)}
-              placeholder="Short description of this market street"
-              className={styles.textarea}
-            />
-          </div>
           {editor.error && (
             <p role="alert" className={styles.error}>
               {editor.error}

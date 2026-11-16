@@ -31,7 +31,6 @@ namespace MarikinaMarket.API.Application.Services
             var section = new MarketSection
             {
                 Name = name,
-                Description = request.Description.Trim(),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -51,9 +50,7 @@ namespace MarikinaMarket.API.Application.Services
             if (await _repository.NameExistsAsync(name, id))
                 throw new InvalidRequestException("A market street with this name already exists.");
 
-            var description = request.Description.Trim();
             if (section.Name != name) section.Name = name;
-            if (section.Description != description) section.Description = description;
             await _repository.SaveChangesAsync();
             return MapResponse(section, await _repository.GetVendorCountAsync(id));
         }
@@ -64,15 +61,12 @@ namespace MarikinaMarket.API.Application.Services
                 throw new InvalidRequestException("Market street data is required.");
             if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 150)
                 throw new InvalidRequestException("Name is required and must not exceed 150 characters.");
-            if (string.IsNullOrWhiteSpace(request.Description) || request.Description.Trim().Length > 500)
-                throw new InvalidRequestException("Description is required and must not exceed 500 characters.");
         }
 
         private static MarketSectionResponse MapResponse(MarketSection section, int vendorCount) => new()
         {
             Id = section.Id,
             Name = section.Name,
-            Description = section.Description,
             IsActive = section.IsActive,
             VendorCount = vendorCount
         };

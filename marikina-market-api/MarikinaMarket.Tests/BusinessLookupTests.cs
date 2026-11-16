@@ -31,7 +31,7 @@ public class BusinessLookupTests
             OwnerFirstName = "Juan", OwnerLastName = "Reyes", HouseNumber = "12", Street = "J. P. Rizal",
             Barangay = "Sta. Elena", City = "Marikina City", QrCodeValue = "business-only-70",
             Status = VendorStatus.Active, MarketSectionId = 1,
-            MarketSection = new() { Id = 1, Name = "Fish", Description = "Fish section" }
+            MarketSection = new() { Id = 1, Name = "Fish" }
         }]);
         var repository = new VendorRepository(context);
         var lookup = Assert.Single((await repository.SearchActiveBusinessesAsync("1842-aB", 20)).Items);

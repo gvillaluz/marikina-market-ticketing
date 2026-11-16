@@ -107,7 +107,6 @@ export default function MarketSectionPage() {
           busy={directory.isFetching}
           columns={[
             { label: "Street Name", className: styles.nameColumn },
-            { label: "Description", className: styles.descriptionColumn },
             { label: "Vendors", className: styles.vendorColumn },
             { label: "Status", className: styles.statusColumn },
             { label: "Actions", className: styles.actionsColumn },
@@ -115,13 +114,13 @@ export default function MarketSectionPage() {
         >
           {directory.isLoading ? (
             <tr>
-              <td colSpan={5} className={styles.message}>
+              <td colSpan={4} className={styles.message}>
                 <span role="status">Loading market streets…</span>
               </td>
             </tr>
           ) : directory.hasData && directory.sections.length === 0 ? (
             <tr>
-              <td colSpan={5} className={styles.message}>
+              <td colSpan={4} className={styles.message}>
                 {directory.total === 0
                   ? "No market streets configured yet."
                   : "No streets match your search."}
