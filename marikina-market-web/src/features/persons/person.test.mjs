@@ -82,7 +82,7 @@ test("person validation accepts blank phone and enforces length boundaries", () 
   assert.ok(validation.validatePerson({ fullName: "Name", address: "a".repeat(501), phoneNumber: null }).address);
 });
 
-test("registry renders loading, empty, error and distinct same-name rows as text", () => {
+function registryRender() {
   const jsx = { "react/jsx-runtime": ReactJsx(), react: React };
   const icon = name => () => React.createElement("svg", { "data-icon": name });
   const icons = { "lucide-react": { Search: icon("search"), Eye: icon("eye"), RefreshCw: icon("refresh"), Download: icon("download"), Printer: icon("printer"), CircleAlert: icon("alert"), FolderSearch: icon("folder") } };
@@ -97,11 +97,18 @@ test("registry renders loading, empty, error and distinct same-name rows as text
     RecordActions: load("../../components/ui/Records/RecordActions.tsx", { ...jsx, ...icons }).RecordActions,
   };
   const formatters = load("../../utils/formatters.ts", { "./constants": { APP_CONSTANTS: {} } });
+  const SearchHighlight = load("../../components/ui/SearchHighlight/SearchHighlight.tsx", { ...jsx,
+    "@/utils/searchMatch": load("../../utils/searchMatch.ts") }).default;
   const Registry = load("./components/PersonRegistry.tsx", { ...jsx,
     "@/components/ui/Table": { default: Table }, "@/components/ui/Button": { default: Button },
-    "@/components/ui/Records": Records, "@/utils/formatters": formatters }).default;
+    "@/components/ui/Records": Records, "@/components/ui/SearchHighlight": { default: SearchHighlight },
+    "@/utils/formatters": formatters }).default;
   const state = { persons: [], search: "", total: 0, page: 1, hasMore: false, showForm() {}, setSearch() {}, setPage() {}, retry() {} };
-  const render = overrides => renderToStaticMarkup(React.createElement(Registry, { ...state, ...overrides }));
+  return overrides => renderToStaticMarkup(React.createElement(Registry, { ...state, ...overrides }));
+}
+
+test("registry renders loading, empty, error and distinct same-name rows as text", () => {
+  const render = registryRender();
   assert.match(render({ loading: true }), /Loading people/);
   assert.match(render({}), /No people recorded yet/);
   assert.match(render({ search: "zzz" }), /No people match this search/);
@@ -143,3 +150,21 @@ test("saved person details show that person's citation history; a new person sho
 // Use React's actual JSX runtime for production component rendering.
 import * as jsxRuntime from "react/jsx-runtime";
 function ReactJsx() { return jsxRuntime; }
+
+test("registry highlights the search in the name, address and phone columns only, in any capital letters", () => {
+  const render = registryRender();
+  const people = [
+    { id: 1, fullName: "Juan Dela Cruz", address: "12 Cruz Street", phoneNumber: "09171234567", createdAt: "2026-11-01T06:00:00Z" },
+    { id: 2, fullName: "Ana Lim", address: "Market Lane", phoneNumber: null, createdAt: "2026-11-01T06:00:00Z" },
+  ];
+  const marked = (html, label) =>
+    [...html.matchAll(new RegExp(`<td[^>]*data-label="${label}"[^>]*>([^]*?)</td>`, "g"))]
+      .map(m => [...m[1].matchAll(/<mark[^>]*>([^<]*)<\/mark>/g)].map(x => x[1]));
+  const html = render({ persons: people, total: 2, search: "CRUZ" });
+  assert.deepEqual(marked(html, "Full name"), [["Cruz"], []]);
+  assert.deepEqual(marked(html, "Address"), [["Cruz"], []]);
+  assert.deepEqual(marked(html, "Phone"), [[], []]);
+  assert.deepEqual(marked(render({ persons: people, total: 2, search: "0917" }), "Phone"), [["0917"], []]);
+  assert.deepEqual(marked(html, "Date added"), [[], []]);
+  assert.ok(!render({ persons: people, total: 2, search: "" }).includes("<mark"));
+});

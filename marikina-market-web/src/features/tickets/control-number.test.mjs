@@ -84,7 +84,7 @@ const warning = { ...common, id: 2, ticketId: 2, type: 'Warning', controlNumber:
 const legacy = { ...common, id: 3, ticketId: 3, type: 'Ticket', controlNumber: null, paperReference: null, severity: 'Minor', penaltyType: 'CashFine' };
 
 test('tickets list has one control number column', async () => {
-  const html = render(await component('features/tickets/components/TicketList.tsx'), { tickets: [ticket, legacy], onView: () => {} });
+  const html = render(await component('features/tickets/components/TicketList.tsx'), { tickets: [ticket, legacy], search: '', onView: () => {} });
   assert.ok(headers(html).includes('Control number'));
   assert.deepEqual(cells(html, 'Control number'), ['000456', LEGACY]);
   assert.doesNotMatch(html, OLD_LABELS);
@@ -92,7 +92,7 @@ test('tickets list has one control number column', async () => {
 
 test('inspections list shows the control number for tickets and a dash for warnings', async () => {
   const html = render(await component('features/inspections/components/InspectionTable.tsx', 'InspectionTable'), {
-    rows: [ticket, warning, legacy], isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {} });
+    rows: [ticket, warning, legacy], search: '', isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {} });
   assert.deepEqual(cells(html, 'Control number'), ['000456', '—', LEGACY]);
   assert.doesNotMatch(html, OLD_LABELS);
 });

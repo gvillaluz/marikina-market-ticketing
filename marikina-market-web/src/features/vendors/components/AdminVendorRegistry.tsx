@@ -16,6 +16,7 @@ import Card from "@/components/ui/Card";
 import { Badge, type BadgeTone } from "@/components/ui/Badge/Badge";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
+import SearchHighlight from "@/components/ui/SearchHighlight";
 import Table, { type Column } from "@/components/ui/Table";
 import {
   ALL_STREETS,
@@ -111,8 +112,15 @@ export default function AdminVendorRegistry({
       width: "22%",
       render: (vendor) => (
         <StackedCell
-          primary={vendor.businessName}
-          secondary={vendor.businessAccountNumber}
+          primary={
+            <SearchHighlight text={vendor.businessName} search={search} />
+          }
+          secondary={
+            <SearchHighlight
+              text={vendor.businessAccountNumber}
+              search={search}
+            />
+          }
         />
       ),
     },
@@ -121,7 +129,9 @@ export default function AdminVendorRegistry({
       header: "Registered Owner",
       width: "16%",
       render: (vendor) => (
-        <span className={styles.owner}>{vendor.vendorName}</span>
+        <span className={styles.owner}>
+          <SearchHighlight text={vendor.vendorName} search={search} />
+        </span>
       ),
     },
     {

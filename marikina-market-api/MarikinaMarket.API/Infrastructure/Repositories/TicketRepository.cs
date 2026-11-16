@@ -14,6 +14,7 @@ using MarikinaMarket.API.Domain.Enums;
 using MarikinaMarket.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace MarikinaMarket.API.Infrastructure.Repositories
 {
@@ -593,8 +594,12 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         {
             var query = ApplyAdminInspectionFilters(_context.Tickets, filters);
 
-            return await query
-                .OrderByDescending(t => t.IssuedAt)
+            var ordered = string.IsNullOrWhiteSpace(filters.Search)
+                ? query.OrderByDescending(t => t.IssuedAt)
+                : query.OrderBy(AdminInspectionWholeWordRank(WholeWordSearch.Pattern(filters.Search)))
+                    .ThenByDescending(t => t.IssuedAt);
+
+            return await ordered
                 .Skip(offset)
                 .Take(limit + 1)
                 .Select(t => new AdminInspectionSummary
@@ -633,6 +638,36 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public Task<int> GetAdminInspectionCountAsync(InspectionSummaryFilters filters)
             => ApplyAdminInspectionFilters(_context.Tickets, filters).CountAsync();
+
+        // 0 when the search is a whole word in any field the Tickets search looks at, otherwise 1.
+        private static Expression<Func<Ticket, int>> AdminTicketWholeWordRank(string pattern) =>
+            t => (t.PaperReference != null && Regex.IsMatch(t.PaperReference, pattern, RegexOptions.IgnoreCase)) ||
+                (t.PaperViolatorName != null && Regex.IsMatch(t.PaperViolatorName, pattern, RegexOptions.IgnoreCase)) ||
+                Regex.IsMatch(t.Enforcer!.FirstName + " " + t.Enforcer.LastName, pattern, RegexOptions.IgnoreCase) ||
+                (t.SnapshotBusinessName != null && Regex.IsMatch(t.SnapshotBusinessName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerLastName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerFirstName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.BusinessName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.BusinessAccountNumber, pattern, RegexOptions.IgnoreCase))
+                ? 0 : 1;
+
+        // 0 when the search is a whole word in any field the Inspections search looks at, otherwise 1.
+        private static Expression<Func<Ticket, int>> AdminInspectionWholeWordRank(string pattern) =>
+            t => (t.Type == ViolationType.Ticket && t.PaperReference != null && Regex.IsMatch(t.PaperReference, pattern, RegexOptions.IgnoreCase)) ||
+                Regex.IsMatch((t.Type == ViolationType.Ticket ? t.PaperViolatorName : t.Person != null ? t.Person.FullName : null) ?? "", pattern, RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(t.Enforcer!.FirstName + " " + t.Enforcer.LastName, pattern, RegexOptions.IgnoreCase) ||
+                (t.SnapshotBusinessName != null && Regex.IsMatch(t.SnapshotBusinessName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerLastName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerFirstName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.BusinessName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.BusinessAccountNumber, pattern, RegexOptions.IgnoreCase))
+                ? 0 : 1;
+
+        // 0 when the search is a whole word in the ticket reference or an ordinance number, otherwise 1.
+        private static Expression<Func<Ticket, int>> VendorHistoryWholeWordRank(string pattern) =>
+            t => (t.Type == ViolationType.Ticket && t.PaperReference != null && Regex.IsMatch(t.PaperReference, pattern, RegexOptions.IgnoreCase)) ||
+                t.TicketViolations.Any(tv => Regex.IsMatch(tv.Ordinance!.OrdinanceNo, pattern, RegexOptions.IgnoreCase))
+                ? 0 : 1;
 
         private static IQueryable<Ticket> ApplyAdminInspectionFilters(
             IQueryable<Ticket> query,
@@ -686,8 +721,12 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     (t.Vendor != null && t.Vendor.BusinessAccountNumber.ToLower().Contains(search)));
             }
 
-            return await query
-                .OrderByDescending(t => t.IssuedAt)
+            var ordered = string.IsNullOrWhiteSpace(filters.Search)
+                ? query.OrderByDescending(t => t.IssuedAt)
+                : query.OrderBy(AdminTicketWholeWordRank(WholeWordSearch.Pattern(filters.Search)))
+                    .ThenByDescending(t => t.IssuedAt);
+
+            return await ordered
                 .Skip(offset)
                 .Take(limit + 1)
                 .Select(t => new AdminTicketSummary
@@ -1029,11 +1068,23 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 _context.Tickets.AsNoTracking().Where(t => t.VendorId == vendorId),
                 filters);
 
-            query = string.Equals(filters.SortDirection, "asc", StringComparison.OrdinalIgnoreCase)
-                ? query.OrderBy(t => t.IssuedAt).ThenBy(t => t.Id)
-                : query.OrderByDescending(t => t.IssuedAt).ThenByDescending(t => t.Id);
+            var ascending = string.Equals(filters.SortDirection, "asc", StringComparison.OrdinalIgnoreCase);
+            IOrderedQueryable<Ticket> ordered;
+            if (string.IsNullOrWhiteSpace(filters.Search))
+            {
+                ordered = ascending
+                    ? query.OrderBy(t => t.IssuedAt).ThenBy(t => t.Id)
+                    : query.OrderByDescending(t => t.IssuedAt).ThenByDescending(t => t.Id);
+            }
+            else
+            {
+                var wholeWordFirst = query.OrderBy(VendorHistoryWholeWordRank(WholeWordSearch.Pattern(filters.Search)));
+                ordered = ascending
+                    ? wholeWordFirst.ThenBy(t => t.IssuedAt).ThenBy(t => t.Id)
+                    : wholeWordFirst.ThenByDescending(t => t.IssuedAt).ThenByDescending(t => t.Id);
+            }
 
-            return await query
+            return await ordered
                 .Skip(offset)
                 .Take(limit + 1)
                 .Select(t => new VendorInspectionHistoryItem

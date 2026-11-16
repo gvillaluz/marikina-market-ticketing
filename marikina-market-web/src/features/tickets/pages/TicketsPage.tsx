@@ -117,6 +117,7 @@ export default function TicketsPage() {
         ) : (
           <TicketList
             tickets={page.ticketSummary}
+            search={page.filters.search}
             loading={page.isLoading}
             onView={page.openTicket}
           />

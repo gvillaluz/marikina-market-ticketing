@@ -7,6 +7,8 @@ using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
 using MarikinaMarket.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace MarikinaMarket.API.Infrastructure.Repositories
 {
@@ -147,8 +149,12 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         {
             var vendors = ApplyAdminVendorFilters(_context.Businesses.AsNoTracking(), filters);
 
-            return await vendors
-                .OrderBy(v => v.BusinessAccountNumber)
+            var ordered = string.IsNullOrWhiteSpace(filters.Search)
+                ? vendors.OrderBy(v => v.BusinessAccountNumber)
+                : vendors.OrderBy(AdminBusinessWholeWordRank(WholeWordSearch.Pattern(filters.Search)))
+                    .ThenBy(v => v.BusinessAccountNumber);
+
+            return await ordered
                 .Skip(offset)
                 .Take(pageSize)
                 .Select(v => new AdminVendorSummary
@@ -165,6 +171,15 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 })
                 .ToListAsync();
         }
+
+        // 0 when the search is a whole word in any field the Businesses search looks at, otherwise 1.
+        private static Expression<Func<Business, int>> AdminBusinessWholeWordRank(string pattern) =>
+            v => Regex.IsMatch(v.BusinessAccountNumber, pattern, RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(v.BusinessName, pattern, RegexOptions.IgnoreCase) ||
+                (v.StallNumber != null && Regex.IsMatch(v.StallNumber, pattern, RegexOptions.IgnoreCase)) ||
+                Regex.IsMatch(v.OwnerFirstName, pattern, RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(v.OwnerLastName, pattern, RegexOptions.IgnoreCase)
+                ? 0 : 1;
 
         public async Task<int> GetAdminVendorSummaryCountAsync(AdminVendorSummaryFilter filters)
         {

@@ -562,3 +562,40 @@ test("business history Export and Print collect every matching record with Busin
   assert.deepEqual(lines.slice(1).map((line) => line.split('","')[3]), ["Jose Ramos", "Maria Santos", "Unconfirmed (legacy record)"]);
   assert.equal(h.render(70).exportFile, h.tableExports.at(-1).fetchPage);
 });
+
+// The text that matches the search is highlighted in the columns the server searches, and nowhere else.
+const markedCells = (html, label) =>
+  [...html.matchAll(new RegExp(`<td[^>]*data-label="${label}"[^>]*>([^]*?)</td>`, "g"))]
+    .map((m) => [...m[1].matchAll(/<mark[^>]*>([^<]*)<\/mark>/g)].map((x) => x[1]));
+const business = {
+  vendorId: 1, businessAccountNumber: "A-120", vendorName: "Dizon, Nena", businessName: "Cruz Fish Stall",
+  marketSectionName: "Fish Street", type: "Public", complianceScore: 90, warningCount: 0, ticketCount: 0,
+};
+const inspection = {
+  ticketId: 41, controlNumber: "000041", type: "Ticket", issuedAt: "2026-10-30T02:15:00Z",
+  ordinanceNumbers: ["12", "123"], enforcerName: "Pedro Santos", paperViolatorName: "Jun Reyes",
+  personFullName: null, businessSnapshot: { businessName: "Sari Shop" },
+};
+
+test("business list highlights the search in the business, account number and owner, in any capital letters", () => {
+  const render = (search) => renderComponent("AdminVendorRegistry", { ...registryProps, vendors: [business], search });
+  assert.deepEqual(markedCells(render("CRUZ"), "Business"), [["Cruz"]]);
+  assert.deepEqual(markedCells(render("a-120"), "Business"), [["A-120"]]);
+  assert.deepEqual(markedCells(render("dizon"), "Registered Owner"), [["Dizon"]]);
+  assert.deepEqual(markedCells(render("fish"), "Business"), [["Fish"]]);
+  assert.deepEqual(markedCells(render("fish"), "Market Street &amp; Type"), [[]]); // not searched
+  assert.ok(!render("").includes("<mark"));
+});
+
+test("business inspection history highlights the control number and ordinance search only", () => {
+  const render = (search) =>
+    renderComponent("AdminVendorInspectionHistory", { ...historyProps, inspections: [inspection], search });
+  // This table has no data-label on its cells; the control number is the first cell, ordinances the fifth.
+  const marksIn = (html, index) =>
+    [...(html.match(/<tbody>[\s\S]*?<\/tr>/)?.[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g) ?? [])]
+      .map((m) => [...m[1].matchAll(/<mark[^>]*>([^<]*)<\/mark>/g)].map((x) => x[1]))[index];
+  assert.deepEqual(marksIn(render("41"), 0), ["41"]);
+  assert.deepEqual(marksIn(render("12"), 4), ["12", "12"]);
+  for (const search of ["santos", "reyes", "sari"]) assert.ok(!render(search).includes("<mark"), search); // not searched
+  assert.ok(!render("").includes("<mark"));
+});
