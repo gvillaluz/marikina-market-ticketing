@@ -24,7 +24,9 @@ export default function AuditHistory({ model }: { model: AuditLogsModel }) {
     {
       key: "action",
       header: "Activity",
-      render: (record) => <AuditActivityCell record={record} />,
+      render: (record) => (
+        <AuditActivityCell record={record} search={model.search} />
+      ),
     },
     {
       key: "module",

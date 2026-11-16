@@ -128,6 +128,7 @@ const EnforcersPage: FC = () => {
                   }
                   profileUrl={enforcer.profileUrl}
                   badgeNo={enforcer.username}
+                  search={filters.search}
                   status={enforcer.status}
                   warnings={enforcer.warningViolationCount}
                   tickets={enforcer.ticketViolationCount}

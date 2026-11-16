@@ -2,12 +2,14 @@ import { FC } from "react";
 import { ArrowRight, Ticket, TriangleAlert } from "lucide-react";
 import styles from "./EnforcerCard.module.css";
 import UrlImage from "@/components/ui/UrlImage";
+import SearchHighlight from "@/components/ui/SearchHighlight";
 
 interface EnforcerCardProps {
   name: string;
   initials: string;
   profileUrl: string | null;
   badgeNo: string;
+  search: string;
   status: "Active" | "Inactive";
   warnings: number;
   tickets: number;
@@ -19,6 +21,7 @@ const EnforcerCard: FC<EnforcerCardProps> = ({
   initials,
   profileUrl,
   badgeNo,
+  search,
   status,
   warnings,
   tickets,
@@ -35,8 +38,12 @@ const EnforcerCard: FC<EnforcerCardProps> = ({
           fallback={initials}
         />
         <div className={styles.identity}>
-          <span className={styles.name}>{name}</span>
-          <span className={styles.badgeNo}>ID: {badgeNo}</span>
+          <span className={styles.name}>
+            <SearchHighlight text={name} search={search} />
+          </span>
+          <span className={styles.badgeNo}>
+            ID: <SearchHighlight text={badgeNo} search={search} />
+          </span>
           <div
             className={`${styles.statusPill} ${styles[status.toLowerCase()]}`}
           >
