@@ -9,6 +9,8 @@ using MarikinaMarket.API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MarikinaMarket.API.Application;
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace MarikinaMarket.API.Infrastructure.Repositories
 {
@@ -70,8 +72,15 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public async Task<List<UserSummaryResponse>> GetUserSummariesAsync(int offset, int limit, UserSummaryFilter filters, int excludedUserId)
         {
-            return await ApplyUserSummaryFilters(_context.Users.AsNoTracking().Where(u => u.Id != excludedUserId), filters)
-                .OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ThenBy(u => u.Id)
+            var users = ApplyUserSummaryFilters(_context.Users.AsNoTracking().Where(u => u.Id != excludedUserId), filters);
+
+            var ordered = string.IsNullOrWhiteSpace(filters.Search)
+                ? users.OrderBy(u => u.LastName)
+                : users.OrderBy(UserWholeWordRank(WholeWordSearch.Pattern(filters.Search)))
+                    .ThenBy(u => u.LastName);
+
+            return await ordered
+                .ThenBy(u => u.FirstName).ThenBy(u => u.Id)
                 .Skip(offset)
                 .Take(limit + 1)
                 .Select(u => new UserSummaryResponse
@@ -97,6 +106,16 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 })
                 .ToListAsync();
         }
+
+        // 0 when the search is a whole word in any field the Accounts search looks at, otherwise 1.
+        private static Expression<Func<User, int>> UserWholeWordRank(string pattern) =>
+            u => Regex.IsMatch(u.FirstName, pattern, RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(u.LastName, pattern, RegexOptions.IgnoreCase) ||
+                (u.MiddleName != null && Regex.IsMatch(u.MiddleName, pattern, RegexOptions.IgnoreCase)) ||
+                (u.UserName != null && Regex.IsMatch(u.UserName, pattern, RegexOptions.IgnoreCase)) ||
+                (u.Email != null && Regex.IsMatch(u.Email, pattern, RegexOptions.IgnoreCase)) ||
+                (u.PhoneNumber != null && Regex.IsMatch(u.PhoneNumber, pattern, RegexOptions.IgnoreCase))
+                ? 0 : 1;
 
         public Task<int> GetUserSummariesCountAsync(UserSummaryFilter filters, int excludedUserId)
             => ApplyUserSummaryFilters(_context.Users.AsNoTracking().Where(u => u.Id != excludedUserId), filters).CountAsync();
@@ -293,26 +312,43 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             var enforcers = ApplyEnforcerFilters(_userManager.Users, filters);
 
             var descending = string.Equals(filters.SortDirection, "desc", StringComparison.OrdinalIgnoreCase);
-            enforcers = filters.SortBy switch
+            IOrderedQueryable<User>? wholeWordFirst = string.IsNullOrWhiteSpace(filters.Search)
+                ? null
+                : enforcers.OrderBy(EnforcerWholeWordRank(WholeWordSearch.Pattern(filters.Search)));
+            var ordered = filters.SortBy switch
             {
-                "tickets" => descending
-                    ? enforcers.OrderByDescending(e => e.IssuedTickets.Count(t => t.Type == ViolationType.Ticket))
-                    : enforcers.OrderBy(e => e.IssuedTickets.Count(t => t.Type == ViolationType.Ticket)),
+                "tickets" => SortEnforcers(enforcers, wholeWordFirst,
+                    e => e.IssuedTickets.Count(t => t.Type == ViolationType.Ticket), descending),
 
-                "warnings" => descending
-                    ? enforcers.OrderByDescending(e => e.IssuedTickets.Count(t => t.Type == ViolationType.Warning))
-                    : enforcers.OrderBy(e => e.IssuedTickets.Count(t => t.Type == ViolationType.Warning)),
+                "warnings" => SortEnforcers(enforcers, wholeWordFirst,
+                    e => e.IssuedTickets.Count(t => t.Type == ViolationType.Warning), descending),
 
                 _ => descending
-                    ? enforcers.OrderByDescending(e => e.LastName).ThenByDescending(e => e.FirstName)
-                    : enforcers.OrderBy(e => e.LastName).ThenBy(e => e.FirstName),
+                    ? SortEnforcers(enforcers, wholeWordFirst, e => e.LastName, descending).ThenByDescending(e => e.FirstName)
+                    : SortEnforcers(enforcers, wholeWordFirst, e => e.LastName, descending).ThenBy(e => e.FirstName),
             };
 
-            return await enforcers
+            return await ordered
                 .Skip(offset)
                 .Take(limit + 1)
                 .ToListAsync();
         }
+
+        // The picked sort. When a search is typed, it applies inside the whole-word group and then the rest.
+        private static IOrderedQueryable<User> SortEnforcers<TKey>(IQueryable<User> enforcers,
+            IOrderedQueryable<User>? wholeWordFirst, Expression<Func<User, TKey>> key, bool descending)
+        {
+            if (wholeWordFirst is null)
+                return descending ? enforcers.OrderByDescending(key) : enforcers.OrderBy(key);
+            return descending ? wholeWordFirst.ThenByDescending(key) : wholeWordFirst.ThenBy(key);
+        }
+
+        // 0 when the search is a whole word in any field the Enforcers search looks at, otherwise 1.
+        private static Expression<Func<User, int>> EnforcerWholeWordRank(string pattern) =>
+            u => Regex.IsMatch(u.FirstName, pattern, RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(u.LastName, pattern, RegexOptions.IgnoreCase) ||
+                (u.UserName != null && Regex.IsMatch(u.UserName, pattern, RegexOptions.IgnoreCase))
+                ? 0 : 1;
 
         public async Task<int> GetEnforcersCountAsync(EnforcerSummaryFilter filters)
         {

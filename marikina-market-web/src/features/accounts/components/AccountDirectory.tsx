@@ -94,6 +94,7 @@ export default function AccountDirectory({
                 <AccountRow
                   key={account.id}
                   account={account}
+                  search={model.search}
                   onManage={onManage}
                 />
               ))

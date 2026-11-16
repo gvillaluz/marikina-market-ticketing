@@ -104,7 +104,7 @@ test("Total Users uses the all-user metric and the Manage button is enabled", ()
   assert.match(html, /<dd>13<\/dd>\s*<dt>Total Users<\/dt>/);
   const Row = load("features/accounts/components/AccountRow.tsx").default;
   const row = renderToStaticMarkup(
-    React.createElement(Row, { account, onManage() {} }),
+    React.createElement(Row, { account, search: "", onManage() {} }),
   );
   assert.doesNotMatch(row, /<button[^>]*disabled/);
 });

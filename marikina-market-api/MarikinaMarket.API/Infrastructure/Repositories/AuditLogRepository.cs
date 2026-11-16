@@ -5,6 +5,8 @@ using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
 using MarikinaMarket.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace MarikinaMarket.API.Infrastructure.Repositories
 {
@@ -39,9 +41,22 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public Task<List<AuditLog>> GetSummariesAsync(int offset, int limit, AuditLogFilter filters,
             DateTime? fromUtc, DateTime? toUtcExclusive, CancellationToken cancellationToken = default)
-            => Filter(filters, fromUtc, toUtcExclusive)
-                .OrderByDescending(x => x.Timestamp).ThenByDescending(x => x.Id)
+        {
+            var logs = Filter(filters, fromUtc, toUtcExclusive);
+            var ordered = string.IsNullOrWhiteSpace(filters.Search)
+                ? logs.OrderByDescending(x => x.Timestamp)
+                : logs.OrderBy(WholeWordRank(WholeWordSearch.Pattern(filters.Search)))
+                    .ThenByDescending(x => x.Timestamp);
+            return ordered.ThenByDescending(x => x.Id)
                 .Skip(offset).Take(limit + 1).ToListAsync(cancellationToken);
+        }
+
+        // 0 when the search is a whole word in any field the Audit logs search looks at, otherwise 1.
+        private static Expression<Func<AuditLog, int>> WholeWordRank(string pattern) =>
+            x => Regex.IsMatch(x.Action, pattern, RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(x.Details, pattern, RegexOptions.IgnoreCase) ||
+                (x.TargetId != null && Regex.IsMatch(x.TargetId, pattern, RegexOptions.IgnoreCase))
+                ? 0 : 1;
 
         public Task<int> GetCountAsync(AuditLogFilter filters, DateTime? fromUtc, DateTime? toUtcExclusive,
             CancellationToken cancellationToken = default)
