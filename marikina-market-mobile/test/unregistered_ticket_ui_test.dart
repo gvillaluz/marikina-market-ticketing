@@ -222,43 +222,56 @@ void main() {
     });
   }
 
-  testWidgets(
-    'ticket page shows the market section of an unregistered ticket',
-    (tester) async {
-      tester.view.physicalSize = const Size(600, 4000);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      final detail = TicketDetailModel.fromJson(
-        _unregisteredDetail('Ticket'),
-      ).toEntity();
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light,
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: TicketDetailContent(
-                data: TicketDetailContentData(
-                  ticket: detail,
-                  droppedOrdinances: null,
-                  settlement: null,
+  for (final type in ['Ticket', 'Warning']) {
+    testWidgets(
+      'ticket page shows the market street of an unregistered $type',
+      (tester) async {
+        tester.view.physicalSize = const Size(600, 4000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final detail = TicketDetailModel.fromJson(
+          _unregisteredDetail(type),
+        ).toEntity();
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: TicketDetailContent(
+                  data: TicketDetailContentData(
+                    ticket: detail,
+                    droppedOrdinances: null,
+                    settlement: null,
+                  ),
+                  onSubmitReceipt: (_) {},
+                  onSubmitCommunityServiceLog: (_) {},
+                  onRetrySettlementLoad: () {},
                 ),
-                onSubmitReceipt: (_) {},
-                onSubmitCommunityServiceLog: (_) {},
-                onRetrySettlementLoad: () {},
               ),
             ),
           ),
-        ),
-      );
-      expect(find.text('Meat and Poultry'), findsOneWidget);
-      expect(find.text('Palengke gate 2'), findsOneWidget);
-      expect(
-        find.text('Historical business details unavailable.'),
-        findsNothing,
-      );
-    },
-  );
+        );
+        expect(find.text('Meat and Poultry'), findsOneWidget);
+        expect(find.text('Palengke gate 2'), findsOneWidget);
+        // A ticket labels the name as its market street; a warning keeps
+        // the label "LOCATION:".
+        expect(
+          find.text('MARKET STREET:'),
+          type == 'Ticket' ? findsOneWidget : findsNothing,
+        );
+        expect(find.text('MARKET SECTION:'), findsNothing);
+        expect(
+          find.text('LOCATION:'),
+          type == 'Ticket' ? findsNothing : findsOneWidget,
+        );
+        expect(
+          find.text('Historical business details unavailable.'),
+          findsNothing,
+        );
+      },
+    );
+  }
 
   testWidgets('person history names an unregistered vendor', (tester) async {
     final bloc = (await tester.runAsync(

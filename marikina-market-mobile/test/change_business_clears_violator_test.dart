@@ -310,8 +310,8 @@ void main() {
     expect(copyName(tester), 'Pedro Reyes');
     expect(chosenOrdinances(tester), [1]);
 
-    await tester.ensureVisible(find.byTooltip('Change section'));
-    await tester.tap(find.byTooltip('Change section'));
+    await tester.ensureVisible(find.byTooltip('Change street'));
+    await tester.tap(find.byTooltip('Change street'));
     await flush(tester);
     await tester.tap(find.text('Vegetable Section'));
     await flush(tester);

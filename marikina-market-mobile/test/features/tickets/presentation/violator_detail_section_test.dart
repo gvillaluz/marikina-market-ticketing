@@ -27,6 +27,8 @@ void main() {
     expect(find.text('ADDRESS:'), findsOneWidget);
     expect(find.text('Address is unavailable.'), findsOneWidget);
     expect(find.text('STALL/UNIT NO:'), findsOneWidget);
+    expect(find.text('MARKET STREET:'), findsOneWidget);
+    expect(find.text('MARKET SECTION:'), findsNothing);
     expect(find.text('CONFIRMED PERSON:'), findsNothing);
   });
 

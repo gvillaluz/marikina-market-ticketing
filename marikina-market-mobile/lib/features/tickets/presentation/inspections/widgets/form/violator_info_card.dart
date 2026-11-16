@@ -88,7 +88,7 @@ class ViolatorInfoCard extends StatelessWidget {
         const SizedBox(height: 5),
         Text(
           isUnregistered
-              ? 'Choose the market section where the vendor was found'
+              ? 'Choose the market street where the vendor was found'
               : 'Search for a registered business.',
           textAlign: TextAlign.center,
         ),
@@ -162,7 +162,7 @@ class ViolatorInfoCard extends StatelessWidget {
             ),
             subtitle: Text(
               isUnregistered
-                  ? 'Please choose the market section to create a record.'
+                  ? 'Please choose the market street to create a record.'
                   : 'Please find the vendor to view details and create a record.',
             ),
           ),

@@ -69,7 +69,7 @@ class ViolatorDetailSection extends StatelessWidget {
                   value: ticket.businessSnapshot!.stallNumber ?? 'Unavailable',
                 ),
               TicketPaperField(
-                label: 'MARKET SECTION:',
+                label: 'MARKET STREET:',
                 value:
                     ticket.businessSnapshot!.marketSectionName ?? 'Unavailable',
               ),
