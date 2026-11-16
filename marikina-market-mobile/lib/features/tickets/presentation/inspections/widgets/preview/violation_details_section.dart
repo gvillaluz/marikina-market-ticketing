@@ -193,7 +193,7 @@ class ViolationDetailsSection extends StatelessWidget {
               value: issuePlace ?? 'Unavailable (legacy record)',
             ),
             TicketPaperField(
-              label: isTicket ? 'MARKET SECTION:' : 'LOCATION:',
+              label: isTicket ? 'MARKET STREET:' : 'LOCATION:',
               value: marketSection,
             ),
             TicketPaperField(

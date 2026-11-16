@@ -44,7 +44,7 @@ class _UnregisteredSectionPickerState extends State<UnregisteredSectionPicker> {
     }
     if (_sections.isEmpty) {
       return const Text(
-        'No active market sections. Ask the office to add one.',
+        'No active market streets. Ask the office to add one.',
         textAlign: TextAlign.center,
       );
     }
@@ -88,10 +88,7 @@ class _UnregisteredSectionPickerState extends State<UnregisteredSectionPicker> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: AppTheme.inspectionSmallGap,
           children: [
-            const Text(
-              'Market section',
-              style: AppTheme.inspectionHeadingStyle,
-            ),
+            const Text('Market street', style: AppTheme.inspectionHeadingStyle),
             _content(),
           ],
         ),

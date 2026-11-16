@@ -419,8 +419,8 @@ void main() {
         // Going back and choosing a different section.
         router.pop();
         await flush(tester);
-        await tester.ensureVisible(find.byTooltip('Change section'));
-        await tester.tap(find.byTooltip('Change section'));
+        await tester.ensureVisible(find.byTooltip('Change street'));
+        await tester.tap(find.byTooltip('Change street'));
         await flush(tester);
         await tester.tap(find.text('Vegetable Section'));
         await flush(tester);

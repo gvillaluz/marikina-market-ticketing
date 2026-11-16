@@ -48,7 +48,7 @@ class UnregisteredSectionBanner extends StatelessWidget {
           ),
         ),
         Tooltip(
-          message: 'Change section',
+          message: 'Change street',
           child: TextButton(
             onPressed: onChangeSection,
             child: const Text('Change'),

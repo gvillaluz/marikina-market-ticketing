@@ -288,7 +288,7 @@ void main() {
       await tester.tap(find.text('Unregistered'));
       await flush(tester);
       expect(find.text('Search business'), findsNothing);
-      expect(find.text('Market section'), findsOneWidget);
+      expect(find.text('Market street'), findsOneWidget);
       expect(find.text('Meat Section'), findsOneWidget);
       expect(find.text('Vegetable Section'), findsOneWidget);
       expect(find.text('Closed Section'), findsNothing);
@@ -337,7 +337,7 @@ void main() {
         await tester.tap(find.text('Unregistered'));
         await flush(tester);
         expect(
-          find.text('No active market sections. Ask the office to add one.'),
+          find.text('No active market streets. Ask the office to add one.'),
           findsOneWidget,
         );
       },
@@ -377,7 +377,7 @@ void main() {
         );
         expect(find.text('Unregistered vendor'), findsOneWidget);
         expect(find.text('Meat Section'), findsOneWidget);
-        await tester.tap(find.byTooltip('Change section'));
+        await tester.tap(find.byTooltip('Change street'));
         expect(changed, 1);
       },
     );

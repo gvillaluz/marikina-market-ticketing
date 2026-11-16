@@ -276,7 +276,9 @@ void main() {
       expect(find.text('Search business'), findsOneWidget);
       expect(find.text('Inspection details'), findsOneWidget);
       expect(
-        find.textContaining('Choose Registered or Unregistered'),
+        find.text(
+          'Choose Registered or Unregistered, then find the vendor or pick the market street to begin.',
+        ),
         findsOneWidget,
       );
       expect(find.text('Find Vendor'), findsOneWidget);
@@ -301,12 +303,12 @@ void main() {
       expect(find.text('Search business'), findsNothing);
       expect(find.text('Inspection details'), findsOneWidget);
       expect(
-        find.text('Choose the market section where the vendor was found'),
+        find.text('Choose the market street where the vendor was found'),
         findsOneWidget,
       );
       expect(find.text('Vendor information is required'), findsOneWidget);
       expect(
-        find.text('Please choose the market section to create a record.'),
+        find.text('Please choose the market street to create a record.'),
         findsOneWidget,
       );
     });
@@ -366,8 +368,8 @@ void main() {
         find.descendant(of: banner, matching: find.text('Change')),
         findsOneWidget,
       );
-      expect(find.byTooltip('Change section'), findsOneWidget);
-      expect(find.text('Change section'), findsNothing);
+      expect(find.byTooltip('Change street'), findsOneWidget);
+      expect(find.text('Change street'), findsNothing);
 
       await tester.tap(
         find.descendant(of: banner, matching: find.text('Change')),
