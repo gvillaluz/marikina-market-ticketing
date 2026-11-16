@@ -160,7 +160,7 @@ public class RecommendationsTests
         });
 
     private static MarketSection Section(int id, string name, bool isActive = true)
-        => new() { Id = id, Name = name, Description = $"{name} stalls", IsActive = isActive };
+        => new() { Id = id, Name = name, IsActive = isActive };
 
     private static RecommendationRun Run(params SectionRecommendation[] cards) => new()
     {

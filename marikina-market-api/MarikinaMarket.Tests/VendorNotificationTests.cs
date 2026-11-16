@@ -254,7 +254,7 @@ public class VendorNotificationTests
                     Type = type, Status = TicketStatus.Pending, PenaltyType = PenaltyType.CashFine,
                     IssuedAt = new DateTime(2026, 10, 14, 2, 0, 0, DateTimeKind.Utc),
                     Vendor = new Business { Id = vendorId, BusinessAccountNumber = "MM-17", BusinessName = "Reyes Fresh Fish", QrCodeValue = "sample" },
-                    MarketSection = new MarketSection { Name = "Fish and Seafood", Description = "Fish retail" }
+                    MarketSection = new MarketSection { Name = "Fish and Seafood" }
                 }
             };
             Records.Add(record);

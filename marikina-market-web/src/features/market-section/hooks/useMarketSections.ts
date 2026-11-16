@@ -6,10 +6,7 @@ import type { MarketSectionResponse } from "@/api/types/market-section.types";
 import { marketSectionsListKey } from "@/hooks/useMarketSectionOptions";
 import { exactMatchesFirst } from "@/utils/searchMatch";
 
-const searchedValues = (section: MarketSectionResponse) => [
-  section.name,
-  section.description,
-];
+const searchedValues = (section: MarketSectionResponse) => [section.name];
 
 export function useMarketSections() {
   const [search, setSearch] = useState("");

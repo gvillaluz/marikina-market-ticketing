@@ -39,8 +39,8 @@ public class MarketSectionManagementTests
         await using var host = await MarketSectionManagementHost.Create();
         using var list = await host.Send(HttpMethod.Get, "/api/marketsection", role);
         using var count = await host.Send(HttpMethod.Get, "/api/marketsection/count", role);
-        using var create = await host.Send(HttpMethod.Post, "/api/marketsection", role, new { name = "Bakery", description = "Bread stalls" });
-        using var edit = await host.Send(HttpMethod.Put, "/api/marketsection/2", role, new { name = "Produce", description = "Produce stalls" });
+        using var create = await host.Send(HttpMethod.Post, "/api/marketsection", role, new { name = "Bakery" });
+        using var edit = await host.Send(HttpMethod.Put, "/api/marketsection/2", role, new { name = "Produce" });
         using var status = await host.Send(HttpMethod.Patch, "/api/marketsection/2/active", role, new { is_active = false });
         Assert.Equal(readStatus, (int)list.StatusCode);
         Assert.Equal(readStatus, (int)count.StatusCode);
@@ -55,8 +55,7 @@ public class MarketSectionManagementTests
     {
         await using var host = await MarketSectionManagementHost.Create();
         foreach (var draft in new[] {
-            new { name = " ", description = "Produce stalls" }, new { name = new string('a', 151), description = "Produce stalls" },
-            new { name = "Bakery", description = new string('a', 501) }, new { name = "Fresh Produce", description = "Duplicate name" }
+            new { name = " " }, new { name = new string('a', 151) }, new { name = "Fresh Produce" }
         })
         {
             using var response = await host.Send(HttpMethod.Post, "/api/marketsection", "AdminOfficer", draft);
@@ -64,7 +63,7 @@ public class MarketSectionManagementTests
         }
         using var invalidId = await host.Send(HttpMethod.Patch, "/api/marketsection/0/active", "HeadAdmin", new { is_active = true });
         Assert.Equal(HttpStatusCode.BadRequest, invalidId.StatusCode);
-        using var absent = await host.Send(HttpMethod.Put, "/api/marketsection/999", "HeadAdmin", new { name = "Bakery", description = "Bread stalls" });
+        using var absent = await host.Send(HttpMethod.Put, "/api/marketsection/999", "HeadAdmin", new { name = "Bakery" });
         Assert.Equal(HttpStatusCode.NotFound, absent.StatusCode);
         Assert.Equal(0, host.Writes);
     }
@@ -77,12 +76,12 @@ public class MarketSectionManagementTests
         using var empty = await host.Send(HttpMethod.Get, "/api/marketsection", "AdminOfficer");
         Assert.Equal(HttpStatusCode.OK, empty.StatusCode);
         Assert.Empty((await empty.Content.ReadFromJsonAsync<JsonElement>()).EnumerateArray());
-        using var create = await host.Send(HttpMethod.Post, "/api/marketsection", "AdminOfficer", new { name = " Bakery ", description = " Bread stalls " });
+        using var create = await host.Send(HttpMethod.Post, "/api/marketsection", "AdminOfficer", new { name = " Bakery " });
         Assert.Equal(HttpStatusCode.Created, create.StatusCode);
         var created = await create.Content.ReadFromJsonAsync<JsonElement>();
         var id = created.GetProperty("id").GetInt32();
         Assert.Equal("Bakery", created.GetProperty("name").GetString());
-        using var edit = await host.Send(HttpMethod.Put, $"/api/marketsection/{id}", "AdminOfficer", new { name = "Baked goods", description = "Bread and pastry stalls" });
+        using var edit = await host.Send(HttpMethod.Put, $"/api/marketsection/{id}", "AdminOfficer", new { name = "Baked goods" });
         Assert.Equal(HttpStatusCode.OK, edit.StatusCode);
         foreach (var active in new[] { false, true })
         {
@@ -103,13 +102,13 @@ public class MarketSectionManagementTests
     public async Task Error_messages_say_market_street()
     {
         await using var host = await MarketSectionManagementHost.Create();
-        using var duplicate = await host.Send(HttpMethod.Post, "/api/marketsection", "AdminOfficer", new { name = "Fresh Produce", description = "Duplicate name" });
-        using var bakery = await host.Send(HttpMethod.Post, "/api/marketsection", "AdminOfficer", new { name = "Bakery", description = "Bread stalls" });
+        using var duplicate = await host.Send(HttpMethod.Post, "/api/marketsection", "AdminOfficer", new { name = "Fresh Produce" });
+        using var bakery = await host.Send(HttpMethod.Post, "/api/marketsection", "AdminOfficer", new { name = "Bakery" });
         var bakeryId = (await bakery.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
-        using var editDuplicate = await host.Send(HttpMethod.Put, $"/api/marketsection/{bakeryId}", "AdminOfficer", new { name = "Fresh Produce", description = "Duplicate name" });
-        using var zeroEdit = await host.Send(HttpMethod.Put, "/api/marketsection/0", "AdminOfficer", new { name = "Bakery", description = "Bread stalls" });
+        using var editDuplicate = await host.Send(HttpMethod.Put, $"/api/marketsection/{bakeryId}", "AdminOfficer", new { name = "Fresh Produce" });
+        using var zeroEdit = await host.Send(HttpMethod.Put, "/api/marketsection/0", "AdminOfficer", new { name = "Bakery" });
         using var zeroStatus = await host.Send(HttpMethod.Patch, "/api/marketsection/0/active", "AdminOfficer", new { is_active = true });
-        using var absentEdit = await host.Send(HttpMethod.Put, "/api/marketsection/999", "AdminOfficer", new { name = "Bread", description = "Bread stalls" });
+        using var absentEdit = await host.Send(HttpMethod.Put, "/api/marketsection/999", "AdminOfficer", new { name = "Bread" });
         using var absentStatus = await host.Send(HttpMethod.Patch, "/api/marketsection/999/active", "AdminOfficer", new { is_active = true });
 
         Assert.Contains("A market street with this name already exists.", await duplicate.Content.ReadAsStringAsync());
@@ -140,7 +139,7 @@ public class MarketSectionManagementTests
     [Fact]
     public async Task Audit_log_labels_say_market_street()
     {
-        var items = new List<MarketSection> { new() { Id = 2, Name = "Fresh Produce", Description = "Fruit and vegetable stalls", IsActive = true } };
+        var items = new List<MarketSection> { new() { Id = 2, Name = "Fresh Produce", IsActive = true } };
         var repository = ReviewBoundaryProxy.Create<IMarketSectionRepository>((method, args) => method.Name switch
         {
             "GetById" => Task.FromResult(items.SingleOrDefault(item => item.Id == (int)args[0]!)),
@@ -153,8 +152,8 @@ public class MarketSectionManagementTests
         await using var host = await AuditHost.CreateAsync(services =>
             services.AddSingleton<IMarketSectionService>(new MarketSectionService(repository)));
 
-        using var create = await host.SendAsync(HttpMethod.Post, "/api/marketsection", body: """{"name":"Bakery","description":"Bread stalls"}""");
-        using var edit = await host.SendAsync(HttpMethod.Put, "/api/marketsection/2", body: """{"name":"Produce","description":"Produce stalls"}""");
+        using var create = await host.SendAsync(HttpMethod.Post, "/api/marketsection", body: """{"name":"Bakery"}""");
+        using var edit = await host.SendAsync(HttpMethod.Put, "/api/marketsection/2", body: """{"name":"Produce"}""");
         using var status = await host.SendAsync(HttpMethod.Patch, "/api/marketsection/2/active", body: """{"is_active":false}""");
 
         Assert.Equal([HttpStatusCode.Created, HttpStatusCode.OK, HttpStatusCode.NoContent], new[] { create.StatusCode, edit.StatusCode, status.StatusCode });
@@ -180,7 +179,7 @@ internal sealed class MarketSectionManagementHost : IAsyncDisposable
     private WebApplication _app = null!;
     private HttpClient _client = null!;
     private readonly SymmetricSecurityKey _key = new(RandomNumberGenerator.GetBytes(32));
-    public List<MarketSection> Items { get; } = [new() { Id = 2, Name = "Fresh Produce", Description = "Fruit and vegetable stalls" }];
+    public List<MarketSection> Items { get; } = [new() { Id = 2, Name = "Fresh Produce" }];
     public int Writes;
 
     public static async Task<MarketSectionManagementHost> Create()

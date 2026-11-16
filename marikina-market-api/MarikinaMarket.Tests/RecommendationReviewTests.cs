@@ -595,8 +595,8 @@ public class RecommendationReviewTests
     {
         var sections = new List<MarketSection>
         {
-            new() { Id = FishSection, Name = "Fish and Seafood", Description = "Wet market fish stalls", IsActive = true },
-            new() { Id = DrySection, Name = "Dry Goods", Description = "Dry goods stalls", IsActive = true }
+            new() { Id = FishSection, Name = "Fish and Seafood", IsActive = true },
+            new() { Id = DrySection, Name = "Dry Goods", IsActive = true }
         };
         return ReviewBoundaryProxy.Create<IMarketSectionRepository>((method, _) => method.Name switch
         {

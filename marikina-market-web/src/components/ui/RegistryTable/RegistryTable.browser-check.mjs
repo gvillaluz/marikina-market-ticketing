@@ -23,7 +23,6 @@ const profile = {
 const section = {
   id: 1,
   name: "Fish Section",
-  description: "Fresh fish and seafood vendors",
   is_active: true,
   vendor_count: 7,
 };
@@ -59,7 +58,7 @@ const surfaces = [
     path: "/system/market-street",
     region: "Market streets table",
     endpoint: "/api/marketsection",
-    headers: ["Street Name", "Description", "Vendors", "Status", "Actions"],
+    headers: ["Street Name", "Vendors", "Status", "Actions"],
     empty: "No market streets configured yet.",
     loading: "Loading market streets…",
     search: "Search market streets",

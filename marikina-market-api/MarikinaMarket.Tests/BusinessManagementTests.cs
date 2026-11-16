@@ -105,7 +105,7 @@ public class BusinessManagementTests
                 _ => throw new InvalidOperationException(method.Name)
             });
             var sections = ReviewBoundaryProxy.Create<IMarketSectionRepository>((_, _) => Task.FromResult<MarketSection?>(
-                SectionExists ? new() { Id = 1, Name = "Fish", Description = "Fish section", IsActive = true } : null));
+                SectionExists ? new() { Id = 1, Name = "Fish", IsActive = true } : null));
             var unit = ReviewBoundaryProxy.Create<IUnitOfWork>((method, _) => method.Name == "SaveChangesAsync"
                 ? Task.FromResult(1) : Task.CompletedTask);
             Service = new VendorService(vendors, unit, sections,

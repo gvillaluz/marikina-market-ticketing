@@ -19,7 +19,7 @@ namespace MarikinaMarket.Tests;
 // Expected values are worked out by hand from the synthetic records below.
 public class OwnerPersonTests
 {
-    private static readonly MarketSection Section = new() { Id = 1, Name = "Dry Goods", Description = "Synthetic" };
+    private static readonly MarketSection Section = new() { Id = 1, Name = "Dry Goods" };
 
     // Store X (10): owner Maria Santos, address "12, Shoe Ave, Sto. Niño, Marikina City".
     private static Business Store(int id, string first, string last, VendorStatus status = VendorStatus.Active) => new()

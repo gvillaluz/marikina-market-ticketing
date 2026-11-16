@@ -438,12 +438,6 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("timezone('utc', now())");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("description");
-
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -470,65 +464,78 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         {
                             Id = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Designated area for vendors selling fresh fish, shellfish, and other marine products. Subject to strict sanitation standards and daily cleaning requirements per Chapter VIII of the Market Code of 2014.",
                             IsActive = true,
-                            Name = "Fish and Seafood Section"
+                            Name = "Shoe Avenue"
                         },
                         new
                         {
                             Id = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Designated area for vendors selling all kinds of meat and meat products that passed the inspection of the City Veterinary Office in accordance with National Meat Inspection Commission standards. Wooden furniture prohibited per Section 58 of Market Code 2014.",
                             IsActive = true,
-                            Name = "Meat Section"
+                            Name = "E. Jacinto Street"
                         },
                         new
                         {
                             Id = 3,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Designated area for vendors selling textiles, modiste and tailor supplies, accessories, apparels, native products, toiletries, novelties, toys, footwear, kitchenwares, household articles, handbags, and office supplies per Section 21(c) of the Market Code of 2014.",
                             IsActive = true,
-                            Name = "Dry Goods Section"
+                            Name = "E. Dela Paz Street"
                         },
                         new
                         {
                             Id = 4,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Designated area for vendors selling all kinds of vegetables, fruits, coconuts, root crops such as camote, cassava, gabi, and other farm products per Section 21(f) of the Market Code of 2014.",
                             IsActive = true,
-                            Name = "Vegetable Section"
+                            Name = "P. Burgos Street"
                         },
                         new
                         {
                             Id = 5,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Designated area for vendors selling bakery products, dairy, cold cuts, processed meat, condiments, cigarettes, soap, charcoal, and canned, bottled, boxed or sachet food products per Section 21(e) of the Market Code of 2014.",
                             IsActive = true,
-                            Name = "Groceries Section"
+                            Name = "M. Cruz Street"
                         },
                         new
                         {
                             Id = 6,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Designated area for vendors selling all kinds of cooked and prepared food. Food Safety and Personal Hygiene Training required for all eatery owners and helpers per Section 14 of the Market Code of 2014. Highest sanitation standards enforced under Chapter VIII.",
                             IsActive = true,
-                            Name = "Eatery Section"
+                            Name = "J. P. Rizal Street"
                         },
                         new
                         {
                             Id = 7,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Designated area for special commercial establishments including restaurants, pawnshops, hardware stores, drug stores, beauty parlors, internet cafes, flower shops, gift shops, magazine stands, and bayad centers per Section 21(d) of the Market Code of 2014.",
                             IsActive = true,
-                            Name = "Special Stalls"
+                            Name = "Sumulong Avenue"
                         },
                         new
                         {
                             Id = 8,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Designated area for any other business not classified under the established market sections per Section 21(h) of the Market Code of 2014. Subject to all general market rules and sanitation standards.",
                             IsActive = true,
-                            Name = "Miscellaneous Section"
+                            Name = "Villalon Street"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "P. Paz Street"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Kapitan Venciong Street"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "W. Paz Street"
                         });
                 });
 

@@ -57,8 +57,8 @@ const plain = (value) => JSON.parse(JSON.stringify(value));
 const visible = (html) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
 
 // Synthetic streets. "Test Street 13" exists only in the stand-in server, never in the website's code.
-const OPEN = { id: 13, name: "Test Street 13", description: "Synthetic street", isActive: true, vendorCount: 0 };
-const CLOSED = { id: 14, name: "Closed Street 14", description: "Synthetic street", isActive: false, vendorCount: 2 };
+const OPEN = { id: 13, name: "Test Street 13", isActive: true, vendorCount: 0 };
+const CLOSED = { id: 14, name: "Closed Street 14", isActive: false, vendorCount: 2 };
 
 // The server and React Query's scheduling are the outer boundaries; the shared hook, the
 // API adapter and the components run unchanged. Dropdown is recorded so its props can be read.

@@ -19,7 +19,7 @@ public class AdminTableSearchTests
 {
     private static AppDbContext Context()
     {
-        var section = new MarketSection { Id = 1, Name = "Dry Goods", Description = "Synthetic" };
+        var section = new MarketSection { Id = 1, Name = "Dry Goods" };
         var business = new Business
         {
             Id = 10, BusinessName = "Sari Shop", StallNumber = "12", BusinessAccountNumber = "ACC-100",

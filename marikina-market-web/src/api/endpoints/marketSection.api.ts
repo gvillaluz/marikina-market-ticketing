@@ -41,7 +41,6 @@ export const marketSectionApi = {
           Number.isSafeInteger(section.id) &&
           section.id > 0 &&
           typeof section.name === "string" &&
-          typeof section.description === "string" &&
           typeof section.isActive === "boolean" &&
           Number.isSafeInteger(section.vendorCount) &&
           section.vendorCount >= 0,

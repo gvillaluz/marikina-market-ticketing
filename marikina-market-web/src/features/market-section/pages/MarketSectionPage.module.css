@@ -200,22 +200,19 @@
   --registry-actions-align: center;
 }
 .nameColumn {
-  width: 22%;
-}
-.descriptionColumn {
-  width: 34%;
+  width: 46%;
 }
 .vendorColumn {
-  width: 12%;
+  width: 18%;
 }
 .statusColumn {
-  width: 16%;
+  width: 18%;
 }
 .actionsColumn {
-  width: 16%;
+  width: 18%;
 }
-.table > table > :is(thead, tbody) > tr > :nth-child(3),
-.table > table > :is(thead, tbody) > tr > :nth-child(4) {
+.table > table > :is(thead, tbody) > tr > :nth-child(2),
+.table > table > :is(thead, tbody) > tr > :nth-child(3) {
   text-align: center;
 }
 

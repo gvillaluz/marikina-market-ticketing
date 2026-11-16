@@ -17,14 +17,13 @@ export function useMarketSectionEditor() {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<MarketSectionResponse | null>(null);
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const lock = useRef(false);
   const [pendingId, setPendingId] = useState<number | null>(null);
   const save = useMutation({
     mutationFn: async () => {
       await client.cancelQueries({ queryKey: marketSectionsListKey });
-      const request = { name: name.trim(), description: description.trim() };
+      const request = { name: name.trim() };
       return selected
         ? marketSectionApi.update(selected.id, request)
         : marketSectionApi.create(request);
@@ -109,8 +108,6 @@ export function useMarketSectionEditor() {
     selected,
     name,
     setName,
-    description,
-    setDescription,
     error,
     canManage,
     canOpenConfiguration: role === "HeadAdmin",
@@ -120,7 +117,6 @@ export function useMarketSectionEditor() {
       if (!canManage || lock.current) return;
       setSelected(section);
       setName(section?.name ?? "");
-      setDescription(section?.description ?? "");
       setError("");
       setOpen(true);
     },
@@ -129,16 +125,12 @@ export function useMarketSectionEditor() {
     },
     submit() {
       if (!canManage || lock.current || !open) return;
-      if (!name.trim() || !description.trim()) {
-        setError("Street name and description are required.");
+      if (!name.trim()) {
+        setError("Street name is required.");
         return;
       }
       if (name.trim().length > 150) {
         setError("Street name must not exceed 150 characters.");
-        return;
-      }
-      if (description.trim().length > 500) {
-        setError("Description must not exceed 500 characters.");
         return;
       }
       setError("");
