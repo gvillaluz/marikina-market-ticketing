@@ -248,7 +248,7 @@ void main() {
           .widget<ViolatorInfoCard>(find.byType(ViolatorInfoCard))
           .onVendorSelected(vendor);
       await flush(tester);
-      await tester.tap(find.text('Change Vendor'));
+      await tester.tap(find.text('Change Business'));
       await flush(tester);
       final ownerRequests = paths
           .where((path) => path.startsWith('/vendor'))
@@ -264,7 +264,7 @@ void main() {
       expect(find.byType(UnregisteredSectionBanner), findsOneWidget);
       expect(find.text('Unregistered vendor'), findsOneWidget);
       expect(find.text('Meat Section'), findsOneWidget);
-      expect(find.text('Change Vendor'), findsNothing);
+      expect(find.text('Change Business'), findsNothing);
       expect(inReview(find.text('Owner')), findsNothing);
       expect(
         paths.where((path) => path.startsWith('/vendor')).length,

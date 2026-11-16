@@ -12,11 +12,6 @@ import 'package:marikina_market_mobile/features/tickets/presentation/inspections
 import 'package:marikina_market_mobile/features/tickets/presentation/inspections/widgets/form/vendor_kind_toggle.dart';
 
 class ViolatorInfoCard extends StatelessWidget {
-  // final TextEditingController stallNumberController;
-  // final TextEditingController tradeNameController;
-  // final TextEditingController lastNameController;
-  // final TextEditingController firstNameController;
-  // final TextEditingController middleNameController;
   final bool isUnregistered;
   final ValueChanged<bool> onKindChanged;
   final ValueChanged<VendorSummary> onVendorSelected;
@@ -24,11 +19,6 @@ class ViolatorInfoCard extends StatelessWidget {
   final String? errorMessage;
 
   const ViolatorInfoCard({
-    // required this.stallNumberController,
-    // required this.tradeNameController,
-    // required this.lastNameController,
-    // required this.firstNameController,
-    // required this.middleNameController,
     required this.isUnregistered,
     required this.onKindChanged,
     required this.onVendorSelected,
@@ -78,7 +68,7 @@ class ViolatorInfoCard extends StatelessWidget {
         const SizedBox(height: 10),
 
         const Text(
-          'Find Vendor',
+          'Find Business',
           style: TextStyle(
             color: AppColors.primary,
             fontSize: AppTheme.sectionHeadingFontSize,

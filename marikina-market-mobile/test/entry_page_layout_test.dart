@@ -281,7 +281,8 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('Find Vendor'), findsOneWidget);
+      expect(find.text('Find Business'), findsOneWidget);
+      expect(find.text('Find Vendor'), findsNothing);
       expect(find.text('Search for a registered business.'), findsOneWidget);
       expect(find.text('Vendor information is required'), findsOneWidget);
       expect(
@@ -316,7 +317,7 @@ void main() {
 
   group('compact banner', () {
     testWidgets(
-      '2: business card keeps its details and the Change Vendor button',
+      '2: business card keeps its details and the Change Business button',
       (tester) async {
         await openPage(tester);
         await chooseBusiness(tester, bertsFish);
@@ -328,10 +329,11 @@ void main() {
           findsOneWidget,
         );
         expect(find.text('12 • Dry Goods Section'), findsOneWidget);
-        expect(inBanner(find.text('Change Vendor')), findsOneWidget);
+        expect(inBanner(find.text('Change Business')), findsOneWidget);
+        expect(find.text('Change Vendor'), findsNothing);
         expect(find.text('Search business'), findsNothing);
 
-        await tester.tap(inBanner(find.text('Change Vendor')));
+        await tester.tap(inBanner(find.text('Change Business')));
         await flush(tester);
         expect(find.byType(VendorSummaryBanner), findsNothing);
         expect(find.text('Search business'), findsOneWidget);
