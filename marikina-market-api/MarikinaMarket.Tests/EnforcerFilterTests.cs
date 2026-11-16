@@ -146,7 +146,7 @@ public class EnforcerFilterTests
             Description = "Synthetic market inspection",
             Vendor = new Business { BusinessName = "Market Goods", BusinessAccountNumber = "BUS-17", QrCodeValue = "synthetic-17",
                  OwnerFirstName = "Juan", OwnerLastName = "Santos", HouseNumber = "1", Street = "Test Street", Barangay = "Test Barangay", City = "Marikina"  },
-            MarketSection = new MarketSection { Name = "Dry Goods", Description = "Synthetic section" },
+            MarketSection = new MarketSection { Name = "Dry Goods" },
             TicketViolations = []
         }).ToList());
         return context;

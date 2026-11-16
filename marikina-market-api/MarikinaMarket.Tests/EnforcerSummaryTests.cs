@@ -113,7 +113,7 @@ public class EnforcerSummaryTests
             Description = "Blocked market walkway", IssuedAt = new DateTime(2026, 10, 21, 2, 0, 0, DateTimeKind.Utc),
             Vendor = new Business { Id = 17, BusinessAccountNumber = "BUS-17", BusinessName = "Market Goods",
                 Type = businessType, StallNumber = businessType == BusinessType.Public ? "A-12" : null, QrCodeValue = "synthetic-17", OwnerFirstName = user.FirstName, OwnerLastName = user.LastName, Email = user.Email },
-            MarketSection = new MarketSection { Name = "Dry Goods", Description = "Dry goods section" },
+            MarketSection = new MarketSection { Name = "Dry Goods" },
             TicketViolations = ordinances.Select((ordinance, index) => new TicketViolation { Id = index + 1, OrdinanceId = ordinance.Id, Ordinance = ordinance }).ToList()
         };
         var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options);

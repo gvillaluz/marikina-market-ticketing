@@ -123,7 +123,7 @@ internal sealed class VendorSelfProfileHost : IAsyncDisposable
         host.Vendors.Add(new Business
         {
             Id = 70, BusinessAccountNumber = "MM-70", BusinessName = "Reyes Fresh Fish", StallNumber = "F-12",
-            MarketSectionId = 2, MarketSection = new() { Id = 2, Name = "Fish and Seafood", Description = "Fish retail" },
+            MarketSectionId = 2, MarketSection = new() { Id = 2, Name = "Fish and Seafood" },
             Status = VendorStatus.Active, Type = BusinessType.Public, ComplianceScore = 92, QrCodeValue = "test-only",
             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         });

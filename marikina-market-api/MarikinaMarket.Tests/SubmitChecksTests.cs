@@ -212,7 +212,7 @@ public class SubmitChecksTests
                 }));
             var sections = ReviewBoundaryProxy.Create<IMarketSectionRepository>((method, args) =>
                 Task.FromResult<MarketSection?>((int)args[0]! != ActiveSection ? null
-                    : new() { Id = ActiveSection, Name = "Meat and Poultry", Description = "Synthetic" }));
+                    : new() { Id = ActiveSection, Name = "Meat and Poultry" }));
             var unit = ReviewBoundaryProxy.Create<IUnitOfWork>((method, args) =>
             {
                 if (method.Name == nameof(IUnitOfWork.CommitAsync))

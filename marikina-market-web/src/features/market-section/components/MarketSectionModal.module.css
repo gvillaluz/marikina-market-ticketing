@@ -113,35 +113,6 @@
   cursor: wait;
 }
 
-.textarea {
-  height: 5rem;
-  width: 100%;
-  resize: none;
-  border-radius: 0;
-  border-style: solid;
-  border-width: 1px;
-  border-color: var(--border-default);
-  background-color: var(--bg-surface);
-  padding-inline: 0.625rem;
-  padding-block: 0.5rem;
-  font-size: var(--market-font-size-micro);
-  color: var(--text-heading);
-  outline-style: none;
-}
-
-.textarea::placeholder {
-  color: var(--text-muted);
-}
-
-.textarea:focus {
-  border-color: var(--market-search-focus);
-  box-shadow: var(--market-focus-shadow);
-}
-
-.textarea:disabled {
-  cursor: wait;
-}
-
 .error {
   font-size: var(--market-font-size-small);
   line-height: 1.3333333333333333;

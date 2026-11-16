@@ -15,7 +15,7 @@ namespace MarikinaMarket.Tests;
 // Expected values below are worked out by hand from the synthetic records, not copied from output.
 public class BusinessLookupAndPeopleTests
 {
-    private static readonly MarketSection Section = new() { Id = 1, Name = "Dry Goods", Description = "Synthetic" };
+    private static readonly MarketSection Section = new() { Id = 1, Name = "Dry Goods" };
 
     private static Business NewBusiness(int id, string name, string? stall, string account,
         VendorStatus status = VendorStatus.Active) => new()

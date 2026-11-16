@@ -82,8 +82,8 @@ public class AnalyticsCalculationTests
         //  T4 ticket, Produce, registered Shop A, Wed 1 Apr 00:30 (Tue 31 Mar 16:30 UTC), Minor, Waived after 1 day. Violation: Noise. Blood donation.
         //  W1 warning, Produce, unregistered vendor, 3 Feb.   W2 warning, Produce, registered Shop A, 4 May.
         //  Last year: a Meat ticket (1 Jun 2025), a Meat warning (1 Sep 2025), and a Produce ticket one minute before 2026 starts (31 Dec 2025 23:59).
-        var produce = new MarketSection { Id = 2, Name = "Produce", Description = "Synthetic section" };
-        var meat = new MarketSection { Id = 3, Name = "Meat", Description = "Synthetic section" };
+        var produce = new MarketSection { Id = 2, Name = "Produce" };
+        var meat = new MarketSection { Id = 3, Name = "Meat" };
         var shop = new Business
         {
             Id = 1, BusinessAccountNumber = "BA-0001", BusinessName = "Synthetic Shop A", QrCodeValue = "synthetic-1",
@@ -210,7 +210,7 @@ public class AnalyticsCalculationTests
         return new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options) {
             Tickets = new AccountDatabaseSet<Ticket>(records),
             TicketViolations = new AccountDatabaseSet<TicketViolation>(links),
-            MarketSections = new AccountDatabaseSet<MarketSection>(records.Count == 0 ? [] : [new() { Id = 2, Name = "Produce", Description = "Synthetic section", Tickets = records }]),
+            MarketSections = new AccountDatabaseSet<MarketSection>(records.Count == 0 ? [] : [new() { Id = 2, Name = "Produce", Tickets = records }]),
             Businesses = new AccountDatabaseSet<Business>([])
         };
     }

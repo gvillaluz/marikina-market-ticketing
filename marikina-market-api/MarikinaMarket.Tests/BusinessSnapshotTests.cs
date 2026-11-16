@@ -14,7 +14,7 @@ public class BusinessSnapshotTests
     {
         var business = new Business { Id = 1, BusinessAccountNumber = "CURRENT-B", BusinessName = "Current B",
             QrCodeValue = "synthetic", OwnerFirstName = "New", OwnerLastName = "Owner", Type = BusinessType.Private,
-            MarketSection = new() { Name = "Current section", Description = "Synthetic" } };
+            MarketSection = new() { Name = "Current section" } };
         var officer = new User { FirstName = "Test", LastName = "Officer", DateOfBirth = new(1990, 1, 1), HouseNumber = "1", Street = "Market Lane", Barangay = "Synthetic", City = "Marikina" };
         var ticket = new Ticket { Id = 1, VendorId = 1, Vendor = business, Enforcer = officer, PersonId = 31,
             Description = "Synthetic", Type = ViolationType.Ticket, MarketSection = business.MarketSection,
