@@ -77,7 +77,7 @@ class VendorSummaryBanner extends StatelessWidget {
               ),
               onPressed: onChangeVendor,
               icon: const Icon(Icons.sync),
-              label: const Text('Change Vendor'),
+              label: const Text('Change Business'),
             ),
           ),
         ],

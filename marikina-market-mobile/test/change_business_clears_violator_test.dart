@@ -267,7 +267,7 @@ void main() {
     expect(find.byType(NewInspectionPreviewPage), findsNothing);
   }
 
-  testWidgets('8a: Change Vendor clears the owner chosen for business 12; '
+  testWidgets('8a: Change Business clears the owner chosen for business 12; '
       'business 13 starts with nobody chosen', (tester) async {
     final paths = await openEntryPage(tester);
     tester
@@ -281,8 +281,8 @@ void main() {
     expect(copyName(tester), 'Synthetic Vendor');
     expect(chosenOrdinances(tester), [1]);
 
-    await tester.ensureVisible(find.text('Change Vendor'));
-    await tester.tap(find.text('Change Vendor'));
+    await tester.ensureVisible(find.text('Change Business'));
+    await tester.tap(find.text('Change Business'));
     await flush(tester);
     tester
         .widget<ViolatorInfoCard>(find.byType(ViolatorInfoCard))
