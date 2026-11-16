@@ -20,7 +20,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
             int userId, int offset, int limit, VendorInspectionFilters filters);
         Task<int> GetVendorInspectionCountAsync(int userId, VendorInspectionFilters filters);
         Task<List<TicketReportSummary>> GetReportSummaryAsync(DateTime startUtc, DateTime endUtc, ViolationType? type);
-        Task<int> GetTotalTicketCountAsync(ViolationType? type);
+        Task<int> GetAdminTicketCountAsync(TicketSummaryFilters filters);
         Task<int> GetTotalTicketCountForPeriodAsync(DateTime start, DateTime end, ViolationType type);
         Task<Ticket?> GetTicketByIdAsync(int ticketId);
         Task<Ticket?> GetVendorTicketByIdAsync(int ticketId, int userId);
