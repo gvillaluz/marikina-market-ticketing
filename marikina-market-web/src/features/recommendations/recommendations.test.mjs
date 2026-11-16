@@ -103,6 +103,18 @@ const fishAndSeafood = {
   review: null,
 };
 
+// Each tile as [label, value, caption].
+function tiles(html) {
+  return html
+    .split('<div class="tile')
+    .slice(1)
+    .map((tile) =>
+      [...tile.matchAll(/<d[td][^>]*>(.*?)<\/d[td]>/g)]
+        .slice(0, 3)
+        .map(([, inner]) => text(inner)),
+    );
+}
+
 function renderCard(recommendation, props = {}) {
   const { default: RecommendationCard } = load(
     "features/recommendations/components/RecommendationCard.tsx",
@@ -118,39 +130,53 @@ function renderCard(recommendation, props = {}) {
   );
 }
 
-test("W1: the Fish and Seafood card turns the numbers into the agreed words", () => {
+test("W1: the Fish and Seafood card shows its numbers as three tiles", () => {
   const html = renderCard(fishAndSeafood);
   const words = text(html);
   assert.ok(words.includes("Fish and Seafood"));
-  assert.ok(
-    words.includes(
-      "Timbang at Sukat (Weights and Measures) found in 4 of 6 records in the last 30 days.",
-    ),
-    words,
-  );
+  // 4 of the section's 6 records; peak 08:00 plus three hours; confidence as sent.
+  assert.deepEqual(tiles(html), [
+    ["Found in", "4 of 6", "records, last 30 days"],
+    ["Peak time", "08:00–11:00", "busiest 3 hours"],
+    ["Confidence", "Moderate", "based on 6 records"],
+  ]);
   assert.match(
     html,
     /<strong[^>]*>Timbang at Sukat \(Weights and Measures\)<\/strong>/,
   );
   assert.ok(words.includes("Check scales at the start of the morning rush."));
-  assert.ok(words.includes("Peak time: 08:00–11:00"), words);
   assert.ok(words.includes("Moderate risk"), words);
-  assert.ok(
-    words.includes("Pattern confidence: Moderate — based on 6 records"),
-    words,
-  );
   assert.ok(words.includes("Last flagged: 8 Nov 2026, 2:05 PM"), words);
 });
 
-test("W1: a Moderate card uses the amber style, High red, Low and unknown the neutral one", () => {
-  const cardClass = (riskLevel) =>
-    renderCard({ ...fishAndSeafood, riskLevel }).match(
-      /<article class="([^"]*)"/,
-    )[1];
-  assert.deepEqual(cardClass("Moderate").split(" "), ["card", "moderate"]);
-  assert.deepEqual(cardClass("High").split(" "), ["card", "high"]);
-  assert.deepEqual(cardClass("Low").split(" "), ["card", "neutral"]);
-  assert.deepEqual(cardClass("Unexpected").split(" "), ["card", "neutral"]);
+test("W1: a section with one record says record, not records", () => {
+  const html = renderCard({
+    ...fishAndSeafood,
+    categoryRecordCount: 1,
+    sectionRecordCount: 1,
+  });
+  assert.deepEqual(tiles(html)[0], ["Found in", "1 of 1", "record, last 30 days"]);
+  assert.deepEqual(tiles(html)[2], ["Confidence", "Moderate", "based on 1 record"]);
+});
+
+test("W1: the risk badge has an icon and the amber style for Moderate, red for High, neutral for Low and unknown", () => {
+  const { default: RiskBadge } = load(
+    "features/recommendations/components/RiskBadge.tsx",
+  );
+  const badge = (riskLevel) =>
+    renderToStaticMarkup(React.createElement(RiskBadge, { riskLevel }));
+  const badgeClass = (riskLevel) =>
+    badge(riskLevel).match(/^<span class="([^"]*)"/)[1].split(" ");
+  assert.deepEqual(badgeClass("Moderate"), ["badge", "moderate"]);
+  assert.deepEqual(badgeClass("High"), ["badge", "high"]);
+  assert.deepEqual(badgeClass("Low"), ["badge", "neutral"]);
+  assert.deepEqual(badgeClass("Unexpected"), ["badge", "neutral"]);
+  assert.match(badge("High"), /<svg[^>]*aria-hidden="true"/);
+  assert.equal(text(badge("High")), "High risk");
+  const tilesClass = (riskLevel) =>
+    renderCard({ ...fishAndSeafood, riskLevel }).match(/<dl class="([^"]*)"/)[1];
+  assert.deepEqual(tilesClass("High").split(" "), ["tiles", "high"]);
+  assert.deepEqual(tilesClass("Low").split(" "), ["tiles", "neutral"]);
 });
 
 test("W1: every risk style the card and bars use exists in their CSS files", () => {
@@ -159,17 +185,23 @@ test("W1: every risk style the card and bars use exists in their CSS files", () 
       path.resolve(root, "features/recommendations/components", file),
       "utf8",
     );
-  const card = rulesIn("RecommendationCard.module.css");
+  const badge = rulesIn("RiskBadge.module.css");
+  const tileRules = rulesIn("RecommendationTiles.module.css");
   const bars = rulesIn("HourlyBars.module.css");
   for (const tone of ["high", "moderate", "neutral"]) {
-    assert.match(card, new RegExp(`^\\.${tone} \\{`, "m"), `card .${tone}`);
+    assert.match(badge, new RegExp(`^\\.${tone} \\{`, "m"), `badge .${tone}`);
+    assert.match(
+      tileRules,
+      new RegExp(`^\\.${tone} \\.found \\{`, "m"),
+      `tiles .${tone}`,
+    );
     assert.match(bars, new RegExp(`^\\.${tone} \\.peak \\{`, "m"), `bars .${tone}`);
   }
 });
 
 test("W1: a peak starting at 22:00 wraps past midnight", () => {
-  const words = text(renderCard({ ...fishAndSeafood, peakStartHour: 22 }));
-  assert.ok(words.includes("Peak time: 22:00–01:00"), words);
+  const html = renderCard({ ...fishAndSeafood, peakStartHour: 22 });
+  assert.equal(tiles(html)[1][1], "22:00–01:00");
   const { formatPeakWindow } = load(
     "features/recommendations/recommendations.format.ts",
   );
@@ -191,10 +223,14 @@ test("W2: a peak starting at 23:00 highlights hours 23, 0 and 1 only", () => {
     }),
   );
   assert.match(html, /^<div[^>]*aria-hidden="true"/);
-  const bars = [...html.matchAll(/<span class="([^"]*)"/g)].map((match) =>
-    match[1].split(" "),
-  );
+  const bars = [...html.matchAll(/<span class="([^"]*)"/g)]
+    .map((match) => match[1].split(" "))
+    .filter((classes) => classes.includes("bar"));
   assert.equal(bars.length, 24);
+  assert.deepEqual(
+    [...html.matchAll(/<span class="tick">([^<]*)</g)].map((match) => match[1]),
+    ["12 AM", "6 AM", "12 PM", "6 PM", "12 AM"],
+  );
   const highlighted = bars
     .map((classes, hour) => (classes.includes("peak") ? hour : -1))
     .filter((hour) => hour >= 0);
@@ -482,33 +518,150 @@ test("W5: the buttons are disabled while the click is being saved", () => {
   assert.match(reviewed.match(/<button\b[^>]*>/)[0], /disabled/);
 });
 
-test("W5: a dismissed card appears only in the Dismissed list, below the open cards", () => {
-  const words = renderPage(() =>
-    openData({ ...fishAndSeafood, review: dismissedByMaria }, dryGoodsCard),
+// ---- List and detail layout --------------------------------------------------
+
+// Each list row as [section, records, risk, status]; the open row is marked.
+function listRows(html) {
+  return html
+    .split("<li>")
+    .slice(1)
+    .map((row) => ({
+      open: /aria-current="true"/.test(row),
+      words: ["name", "meta", "badge", "tag"].map((part) =>
+        text(
+          row.match(
+            new RegExp(`<span class="${part}[^"]*">(.*?)</span>`),
+          )[1],
+        ),
+      ),
+    }));
+}
+
+function openCardTitle(html) {
+  const cards = html.split("<article").slice(1);
+  assert.equal(cards.length, 1, "exactly one card is open");
+  return text(cards[0].match(/<h2[^>]*>(.*?)<\/h2>/)[1]);
+}
+
+test("L1: the list shows every section with its records, risk and status, dismissed last", () => {
+  const html = renderPage(
+    () =>
+      openData(
+        { ...fishAndSeafood, review: dismissedByMaria },
+        dryGoodsCard,
+        { ...fishAndSeafood, id: 13, marketSectionName: "Meat", review: reviewedByJuan },
+      ),
+    undefined,
+    true,
   );
-  const count = (needle) => words.split(needle).length - 1;
-  assert.equal(count("Fish and Seafood"), 1, words);
-  assert.equal(count("Dry Goods"), 1, words);
-  assert.equal(count("Dismissed by Maria Santos"), 1, words);
-  const heading = words.search(/Dismissed\s*Fish and Seafood/);
-  assert.ok(heading >= 0, words);
-  assert.ok(words.indexOf("Dry Goods") < heading, words);
-  // Only Dry Goods is still open, so only one "Mark as reviewed".
-  assert.equal(count("Mark as reviewed"), 1, words);
+  assert.deepEqual(
+    listRows(html).map((row) => row.words),
+    [
+      ["Dry Goods", "4 of 6 records", "Low risk", "Needs review"],
+      ["Meat", "4 of 6 records", "Moderate risk", "Reviewed"],
+      ["Fish and Seafood", "4 of 6 records", "Moderate risk", "Dismissed"],
+    ],
+  );
+  assert.ok(
+    text(html).includes("1 needs review · 1 reviewed · 1 dismissed"),
+    text(html),
+  );
 });
 
-test("W5: with nothing dismissed there is no Dismissed list", () => {
-  const words = renderPage(() => openData(fishAndSeafood, dryGoodsCard));
-  assert.doesNotMatch(words, /Dismissed/);
+test("L1: every status tag has an icon as well as its words", () => {
+  const { default: StatusTag } = load(
+    "features/recommendations/components/StatusTag.tsx",
+  );
+  const tag = (review) =>
+    renderToStaticMarkup(React.createElement(StatusTag, { review }));
+  for (const [review, words, style] of [
+    [null, "Needs review", "needsReview"],
+    [reviewedByJuan, "Reviewed", "reviewed"],
+    [dismissedByMaria, "Dismissed", "dismissed"],
+  ]) {
+    const html = tag(review);
+    assert.equal(text(html), words);
+    assert.match(html, new RegExp(`^<span class="tag ${style}"`));
+    assert.match(html, /<svg[^>]*aria-hidden="true"/);
+  }
+  const rules = fs.readFileSync(
+    path.resolve(root, "features/recommendations/components/StatusTag.module.css"),
+    "utf8",
+  );
+  for (const style of ["needsReview", "reviewed", "dismissed"])
+    assert.match(rules, new RegExp(`^\\.${style} \\{`, "m"), style);
 });
 
-test("W5: when every card is dismissed the page says so and still lists them", () => {
-  const words = renderPage(() =>
-    openData({ ...fishAndSeafood, review: dismissedByMaria }),
+test("L2: the page opens on the first section that still needs review", () => {
+  const html = renderPage(
+    () => openData({ ...fishAndSeafood, review: reviewedByJuan }, dryGoodsCard),
+    undefined,
+    true,
   );
-  assert.ok(words.includes("Every recommendation has been dismissed."), words);
+  assert.equal(openCardTitle(html), "Dry Goods");
+  assert.deepEqual(
+    listRows(html).map((row) => row.open),
+    [false, true],
+  );
+  // Only the open card's buttons are in the card.
+  assert.deepEqual(buttonLabels(html.split("<article")[1]), [
+    "Mark as reviewed",
+    "Dismiss",
+  ]);
+});
+
+test("L2: when nothing needs review the first section in the list is open", () => {
+  const html = renderPage(
+    () =>
+      openData(
+        { ...fishAndSeafood, review: dismissedByMaria },
+        { ...dryGoodsCard, review: reviewedByJuan },
+      ),
+    undefined,
+    true,
+  );
+  assert.equal(openCardTitle(html), "Dry Goods");
+});
+
+test("L2: a chosen section stays open; an unknown choice falls back", () => {
+  const { sectionToOpen, inListOrder } = load(
+    "features/recommendations/recommendations.format.ts",
+  );
+  const sections = inListOrder([
+    { ...fishAndSeafood, review: dismissedByMaria },
+    dryGoodsCard,
+  ]);
+  assert.deepEqual(
+    Array.from(sections, (card) => card.id),
+    [12, 11],
+  );
+  assert.equal(sectionToOpen(sections, 11).id, 11);
+  assert.equal(sectionToOpen(sections, null).id, 12);
+  assert.equal(sectionToOpen(sections, 999).id, 12);
+  assert.equal(sectionToOpen([], null), null);
+});
+
+test("L3: with nothing dismissed no row says Dismissed", () => {
+  const html = renderPage(() => openData(fishAndSeafood, dryGoodsCard), undefined, true);
+  assert.deepEqual(
+    listRows(html).map((row) => row.words[3]),
+    ["Needs review", "Needs review"],
+  );
+  assert.ok(text(html).includes("2 need review · 0 reviewed · 0 dismissed"), text(html));
+});
+
+test("L3: when every section is dismissed the list and the card still show them", () => {
+  const html = renderPage(
+    () => openData({ ...fishAndSeafood, review: dismissedByMaria }),
+    undefined,
+    true,
+  );
+  const words = text(html);
+  assert.doesNotMatch(words, /Every recommendation has been dismissed/);
   assert.doesNotMatch(words, /No section has a recommendation/);
+  assert.equal(openCardTitle(html), "Fish and Seafood");
   assert.ok(words.includes("Dismissed by Maria Santos"), words);
+  assert.deepEqual(buttonLabels(html.split("<article")[1]), []);
 });
 
 test("W5: a failed click shows the server's message", () => {
@@ -544,17 +697,16 @@ test("W5: no error message shows when nothing has failed", () => {
   assert.doesNotMatch(words, /Couldn't save your decision/);
 });
 
-test("W5: only the card being saved has disabled buttons", () => {
-  const words = renderPage(
-    () => openData(fishAndSeafood, dryGoodsCard),
-    () => ({ isPending: true, variables: { id: 12, action: "review" } }),
-    true,
-  );
-  const cards = words.split("<article").slice(1);
-  assert.equal(cards.length, 2);
-  // Fish and Seafood (id 11) is not saving; Dry Goods (id 12) is.
-  assert.doesNotMatch(cards[0], /<button[^>]*disabled/);
-  assert.match(cards[1], /<button[^>]*disabled/);
+test("W5: the open card's buttons are disabled only while that card is being saved", () => {
+  // Fish and Seafood (id 11) is the open card.
+  const openCard = (savingId) =>
+    renderPage(
+      () => openData(fishAndSeafood, dryGoodsCard),
+      () => ({ isPending: true, variables: { id: savingId, action: "review" } }),
+      true,
+    ).split("<article")[1];
+  assert.doesNotMatch(openCard(12), /<button[^>]*disabled/);
+  assert.match(openCard(11), /<button[^>]*disabled/);
 });
 
 test("W5: the Are you sure box names the section and its problem, and is locked while saving", () => {

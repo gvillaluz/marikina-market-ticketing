@@ -1,9 +1,15 @@
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
 .bars {
   display: grid;
   grid-template-columns: repeat(24, minmax(0, 1fr));
   align-items: end;
   gap: 2px;
-  height: 2.5rem;
+  height: 3rem;
   border-bottom: 1px solid var(--border-default);
 }
 
@@ -11,6 +17,13 @@
   min-height: 2px;
   border-radius: 2px 2px 0 0;
   background: var(--border-default);
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--market-font-size-small);
+  color: var(--text-body);
 }
 
 .high .peak {

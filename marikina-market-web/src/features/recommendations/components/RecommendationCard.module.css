@@ -1,11 +1,11 @@
 .card {
   display: flex;
   min-width: 0;
+  max-width: 48rem;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-lg);
   padding: var(--space-lg);
   border: 1px solid var(--border-default);
-  border-left: 4px solid transparent;
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
   box-shadow: var(--shadow-sm);
@@ -14,24 +14,17 @@
 .header {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
 }
 
 .title {
-  color: var(--text-heading);
+  min-width: 0;
   font-size: var(--market-font-size-heading);
   font-weight: 700;
-}
-
-.badge {
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-sm);
-  font-size: var(--market-font-size-small);
-  font-weight: 700;
-  color: var(--text-body);
-  background: var(--bg-page);
+  color: var(--text-heading);
+  overflow-wrap: anywhere;
 }
 
 .part {
@@ -40,12 +33,18 @@
   gap: var(--space-xs);
 }
 
+.action {
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  background: var(--bg-page);
+}
+
 .label {
   font-size: var(--market-font-size-small);
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-body);
 }
 
 .text {
@@ -58,12 +57,6 @@
   color: var(--text-heading);
 }
 
-.peak {
-  font-size: var(--market-font-size-compact);
-  font-weight: 700;
-  color: var(--text-heading);
-}
-
 .review {
   display: flex;
   flex-wrap: wrap;
@@ -73,48 +66,14 @@
 }
 
 .footer {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
   padding-top: var(--space-sm);
   border-top: 1px solid var(--border-default);
   font-size: var(--market-font-size-small);
   color: var(--text-body);
 }
 
-.high {
-  border-left-color: var(--danger);
-}
-
-.high .badge {
-  color: var(--records-danger-text);
-  background: var(--records-danger-surface);
-}
-
-.moderate {
-  border-left-color: var(--warning);
-}
-
-.moderate .badge {
-  color: var(--records-warning-text);
-  background: var(--records-warning-surface);
-}
-
-.neutral {
-  border-left-color: var(--text-muted);
-}
-
 @media (min-width: 640px) {
-  .review {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm) var(--space-md);
-}
-
-.footer {
-    flex-direction: row;
-    justify-content: space-between;
+  .card {
+    padding: var(--space-xl);
   }
 }
