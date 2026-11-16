@@ -35,7 +35,7 @@ export default function HotspotRankingTable({
   return (
     <AnalyticsPanel
       title="Hotspot Ranking"
-      subtitle={`Market sections with the most warnings and tickets. Ranking and trend use warnings plus tickets. ${comparisonLabel}`}
+      subtitle={`Market streets with the most warnings and tickets. Ranking and trend use warnings plus tickets. ${comparisonLabel}`}
       skeletonVariant="table"
       isLoading={isLoading}
       isError={isError}
@@ -48,7 +48,7 @@ export default function HotspotRankingTable({
           <thead>
             <tr>
               <th scope="col">Rank</th>
-              <th scope="col">Market Section</th>
+              <th scope="col">Market Street</th>
               <th scope="col">Warnings</th>
               <th scope="col">Tickets</th>
               <th scope="col">Trend</th>

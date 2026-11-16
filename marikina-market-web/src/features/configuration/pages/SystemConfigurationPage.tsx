@@ -22,8 +22,8 @@ const CONFIG_MODULES = [
     icon: LayoutGrid,
     iconColor: "#0B57D0",
     iconBg: "#E6F1FB",
-    title: "Market Sections",
-    description: "Organize vendor areas and stall classifications.",
+    title: "Market Streets",
+    description: "Manage the market streets where stalls are located.",
     href: ROUTES.marketSection,
   },
   {
@@ -74,7 +74,7 @@ const SystemConfigurationPage: FC = () => {
           iconColor="#0B57D0"
           iconBg="#E6F1FB"
           value={marketSectionSummary.count ?? "—"}
-          label="Market sections"
+          label="Market streets"
           note="Currently in use"
           isLoading={marketSectionSummary.isLoading}
           isFetching={marketSectionSummary.isFetching}

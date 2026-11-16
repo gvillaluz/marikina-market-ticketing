@@ -29,7 +29,7 @@ function TicketViolationInfoSection({ detail }: { detail?: TicketDetail }) {
           <TicketInfoRow label="TRADE NAME:" value={snapshot.businessName || "—"} />
           <TicketInfoRow label="STALL/UNIT NO:" value={snapshot.stallNumber || "—"} />
           <TicketInfoRow label="REGISTERED OWNER:" value={snapshot.registeredOwnerName || "—"} />
-          <TicketInfoRow label="MARKET SECTION:" value={snapshot.marketSectionName || "—"} />
+          <TicketInfoRow label="MARKET STREET:" value={snapshot.marketSectionName || "—"} />
           <TicketInfoRow label="ADDRESS:" value={snapshot.businessAddress || "—"} />
         </>}
         {!isCitation && !isUnregistered && <>

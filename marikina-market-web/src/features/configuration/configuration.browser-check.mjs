@@ -598,7 +598,7 @@ test(
       assert.ok(!/\b0\b/.test(loadingText), loadingText);
       assert.ok(!loadingText.includes("Loading"), loadingText);
       // A real zero is still shown as 0 once loaded.
-      await card("Market sections").getByText("0", { exact: true }).waitFor();
+      await card("Market streets").getByText("0", { exact: true }).waitFor();
       await card("Active ordinances").getByText("7", { exact: true }).waitFor();
       await card("Last data backup")
         .getByText("None yet", { exact: true })
@@ -612,7 +612,7 @@ test(
       modes.ordinances = "fallback";
       await navigate();
       // The app retries a failed request three times before showing the error.
-      const sections = card("Market sections");
+      const sections = card("Market streets");
       const ordinances = card("Active ordinances");
       const backup = card("Last data backup");
       await sections

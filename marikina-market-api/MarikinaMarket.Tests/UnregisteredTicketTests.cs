@@ -67,10 +67,10 @@ public class UnregisteredTicketTests
     }
 
     [Theory]
-    [InlineData(null, typeof(DataValidation.ValidationException))]
-    [InlineData(99, typeof(RecordNotFoundException))]
-    [InlineData(9, typeof(DataValidation.ValidationException))]
-    public async Task Without_a_business_a_valid_active_section_is_required_before_any_upload(int? section, Type expected)
+    [InlineData(null, typeof(DataValidation.ValidationException), "Choose the market street where the citation happened.")]
+    [InlineData(99, typeof(RecordNotFoundException), "Market street not found.")]
+    [InlineData(9, typeof(DataValidation.ValidationException), "The selected market street is not active.")]
+    public async Task Without_a_business_a_valid_active_section_is_required_before_any_upload(int? section, Type expected, string message)
     {
         using var fixture = new InspectionNotificationTests.Fixture();
         var request = Unregistered(fixture, ViolationType.Ticket);
@@ -78,8 +78,8 @@ public class UnregisteredTicketTests
 
         var error = await Assert.ThrowsAsync(expected, () => fixture.Service.CreateTicketAsync(request));
 
-        // The message proves it is the section check, not some other rule that throws the same kind of error.
-        Assert.Contains("market section", error.Message, StringComparison.OrdinalIgnoreCase);
+        // The message proves it is the street check, not some other rule that throws the same kind of error.
+        Assert.Equal(message, error.Message);
         Assert.Null(fixture.CreatedTicket);
         Assert.Equal(0, fixture.UploadCalls);
     }

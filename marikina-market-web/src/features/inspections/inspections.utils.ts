@@ -48,7 +48,7 @@ export const INSPECTION_COLUMNS: ExportColumn<InspectionSummary>[] = [
   },
   {
     key: "section",
-    header: "Market section",
+    header: "Market street",
     value: (row) =>
       row.vendorId !== null && row.type === "Ticket"
         ? row.businessSnapshot?.marketSectionName || UNAVAILABLE

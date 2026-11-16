@@ -48,7 +48,7 @@ export const marketSectionApi = {
       )
     )
       throw new ApiRequestError(
-        "Unable to load market sections. Please try again.",
+        "Unable to load market streets. Please try again.",
       );
     return response.data;
   },

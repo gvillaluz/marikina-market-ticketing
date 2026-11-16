@@ -13,7 +13,7 @@ export default function MarketSectionModal({ editor }: Props) {
       onClose={editor.close}
       closeDisabled={editor.isSaving}
       size="sm"
-      title={`${editor.selected ? "Edit" : "Add"} Market Section`}
+      title={`${editor.selected ? "Edit" : "Add"} Market Street`}
       subtitle="System Configuration"
       footer={
         <>
@@ -35,7 +35,7 @@ export default function MarketSectionModal({ editor }: Props) {
               ? "Saving…"
               : editor.selected
                 ? "Save Changes"
-                : "Add Section"}
+                : "Add Street"}
           </button>
         </>
       }
@@ -51,7 +51,7 @@ export default function MarketSectionModal({ editor }: Props) {
         <div className={styles.fields}>
           <div>
             <label htmlFor="section-name" className={styles.label}>
-              Section name
+              Street name
             </label>
             <input
               id="section-name"
@@ -60,7 +60,7 @@ export default function MarketSectionModal({ editor }: Props) {
               value={editor.name}
               disabled={editor.isSaving}
               onChange={(event) => editor.setName(event.target.value)}
-              placeholder="e.g. Fresh Produce"
+              placeholder="e.g. J. P. Rizal"
               className={styles.input}
             />
           </div>
@@ -75,7 +75,7 @@ export default function MarketSectionModal({ editor }: Props) {
               value={editor.description}
               disabled={editor.isSaving}
               onChange={(event) => editor.setDescription(event.target.value)}
-              placeholder="Short description of this market area"
+              placeholder="Short description of this market street"
               className={styles.textarea}
             />
           </div>

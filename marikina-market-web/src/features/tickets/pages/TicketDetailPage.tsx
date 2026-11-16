@@ -148,7 +148,7 @@ const TicketDetailPage: FC = () => {
             <InfoField label="RECORDED VIOLATOR" value={ticket.paperViolatorName || "Unconfirmed (legacy record)"} />
             <InfoField label="CONFIRMED PERSON" value={ticket.personId ? `${ticket.personFullName || "Person"} · Person ${ticket.personId}` : "Unconfirmed (legacy record)"} />
             {ticket.vendorId === null ? (
-              <InfoField label="MARKET SECTION" value={ticket.marketSectionName} />
+              <InfoField label="MARKET STREET" value={ticket.marketSectionName} />
             ) : (
               <InfoField
                 label="STALL LOCATION"

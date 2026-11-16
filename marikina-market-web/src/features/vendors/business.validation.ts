@@ -16,7 +16,7 @@ export function validateBusiness(form: SaveBusinessRequest): BusinessErrors {
     else if (value.length > max) errors[key] = `${label} must be ${max} characters or fewer.`;
   }
   if (!Number.isSafeInteger(form.marketSectionId) || form.marketSectionId < 1)
-    errors.marketSectionId = "Select a market section.";
+    errors.marketSectionId = "Select a market street.";
   if (form.businessType !== "Public" && form.businessType !== "Private")
     errors.businessType = "Select Public or Private.";
   if (form.businessType === "Public" && !form.stallNumber?.trim())

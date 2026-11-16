@@ -165,7 +165,7 @@ const featureCards = [
   },
   {
     title: "Analytics",
-    desc: "See which violation types and market sections need attention, and how that changes over time.",
+    desc: "See which violation types and market streets need attention, and how that changes over time.",
   },
   {
     title: "Recommended actions",
@@ -211,12 +211,12 @@ const processSteps = [
   {
     num: "02",
     title: "Patterns found",
-    desc: "Tickets are grouped over time to show trends, peak periods, and repeat violations across market sections.",
+    desc: "Tickets are grouped over time to show trends, peak periods, and repeat violations across market streets.",
   },
   {
     num: "03",
-    title: "Sections and businesses ranked",
-    desc: "Market sections are ranked by how many problems they have, and businesses are ranked by risk.",
+    title: "Streets and businesses ranked",
+    desc: "Market streets are ranked by how many problems they have, and businesses are ranked by risk.",
   },
   {
     num: "04",
@@ -280,10 +280,10 @@ const bars = [
 ];
 
 const hotspots = [
-  { label: "Dry Goods Section A", level: "High" },
-  { label: "Dry Goods Section B", level: "Medium" },
-  { label: "Wet Section A", level: "Medium" },
-  { label: "Wet Section B", level: "Low" },
+  { label: "Market Street A", level: "High" },
+  { label: "Market Street B", level: "Medium" },
+  { label: "Market Street C", level: "Medium" },
+  { label: "Market Street D", level: "Low" },
 ];
 
 function AnalyticsPreview() {
@@ -293,7 +293,7 @@ function AnalyticsPreview() {
         <SectionHeading
           eyebrow="ANALYTICS DASHBOARD"
           title="What the Administrator dashboard shows"
-          subtext="Violation type distribution and market-section hotspot ranking, two of the five analytics modules, shown here with example figures."
+          subtext="Violation type distribution and market-street hotspot ranking, two of the five analytics modules, shown here with example figures."
         />
 
         {/* Mock dashboard card */}
@@ -333,7 +333,7 @@ function AnalyticsPreview() {
             {/* right: hotspot ranking */}
             <div className={styles.hotspotCard}>
               <h3 className={styles.smallTitle}>
-                Market Section Hotspot Ranking
+                Market Street Hotspot Ranking
               </h3>
               <div>
                 {hotspots.map((h, i) => (

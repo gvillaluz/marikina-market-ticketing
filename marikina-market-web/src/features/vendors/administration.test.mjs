@@ -261,7 +261,7 @@ test("business list Export and Print collect every matching business with the ta
     vendorName: "Juan Reyes", marketSectionName: "Meat", type: "Public",
     complianceScore: 90, warningCount: 0, ticketCount: 2,
   }]).split("\r\n");
-  assert.equal(header, '"Business name","Business account number","Registered owner","Market section","Type","Compliance score","Warnings","Tickets"');
+  assert.equal(header, '"Business name","Business account number","Registered owner","Market street","Type","Compliance score","Warnings","Tickets"');
   assert.equal(row, '"Reyes Fresh Meats","0012345","Juan Reyes","Meat","Public","90%","0","2"');
   const page = h.render();
   assert.equal(page.registry.exportFile, h.tableExports.at(-1).fetchPage);
@@ -378,10 +378,14 @@ const historyProps = {
   preparing: null,
   onView: noop,
 };
+// The registry's market street filter loads its list through React Query, an outer boundary here.
+const streetList = {
+  "@tanstack/react-query": { useQuery: () => ({ isPending: false, isError: false, data: [] }) },
+};
 function renderComponent(file, props) {
   return renderToStaticMarkup(
     React.createElement(
-      load(`features/vendors/components/${file}.tsx`).default,
+      load(`features/vendors/components/${file}.tsx`, streetList).default,
       props,
     ),
   );

@@ -295,7 +295,7 @@ namespace MarikinaMarket.API.Application.Services
                 throw new ValidationException("Stall number is required for public businesses.");
             var section = await _marketSectionRepository.GetById(request.MarketSectionId);
             if (section is null || !section.IsActive)
-                throw new ValidationException("Select an active market section.");
+                throw new ValidationException("Select an active market street.");
 
             var business = id.HasValue
                 ? await _vendorRepository.GetVendorProfileForUpdateAsync(id.Value)

@@ -7,10 +7,7 @@ import {
   RecordsFooter,
 } from "@/components/ui/Records";
 import { TicketModal } from "@/components/ui/TicketModal/TicketModal";
-import {
-  MARKET_SECTION_LABELS,
-  type MarketSectionFilter,
-} from "@/api/types/common.types";
+import { useMarketSectionOptions } from "@/hooks/useMarketSectionOptions";
 import { InspectionTable } from "../components/InspectionTable";
 import { PrintConfigModal } from "../components/PrintConfigModal";
 import { useInspectionsPage } from "../hooks/useInspectionsPage";
@@ -20,6 +17,7 @@ import styles from "./InspectionsPage.module.css";
 const TYPES: ViolationTypeFilter[] = ["All Type", "Warning", "Ticket"];
 export function InspectionsPage() {
   const page = useInspectionsPage();
+  const streets = useMarketSectionOptions();
   return (
     <div className={styles.page}>
       <PageHeader
@@ -55,23 +53,13 @@ export function InspectionsPage() {
             }))}
           />
           <Dropdown
-            triggerId="inspections-section-filter"
-            ariaLabel="Filter by market section"
-            triggerLabel={
-              page.filters.marketSection === "All Sections"
-                ? "All Sections"
-                : MARKET_SECTION_LABELS[page.filters.marketSection]
-            }
+            triggerId="inspections-street-filter"
+            ariaLabel="Filter by market street"
+            triggerLabel={streets.filterLabel(page.filters.marketSection)}
             value={page.filters.marketSection}
-            onChange={(value) =>
-              page.setFilters.setMarketSection(value as MarketSectionFilter)
-            }
-            options={[
-              { value: "All Sections", label: "All Sections" },
-              ...Object.entries(MARKET_SECTION_LABELS).map(
-                ([value, label]) => ({ value, label }),
-              ),
-            ]}
+            onChange={page.setFilters.setMarketSection}
+            options={streets.filterOptions}
+            disabled={streets.isLoading}
           />
         </RecordsToolbar>
         <InspectionTable

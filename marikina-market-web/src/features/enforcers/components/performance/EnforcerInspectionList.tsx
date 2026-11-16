@@ -51,7 +51,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
         },
         {
           key: "section",
-          header: "Section",
+          header: "Market street",
           render: (record) => record.vendorId !== null && record.type === "Ticket" ? (record.businessSnapshot?.marketSectionName || "Historical business details unavailable.") : (record.marketSectionName || "—"),
         },
         {

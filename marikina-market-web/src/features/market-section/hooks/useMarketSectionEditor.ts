@@ -6,7 +6,7 @@ import { ADMIN_ROLES } from "@/api/types/common.types";
 import { ApiRequestError } from "@/utils/apiErrors";
 import { marketSectionApi } from "@/api/endpoints/marketSection.api";
 import type { MarketSectionResponse } from "@/api/types/market-section.types";
-import { marketSectionsListKey } from "./useMarketSections";
+import { marketSectionsListKey } from "@/hooks/useMarketSectionOptions";
 
 export function useMarketSectionEditor() {
   const client = useQueryClient();
@@ -41,7 +41,7 @@ export function useMarketSectionEditor() {
       setOpen(false);
       showToast({
         variant: "success",
-        title: selected ? "Market section updated" : "Market section added",
+        title: selected ? "Market street updated" : "Market street added",
       });
       await Promise.all([
         client.invalidateQueries({ queryKey: marketSectionsListKey }),
@@ -54,7 +54,7 @@ export function useMarketSectionEditor() {
       setError(
         cause instanceof ApiRequestError && cause.serverMessage
           ? cause.serverMessage
-          : "Unable to save the market section. Please try again.",
+          : "Unable to save the market street. Please try again.",
       ),
     onSettled: () => {
       lock.current = false;
@@ -80,8 +80,8 @@ export function useMarketSectionEditor() {
       showToast({
         variant: "success",
         title: section.isActive
-          ? "Market section marked inactive"
-          : "Market section marked active",
+          ? "Market street marked inactive"
+          : "Market street marked active",
       });
       await Promise.all([
         client.invalidateQueries({ queryKey: marketSectionsListKey }),
@@ -97,7 +97,7 @@ export function useMarketSectionEditor() {
         description:
           cause instanceof ApiRequestError && cause.serverMessage
             ? cause.serverMessage
-            : "Unable to update section status. Please try again.",
+            : "Unable to update street status. Please try again.",
       }),
     onSettled: () => {
       lock.current = false;
@@ -130,11 +130,11 @@ export function useMarketSectionEditor() {
     submit() {
       if (!canManage || lock.current || !open) return;
       if (!name.trim() || !description.trim()) {
-        setError("Section name and description are required.");
+        setError("Street name and description are required.");
         return;
       }
       if (name.trim().length > 150) {
-        setError("Section name must not exceed 150 characters.");
+        setError("Street name must not exceed 150 characters.");
         return;
       }
       if (description.trim().length > 500) {

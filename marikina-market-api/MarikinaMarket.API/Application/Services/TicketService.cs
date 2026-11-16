@@ -1785,15 +1785,15 @@ namespace MarikinaMarket.API.Application.Services
             };
         }
 
-        // Without a business, the enforcer says which market section the citation happened in.
+        // Without a business, the enforcer says which market street the citation happened in.
         private async Task<MarketSection> RequireActiveSectionAsync(int? marketSectionId)
         {
             if (marketSectionId is null or <= 0)
-                throw new ValidationException("Choose the market section where the citation happened.");
-            var section = await (_marketSectionRepository ?? throw new InvalidOperationException("Market section repository is unavailable."))
-                .GetById(marketSectionId.Value) ?? throw new RecordNotFoundException("Market section not found.");
+                throw new ValidationException("Choose the market street where the citation happened.");
+            var section = await (_marketSectionRepository ?? throw new InvalidOperationException("Market street repository is unavailable."))
+                .GetById(marketSectionId.Value) ?? throw new RecordNotFoundException("Market street not found.");
             if (!section.IsActive)
-                throw new ValidationException("The selected market section is not active.");
+                throw new ValidationException("The selected market street is not active.");
             return section;
         }
 

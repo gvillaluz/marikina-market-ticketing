@@ -143,7 +143,7 @@ const WIDTHS = [1440, 1024, 768, 390, 320];
 const HEADERS = [
   "Business",
   "Registered Owner",
-  "Section & Type",
+  "Market Street & Type",
   "Compliance Score",
   "Warnings",
   "Tickets",

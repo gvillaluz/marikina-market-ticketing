@@ -4,8 +4,6 @@ import type {
   InspectionRecord,
   InspectionSummary,
 } from "../../../api/types/ticket.types";
-import { MARKET_SECTION_LABELS } from "../../../api/types/common.types";
-import type { MarketSection } from "../../../api/types/common.types";
 import { ViolationTypeFilter } from "../inspections.types";
 import { useEffect, useState } from "react";
 

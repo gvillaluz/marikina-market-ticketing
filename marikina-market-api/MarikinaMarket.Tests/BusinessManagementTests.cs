@@ -75,7 +75,8 @@ public class BusinessManagementTests
         var fixture = new Fixture();
         await Assert.ThrowsAsync<RecordNotFoundException>(() => fixture.Service.SaveBusinessAsync(99, Request()));
         fixture.SectionExists = false;
-        await Assert.ThrowsAsync<ValidationException>(() => fixture.Service.SaveBusinessAsync(null, Request()));
+        var error = await Assert.ThrowsAsync<ValidationException>(() => fixture.Service.SaveBusinessAsync(null, Request()));
+        Assert.Equal("Select an active market street.", error.Message);
         Assert.Equal(0, fixture.Saves);
     }
 

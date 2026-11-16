@@ -9,7 +9,6 @@ export interface BusinessSnapshot {
 }
 
 import type {
-  MarketSection,
   OffenseLevel,
   RecordStatus,
   Severity,
@@ -36,7 +35,7 @@ export interface InspectionRecord {
   enforcer: string;
   stallNo: string;
   tradeName: string;
-  section: MarketSection;
+  section: string;
   issuedAt: string;
   issued_at?: string;
   dateTime?: string;
@@ -124,7 +123,7 @@ export interface TicketRecord extends BaseRecordDetail {
   settlementEvidenceUrls?: string[];
   enforcer?: string;
   enforcerName?: string;
-  marketSection?: MarketSection | string;
+  marketSection?: string;
   controlType?: string;
   appealsPeriod?: string;
   title?: string;

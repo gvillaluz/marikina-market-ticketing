@@ -8,11 +8,6 @@ import {
   RefreshCw,
   Search,
 } from "lucide-react";
-import {
-  MARKET_SECTION_IDS,
-  MARKET_SECTION_LABELS,
-  type MarketSection,
-} from "@/api/types/common.types";
 import type {
   AdminVendorSummary,
   ComplianceScoreRange,
@@ -22,20 +17,17 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge/Badge";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
 import Table, { type Column } from "@/components/ui/Table";
+import {
+  ALL_STREETS,
+  LOADING_STREETS,
+  useMarketSectionOptions,
+} from "@/hooks/useMarketSectionOptions";
 import type { TableExportAction } from "@/hooks/useTableExport";
 import { getTypeLabel } from "../businessTableColumns";
 import StackedCell from "./StackedCell";
 import styles from "./AdminVendorRegistry.module.css";
 
 const PAGE_SIZE = 10;
-
-const SECTION_OPTIONS = [
-  { value: "all", label: "All Sections" },
-  ...Object.entries(MARKET_SECTION_IDS).map(([section, id]) => ({
-    value: String(id),
-    label: MARKET_SECTION_LABELS[section as MarketSection],
-  })),
-];
 
 const SCORE_OPTIONS: { value: "all" | ComplianceScoreRange; label: string }[] =
   [
@@ -105,6 +97,7 @@ export default function AdminVendorRegistry({
   preparing,
   onViewInspections,
 }: AdminVendorRegistryProps) {
+  const streets = useMarketSectionOptions();
   const offset = (page - 1) * PAGE_SIZE;
   const totalPages =
     total === null
@@ -133,7 +126,7 @@ export default function AdminVendorRegistry({
     },
     {
       key: "sectionType",
-      header: "Section & Type",
+      header: "Market Street & Type",
       width: "14%",
       render: (vendor) => (
         <StackedCell
@@ -224,15 +217,16 @@ export default function AdminVendorRegistry({
         <div className={styles.filters}>
           <Dropdown
             fullWidth
-            ariaLabel="Filter by market section"
+            ariaLabel="Filter by market street"
             triggerLabel={
-              section === "all"
-                ? "Section: All"
-                : `Section: ${SECTION_OPTIONS.find((option) => option.value === section)?.label}`
+              streets.isLoading
+                ? LOADING_STREETS
+                : `Street: ${section === ALL_STREETS ? "All" : (streets.nameOf(section) ?? "All")}`
             }
             value={section}
             onChange={setSection}
-            options={SECTION_OPTIONS}
+            options={streets.filterOptions}
+            disabled={streets.isLoading}
           />
           <Dropdown
             fullWidth

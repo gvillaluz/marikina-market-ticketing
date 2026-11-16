@@ -19,7 +19,7 @@ export const ROUTES = {
   vendorDetail: (id: string) => `/vendors/${id}`,
   home: "/",
   systemConfiguration: "/system/configuration",
-  marketSection: "/system/market-section",
+  marketSection: "/system/market-street",
   ordinance: "/system/ordinance",
   backups: "/configuration/backups",
   accounts: "/admin/accounts",

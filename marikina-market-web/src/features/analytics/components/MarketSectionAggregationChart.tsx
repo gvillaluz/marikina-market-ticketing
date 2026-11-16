@@ -28,8 +28,8 @@ export default function MarketSectionAggregationChart({
 
   return (
     <AnalyticsPanel
-      title="Market Section Aggregation"
-      subtitle="Warnings and tickets in each market section. Bar length is warnings plus tickets."
+      title="Market Street Aggregation"
+      subtitle="Warnings and tickets in each market street. Bar length is warnings plus tickets."
       skeletonVariant="chart"
       isLoading={isLoading}
       isError={isError}
@@ -55,7 +55,7 @@ export default function MarketSectionAggregationChart({
             </strong>
           </div>
         ))}
-        {rows.length === 0 && <p className={styles.empty}>No market section data available.</p>}
+        {rows.length === 0 && <p className={styles.empty}>No market street data available.</p>}
       </div>
     </AnalyticsPanel>
   );
