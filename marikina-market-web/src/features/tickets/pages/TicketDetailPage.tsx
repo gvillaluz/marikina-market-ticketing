@@ -40,7 +40,6 @@ import { TicketModal } from "../../../components/ui/TicketModal/TicketModal";
 import { useTicketStatusSelection } from "../hooks/useTicketStatusSelection";
 import { useDisclosure } from "../hooks/useDisclosure";
 import { getApiErrorMessage } from "@/utils/apiErrors";
-import PersonTicketHistory from "../components/PersonTicketHistory";
 import TicketChangeHistory from "../components/detail/TicketChangeHistory";
 
 const TicketDetailPage: FC = () => {
@@ -125,7 +124,6 @@ const TicketDetailPage: FC = () => {
         lastUpdated={formatDateTime(ticket?.updatedAt || "")}
       />
 
-      {ticket.personId && <PersonTicketHistory personId={ticket.personId} />}
       <div className={styles.grid}>
         <DetailCard title="ENFORCER & VENDOR DETAILS" icon={User}>
           <div className={styles.fieldGrid}>

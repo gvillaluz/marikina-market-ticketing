@@ -132,6 +132,22 @@ test('ticket page shows the unregistered vendor, its market section and place', 
   assert.ok(!html.includes('BUSINESS ACCOUNT NUMBER') && !html.includes('BUSINESS NAME') && !html.includes('REGISTERED OWNER'));
 });
 
+// The ticket page is for reviewing a ticket and changing its status, so it does not list the person's other tickets.
+// The person's history (here one other ticket, 000300) must not appear, but the page still names the confirmed person.
+test("ticket page does not show the person's citation history", async () => {
+  const other = { ticketId: 3, paperReference: '000300', controlNumber: '5', issuePlace: 'Palengke gate 2', paperViolatorName: 'Juan Cruz', ordinances: [],
+    issuedAt: '2026-11-01T02:00:00Z', status: 'Pending', enforcerName: 'Santos', assessedCashFine: null, outstandingCashFine: 0,
+    businessName: 'Aling Nena', registeredOwnerName: null, businessSnapshot: null };
+  globalThis.personHistoryState = { isPending: false, isError: false, items: [other], hasNextPage: false };
+  globalThis.detailPageState = { ticket: detail, refetch: () => {}, isLoading: false, isError: false, error: null };
+  globalThis.ticketModalState = { ticket: detail, isLoading: false, isError: false, isTicket: true, ticketPaperRef: null, busyAction: null, exportError: null };
+  const html = text(render(await component('features/tickets/pages/TicketDetailPage.tsx'), {}));
+  assert.ok(!html.includes('Person citation history'));
+  assert.ok(!html.includes('000300'));
+  assert.ok(html.includes('CONFIRMED PERSON'));
+  assert.ok(html.includes('Juan Cruz'));
+});
+
 test('person history names an unregistered vendor and still flags an old record', async () => {
   const item = { ticketId: 11, paperReference: '000456', controlNumber: '5', issuePlace: 'Palengke gate 2', paperViolatorName: 'Juan Cruz', ordinances: [],
     issuedAt: '2026-11-08T02:00:00Z', status: 'Pending', enforcerName: 'Santos', assessedCashFine: null, outstandingCashFine: 0,
