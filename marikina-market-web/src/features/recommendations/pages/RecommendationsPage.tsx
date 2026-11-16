@@ -5,6 +5,7 @@ import SkeletonBlock from "@/components/ui/Skeleton/SkeletonBlock";
 import DismissConfirm from "../components/DismissConfirm";
 import RecommendationCard from "../components/RecommendationCard";
 import RunSummary from "../components/RunSummary";
+import SectionList from "../components/SectionList";
 import SectionsWithoutRecommendation from "../components/SectionsWithoutRecommendation";
 import { useRecommendationReview } from "../hooks/useRecommendationReview";
 import { useRecommendationsPage } from "../hooks/useRecommendationsPage";
@@ -13,8 +14,11 @@ import styles from "./RecommendationsPage.module.css";
 export default function RecommendationsPage() {
   const {
     data,
-    openCards,
-    dismissedCards,
+    sections,
+    selected,
+    detailRef,
+    openSection,
+    keepOpen,
     isLoading,
     isError,
     errorMessage,
@@ -28,12 +32,12 @@ export default function RecommendationsPage() {
 
       {isLoading ? (
         <div
-          className={styles.cards}
+          className={styles.layout}
           role="status"
           aria-label="Loading recommended actions"
         >
           <SkeletonBlock height="220px" radius="6px" />
-          <SkeletonBlock height="220px" radius="6px" />
+          <SkeletonBlock height="420px" radius="6px" />
         </div>
       ) : isError ? (
         <div className={styles.error} role="alert">
@@ -56,46 +60,36 @@ export default function RecommendationsPage() {
               {decision.errorMessage}
             </p>
           )}
-          {data.recommendations.length === 0 ? (
+          {selected ? (
+            <div className={styles.layout}>
+              <SectionList
+                sections={sections}
+                selectedId={selected.id}
+                onSelect={openSection}
+              />
+              <div ref={detailRef} className={styles.detail}>
+                <RecommendationCard
+                  recommendation={selected}
+                  isSaving={decision.savingId === selected.id}
+                  onReview={(id) => {
+                    keepOpen(id);
+                    decision.review(id);
+                  }}
+                  onDismiss={(recommendation) => {
+                    keepOpen(recommendation.id);
+                    decision.askToDismiss(recommendation);
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
             <p className={styles.message}>
               No section has a recommendation for this period.
             </p>
-          ) : openCards.length === 0 ? (
-            <p className={styles.message}>
-              Every recommendation has been dismissed.
-            </p>
-          ) : (
-            <div className={styles.cards}>
-              {openCards.map((recommendation) => (
-                <RecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  isSaving={decision.savingId === recommendation.id}
-                  onReview={decision.review}
-                  onDismiss={decision.askToDismiss}
-                />
-              ))}
-            </div>
           )}
           <SectionsWithoutRecommendation
             sectionNames={data.sectionsWithoutRecommendation}
           />
-          {dismissedCards.length > 0 && (
-            <section className={styles.dismissed}>
-              <h2 className={styles.heading}>Dismissed</h2>
-              <div className={styles.cards}>
-                {dismissedCards.map((recommendation) => (
-                  <RecommendationCard
-                    key={recommendation.id}
-                    recommendation={recommendation}
-                    isSaving={decision.savingId === recommendation.id}
-                    onReview={decision.review}
-                    onDismiss={decision.askToDismiss}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
         </>
       )}
 

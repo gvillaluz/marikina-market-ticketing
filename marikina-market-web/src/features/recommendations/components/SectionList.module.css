@@ -1,0 +1,41 @@
+.list {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-xs) var(--space-md);
+}
+
+.heading {
+  font-size: var(--market-font-size-heading);
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.summary {
+  font-size: var(--market-font-size-small);
+  color: var(--text-body);
+}
+
+.rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Between phone and desktop the list sits above the card, so use the width. */
+@media (min-width: 600px) and (max-width: 1099px) {
+  .rows {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

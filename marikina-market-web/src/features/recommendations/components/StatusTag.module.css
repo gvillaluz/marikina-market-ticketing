@@ -1,0 +1,21 @@
+.tag {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--market-font-size-small);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.needsReview {
+  color: var(--records-info-text);
+}
+
+.reviewed {
+  color: var(--records-success-text);
+}
+
+.dismissed {
+  color: var(--text-body);
+}

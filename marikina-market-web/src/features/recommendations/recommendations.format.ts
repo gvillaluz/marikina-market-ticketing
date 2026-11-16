@@ -1,11 +1,14 @@
 import type {
   RecommendationReview,
   RecommendationsResponse,
+  SectionRecommendation,
 } from "@/api/types/recommendations.types";
 
 const MANILA_TIME_ZONE = "Asia/Manila";
 
 export type RiskTone = "high" | "moderate" | "neutral";
+
+export type ReviewStatus = "Needs review" | "Reviewed" | "Dismissed";
 
 function manilaParts(iso: string, options: Intl.DateTimeFormatOptions) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -34,8 +37,12 @@ export function formatManilaDateTime(iso: string): string {
   return `${formatManilaDate(iso)}, ${part("hour")}:${part("minute")} ${part("dayPeriod")}`;
 }
 
+export function recordWord(count: number): string {
+  return count === 1 ? "record" : "records";
+}
+
 export function recordCountText(count: number): string {
-  return `${count} ${count === 1 ? "record" : "records"}`;
+  return `${count} ${recordWord(count)}`;
 }
 
 export function peakHours(startHour: number): number[] {
@@ -54,6 +61,43 @@ export function riskTone(riskLevel: string): RiskTone {
   if (riskLevel === "High") return "high";
   if (riskLevel === "Moderate") return "moderate";
   return "neutral";
+}
+
+export function reviewStatus(review: RecommendationReview | null): ReviewStatus {
+  return review?.decision ?? "Needs review";
+}
+
+function isDismissed(card: SectionRecommendation): boolean {
+  return card.review?.decision === "Dismissed";
+}
+
+// The server sends the highest risk first; dismissed sections go to the bottom.
+export function inListOrder(
+  recommendations: SectionRecommendation[],
+): SectionRecommendation[] {
+  return [
+    ...recommendations.filter((card) => !isDismissed(card)),
+    ...recommendations.filter(isDismissed),
+  ];
+}
+
+export function sectionToOpen(
+  sections: SectionRecommendation[],
+  selectedId: number | null,
+): SectionRecommendation | null {
+  return (
+    sections.find((card) => card.id === selectedId) ??
+    sections.find((card) => !card.review) ??
+    sections[0] ??
+    null
+  );
+}
+
+export function statusSummary(sections: SectionRecommendation[]): string {
+  const count = (status: ReviewStatus) =>
+    sections.filter((card) => reviewStatus(card.review) === status).length;
+  const open = count("Needs review");
+  return `${open} ${open === 1 ? "needs" : "need"} review · ${count("Reviewed")} reviewed · ${count("Dismissed")} dismissed`;
 }
 
 export function withReview(
