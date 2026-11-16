@@ -3,6 +3,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
+import SearchHighlight from "@/components/ui/SearchHighlight";
 import Table, { type Column } from "@/components/ui/Table";
 import type { AdminVendorInspection } from "@/api/types/admin-vendor.types";
 import { formatControlNumber, formatDateTime } from "@/utils/formatters";
@@ -80,7 +81,14 @@ export default function AdminVendorInspectionHistory({
       align: "left",
       render: (inspection) => (
         <strong className={styles.controlNumber}>
-          {isWarning(inspection) ? "—" : formatControlNumber(inspection.controlNumber)}
+          {isWarning(inspection) ? (
+            "—"
+          ) : (
+            <SearchHighlight
+              text={formatControlNumber(inspection.controlNumber)}
+              search={search}
+            />
+          )}
           {!isWarning(inspection) && <><br />{inspection.businessSnapshot?.businessName || "Historical business details unavailable."}</>}
         </strong>
       ),
@@ -118,7 +126,15 @@ export default function AdminVendorInspectionHistory({
       header: "ORDINANCE(S)",
       width: "15%",
       align: "left",
-      render: (inspection) => inspection.ordinanceNumbers.join(", ") || "—",
+      render: (inspection) =>
+        inspection.ordinanceNumbers.length ? (
+          <SearchHighlight
+            text={inspection.ordinanceNumbers.join(", ")}
+            search={search}
+          />
+        ) : (
+          "—"
+        ),
     },
     {
       key: "enforcerName",

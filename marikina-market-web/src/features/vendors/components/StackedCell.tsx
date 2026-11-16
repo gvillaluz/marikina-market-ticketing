@@ -1,8 +1,9 @@
+import type { ReactNode } from "react";
 import styles from "./StackedCell.module.css";
 
 interface StackedCellProps {
-  primary: string;
-  secondary: string;
+  primary: ReactNode;
+  secondary: ReactNode;
 }
 
 export default function StackedCell({ primary, secondary }: StackedCellProps) {

@@ -59,7 +59,7 @@ const unavailable = 'Historical business details unavailable.';
 
 test('ticket list shows business name, registered owner and violator as separate columns', () => {
   const html = renderToStaticMarkup(React.createElement(MemoryRouter, null,
-    React.createElement(TicketList, { tickets: [ticket, legacyTicket], onView: () => {} })));
+    React.createElement(TicketList, { tickets: [ticket, legacyTicket], search: '', onView: () => {} })));
   const shown = headers(html);
   for (const header of ['Business name', 'Registered owner', 'Violator']) assert.ok(shown.includes(header), header);
   assert.ok(!shown.includes('Recorded violator'));
@@ -74,7 +74,7 @@ test('inspection table shows business name, registered owner and violator for ti
   const warningRow = { ...common, ticketId: 52, type: 'Warning', businessSnapshot: null, paperReference: null, personFullName: 'Ana Lopez', registeredOwnerName: 'Pedro Lopez', businessName: 'Lopez Vegetables', marketSectionName: 'Vegetable Section' };
   const legacyRow = { ...legacyTicket, ticketId: 7, type: 'Ticket', businessName: 'Current Registry Name' };
   const html = renderToStaticMarkup(React.createElement(InspectionTable, {
-    rows: [ticketRow, warningRow, legacyRow], isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {},
+    rows: [ticketRow, warningRow, legacyRow], search: '', isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {},
   }));
   const shown = headers(html);
   for (const header of ['Business name', 'Registered owner', 'Violator']) assert.ok(shown.includes(header), header);
@@ -91,10 +91,54 @@ const lines = (html, label) =>
 
 test('both tables show Issued at as the date above the time', () => {
   const tickets = renderToStaticMarkup(React.createElement(MemoryRouter, null,
-    React.createElement(TicketList, { tickets: [ticket], onView: () => {} })));
+    React.createElement(TicketList, { tickets: [ticket], search: '', onView: () => {} })));
   const inspections = renderToStaticMarkup(React.createElement(InspectionTable, {
-    rows: [{ ...ticket, ticketId: 41, type: 'Ticket' }], isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {},
+    rows: [{ ...ticket, ticketId: 41, type: 'Ticket' }], search: '', isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {},
   }));
   assert.deepEqual(lines(tickets, 'Issued at'), [['Oct 30, 2026', '10:15 AM']]);
   assert.deepEqual(lines(inspections, 'Issued at'), [['Oct 30, 2026', '10:15 AM']]);
+});
+
+// The text that matches the search is highlighted in the columns the server searches, and only on screen.
+const marked = (html, label) =>
+  [...html.matchAll(new RegExp(`<td[^>]*data-label="${label}"[^>]*>([^]*?)</td>`, 'g'))]
+    .map(m => [...m[1].matchAll(/<mark[^>]*>([^<]*)<\/mark>/g)].map(s => s[1]));
+const { TICKET_COLUMNS } = await import(await load(path.join(src, 'features/tickets/ticketColumns.ts')));
+const { INSPECTION_COLUMNS } = await import(await load(path.join(src, 'features/inspections/inspections.utils.ts')));
+const renderTickets = search => renderToStaticMarkup(React.createElement(MemoryRouter, null,
+  React.createElement(TicketList, { tickets: [ticket, legacyTicket], search, onView: () => {} })));
+const warningRow = { ...common, ticketId: 52, type: 'Warning', businessSnapshot: null, paperReference: null, personFullName: 'Ana Lopez', registeredOwnerName: 'Pedro Lopez', businessName: 'Lopez Vegetables', marketSectionName: 'Vegetable Section' };
+const renderInspections = search => renderToStaticMarkup(React.createElement(InspectionTable, {
+  rows: [{ ...ticket, ticketId: 41, type: 'Ticket', businessName: 'Current Registry Name' }, warningRow],
+  search, isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {},
+}));
+
+test('ticket table highlights the search in the columns it searches, in any capital letters', () => {
+  assert.deepEqual(marked(renderTickets('CRUZ'), 'Registered owner'), [['Cruz'], []]);
+  assert.deepEqual(marked(renderTickets('reyes'), 'Violator'), [['Reyes'], []]);
+  assert.deepEqual(marked(renderTickets('santos'), 'Enforcer'), [['Santos'], ['Santos']]);
+  assert.deepEqual(marked(renderTickets('fresh fish'), 'Business name'), [['Fresh Fish'], []]);
+  assert.deepEqual(marked(renderTickets('41'), 'Control number'), [['41'], []]);
+});
+
+test('ticket table does not highlight columns the search does not look at, and clearing the search removes every highlight', () => {
+  const html = renderTickets('fish');
+  assert.deepEqual(marked(html, 'Market street'), [[], []]); // "Fish Section" is not searched
+  assert.deepEqual(marked(html, 'Status'), [[], []]);
+  assert.ok(!renderTickets('').includes('<mark'));
+});
+
+test('inspection table highlights the search in the columns it searches, for tickets and warnings', () => {
+  const html = renderInspections('lopez');
+  assert.deepEqual(marked(html, 'Violator'), [[], ['Lopez']]);
+  assert.deepEqual(marked(html, 'Registered owner'), [[], ['Lopez']]);
+  assert.deepEqual(marked(html, 'Business name'), [[], ['Lopez']]);
+  assert.deepEqual(marked(renderInspections('SANTOS'), 'Enforcer'), [['Santos'], ['Santos']]);
+  assert.deepEqual(marked(renderInspections('section'), 'Market street'), [[], []]); // not searched
+  assert.ok(!renderInspections('').includes('<mark'));
+});
+
+test('export and print columns stay plain text with no highlight', () => {
+  for (const column of TICKET_COLUMNS) assert.ok(!String(column.value(ticket)).includes('<mark'), column.key);
+  for (const column of INSPECTION_COLUMNS) assert.ok(!String(column.value({ ...ticket, ticketId: 41, type: 'Ticket' })).includes('<mark'), column.key);
 });

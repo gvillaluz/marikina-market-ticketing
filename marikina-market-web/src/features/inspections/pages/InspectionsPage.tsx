@@ -64,6 +64,7 @@ export function InspectionsPage() {
         </RecordsToolbar>
         <InspectionTable
           rows={page.inspections}
+          search={page.filters.search}
           isLoading={page.isLoading}
           isError={page.isError}
           errorMessage={page.errorMessage}

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import SearchHighlight from "@/components/ui/SearchHighlight";
 import Table from "@/components/ui/Table";
 import {
   RecordBadge,
@@ -12,14 +13,24 @@ import { TICKET_COLUMNS } from "../ticketColumns";
 
 const BADGE_COLUMNS = new Set(["status", "severity"]);
 const CENTERED_COLUMNS = new Set(["status", "penaltyType", "severity"]);
+// The columns the ticket search looks at; the search text is highlighted in these.
+const SEARCHED_COLUMNS = new Set([
+  "controlNumber",
+  "violator",
+  "enforcer",
+  "businessName",
+  "registeredOwner",
+]);
 
 interface TicketListProps {
   tickets: TicketSummary[];
+  search: string;
   loading?: boolean;
   onView: (ticketId: number) => void;
 }
 export default function TicketList({
   tickets,
+  search,
   loading,
   onView,
 }: TicketListProps) {
@@ -44,6 +55,8 @@ export default function TicketList({
               <RecordBadge value={column.value(ticket)} />
             ) : column.key === "issuedAt" ? (
               <RecordDateTime value={ticket.issuedAt} />
+            ) : SEARCHED_COLUMNS.has(column.key) ? (
+              <SearchHighlight text={column.value(ticket)} search={search} />
             ) : (
               column.value(ticket)
             ),

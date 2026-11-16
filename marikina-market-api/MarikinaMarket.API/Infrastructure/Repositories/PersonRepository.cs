@@ -2,6 +2,7 @@ using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace MarikinaMarket.API.Infrastructure.Repositories;
 
@@ -14,14 +15,23 @@ public class PersonRepository(AppDbContext context) : IPersonRepository
     public async Task<(List<Person> Items, int Total)> SearchAsync(string? search, int offset, int limit)
     {
         var query = context.Persons.AsNoTracking();
-        if (!string.IsNullOrWhiteSpace(search))
+        IOrderedQueryable<Person> ordered;
+        if (string.IsNullOrWhiteSpace(search))
+            ordered = query.OrderBy(p => p.FullName).ThenBy(p => p.Id);
+        else
         {
             var term = search.ToLowerInvariant();
             query = query.Where(p => p.FullName.ToLower().Contains(term) || p.Address.ToLower().Contains(term)
                 || (p.PhoneNumber != null && p.PhoneNumber.Contains(term)));
+            var pattern = WholeWordSearch.Pattern(search);
+            ordered = query
+                .OrderBy(p => Regex.IsMatch(p.FullName, pattern, RegexOptions.IgnoreCase)
+                    || Regex.IsMatch(p.Address, pattern, RegexOptions.IgnoreCase)
+                    || (p.PhoneNumber != null && Regex.IsMatch(p.PhoneNumber, pattern, RegexOptions.IgnoreCase)) ? 0 : 1)
+                .ThenBy(p => p.FullName).ThenBy(p => p.Id);
         }
         var total = await query.CountAsync();
-        var items = await query.OrderBy(p => p.FullName).ThenBy(p => p.Id).Skip(offset).Take(limit).ToListAsync();
+        var items = await ordered.Skip(offset).Take(limit).ToListAsync();
         return (items, total);
     }
 

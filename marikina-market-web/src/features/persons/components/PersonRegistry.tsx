@@ -1,4 +1,5 @@
 import Button from "@/components/ui/Button";
+import SearchHighlight from "@/components/ui/SearchHighlight";
 import Table, { type Column } from "@/components/ui/Table";
 import {
   RecordActions,
@@ -18,13 +19,32 @@ export default function PersonRegistry(
   state: ReturnType<typeof usePersonsPage>,
 ) {
   const columns: Column<PersonRecord>[] = [
-    { key: "fullName", header: "Full name", width: "22%" },
-    { key: "address", header: "Address", width: "34%" },
+    {
+      key: "fullName",
+      header: "Full name",
+      width: "22%",
+      render: (person) => (
+        <SearchHighlight text={person.fullName} search={state.search} />
+      ),
+    },
+    {
+      key: "address",
+      header: "Address",
+      width: "34%",
+      render: (person) => (
+        <SearchHighlight text={person.address} search={state.search} />
+      ),
+    },
     {
       key: "phoneNumber",
       header: "Phone",
       width: "15%",
-      render: (person) => person.phoneNumber || "—",
+      render: (person) =>
+        person.phoneNumber ? (
+          <SearchHighlight text={person.phoneNumber} search={state.search} />
+        ) : (
+          "—"
+        ),
     },
     {
       key: "createdAt",

@@ -413,9 +413,9 @@ test("ticket and inspection exports use exactly the on-screen columns, without A
     vendorId: null, marketSectionName: "Fish Section", status: "Pending", severity: "Minor",
     penaltyType: "CashFine", type: "Ticket", paperViolatorName: "Jun Reyes", issuedAt: "2026-11-10T03:00:00Z",
   };
-  const ticketHtml = renderToStaticMarkup(React.createElement(TicketList, { tickets: [row], onView() {} }));
+  const ticketHtml = renderToStaticMarkup(React.createElement(TicketList, { tickets: [row], search: "", onView() {} }));
   const inspectionHtml = renderToStaticMarkup(React.createElement(InspectionTable, {
-    rows: [row], isLoading: false, isError: false, errorMessage: "", onRetry() {}, onView() {},
+    rows: [row], search: "", isLoading: false, isError: false, errorMessage: "", onRetry() {}, onView() {},
   }));
   assert.deepEqual(plain(TICKET_COLUMNS.map((c) => c.header)), [
     "Control number", "Enforcer", "Business name", "Registered owner", "Violator",

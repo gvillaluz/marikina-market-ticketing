@@ -1,3 +1,4 @@
+import SearchHighlight from "@/components/ui/SearchHighlight";
 import Table from "@/components/ui/Table";
 import {
   RecordBadge,
@@ -9,8 +10,18 @@ import type { InspectionSummary } from "@/api/types/ticket.types";
 import { INSPECTION_COLUMNS } from "../inspections.utils";
 import styles from "./InspectionTable.module.css";
 
+// The columns the inspection search looks at; the search text is highlighted in these.
+const SEARCHED_COLUMNS = new Set([
+  "controlNumber",
+  "violator",
+  "enforcer",
+  "businessName",
+  "registeredOwner",
+]);
+
 interface InspectionTableProps {
   rows: InspectionSummary[];
+  search: string;
   isLoading: boolean;
   isError: boolean;
   errorMessage: string;
@@ -19,6 +30,7 @@ interface InspectionTableProps {
 }
 export function InspectionTable({
   rows,
+  search,
   isLoading,
   isError,
   errorMessage,
@@ -49,6 +61,8 @@ export function InspectionTable({
                   <RecordBadge value={column.value(row)} />
                 ) : column.key === "issuedAt" ? (
                   <RecordDateTime value={row.issuedAt} />
+                ) : SEARCHED_COLUMNS.has(column.key) ? (
+                  <SearchHighlight text={column.value(row)} search={search} />
                 ) : (
                   column.value(row)
                 ),
