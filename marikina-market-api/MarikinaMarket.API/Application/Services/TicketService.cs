@@ -1391,7 +1391,7 @@ namespace MarikinaMarket.API.Application.Services
             if (hasMore)
                 inspections.RemoveAt(inspections.Count - 1);
 
-            var totalCount = await _ticketRepository.GetTotalTicketCountAsync(ViolationType.Ticket);
+            var totalCount = await _ticketRepository.GetAdminTicketCountAsync(filters);
 
             var inspectionResponse = inspections.Select(t => new AdminTicketSummary
             {

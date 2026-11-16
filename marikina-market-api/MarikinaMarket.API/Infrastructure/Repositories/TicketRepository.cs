@@ -70,15 +70,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 }).ToListAsync();
         }
 
-        public async Task<int> GetTotalTicketCountAsync(ViolationType? type)
-        {
-            var query = _context.Tickets.AsQueryable();
-
-            if (type.HasValue)
-                query = query.Where(t => t.Type == type.Value);
-
-            return await query.CountAsync();
-        }
+        public Task<int> GetAdminTicketCountAsync(TicketSummaryFilters filters)
+            => ApplyAdminTicketFilters(_context.Tickets, filters).CountAsync();
 
         public async Task<int> GetTotalTicketCountForPeriodAsync(
             DateTime start,
@@ -696,10 +689,11 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return query;
         }
 
-        public async Task<List<AdminTicketSummary>> GetAdminTicketAsync(int offset, int limit, TicketSummaryFilters filters)
+        private static IQueryable<Ticket> ApplyAdminTicketFilters(
+            IQueryable<Ticket> query,
+            TicketSummaryFilters filters)
         {
-            var query = _context.Tickets
-                .Where(t => t.Type == ViolationType.Ticket);
+            query = query.Where(t => t.Type == ViolationType.Ticket);
 
             if (filters.Status.HasValue)
                 query = query.Where(t => t.Status == filters.Status.Value);
@@ -720,6 +714,13 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     (t.Vendor != null && t.Vendor.BusinessName.ToLower().Contains(search)) ||
                     (t.Vendor != null && t.Vendor.BusinessAccountNumber.ToLower().Contains(search)));
             }
+
+            return query;
+        }
+
+        public async Task<List<AdminTicketSummary>> GetAdminTicketAsync(int offset, int limit, TicketSummaryFilters filters)
+        {
+            var query = ApplyAdminTicketFilters(_context.Tickets, filters);
 
             var ordered = string.IsNullOrWhiteSpace(filters.Search)
                 ? query.OrderByDescending(t => t.IssuedAt)
