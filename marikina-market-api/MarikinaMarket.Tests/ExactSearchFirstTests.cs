@@ -17,7 +17,7 @@ namespace MarikinaMarket.Tests;
 // the whole-word rule the same way; the live check does.
 public class ExactSearchFirstTests
 {
-    private static readonly MarketSection Section = new() { Id = 1, Name = "Dry Goods", Description = "Synthetic" };
+    private static readonly MarketSection Section = new() { Id = 1, Name = "Dry Goods" };
     private static readonly User Enforcer = new()
     {
         Id = 50, FirstName = "Pedro", LastName = "Santos", DateOfBirth = new(1990, 1, 1),
