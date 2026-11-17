@@ -65,7 +65,7 @@ export default function ChangePasswordPage() {
         <ArrowLeft size={15} aria-hidden="true" />
         Back to sign in
       </button>
-      <h2 className={styles.heading}>CHANGE PASSWORD</h2>
+      <h2 className={styles.heading}>Change password</h2>
       <p className={styles.description}>
         For your security, change the temporary password you were given before
         you continue.
