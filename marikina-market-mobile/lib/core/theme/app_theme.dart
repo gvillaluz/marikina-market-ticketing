@@ -464,6 +464,12 @@ class AppTheme {
   static const authLogoutMaxWidth = 280.0;
   static const authLogoutIndicatorSize = 32.0;
   static const authBodyStyle = bodyTextStyle;
+  // Darker than primaryGreen so small text keeps a 4.5:1 contrast on white.
+  static const authRuleMetColor = Color(0xFF16803C);
+  static const authRuleMarkSize = 18.0;
+  static const authRuleCheckSize = 12.0;
+  static const authRuleMarkBorderWidth = 1.5;
+  static const authRuleGap = 4.0;
 
   static BoxDecoration authCardDecoration(BuildContext context) =>
       BoxDecoration(

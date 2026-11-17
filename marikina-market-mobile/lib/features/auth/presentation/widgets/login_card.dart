@@ -92,7 +92,7 @@ class _LoginCardState extends State<LoginCard> {
                     AuthBtn(
                       isLoading: state is AuthLoginLoading,
                       onPressed: _submit,
-                      label: 'LOGIN',
+                      label: 'Log in',
                     ),
 
                     const SizedBox(height: 10),
@@ -105,7 +105,7 @@ class _LoginCardState extends State<LoginCard> {
                     if (state is Unauthenticated && state.sessionExpired)
                       const AuthErrorNotice(
                         message:
-                            'Your session has expired. Please sign in again.',
+                            'Your session has expired. Please log in again.',
                       ),
                   ],
                 ),

@@ -75,7 +75,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       rethrow;
     } catch (_) {
       throw CacheException(
-        'Unable to read your saved profile. Please sign in again.',
+        'Unable to read your saved profile. Please log in again.',
       );
     }
   }

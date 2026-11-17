@@ -39,7 +39,7 @@ class LoginOtpHeading extends StatelessWidget {
                   color: AppTheme.authVerificationTitleColor,
                 ),
               ),
-              const TextSpan(text: ' to finish signing in.'),
+              const TextSpan(text: ' to finish logging in.'),
             ],
           ),
           textAlign: TextAlign.start,

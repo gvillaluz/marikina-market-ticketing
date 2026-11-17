@@ -108,8 +108,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final status = error.response?.statusCode;
     if (status == 400 || status == 403 || status == 423) {
       throw UnauthorizedException(
-        message ??
-            'Unable to sign in. Please check your details and try again.',
+        message ?? 'Unable to log in. Please check your details and try again.',
       );
     }
     if (error.type == DioExceptionType.connectionTimeout ||

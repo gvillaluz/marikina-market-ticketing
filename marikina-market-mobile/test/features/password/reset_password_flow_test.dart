@@ -173,10 +173,13 @@ void main() {
         ),
       ),
     );
-    expect(
-      find.text('At least 8 characters, with a number and a capital letter.'),
-      findsOneWidget,
-    );
+    for (final rule in [
+      'At least 8 characters',
+      'A number',
+      'A capital letter',
+    ]) {
+      expect(find.text(rule), findsOneWidget);
+    }
     await tester.enterText(find.byType(TextField).at(0), '  Abcdefg1');
     await tester.enterText(find.byType(TextField).at(1), '  Abcdefg1');
     final submit = find.text('Change Password');

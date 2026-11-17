@@ -112,7 +112,7 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
                     AuthBtn(
                       isLoading: state is AuthChangePasswordLoading,
                       onPressed: _submit,
-                      label: 'SAVE PASSWORD',
+                      label: 'Save password',
                     ),
 
                     const SizedBox(height: 10),

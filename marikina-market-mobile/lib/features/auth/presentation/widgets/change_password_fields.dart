@@ -1,6 +1,7 @@
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/password_rule_checklist.dart';
 import 'package:marikina_market_mobile/core/utils/password_change_check.dart';
 
 class ChangePasswordFields extends StatefulWidget {
@@ -116,13 +117,7 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
           ),
 
           const SizedBox(height: 7),
-          const Text(
-            PasswordChangeCheck.hint,
-            style: TextStyle(
-              color: AppColors.mediumGrey,
-              fontSize: AppTheme.bodyFontSize,
-            ),
-          ),
+          PasswordRuleChecklist(controller: widget.newPasswordController),
 
           const SizedBox(height: 20),
 

@@ -214,7 +214,7 @@ void main() {
         for (var i = 0; i < values.length; i++) {
           await tester.enterText(find.byType(TextField).at(i), values[i]);
         }
-        final submit = find.text(mandatory ? 'SAVE PASSWORD' : 'LOGIN');
+        final submit = find.text(mandatory ? 'Save password' : 'Log in');
         await tester.ensureVisible(submit);
         await tester.runAsync(() async {
           final failed = auth.stream.firstWhere(
@@ -396,14 +396,14 @@ void main() {
         ),
       );
       await tester.enterText(find.byType(EditableText), '001234');
-      await tester.ensureVisible(find.text('Verify & sign in'));
+      await tester.ensureVisible(find.text('Verify and log in'));
       await tester.runAsync(() async {
         final failed = auth.stream.firstWhere(
           (state) =>
               state is LoginOtpPending &&
               state.message == 'Incorrect code. Try again.',
         );
-        await tester.tap(find.text('Verify & sign in'));
+        await tester.tap(find.text('Verify and log in'));
         await failed;
       });
       await tester.pumpAndSettle();

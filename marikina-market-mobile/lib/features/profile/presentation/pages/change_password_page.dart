@@ -75,7 +75,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    'Password successfully changed. Please login again.',
+                    'Password successfully changed. Please log in again.',
                   ),
                   backgroundColor: AppColors.primary,
                 ),

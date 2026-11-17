@@ -216,7 +216,7 @@ void main() {
         expect(find.textContaining('e***@example.com'), findsOneWidget);
         expect(
           find.text(
-            'Enter the 6-digit code sent to e***@example.com to finish signing in.',
+            'Enter the 6-digit code sent to e***@example.com to finish logging in.',
           ),
           findsOneWidget,
         );
@@ -225,8 +225,8 @@ void main() {
         expect(find.text('Resend in 00:30'), findsOneWidget);
         expect(tester.takeException(), isNull);
         await tester.enterText(find.byType(EditableText), '001234');
-        await tester.ensureVisible(find.text('Verify & sign in'));
-        await tester.tap(find.text('Verify & sign in'));
+        await tester.ensureVisible(find.text('Verify and log in'));
+        await tester.tap(find.text('Verify and log in'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 20));
         expect(submittedCode, '001234');
@@ -275,8 +275,8 @@ void main() {
         appRouter.router.routeInformationProvider.value.uri.path,
         Routes.loginOtp,
       );
-      await tester.ensureVisible(find.text('Back to login'));
-      await tester.tap(find.text('Back to login'));
+      await tester.ensureVisible(find.text('Back to log in'));
+      await tester.tap(find.text('Back to log in'));
       await tester.pumpAndSettle();
       expect(
         appRouter.router.routeInformationProvider.value.uri.path,
