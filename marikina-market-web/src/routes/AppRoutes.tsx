@@ -7,6 +7,7 @@ import {
   STAFF_ROLES,
   HEAD_ADMIN_ROLES,
 } from "@/api/types/common.types";
+import AuthLayout from "@/features/auth/components/AuthLayout";
 import AdminLoginPage from "@/features/auth/pages/AdminLoginPage";
 import LoginVerificationPage from "@/features/auth/pages/LoginVerificationPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
@@ -36,27 +37,29 @@ import { AdminPersonsPage } from "@/features/persons";
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public routes — kept unwrapped so they never require auth */}
-      <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
-      <Route
-        path={ROUTES.loginVerification}
-        element={<LoginVerificationPage />}
-      />
-      <Route
-        path={`${ROUTES.forgotPassword}/:step?`}
-        element={<ForgotPasswordPage />}
-      />
-
-      {/* Standalone change-password route — NOT nested in DashboardLayout,
-          so it renders full-screen without the sidebar, like the login pages */}
-      <Route
-        path={ROUTES.changePassword}
-        element={
-          <ProtectedRoute roles={STAFF_ROLES}>
-            <ChangePasswordPage />
-          </ProtectedRoute>
-        }
-      />
+      {/* Login pages share one frame (navy panel and card), so only the
+          card's content changes as people move between them. The public ones
+          never require auth; change-password is NOT nested in DashboardLayout,
+          so it renders without the sidebar, like the login pages */}
+      <Route element={<AuthLayout />}>
+        <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
+        <Route
+          path={ROUTES.loginVerification}
+          element={<LoginVerificationPage />}
+        />
+        <Route
+          path={`${ROUTES.forgotPassword}/:step?`}
+          element={<ForgotPasswordPage />}
+        />
+        <Route
+          path={ROUTES.changePassword}
+          element={
+            <ProtectedRoute roles={STAFF_ROLES}>
+              <ChangePasswordPage />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
 
       {/* Admin/Enforcer protected routes */}
       <Route

@@ -2,7 +2,6 @@ import { roleHomePath } from "@/utils/roles";
 import { FC } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import AuthLayout from "@/features/auth/components/AuthLayout";
 import LoginForm from "@/features/auth/components/LoginForm";
 import { useLogin } from "@/features/auth/hooks/useLogin";
 
@@ -14,11 +13,7 @@ const AdminLoginPage: FC = () => {
     return <Navigate to={roleHomePath(user.role)} replace />;
   }
 
-  return (
-    <AuthLayout>
-      <LoginForm {...login} />
-    </AuthLayout>
-  );
+  return <LoginForm {...login} />;
 };
 
 export default AdminLoginPage;

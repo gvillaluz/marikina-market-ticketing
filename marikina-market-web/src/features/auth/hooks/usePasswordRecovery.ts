@@ -8,6 +8,8 @@ import type { RecoveryChannel, RecoveryState } from "../recovery.types";
 
 type RecoveryStep = "find-account" | "options" | "verify" | "reset";
 
+const STEPS: RecoveryStep[] = ["find-account", "options", "verify", "reset"];
+
 function readFlow(value: unknown): RecoveryState {
   if (!value || typeof value !== "object") return {};
   const input = value as Record<string, unknown>;
@@ -69,6 +71,8 @@ export function usePasswordRecovery() {
     basePath,
     loginPath,
     step,
+    stepNumber: STEPS.indexOf(step) + 1,
+    stepCount: STEPS.length,
     accountLookup,
     lookupError,
     lookupLoading: query.isPending || query.isFetching,

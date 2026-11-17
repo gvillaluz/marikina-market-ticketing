@@ -1,11 +1,9 @@
-import { FC, ReactNode } from "react";
+import { FC } from "react";
+import { Outlet } from "react-router-dom";
 import { ChartColumn, ClipboardCheck, Store } from "lucide-react";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
+import { useAuthSlide } from "../hooks/useAuthSlide";
 import styles from "./AuthLayout.module.css";
-
-interface AuthLayoutProps {
-  children: ReactNode;
-}
 
 const features = [
   {
@@ -16,7 +14,8 @@ const features = [
   { Icon: ChartColumn, text: "Reports, analytics and a full audit trail" },
 ];
 
-const AuthLayout: FC<AuthLayoutProps> = ({ children }) => {
+const AuthLayout: FC = () => {
+  const slide = useAuthSlide();
   return (
     <div className={styles.page}>
       <div className={styles.panelBackground} aria-hidden="true">
@@ -55,7 +54,15 @@ const AuthLayout: FC<AuthLayoutProps> = ({ children }) => {
       </div>
 
       <main className={styles.content}>
-        <div className={styles.contentInner}>{children}</div>
+        <div className={styles.contentInner}>
+          <div
+            key={slide.pathname}
+            className={styles.slide}
+            data-direction={slide.direction ?? undefined}
+          >
+            <Outlet />
+          </div>
+        </div>
       </main>
 
       <p className={styles.note}>
