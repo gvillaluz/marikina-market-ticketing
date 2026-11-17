@@ -62,6 +62,7 @@ One file per task, grouped by topic. These are the notes that used to sit in `ro
 - [Phase 2 revised verification](phases/phase-2-revised-verification.md) — closed 2026-11-17; criterion 3 with accepted limits
 - [Phase 3 revised criteria, business/person management and ticket tables](phases/phase-3-revised-criteria.md) — closed 2026-11-17
 - [Phase 4 backup criterion](phases/phase-4-backup.md)
+- [Phase 4 restore drill, slice 1](phases/phase-4-restore-drill.md) — passed 2026-11-17; the roadmap criterion stays open (outage and restart stories not run)
 
 ## resolved-backlog
 - [Analytics severity-count mismatch](resolved-backlog/analytics-severity-count-mismatch.md) — 2026-11-03
