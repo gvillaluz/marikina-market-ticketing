@@ -374,7 +374,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(
           AuthConnectionError(
             message.trim().isEmpty
-                ? 'A pending logout request was rejected. Please sign in again.'
+                ? 'A pending logout request was rejected. Please log in again.'
                 : message,
           ),
         );

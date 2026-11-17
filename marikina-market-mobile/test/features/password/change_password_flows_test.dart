@@ -294,20 +294,23 @@ void main() {
         await tester.enterText(find.byType(TextField).at(0), 'OldPass123');
         await tester.enterText(find.byType(TextField).at(1), newPassword);
         await tester.enterText(find.byType(TextField).at(2), confirm);
-        await tester.ensureVisible(find.text('SAVE PASSWORD'));
+        await tester.ensureVisible(find.text('Save password'));
         final sent = listenForRequest(
           tester,
           auth.stream,
           (s) => s is AuthChangePasswordError,
         );
-        await tester.tap(find.text('SAVE PASSWORD'));
+        await tester.tap(find.text('Save password'));
         expect(await sent, expected == 1);
         await tester.pump();
         expect(
           find.text(message ?? 'no message expected'),
           message == null ? findsNothing : findsOneWidget,
         );
-        expect(find.text(PasswordChangeCheck.hint), findsOneWidget);
+        expect(find.text(PasswordChangeCheck.hint), findsNothing);
+        for (final rule in PasswordChangeCheck.rules) {
+          expect(find.text(rule.label), findsOneWidget);
+        }
         expect(requests, expected);
       });
     }
@@ -357,9 +360,9 @@ void main() {
       );
     });
 
-    testWidgets('the button says SAVE PASSWORD', (tester) async {
+    testWidgets('the button says Save password', (tester) async {
       await pumpForced(tester);
-      expect(find.text('SAVE PASSWORD'), findsOneWidget);
+      expect(find.text('Save password'), findsOneWidget);
       expect(find.text('UPDATE PASSWORD'), findsNothing);
     });
 
@@ -368,18 +371,18 @@ void main() {
       await tester.enterText(find.byType(TextField).at(0), 'OldPass123');
       await tester.enterText(find.byType(TextField).at(1), 'NewPass123');
       await tester.enterText(find.byType(TextField).at(2), 'NewPass123');
-      await tester.ensureVisible(find.text('SAVE PASSWORD'));
+      await tester.ensureVisible(find.text('Save password'));
       final sent = listenForRequest(
         tester,
         auth.stream,
         (s) => s is AuthChangePasswordError,
       );
-      await tester.tap(find.text('SAVE PASSWORD'));
+      await tester.tap(find.text('Save password'));
       expect(await sent, isTrue);
       await tester.pump();
       expect(
         tester.getTopLeft(find.text('Incorrect password.')).dy,
-        greaterThan(tester.getBottomLeft(find.text('SAVE PASSWORD')).dy),
+        greaterThan(tester.getBottomLeft(find.text('Save password')).dy),
       );
     });
 

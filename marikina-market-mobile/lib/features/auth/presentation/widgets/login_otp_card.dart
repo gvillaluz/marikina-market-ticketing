@@ -77,7 +77,7 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
                 ],
                 const SizedBox(height: AppTheme.authGap),
                 AuthBtn(
-                  label: 'Verify & sign in',
+                  label: 'Verify and log in',
                   isLoading: state.isVerifying,
                   onPressed: state.canVerify
                       ? () => context.read<AuthBloc>().add(
@@ -131,7 +131,7 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
                     onPressed: state.isVerifying
                         ? null
                         : () => context.read<AuthBloc>().add(CancelLogin()),
-                    child: const Text('Back to login'),
+                    child: const Text('Back to log in'),
                   ),
                 ),
               ],

@@ -1,6 +1,7 @@
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/password_rule_checklist.dart';
 
 class ResetPasswordFields extends StatefulWidget {
   final TextEditingController newPasswordController;
@@ -59,6 +60,9 @@ class _ResetPasswordFieldsState extends State<ResetPasswordFields> {
             ),
           ),
         ),
+
+        const SizedBox(height: 7),
+        PasswordRuleChecklist(controller: widget.newPasswordController),
 
         const SizedBox(height: 20),
 

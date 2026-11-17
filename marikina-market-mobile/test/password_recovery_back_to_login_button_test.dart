@@ -40,7 +40,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(tester.getCenter(find.byType(TextButton)).dx, 140);
-    await tester.tap(find.text('Back to login'));
+    await tester.tap(find.text('Back to log in'));
     await tester.pumpAndSettle();
     expect(find.text('Login destination'), findsOneWidget);
     expect(router.canPop(), isFalse);
@@ -59,7 +59,7 @@ void main() {
       tester.widget<TextButton>(find.byType(TextButton)).onPressed,
       isNull,
     );
-    await tester.tap(find.text('Back to login'));
+    await tester.tap(find.text('Back to log in'));
     expect(tester.takeException(), isNull);
   });
 }

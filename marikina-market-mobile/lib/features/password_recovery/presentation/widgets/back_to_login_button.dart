@@ -12,7 +12,7 @@ class BackToLoginButton extends StatelessWidget {
     alignment: Alignment.center,
     child: TextButton(
       onPressed: enabled ? () => context.goNamed(Routes.loginName) : null,
-      child: const Text('Back to login'),
+      child: const Text('Back to log in'),
     ),
   );
 }

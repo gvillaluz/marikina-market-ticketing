@@ -1,6 +1,17 @@
+import 'package:marikina_market_mobile/core/utils/password_rule.dart';
+
 class PasswordChangeCheck {
   static const hint =
       'At least 8 characters, with a number and a capital letter.';
+
+  static final rules = [
+    PasswordRule('At least 8 characters', (value) => value.length >= 8),
+    PasswordRule('A number', (value) => value.contains(RegExp(r'[0-9]'))),
+    PasswordRule(
+      'A capital letter',
+      (value) => value.contains(RegExp(r'[A-Z]')),
+    ),
+  ];
 
   final String currentPassword;
   final String newPassword;
@@ -16,9 +27,7 @@ class PasswordChangeCheck {
       currentPassword.isEmpty ? 'Enter your current password.' : null;
 
   static String? newPasswordProblem(String value) =>
-      value.length >= 8 &&
-          value.contains(RegExp(r'[0-9]')) &&
-          value.contains(RegExp(r'[A-Z]'))
+      rules.every((rule) => rule.met(value))
       ? null
       : 'Use at least 8 characters, with a number and a capital letter.';
 

@@ -325,7 +325,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final tokens = await localDataSource.getTokens();
       if (!tokens.refreshTokenExpiration.isAfter(DateTime.now())) {
-        throw UnauthorizedException('Session expired. Please sign in again.');
+        throw UnauthorizedException('Session expired. Please log in again.');
       }
       final freshTokens = await remoteDataSource.refreshAuthTokens(
         tokens.refreshToken,
