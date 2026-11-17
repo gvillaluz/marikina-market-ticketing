@@ -285,3 +285,87 @@ test("the login form offers no account creation", () => {
   assert.match(html, /Forgot password\?/);
   assert.doesNotMatch(html, /Create one|have an account/);
 });
+
+// ---------------------------------------------------------------------------
+// Forgot-password steps in the login frame
+// ---------------------------------------------------------------------------
+
+function stepStub(step) {
+  return { default: () => React.createElement("div", { "data-step": step }) };
+}
+
+function renderForgotPasswordAt(step, state) {
+  const overrides = {
+    "@/assets/icons/Marikina_City_Seal.svg (1).webp": { default: "seal.webp" },
+    "@tanstack/react-query": {
+      useQuery: () => ({
+        data: undefined,
+        isError: false,
+        isPending: false,
+        isFetching: false,
+      }),
+    },
+    "@/api/endpoints/auth.api": { authApi: {} },
+    "@/features/auth/components/recovery/AccountLookupPage":
+      stepStub("find-account"),
+    "@/features/auth/components/recovery/RecoveryOptionsPage":
+      stepStub("options"),
+    "@/features/auth/components/recovery/VerifyCodePage": stepStub("verify"),
+    "@/features/auth/components/recovery/ResetPasswordPage": stepStub("reset"),
+  };
+  const { default: ForgotPasswordPage } = load(
+    "features/auth/pages/ForgotPasswordPage.tsx",
+    overrides,
+  );
+  return renderToStaticMarkup(
+    React.createElement(
+      StaticRouter,
+      { location: { pathname: `/admin/forgot-password/${step}`, state } },
+      React.createElement(
+        realRouter.Routes,
+        null,
+        React.createElement(realRouter.Route, {
+          path: "/admin/forgot-password/:step",
+          element: React.createElement(ForgotPasswordPage),
+        }),
+      ),
+    ),
+  );
+}
+
+test("the forgot-password page uses the login frame: navy panel, Head Admin note, no Admin Access", () => {
+  const html = renderForgotPasswordAt("find-account", null);
+  assert.match(html, /MARIKINA CITY · PUBLIC MARKET/);
+  assert.match(html, /Market inspections, tickets and records in one place\./);
+  assert.match(
+    html,
+    /Need an account\? Ask your Head Admin to add one for you\./,
+  );
+  assert.doesNotMatch(html, /Admin Access/);
+  assert.match(html, /<a[^>]*href="\/admin\/login"[^>]*>.*Back to Login<\/a>/);
+  assert.match(html, /data-step="find-account"/);
+});
+
+test("each forgot-password step shows in the frame with a heading in the Log in style", () => {
+  const steps = [
+    ["find-account", null, "Find your account"],
+    ["options", { username: "ADM9012-2026" }, "Forgot password"],
+    [
+      "verify",
+      { username: "ADM9012-2026", channel: "email", maskedEmail: "a***@x.com" },
+      "Check your email",
+    ],
+    [
+      "reset",
+      { username: "ADM9012-2026", resetToken: "token-123" },
+      "Create new password",
+    ],
+  ];
+  for (const [step, state, heading] of steps) {
+    const html = renderForgotPasswordAt(step, state);
+    assert.match(html, new RegExp(`data-step="${step}"`), step);
+    assert.match(html, new RegExp(`<h2[^>]*>${heading}</h2>`), step);
+    assert.doesNotMatch(html, new RegExp(heading.toUpperCase()), step);
+    assert.match(html, /MARIKINA CITY · PUBLIC MARKET/, step);
+  }
+});

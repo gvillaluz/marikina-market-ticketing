@@ -87,10 +87,10 @@ export function usePasswordRecovery() {
       (step === "verify" && (!flow.username || !flow.channel)) ||
       (step === "reset" && (!flow.username || !flow.resetToken)),
     title: {
-      "find-account": "FIND YOUR ACCOUNT",
-      options: "FORGOT PASSWORD",
-      verify: flow.channel === "sms" ? "CHECK YOUR SMS" : "CHECK YOUR EMAIL",
-      reset: "CREATE NEW PASSWORD",
+      "find-account": "Find your account",
+      options: "Forgot password",
+      verify: flow.channel === "sms" ? "Check your SMS" : "Check your email",
+      reset: "Create new password",
     }[step],
     stepKey: `${step}-${flow.username ?? ""}-${flow.channel ?? ""}`,
     headingRef,
