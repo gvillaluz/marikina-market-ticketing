@@ -68,6 +68,7 @@
     color-mix(in srgb, var(--primary) 14%, transparent);
   --form-error-surface: color-mix(in srgb, var(--danger) 6%, var(--bg-surface));
   --form-motion-duration: 280ms;
+  --form-motion-leave: 180ms;
   --form-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --recovery-control-height: var(--form-control-height);
   --recovery-code-height: 3rem;

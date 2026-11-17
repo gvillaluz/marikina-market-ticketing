@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { authApi } from "@/api/endpoints/auth.api";
 import { newPasswordError } from "@/features/profile";
 import { getApiErrorMessage } from "@/utils/apiErrors";
+import { successPause } from "../motion";
 
 export function useRecoveryReset(
   username: string,
@@ -13,6 +14,7 @@ export function useRecoveryReset(
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
   const [error, setError] = useState("");
   const busy = useRef(false);
   const mounted = useRef(false);
@@ -28,6 +30,7 @@ export function useRecoveryReset(
     showNewPassword,
     showConfirmPassword,
     loading,
+    succeeded,
     error,
     mismatch: Boolean(confirmPassword && newPassword !== confirmPassword),
     changePassword(value: string) {
@@ -70,8 +73,11 @@ export function useRecoveryReset(
           resetToken,
         });
         if (!mounted.current) return;
-        if (result.success) onComplete();
-        else
+        if (result.success) {
+          setSucceeded(true);
+          await successPause();
+          if (mounted.current) onComplete();
+        } else
           setError(
             result.message ||
               "Could not reset your password. Please try again.",

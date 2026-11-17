@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import type { LoginInput } from "@/features/auth/auth.types";
 import { ROUTES } from "@/routes/routePaths";
 import { getApiErrorMessage } from "@/utils/apiErrors";
+import { successPause } from "../motion";
 
 export interface LoginFormValues {
   username: string;
@@ -27,6 +28,7 @@ export function useLogin(options: UseLoginOptions = {}) {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
   const state: unknown = location.state;
   const expired = Boolean(
     state &&
@@ -56,6 +58,8 @@ export function useLogin(options: UseLoginOptions = {}) {
       };
 
       await login(input);
+      setSucceeded(true);
+      await successPause();
       if (!mounted.current) {
         cancelLogin();
         return;
@@ -76,7 +80,7 @@ export function useLogin(options: UseLoginOptions = {}) {
     }
   };
 
-  return { submit, loading, error };
+  return { submit, loading, succeeded, error };
 }
 
 export default useLogin;

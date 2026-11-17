@@ -9,6 +9,8 @@ import {
 import { authApi, type SendCodeResponse } from "@/api/endpoints/auth.api";
 import { getApiErrorMessage } from "@/utils/apiErrors";
 import type { RecoveryChannel } from "../recovery.types";
+import { successPause } from "../motion";
+import { useCooldownProgress } from "./useCooldownProgress";
 
 const CODE_LENGTH = 6;
 function cooldownSeconds(value: number) {
@@ -25,6 +27,7 @@ export function useRecoveryVerification(
   const [sending, setSending] = useState(true);
   const [resending, setResending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -72,6 +75,7 @@ export function useRecoveryVerification(
     };
   }, [username, channel]);
   const hasCooldown = cooldown > 0;
+  const resendProgress = useCooldownProgress(cooldown);
   useEffect(() => {
     if (!hasCooldown) return;
     const timer = window.setInterval(
@@ -106,9 +110,11 @@ export function useRecoveryVerification(
     sending,
     resending,
     verifying,
+    succeeded,
     error,
     notice,
     sent,
+    resendProgress,
     busy: sending || resending || verifying,
     cooldownLabel: `${String(Math.floor(cooldown / 60)).padStart(2, "0")}:${String(cooldown % 60).padStart(2, "0")}`,
     canResend: !hasCooldown && !sending && !resending && !verifying,
@@ -185,7 +191,9 @@ export function useRecoveryVerification(
           setError(result.message || "The verification code is invalid.");
           return;
         }
-        onVerified(result.resetToken);
+        setSucceeded(true);
+        await successPause();
+        if (mounted.current) onVerified(result.resetToken);
       } catch (failure) {
         if (mounted.current)
           setError(

@@ -49,9 +49,6 @@
   composes: primaryButton from "../../../styles/FormControls.module.css";
   border-radius: var(--radius-md);
 }
-.spinner {
-  composes: spinner from "../../../styles/FormControls.module.css";
-}
 .errorMessage {
   composes: error from "../../../styles/FormControls.module.css";
   margin-top: var(--space-lg);

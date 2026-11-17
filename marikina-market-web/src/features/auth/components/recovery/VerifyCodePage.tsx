@@ -1,4 +1,7 @@
+import AuthSubmitButton from "../AuthSubmitButton";
 import OtpCodeInput from "../OtpCodeInput";
+import ResendRing from "../ResendRing";
+import RevealMessage from "../RevealMessage";
 import { LoaderCircle } from "lucide-react";
 import type { RecoveryChannel } from "@/features/auth/recovery.types";
 import styles from "./VerifyCodePage.module.css";
@@ -23,12 +26,14 @@ const VerifyCodePage = ({
     sending,
     resending,
     verifying,
+    succeeded,
     error,
     notice,
     sent,
     busy,
     cooldown,
     cooldownLabel,
+    resendProgress,
     canResend,
     canVerify,
     setInputRef,
@@ -64,6 +69,7 @@ const VerifyCodePage = ({
             }}
             disabled={busy || !sent}
             invalid={Boolean(error)}
+            success={succeeded}
             descriptionId={
               error ? "recovery-code-error" : "recovery-code-description"
             }
@@ -88,34 +94,32 @@ const VerifyCodePage = ({
                 )}
               </button>
               {cooldown > 0 && (
-                <span className={styles.cooldown}>{cooldownLabel}</span>
+                <span className={styles.cooldown}>
+                  <ResendRing progress={resendProgress} />
+                  {cooldownLabel}
+                </span>
               )}
             </span>
           </div>
-          {notice && (
-            <p className={styles.notice} role="status">
-              {notice}
-            </p>
-          )}
-          {error && (
-            <p id="recovery-code-error" className={styles.error} role="alert">
-              {error}
-            </p>
-          )}
-          <button
-            className={styles.primaryButton}
+          <RevealMessage
+            message={notice}
+            className={styles.notice}
+            role="status"
+          />
+          <RevealMessage
+            message={error}
+            id="recovery-code-error"
+            className={styles.error}
+            role="alert"
+          />
+          <AuthSubmitButton
+            label="Verify"
+            busyLabel="Verifying..."
+            busy={verifying}
+            done={succeeded}
             disabled={!canVerify}
-            type="submit"
-          >
-            {verifying && (
-              <LoaderCircle
-                className={styles.spinner}
-                size={16}
-                aria-hidden="true"
-              />
-            )}
-            {verifying ? "Verifying..." : "Verify"}
-          </button>
+            className={styles.primaryButton}
+          />
         </form>
       )}
       {error && sending && (

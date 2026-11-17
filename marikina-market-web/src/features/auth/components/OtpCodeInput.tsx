@@ -5,6 +5,7 @@ interface OtpCodeInputProps {
   model: OtpCodeModel;
   disabled: boolean;
   invalid: boolean;
+  success: boolean;
   descriptionId: string;
 }
 
@@ -12,10 +13,15 @@ export default function OtpCodeInput({
   model,
   disabled,
   invalid,
+  success,
   descriptionId,
 }: OtpCodeInputProps) {
   return (
-    <div className={styles.inputs}>
+    <div
+      className={styles.inputs}
+      data-invalid={invalid || undefined}
+      data-success={success || undefined}
+    >
       {model.code.map((digit, index) => (
         <input
           key={index}
@@ -26,6 +32,7 @@ export default function OtpCodeInput({
           aria-describedby={descriptionId}
           autoComplete={index === 0 ? "one-time-code" : "off"}
           inputMode="numeric"
+          placeholder=" "
           maxLength={6}
           disabled={disabled}
           value={digit}

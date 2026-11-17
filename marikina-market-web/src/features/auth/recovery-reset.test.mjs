@@ -71,6 +71,7 @@ function harness(resetPassword) {
       },
     },
     "@/utils/apiErrors": { getApiErrorMessage },
+    "../motion": { successPause: async () => {} },
     "@/features/profile": { newPasswordError },
   }).useRecoveryReset;
   const render = () => {

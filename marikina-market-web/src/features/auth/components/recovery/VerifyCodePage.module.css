@@ -56,6 +56,9 @@
   text-decoration: none;
 }
 .cooldown {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
   font-variant-numeric: tabular-nums;
 }
 .notice {

@@ -295,11 +295,11 @@ test("the code page and change-password page say log in", () => {
   );
   const code = render(React.createElement(LoginVerificationPage));
   assert.match(code, /Back to log in/);
-  assert.match(code, />Verify and log in<\/button>/);
+  assert.match(code, />Verify and log in<\/span><\/button>/);
   assert.match(code, /to finish logging in\./);
   const change = changePasswordPage();
   assert.match(change, /Back to log in/);
-  assert.match(change, />Save password<\/button>/);
+  assert.match(change, />Save password<\/span><\/button>/);
   for (const html of [code, change]) {
     assert.doesNotMatch(html, /sign in|signing in/i);
     assert.doesNotMatch(html, /SAVE PASSWORD/);
