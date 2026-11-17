@@ -272,7 +272,6 @@ const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
             <div className={styles.brandText}>
               Marikina Public Market Inspection System
             </div>
-            <div className={styles.brandSub}>Admin Access</div>
           </div>
         </div>
 

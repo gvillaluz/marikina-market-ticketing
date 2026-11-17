@@ -369,3 +369,108 @@ test("each forgot-password step shows in the frame with a heading in the Log in 
     assert.match(html, /MARIKINA CITY · PUBLIC MARKET/, step);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Code page, change-password page and sidebar headings
+// ---------------------------------------------------------------------------
+
+const seal = {
+  "@/assets/icons/Marikina_City_Seal.svg (1).webp": { default: "seal.webp" },
+};
+const noop = () => {};
+
+function renderInRouter(element) {
+  return renderToStaticMarkup(
+    React.createElement(StaticRouter, { location: "/dashboard" }, element),
+  );
+}
+
+test("the 6-digit code page heading is in the Log in style, without the shield icon", () => {
+  const { default: LoginVerificationPage } = load(
+    "features/auth/pages/LoginVerificationPage.tsx",
+    {
+      ...seal,
+      "@/features/auth/components/OtpCodeInput": {
+        default: () => React.createElement("div", { "data-otp": true }),
+      },
+      "@/features/auth/hooks/useTwoFactorLogin": {
+        useTwoFactorLogin: () => ({
+          isAuthenticated: false,
+          loginChallenge: { maskedEmail: "a***@example.invalid" },
+          cancel: noop,
+          verify: noop,
+          resend: noop,
+          verifying: false,
+          resending: false,
+          canVerify: false,
+          canResend: false,
+          resendLabel: "Resend",
+          expired: false,
+          notice: "",
+          error: "",
+          otp: {},
+        }),
+      },
+    },
+  );
+  const html = renderInRouter(React.createElement(LoginVerificationPage));
+  assert.match(html, /<h2[^>]*>Sign-in verification<\/h2>/);
+  assert.doesNotMatch(html, /SIGN-IN VERIFICATION/);
+  assert.doesNotMatch(html, /lucide-shield-check/);
+  assert.match(html, /a\*\*\*@example\.invalid/);
+});
+
+test("the change-password page heading is in the Log in style", () => {
+  const { default: ChangePasswordPage } = load(
+    "features/auth/pages/ChangePasswordPage.tsx",
+    {
+      ...seal,
+      "@/features/profile": { PASSWORD_RULE_HINT: "rule hint" },
+      "@/features/auth/hooks/useMandatoryChangePassword": {
+        useMandatoryChangePassword: () => ({
+          backToSignIn: noop,
+          submit: async () => null,
+          change: noop,
+          toggleShown: noop,
+          loading: false,
+          error: "",
+          fieldErrors: {},
+          shown: {},
+          values: {
+            currentPassword: "",
+            newPassword: "",
+            confirmNewPassword: "",
+          },
+        }),
+      },
+    },
+  );
+  const html = renderInRouter(React.createElement(ChangePasswordPage));
+  assert.match(html, /<h2[^>]*>Change password<\/h2>/);
+  assert.doesNotMatch(html, /CHANGE PASSWORD/);
+  assert.match(html, /change the temporary password you were given/);
+});
+
+test("the sidebar shows the system name without Admin Access", () => {
+  const { default: Sidebar } = load("components/layout/Sidebar/Sidebar.tsx", {
+    ...seal,
+    "@/components/ui/UrlImage": { default: () => null },
+    "@/context/AuthContext": {
+      useAuth: () => ({
+        user: {
+          role: "HeadAdmin",
+          firstName: "Test",
+          lastName: "Admin",
+          username: "ADM9014-2026",
+        },
+        logout: noop,
+      }),
+    },
+  });
+  const html = renderInRouter(
+    React.createElement(Sidebar, { open: false, collapsed: false, onClose: noop }),
+  );
+  assert.match(html, /Marikina Public Market Inspection System/);
+  assert.match(html, /Accounts/);
+  assert.doesNotMatch(html, /Admin Access/);
+});

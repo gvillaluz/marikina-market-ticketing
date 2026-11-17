@@ -33,25 +33,13 @@
   cursor: not-allowed;
   opacity: 0.65;
 }
-.header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-.header h2 {
-  font-family: var(--font-mono, monospace);
-  font-size: var(--font-size-h3);
-  color: var(--primary);
-}
-.icon {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: var(--form-control-height);
-  height: var(--form-control-height);
-  border-radius: var(--radius-sm);
-  color: var(--primary);
-  background: var(--button-primary-surface);
+.heading {
+  margin: 0;
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-heading);
 }
 .expiry {
   font-size: var(--form-font-caption);

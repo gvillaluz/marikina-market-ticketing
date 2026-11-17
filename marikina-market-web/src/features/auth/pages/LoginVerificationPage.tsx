@@ -1,4 +1,4 @@
-import { ArrowLeft, LoaderCircle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { ROUTES } from "@/routes/routePaths";
 import AuthLayout from "../components/AuthLayout";
@@ -29,12 +29,7 @@ export default function LoginVerificationPage() {
         <ArrowLeft size={15} aria-hidden="true" />
         Back to sign in
       </button>
-      <div className={styles.header}>
-        <span className={styles.icon}>
-          <ShieldCheck size={22} aria-hidden="true" />
-        </span>
-        <h2>SIGN-IN VERIFICATION</h2>
-      </div>
+      <h2 className={styles.heading}>Sign-in verification</h2>
       <p className={styles.description} id="login-code-description">
         Enter the 6-digit code sent to{" "}
         <strong>{model.loginChallenge.maskedEmail}</strong> to finish signing
