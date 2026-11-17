@@ -58,6 +58,9 @@ One file per task, grouped by topic. These are the notes that used to sit in `ro
 - [Phase 0 baseline](phases/phase-0-baseline.md)
 - [Phase 1 historical evidence](phases/phase-1-historical-evidence.md)
 - [Phase 3 historical closure](phases/phase-3-historical-closure.md)
+- [Phase 1 revised verification](phases/phase-1-revised-verification.md) — closed 2026-11-17
+- [Phase 2 revised verification](phases/phase-2-revised-verification.md) — closed 2026-11-17; criterion 3 with accepted limits
+- [Phase 3 revised criteria, business/person management and ticket tables](phases/phase-3-revised-criteria.md) — closed 2026-11-17
 - [Phase 4 backup criterion](phases/phase-4-backup.md)
 
 ## resolved-backlog
