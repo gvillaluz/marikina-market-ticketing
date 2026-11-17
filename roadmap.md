@@ -104,7 +104,7 @@ Goal: prove operation and recovery of the revised system.
 
 Exit criteria:
 - ✅ Backup scheduling/retry/encrypted download/retention and local multi-instance coordination passed within recorded limits. Recheck compatibility after schema/storage changes.
-- ☐ User-operated restore drill and required external-service outage/restart stories pass in a disposable environment; automated restore alone is insufficient.
+- ✅ 2026-11-17 User-operated restore drill and required external-service outage/restart stories pass in a disposable environment; automated restore alone is insufficient. Closed with accepted limits: see [restore drill](docs/closed-work/phases/phase-4-restore-drill.md) and [outage and restart stories](docs/closed-work/phases/phase-4-outage-and-restart-stories.md).
 - ☐ API build/tests, web build/Node tests and mobile format/analyze/tests pass for affected work; target-device/browser E2E verifies identity, offense rules, edits/re-verification, duplicates/concurrency, persistence, permissions, retry and settlement.
 - ☐ Setup/recovery instructions and beneficiary evaluation establish recording/retrieval time and practical usefulness. The faster-entry timing test was dropped 2026-11-10, so no time measurement exists yet. Separate implementation, automated checks, live E2E and acceptance evidence; record pre-existing failures separately.
 
