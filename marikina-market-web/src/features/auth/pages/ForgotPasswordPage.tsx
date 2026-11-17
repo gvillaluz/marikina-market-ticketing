@@ -85,7 +85,6 @@ const ForgotPasswordPage = () => {
                   username={flow.username ?? ""}
                   channel={flow.channel}
                   maskedEmail={flow.maskedEmail ?? ""}
-                  maskedPhoneNumber={flow.maskedPhoneNumber ?? ""}
                   onVerified={verified}
                 />
               )}

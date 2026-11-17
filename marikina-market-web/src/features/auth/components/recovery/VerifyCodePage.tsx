@@ -9,7 +9,6 @@ interface VerifyCodePageProps {
   username: string;
   channel: RecoveryChannel;
   maskedEmail: string;
-  maskedPhoneNumber: string;
   onVerified: (resetToken: string) => void;
 }
 
@@ -17,7 +16,6 @@ const VerifyCodePage = ({
   username,
   channel,
   maskedEmail,
-  maskedPhoneNumber,
   onVerified,
 }: VerifyCodePageProps) => {
   const {
@@ -40,11 +38,7 @@ const VerifyCodePage = ({
     resend: handleResend,
     verify: handleVerify,
   } = useRecoveryVerification(username, channel, onVerified);
-  const contact =
-    (channel === "sms" ? maskedPhoneNumber : maskedEmail) ||
-    (channel === "sms"
-      ? "your registered phone number"
-      : "your registered email address");
+  const contact = maskedEmail || "your registered email address";
 
   return (
     <>
