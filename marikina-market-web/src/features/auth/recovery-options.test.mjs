@@ -129,11 +129,11 @@ test("a code page opened with the old sms channel is not accepted", () => {
   assert.equal(view.invalidFlow, true);
 });
 
-test("the code page for email is titled CHECK YOUR EMAIL", () => {
+test("the code page for email is titled Check your email", () => {
   const view = recoveryAt("verify", {
     username: "ENF0001-2026",
     channel: "email",
   });
   assert.equal(view.invalidFlow, false);
-  assert.equal(view.title, "CHECK YOUR EMAIL");
+  assert.equal(view.title, "Check your email");
 });
