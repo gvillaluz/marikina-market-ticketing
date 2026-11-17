@@ -233,7 +233,7 @@ async function openPage(browser, width, mode, hold) {
     });
   });
   await page.goto(`${baseUrl}/login`);
-  await page.getByRole("button", { name: "LOGIN", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Log in", exact: true }).waitFor();
   await page.evaluate(async (user) => {
     const { useAuthStore } = await import("/src/store/store.ts");
     useAuthStore

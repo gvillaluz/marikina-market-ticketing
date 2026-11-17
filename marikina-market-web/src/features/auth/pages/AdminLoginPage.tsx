@@ -15,7 +15,7 @@ const AdminLoginPage: FC = () => {
   }
 
   return (
-    <AuthLayout subtext="Admin Access">
+    <AuthLayout>
       <LoginForm {...login} />
     </AuthLayout>
   );

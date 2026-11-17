@@ -84,7 +84,6 @@ function pageStub(name) {
 }
 
 const pageModules = [
-  "features/landing/pages/LandingPage",
   "features/auth/pages/LoginPage",
   "features/auth/pages/AdminLoginPage",
   "features/auth/pages/LoginVerificationPage",
@@ -160,6 +159,16 @@ test("old vendor sign-up and vendor login addresses lead to the administrator lo
   }
 });
 
+test("the home address opens the login page, with no landing page left", () => {
+  const html = renderRoutesAt("/");
+  assert.match(html, /data-redirect="\/admin\/login"/);
+  assert.doesNotMatch(html, /data-page=/);
+  assert.ok(
+    !fs.existsSync(path.resolve(root, "features/landing")),
+    "the landing page folder must be gone",
+  );
+});
+
 test("the administrator pages that stay still open at their addresses", () => {
   const expected = {
     "/admin/login": "AdminLoginPage",
@@ -181,6 +190,7 @@ test("the administrator pages that stay still open at their addresses", () => {
 test("the address list has no sign-up, vendor login or review addresses left", () => {
   const { ROUTES } = load("routes/routePaths.ts");
   for (const key of [
+    "home",
     "login",
     "register",
     "vendorRegister",
@@ -199,23 +209,64 @@ test("the address list has no sign-up, vendor login or review addresses left", (
 // Home page and login form
 // ---------------------------------------------------------------------------
 
-test("the home page has no register buttons or vendor card and its Login button opens the administrator login", () => {
-  const { default: LandingPage } = load("features/landing/pages/LandingPage.tsx", {
+function renderLoginPage() {
+  const sealOverride = {
     "@/assets/icons/Marikina_City_Seal.svg (1).webp": { default: "seal.webp" },
-    "../hooks/useLandingMotion": { useLandingMotion: () => null },
-  });
-  const html = renderToStaticMarkup(
-    React.createElement(StaticRouter, null, React.createElement(LandingPage)),
+  };
+  const { default: AuthLayout } = load(
+    "features/auth/components/AuthLayout.tsx",
+    sealOverride,
   );
-  assert.doesNotMatch(html, /href="\/register"/);
-  assert.doesNotMatch(html, /Vendor Registration|Register as a vendor|Register your stall/);
-  assert.doesNotMatch(html, /Market Vendor/);
-  assert.doesNotMatch(html, /QR code/);
-  assert.match(html, /<a[^>]*href="\/admin\/login"[^>]*>\s*Login\s*<\/a>/);
+  const { default: LoginForm } = load("features/auth/components/LoginForm.tsx");
+  return renderToStaticMarkup(
+    React.createElement(
+      StaticRouter,
+      null,
+      React.createElement(
+        AuthLayout,
+        null,
+        React.createElement(LoginForm, {
+          submit: async () => {},
+          loading: false,
+          error: null,
+        }),
+      ),
+    ),
+  );
+}
+
+test("the login page's navy panel says what the system is for and tells staff how to get an account", () => {
+  const html = renderLoginPage();
+  assert.match(html, /MARIKINA CITY · PUBLIC MARKET/);
+  assert.match(html, /Market inspections, tickets and records in one place\./);
+  assert.match(html, /Inspections and tickets recorded in the field/);
+  assert.match(html, /Business and person records kept together/);
+  assert.match(html, /Reports, analytics and a full audit trail/);
   assert.match(
     html,
-    /Businesses and their owners do not have system login accounts\. Contact the market office to register or update your business details\./,
+    /Need an account\? Ask your Head Admin to add one for you\./,
   );
+  assert.doesNotMatch(
+    html,
+    /Business owner|do not have (system )?login accounts/,
+  );
+  assert.doesNotMatch(html, /Admin Access/);
+});
+
+test("the login form says Log in, explains the emailed code and keeps Forgot password", () => {
+  const html = renderLoginPage();
+  assert.match(html, /<h2[^>]*>Log in<\/h2>/);
+  assert.match(
+    html,
+    /Administrator access\. Use your staff username and password\./,
+  );
+  assert.match(html, /<button type="submit"[^>]*>Log in<\/button>/);
+  assert.match(
+    html,
+    /Next, we email you a 6-digit code to finish logging in\./,
+  );
+  assert.match(html, />Forgot password\?<\/button>/);
+  assert.doesNotMatch(html, /LOGIN/);
 });
 
 test("the login form offers no account creation", () => {

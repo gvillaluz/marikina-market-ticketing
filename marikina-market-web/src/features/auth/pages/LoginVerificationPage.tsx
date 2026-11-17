@@ -19,7 +19,7 @@ export default function LoginVerificationPage() {
       />
     );
   return (
-    <AuthLayout subtext="Admin Access">
+    <AuthLayout>
       <button
         className={styles.back}
         type="button"

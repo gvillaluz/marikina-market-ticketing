@@ -196,7 +196,7 @@ test(
           try {
             await page.goto(`${baseUrl}/login`);
             await page
-              .getByRole("button", { name: "LOGIN", exact: true })
+              .getByRole("button", { name: "Log in", exact: true })
               .waitFor();
             await page.evaluate(
               async ({ user, path }) => {

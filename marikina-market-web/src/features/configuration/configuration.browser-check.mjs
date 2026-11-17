@@ -127,7 +127,7 @@ test(
         waitUntil: "domcontentloaded",
         timeout: 60000,
       });
-      await page.getByRole("button", { name: "LOGIN", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Log in", exact: true }).waitFor();
       async function navigate(path, role = "HeadAdmin") {
         await page.evaluate(
           async ({ user, path }) => {
@@ -399,7 +399,7 @@ test(
           timeout: 60000,
         });
         await page
-          .getByRole("button", { name: "LOGIN", exact: true })
+          .getByRole("button", { name: "Log in", exact: true })
           .waitFor();
         await page.evaluate(
           async ({ user }) => {
@@ -561,7 +561,7 @@ test(
           timeout: 60000,
         });
         await page
-          .getByRole("button", { name: "LOGIN", exact: true })
+          .getByRole("button", { name: "Log in", exact: true })
           .waitFor();
         await page.evaluate(
           async ({ user }) => {

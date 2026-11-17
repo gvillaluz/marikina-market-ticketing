@@ -83,6 +83,23 @@
   --recovery-brand-start: #123b70;
   --recovery-card-shadow: 0 18px 45px
     color-mix(in srgb, var(--primary) 14%, transparent);
+  /* Login, sign-in code and change-password frame. */
+  --auth-panel-width: clamp(35rem, 42vw, 52rem);
+  --auth-panel-gutter: clamp(3.5rem, 5vw, 6rem);
+  --auth-content-width: 24rem;
+  --auth-card-width: clamp(28rem, 26vw, 34rem);
+  --auth-content-glow: rgba(52, 102, 157, 0.12);
+  --auth-content-glow-warm: rgba(184, 121, 47, 0.08);
+  --auth-panel-text: #ffffff;
+  --auth-panel-muted: rgba(255, 255, 255, 0.85);
+  --auth-panel-accent: #e6b86a;
+  --auth-panel-line: rgba(255, 255, 255, 0.18);
+  --auth-panel-icon-surface: rgba(255, 255, 255, 0.1);
+  --auth-seal-ring: rgba(255, 255, 255, 0.55);
+  --auth-watermark-opacity: 0.07;
+  --auth-input-border: #7d8a9c;
+  --auth-hint-surface: #f1f5fb;
+  --auth-hint-text: #46505e;
   --breadcrumb-font-size: 0.75rem;
   --button-primary: #005aaa;
   --button-primary-hover: #004b8f;
