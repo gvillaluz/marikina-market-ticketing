@@ -163,7 +163,7 @@ test(
         );
       });
       await page.goto(`${baseUrl}/login`);
-      await page.getByRole("button", { name: "LOGIN", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Log in", exact: true }).waitFor();
       async function navigateAs(role, path = "/admin/reports") {
         await page.evaluate(
           async ({ user, path }) => {

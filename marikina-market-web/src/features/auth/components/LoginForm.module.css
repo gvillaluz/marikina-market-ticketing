@@ -3,12 +3,17 @@
 }
 .heading {
   margin: 0;
-  font-family: var(--font-mono, monospace);
-  font-size: 1.35rem;
+  font-size: 1.625rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
-  text-align: center;
-  color: var(--primary);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-heading);
+}
+.intro {
+  margin: var(--space-sm) 0 0;
+  font-size: var(--form-font-body);
+  line-height: 1.5;
+  color: var(--text-body);
 }
 .form {
   composes: form from "../../../styles/FormControls.module.css";
@@ -16,9 +21,22 @@
 .label {
   composes: label from "../../../styles/FormControls.module.css";
   margin-bottom: var(--space-sm);
+  font-size: var(--form-font-body);
+}
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+.labelRow .label {
+  margin-bottom: 0;
 }
 .input {
   composes: input from "../../../styles/FormControls.module.css";
+  border-color: var(--auth-input-border);
+  border-radius: var(--radius-md);
 }
 .inputWrapper .input {
   padding-left: var(--form-control-height);
@@ -29,6 +47,7 @@
 }
 .submit {
   composes: primaryButton from "../../../styles/FormControls.module.css";
+  border-radius: var(--radius-md);
 }
 .spinner {
   composes: spinner from "../../../styles/FormControls.module.css";
@@ -71,7 +90,7 @@
   padding: 0;
   width: var(--form-control-height);
   height: var(--form-control-height);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
 }
 .passwordToggle:hover:not(:disabled) {
   color: var(--primary);
@@ -84,22 +103,19 @@
   color: var(--danger);
 }
 .forgot {
-  display: block;
-  margin-top: var(--space-md);
-  width: 100%;
-  min-height: var(--form-control-height);
+  margin: calc(var(--space-md) * -1) calc(var(--space-xs) * -1);
+  padding: var(--space-md) var(--space-xs);
   border: 0;
   border-radius: var(--radius-sm);
   font-size: var(--form-font-body);
   font-weight: 600;
-  text-align: center;
   color: var(--button-primary);
   background: transparent;
-  text-decoration: underline;
-  text-underline-offset: var(--space-xs);
 }
 .forgot:hover:not(:disabled) {
   color: var(--button-primary-hover);
+  text-decoration: underline;
+  text-underline-offset: var(--space-xs);
 }
 .forgot:disabled {
   cursor: not-allowed;
@@ -107,10 +123,27 @@
 }
 .forgot:focus-visible {
   outline: 2px solid var(--primary);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
-@media (prefers-reduced-motion: reduce) {
-  .forgot {
-    transition: none;
+.codeHint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-xl) 0 0;
+  padding: var(--space-md) 0.875rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+  color: var(--auth-hint-text);
+  background: var(--auth-hint-surface);
+}
+.codeHintIcon {
+  flex-shrink: 0;
+  color: var(--button-primary);
+}
+@media (min-width: 1024px) {
+  .heading {
+    font-size: clamp(1.875rem, 1rem + 1vw, 2.25rem);
   }
 }

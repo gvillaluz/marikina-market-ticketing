@@ -7,7 +7,6 @@ import {
   STAFF_ROLES,
   HEAD_ADMIN_ROLES,
 } from "@/api/types/common.types";
-import LandingPage from "@/features/landing/pages/LandingPage";
 import AdminLoginPage from "@/features/auth/pages/AdminLoginPage";
 import LoginVerificationPage from "@/features/auth/pages/LoginVerificationPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
@@ -38,7 +37,6 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes — kept unwrapped so they never require auth */}
-      <Route path={ROUTES.home} element={<LandingPage />} />
       <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
       <Route
         path={ROUTES.loginVerification}

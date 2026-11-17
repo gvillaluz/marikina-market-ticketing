@@ -4,6 +4,7 @@ import {
   EyeOff,
   LoaderCircle,
   LockKeyhole,
+  Mail,
   UserRound,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -20,7 +21,10 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
   const model = useLoginForm(submit, loading);
   return (
     <div className={styles.formWrapper}>
-      <h2 className={styles.heading}>LOGIN</h2>
+      <h2 className={styles.heading}>Log in</h2>
+      <p className={styles.intro}>
+        Administrator access. Use your staff username and password.
+      </p>
       {model.passwordReset && (
         <div className={styles.successMessage} role="status">
           Your password has been changed. Please log in with your new password.
@@ -70,9 +74,19 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
           )}
         </div>
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="login-password">
-            Password
-          </label>
+          <div className={styles.labelRow}>
+            <label className={styles.label} htmlFor="login-password">
+              Password
+            </label>
+            <button
+              type="button"
+              onClick={model.forgotPassword}
+              disabled={loading}
+              className={styles.forgot}
+            >
+              Forgot password?
+            </button>
+          </div>
           <div className={styles.inputWrapper}>
             <LockKeyhole className={styles.icon} size={18} aria-hidden="true" />
             <input
@@ -128,17 +142,13 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
               aria-hidden="true"
             />
           )}
-          {loading ? "Sending code…" : "LOGIN"}
+          {loading ? "Sending code…" : "Log in"}
         </button>
       </form>
-      <button
-        type="button"
-        onClick={model.forgotPassword}
-        disabled={loading}
-        className={styles.forgot}
-      >
-        Forgot password?
-      </button>
+      <p className={styles.codeHint}>
+        <Mail className={styles.codeHintIcon} size={18} aria-hidden="true" />
+        Next, we email you a 6-digit code to finish logging in.
+      </p>
     </div>
   );
 };

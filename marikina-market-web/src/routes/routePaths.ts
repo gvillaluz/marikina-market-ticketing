@@ -17,7 +17,6 @@ export const ROUTES = {
   ticketDetail: (id: string) => `/tickets/${id}`,
   vendors: "/vendors",
   vendorDetail: (id: string) => `/vendors/${id}`,
-  home: "/",
   systemConfiguration: "/system/configuration",
   marketSection: "/system/market-street",
   ordinance: "/system/ordinance",

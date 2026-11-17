@@ -55,7 +55,7 @@ const FIELDS: {
 export default function ChangePasswordPage() {
   const model = useMandatoryChangePassword();
   return (
-    <AuthLayout subtext="Admin Access">
+    <AuthLayout>
       <button
         className={styles.back}
         type="button"
