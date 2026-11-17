@@ -18,14 +18,7 @@ function readFlow(value: unknown): RecoveryState {
         : undefined,
     maskedEmail:
       typeof input.maskedEmail === "string" ? input.maskedEmail : undefined,
-    maskedPhoneNumber:
-      typeof input.maskedPhoneNumber === "string"
-        ? input.maskedPhoneNumber
-        : undefined,
-    channel:
-      input.channel === "email" || input.channel === "sms"
-        ? input.channel
-        : undefined,
+    channel: input.channel === "email" ? input.channel : undefined,
     resetToken:
       typeof input.resetToken === "string" && input.resetToken.trim()
         ? input.resetToken
@@ -59,10 +52,7 @@ export function usePasswordRecovery() {
     refetchOnWindowFocus: false,
   });
   const accountLookup = query.data?.found
-    ? {
-        maskedEmail: query.data.maskedEmail,
-        maskedPhoneNumber: query.data.maskedPhoneNumber,
-      }
+    ? { maskedEmail: query.data.maskedEmail }
     : null;
   const lookupError = query.isError
     ? getApiErrorMessage(
@@ -89,7 +79,7 @@ export function usePasswordRecovery() {
     title: {
       "find-account": "Find your account",
       options: "Forgot password",
-      verify: flow.channel === "sms" ? "Check your SMS" : "Check your email",
+      verify: "Check your email",
       reset: "Create new password",
     }[step],
     stepKey: `${step}-${flow.username ?? ""}-${flow.channel ?? ""}`,

@@ -71,7 +71,7 @@
   --form-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --recovery-control-height: var(--form-control-height);
   --recovery-code-height: 3rem;
-  --recovery-content-height: 25.5rem;
+  --recovery-content-height: 23rem;
   --recovery-state-height: 12rem;
   --recovery-font-body: var(--form-font-body);
   --recovery-font-caption: var(--form-font-caption);

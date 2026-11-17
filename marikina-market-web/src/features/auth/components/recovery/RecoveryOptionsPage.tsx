@@ -1,4 +1,4 @@
-import { AtSign, LockKeyhole, MessageSquare } from "lucide-react";
+import { AtSign, LockKeyhole } from "lucide-react";
 import type { RecoveryAccount, RecoveryChannel } from "../../recovery.types";
 import RecoveryOption from "./RecoveryOption";
 import RecoveryOptionsSkeleton from "./RecoveryOptionsSkeleton";
@@ -44,15 +44,6 @@ export default function RecoveryOptionsPage({
           description={account.maskedEmail || "Your registered email address"}
           onSelect={() => onSelect("email")}
           disabled={!account.maskedEmail}
-        />
-        <RecoveryOption
-          icon={MessageSquare}
-          title="Reset via SMS number"
-          description={
-            account.maskedPhoneNumber || "Your registered phone number"
-          }
-          onSelect={() => onSelect("sms")}
-          disabled={!account.maskedPhoneNumber}
         />
         <RecoveryOption
           icon={LockKeyhole}

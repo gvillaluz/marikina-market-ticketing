@@ -1,9 +1,8 @@
-export type RecoveryChannel = "email" | "sms";
+export type RecoveryChannel = "email";
 
 export interface RecoveryState {
   username?: string;
   maskedEmail?: string;
-  maskedPhoneNumber?: string;
   channel?: RecoveryChannel;
   resetToken?: string;
   error?: string;
@@ -11,5 +10,4 @@ export interface RecoveryState {
 
 export interface RecoveryAccount {
   maskedEmail: string;
-  maskedPhoneNumber: string;
 }

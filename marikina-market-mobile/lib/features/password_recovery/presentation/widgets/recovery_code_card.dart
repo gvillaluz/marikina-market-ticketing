@@ -90,9 +90,6 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
           'Verification could not be completed. Please try again.',
         _ => null,
       };
-      final channelValue = widget.args.channel == 'email'
-          ? widget.args.account.maskedEmail
-          : widget.args.account.masketPhoneNumber;
       return Container(
         width: double.infinity,
         decoration: AppTheme.authCardDecoration(context),
@@ -111,7 +108,7 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
                   ),
                   const SizedBox(height: AppTheme.authSmallGap),
                   Text(
-                    'Enter the 6-digit verification code sent to $channelValue.',
+                    'Enter the 6-digit verification code sent to ${widget.args.account.maskedEmail}.',
                     style: AppTheme.authBodyStyle.copyWith(
                       color: AppTheme.authVerificationBodyColor,
                     ),
