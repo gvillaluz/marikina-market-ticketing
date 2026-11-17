@@ -1,0 +1,23 @@
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+.label {
+  margin: 0;
+  font-size: var(--form-font-caption);
+  font-weight: 600;
+  color: var(--auth-hint-text);
+}
+.track {
+  overflow: hidden;
+  height: 0.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--border-default);
+}
+.fill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+}

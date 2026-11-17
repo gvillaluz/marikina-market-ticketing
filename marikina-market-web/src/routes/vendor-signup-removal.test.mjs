@@ -118,8 +118,9 @@ const pageModules = [
   "features/persons",
 ];
 
-function renderRoutesAt(location) {
+function renderRoutesAt(location, extra = {}) {
   const overrides = {
+    "@/assets/icons/Marikina_City_Seal.svg (1).webp": { default: "seal.webp" },
     "react-router-dom": {
       ...realRouter,
       Navigate: ({ to }) => React.createElement("div", { "data-redirect": to }),
@@ -128,6 +129,7 @@ function renderRoutesAt(location) {
     "./ProtectedRoute": {
       default: ({ children }) => children,
     },
+    ...extra,
   };
   for (const module of pageModules)
     overrides[`@/${module}`] = pageStub(module.split("/").pop());
@@ -187,6 +189,62 @@ test("the administrator pages that stay still open at their addresses", () => {
     );
 });
 
+const frameAddresses = [
+  "/admin/login",
+  "/auth/verify-login",
+  "/admin/forgot-password/find-account",
+  "/admin/forgot-password/options",
+  "/admin/forgot-password/verify",
+  "/admin/forgot-password/reset",
+  "/admin/change-password",
+];
+
+test("every login address opens its page inside one shared frame", () => {
+  for (const address of frameAddresses) {
+    const html = renderRoutesAt(address);
+    assert.equal(
+      html.split('alt="Marikina City seal"').length - 1,
+      1,
+      `${address}: one frame`,
+    );
+    assert.ok(
+      html.indexOf('data-page="') > html.indexOf("contentInner"),
+      `${address}: the page is inside the card`,
+    );
+  }
+});
+
+test("the pages behind the login do not get the login frame", () => {
+  for (const address of ["/dashboard", "/tickets"])
+    assert.doesNotMatch(
+      renderRoutesAt(address),
+      /Marikina City seal/,
+      address,
+    );
+});
+
+test("the change-password page still sends someone who is not logged in to the login page", () => {
+  const { default: ProtectedRoute } = load("routes/ProtectedRoute.tsx", {
+    "react-router-dom": {
+      ...realRouter,
+      Navigate: ({ to }) => React.createElement("div", { "data-redirect": to }),
+    },
+    "@/context/AuthContext": {
+      useAuth: () => ({
+        isAuthenticated: false,
+        isAuthReady: true,
+        user: null,
+        mustChangePassword: false,
+      }),
+    },
+  });
+  const html = renderRoutesAt("/admin/change-password", {
+    "./ProtectedRoute": { default: ProtectedRoute },
+  });
+  assert.match(html, /data-redirect="\/admin\/login"/);
+  assert.doesNotMatch(html, /data-page="ChangePasswordPage"/);
+});
+
 test("the address list has no sign-up, vendor login or review addresses left", () => {
   const { ROUTES } = load("routes/routePaths.ts");
   for (const key of [
@@ -221,15 +279,22 @@ function renderLoginPage() {
   return renderToStaticMarkup(
     React.createElement(
       StaticRouter,
-      null,
+      { location: "/admin/login" },
       React.createElement(
-        AuthLayout,
+        realRouter.Routes,
         null,
-        React.createElement(LoginForm, {
-          submit: async () => {},
-          loading: false,
-          error: null,
-        }),
+        React.createElement(
+          realRouter.Route,
+          { element: React.createElement(AuthLayout) },
+          React.createElement(realRouter.Route, {
+            path: "/admin/login",
+            element: React.createElement(LoginForm, {
+              submit: async () => {},
+              loading: false,
+              error: null,
+            }),
+          }),
+        ),
       ),
     ),
   );
@@ -317,6 +382,10 @@ function renderForgotPasswordAt(step, state) {
     "features/auth/pages/ForgotPasswordPage.tsx",
     overrides,
   );
+  const { default: AuthLayout } = load(
+    "features/auth/components/AuthLayout.tsx",
+    overrides,
+  );
   return renderToStaticMarkup(
     React.createElement(
       StaticRouter,
@@ -324,10 +393,14 @@ function renderForgotPasswordAt(step, state) {
       React.createElement(
         realRouter.Routes,
         null,
-        React.createElement(realRouter.Route, {
-          path: "/admin/forgot-password/:step",
-          element: React.createElement(ForgotPasswordPage),
-        }),
+        React.createElement(
+          realRouter.Route,
+          { element: React.createElement(AuthLayout) },
+          React.createElement(realRouter.Route, {
+            path: "/admin/forgot-password/:step",
+            element: React.createElement(ForgotPasswordPage),
+          }),
+        ),
       ),
     ),
   );
