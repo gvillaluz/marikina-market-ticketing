@@ -43,7 +43,7 @@ const ForgotPasswordPage = () => {
       <div className={styles.recovery}>
         <Link to={loginPath} className={styles.backLink}>
           <ArrowLeft size={15} aria-hidden="true" />
-          Back to Login
+          Back to log in
         </Link>
         <div key={stepKey} className={styles.stepView}>
           <h2 ref={headingRef} tabIndex={-1} className={styles.heading}>

@@ -34,7 +34,7 @@ export function useLogin(options: UseLoginOptions = {}) {
       (state as Record<string, unknown>).verificationExpired === true,
   );
   const [error, setError] = useState<string | null>(
-    expired ? "Your sign-in session expired. Please sign in again." : null,
+    expired ? "Your login session expired. Please log in again." : null,
   );
 
   const { redirectTo } = options;

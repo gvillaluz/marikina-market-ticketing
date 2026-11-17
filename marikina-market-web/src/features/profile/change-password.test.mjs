@@ -124,7 +124,7 @@ test("a successful change calls /auth/change-password, shows the message, and si
   assert.equal(h.events[1][1].title, "Password changed");
   assert.equal(
     h.events[1][1].description,
-    "Please sign in again with your new password.",
+    "Please log in again with your new password.",
   );
 });
 

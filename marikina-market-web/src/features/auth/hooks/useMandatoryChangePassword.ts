@@ -62,7 +62,7 @@ export function useMandatoryChangePassword() {
         await authApi.mandatoryChangePassword(values);
         showToast({
           title: "Password changed",
-          description: "Please sign in again with your new password.",
+          description: "Please log in again with your new password.",
           variant: "success",
         });
         logout();

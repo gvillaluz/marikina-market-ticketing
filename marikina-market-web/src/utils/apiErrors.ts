@@ -72,7 +72,7 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
         ? getApiResponseMessage(error.response?.data)
         : undefined;
   if (status === 401)
-    return serverMessage || "Your session has expired. Please sign in again.";
+    return serverMessage || "Your session has expired. Please log in again.";
   if (status === 403)
     return (
       serverMessage || "You do not have permission to perform this action."
