@@ -17,7 +17,6 @@ export interface ChangePasswordInput {
 export interface FindAccountResponse {
   found: boolean;
   maskedEmail: string;
-  maskedPhoneNumber: string;
 }
 
 export interface SendCodeResponse {
@@ -91,7 +90,7 @@ export const authApi = {
 
   async sendCode(
     username: string,
-    channel: "email" | "sms",
+    channel: "email",
   ): Promise<SendCodeResponse> {
     const { data } = await client.post<SendCodeResponse>("/auth/send-otp", {
       username,

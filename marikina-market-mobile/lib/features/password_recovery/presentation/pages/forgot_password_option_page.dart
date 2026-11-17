@@ -38,19 +38,15 @@ class _ForgotPasswordOptionPageState extends State<ForgotPasswordOptionPage> {
     }
   }
 
-  void _onTap(BuildContext context, String channel, AccountLookup account) {
-    if (channel != 'email' && channel != 'phone') {
-      context.pop();
-    } else {
-      context.pushNamed(
-        Routes.codeVerificationName,
-        extra: CodeValidationArgs(
-          username: widget.args.username,
-          channel: channel,
-          account: account,
-        ),
-      );
-    }
+  void _onTap(BuildContext context, AccountLookup account) {
+    context.pushNamed(
+      Routes.codeVerificationName,
+      extra: CodeValidationArgs(
+        username: widget.args.username,
+        channel: 'email',
+        account: account,
+      ),
+    );
   }
 
   @override
@@ -162,17 +158,7 @@ class _ForgotPasswordOptionPageState extends State<ForgotPasswordOptionPage> {
             title: 'Reset via Email',
             subtitle:
                 'To reset your password, a code will be sent to your email.',
-            onTap: () => _onTap(context, "email", account),
-          ),
-          const SizedBox(height: 10),
-        ],
-        if (account.masketPhoneNumber.trim().isNotEmpty) ...[
-          FactorOptionBtn(
-            icon: Icons.phone,
-            title: 'Reset via SMS number',
-            subtitle:
-                'To reset your password, a code will be sent to your SMS number.',
-            onTap: () => _onTap(context, "phone", account),
+            onTap: () => _onTap(context, account),
           ),
           const SizedBox(height: 10),
         ],

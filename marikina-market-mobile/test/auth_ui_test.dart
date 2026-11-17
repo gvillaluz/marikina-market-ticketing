@@ -123,7 +123,6 @@ void main() {
                     account: AccountLookup(
                       found: true,
                       maskedEmail: 'e***@example.com',
-                      masketPhoneNumber: '***',
                     ),
                   ),
                 ),
