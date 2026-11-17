@@ -1,6 +1,8 @@
-import { Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import AuthSubmitButton from "../AuthSubmitButton";
 import CapsLockNote from "../CapsLockNote";
 import PasswordRuleChecklist from "../PasswordRuleChecklist";
+import RevealMessage from "../RevealMessage";
 import { useCapsLock } from "../../hooks/useCapsLock";
 import styles from "./ResetPasswordPage.module.css";
 import { useRecoveryReset } from "../../hooks/useRecoveryReset";
@@ -22,6 +24,7 @@ const ResetPasswordPage = ({
     showNewPassword,
     showConfirmPassword,
     loading,
+    succeeded,
     error,
     mismatch,
     changePassword,
@@ -126,25 +129,19 @@ const ResetPasswordPage = ({
             <CapsLockNote id="recovery-confirm-password-caps" />
           )}
         </div>
-        {error && (
-          <p id="recovery-reset-error" className={styles.error} role="alert">
-            {error}
-          </p>
-        )}
-        <button
+        <RevealMessage
+          message={error}
+          id="recovery-reset-error"
+          className={styles.error}
+          role="alert"
+        />
+        <AuthSubmitButton
+          label="Change Password"
+          busyLabel="Changing password..."
+          busy={loading}
+          done={succeeded}
           className={styles.primaryButton}
-          disabled={loading}
-          type="submit"
-        >
-          {loading && (
-            <LoaderCircle
-              className={styles.spinner}
-              size={16}
-              aria-hidden="true"
-            />
-          )}
-          {loading ? "Changing password..." : "Change Password"}
-        </button>
+        />
       </form>
     </>
   );

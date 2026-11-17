@@ -82,6 +82,7 @@ function harness(mandatoryChangePassword = async () => {}) {
       },
       "@/features/profile": { validatePasswordForm },
       "@/utils/apiErrors": { getApiErrorMessage },
+      "../motion": { successPause: async () => {} },
     },
   );
   const render = () => {

@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/Toast/useToast";
 import { validatePasswordForm } from "@/features/profile";
 import type { PasswordValues } from "@/features/profile/profile.validation";
 import { getApiErrorMessage } from "@/utils/apiErrors";
+import { successPause } from "../motion";
 
 type Field = keyof PasswordValues;
 type FieldErrors = Partial<Record<Field, string>>;
@@ -26,6 +27,7 @@ export function useMandatoryChangePassword() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
   const busy = useRef(false);
   const { logout } = useAuth();
   const { showToast } = useToast();
@@ -36,6 +38,7 @@ export function useMandatoryChangePassword() {
     fieldErrors,
     error,
     loading,
+    succeeded,
     change(field: Field, value: string) {
       if (busy.current) return;
       setValues((current) => ({ ...current, [field]: value }));
@@ -60,6 +63,8 @@ export function useMandatoryChangePassword() {
       setLoading(true);
       try {
         await authApi.mandatoryChangePassword(values);
+        setSucceeded(true);
+        await successPause();
         showToast({
           title: "Password changed",
           description: "Please log in again with your new password.",

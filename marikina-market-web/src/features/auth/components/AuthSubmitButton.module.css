@@ -1,0 +1,36 @@
+.button {
+  transition: transform 90ms ease;
+}
+.button[data-state]:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.button[data-state="done"]:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  animation: label-in var(--form-motion-duration) var(--form-motion-ease) both;
+}
+.spinner {
+  flex-shrink: 0;
+  animation: spin 900ms linear infinite;
+}
+@keyframes label-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

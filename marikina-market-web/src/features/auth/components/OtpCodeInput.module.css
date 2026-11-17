@@ -32,6 +32,62 @@
   cursor: not-allowed;
   opacity: 0.65;
 }
+.input:not(:placeholder-shown) {
+  animation: digit-pop 160ms var(--form-motion-ease);
+}
+.inputs[data-invalid="true"] {
+  animation: row-shake 360ms ease;
+}
+.inputs[data-success="true"] .input {
+  animation: box-green 220ms ease both;
+}
+.inputs[data-success="true"] .input:disabled {
+  opacity: 1;
+}
+.inputs[data-success="true"] .input:nth-child(2) {
+  animation-delay: 50ms;
+}
+.inputs[data-success="true"] .input:nth-child(3) {
+  animation-delay: 100ms;
+}
+.inputs[data-success="true"] .input:nth-child(4) {
+  animation-delay: 150ms;
+}
+.inputs[data-success="true"] .input:nth-child(5) {
+  animation-delay: 200ms;
+}
+.inputs[data-success="true"] .input:nth-child(6) {
+  animation-delay: 250ms;
+}
+@keyframes digit-pop {
+  from {
+    transform: scale(0.88);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes row-shake {
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+@keyframes box-green {
+  to {
+    border-color: var(--success);
+    color: var(--success);
+    background: color-mix(in srgb, var(--success) 8%, var(--bg-surface));
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .input {
     transition: none;

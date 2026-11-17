@@ -5,6 +5,8 @@ import { STAFF_ROLES, type UserRole } from "@/api/types/common.types";
 import { ROUTES } from "@/routes/routePaths";
 import { roleHomePath } from "@/utils/roles";
 import { getApiErrorMessage } from "@/utils/apiErrors";
+import { successPause } from "../motion";
+import { useCooldownProgress } from "./useCooldownProgress";
 import { useOtpInput } from "./useOtpInput";
 
 function timerLabel(seconds: number) {
@@ -41,6 +43,7 @@ export function useTwoFactorLogin() {
       : undefined;
   const [now, setNow] = useState(Date.now());
   const [verifying, setVerifying] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -56,18 +59,23 @@ export function useTwoFactorLogin() {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+  // The challenge is cleared the moment the code is accepted; keep showing its
+  // details while the success tick is on screen.
+  const shownChallenge = useRef(loginChallenge);
+  if (loginChallenge) shownChallenge.current = loginChallenge;
   const remaining = Math.max(
     0,
-    Math.ceil(((loginChallenge?.expiresAt ?? 0) - now) / 1000),
+    Math.ceil(((shownChallenge.current?.expiresAt ?? 0) - now) / 1000),
   );
   const cooldown = Math.max(
     0,
-    Math.ceil(((loginChallenge?.resendAvailableAt ?? 0) - now) / 1000),
+    Math.ceil(((shownChallenge.current?.resendAvailableAt ?? 0) - now) / 1000),
   );
+  const resendProgress = useCooldownProgress(cooldown);
   const expired = remaining === 0;
   const otp = useOtpInput(
     verifying || resending || expired,
-    loginChallenge?.expiresAt,
+    shownChallenge.current?.expiresAt,
   );
   function destination(role: UserRole | null | undefined, mustChange: boolean) {
     if (!role) return ROUTES.adminLogin;
@@ -76,14 +84,18 @@ export function useTwoFactorLogin() {
   }
   return {
     loginChallenge,
+    maskedEmail: shownChallenge.current?.maskedEmail ?? "",
     isAuthenticated,
     authenticatedPath: destination(user?.role, mustChangePassword),
     otp,
     verifying,
+    succeeded,
     resending,
     error,
     notice,
     expired,
+    cooldownSeconds: cooldown,
+    resendProgress,
     cooldownLabel: timerLabel(cooldown),
     resendLabel:
       cooldown > 0 ? `Resend in ${timerLabel(cooldown)}` : "Resend code",
@@ -144,6 +156,8 @@ export function useTwoFactorLogin() {
       setVerifying(true);
       try {
         const result = await verifyLogin(code);
+        setSucceeded(true);
+        await successPause();
         if (mounted.current)
           navigate(destination(result.user.role, result.mustChangePassword), {
             replace: true,

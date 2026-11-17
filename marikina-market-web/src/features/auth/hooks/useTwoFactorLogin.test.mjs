@@ -50,6 +50,8 @@ function authenticatedPath(redirectTo, mustChangePassword = false) {
     "@/routes/routePaths": { ROUTES },
     "@/utils/roles": { roleHomePath: () => ROUTES.dashboard },
     "@/utils/apiErrors": { getApiErrorMessage: (_e, fallback) => fallback },
+    "../motion": { successPause: async () => {} },
+    "./useCooldownProgress": { useCooldownProgress: () => 0 },
     "./useOtpInput": {
       useOtpInput: () => ({ code: [], reset() {}, focusFirst() {} }),
     },

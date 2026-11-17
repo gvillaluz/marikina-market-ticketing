@@ -260,7 +260,7 @@ test("the login form says Log in, explains the emailed code and keeps Forgot pas
     html,
     /Administrator access\. Use your staff username and password\./,
   );
-  assert.match(html, /<button type="submit"[^>]*>Log in<\/button>/);
+  assert.match(html, /<button type="submit"[^>]*><span[^>]*>Log in<\/span><\/button>/);
   assert.match(
     html,
     /Next, we email you a 6-digit code to finish logging in\./,
@@ -397,6 +397,7 @@ test("the 6-digit code page heading is in the Log in style, without the shield i
         useTwoFactorLogin: () => ({
           isAuthenticated: false,
           loginChallenge: { maskedEmail: "a***@example.invalid" },
+          maskedEmail: "a***@example.invalid",
           cancel: noop,
           verify: noop,
           resend: noop,

@@ -67,8 +67,12 @@
   color: var(--button-primary);
   background: transparent;
 }
-.resend:hover:not(:disabled) {
+.resend:not(:disabled) {
   text-decoration: underline;
+  text-underline-offset: var(--space-xs);
+}
+.resend:hover:not(:disabled) {
+  color: var(--button-primary-hover);
 }
 .resend:disabled {
   cursor: not-allowed;

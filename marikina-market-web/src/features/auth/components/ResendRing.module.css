@@ -1,0 +1,19 @@
+.ring {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  transform: rotate(-90deg);
+}
+.track,
+.fill {
+  fill: none;
+  stroke-width: 2.5;
+}
+.track {
+  stroke: var(--border-default);
+}
+.fill {
+  stroke: var(--button-primary);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}

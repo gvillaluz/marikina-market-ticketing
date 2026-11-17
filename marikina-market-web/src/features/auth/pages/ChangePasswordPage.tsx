@@ -3,13 +3,14 @@ import {
   Eye,
   EyeOff,
   KeyRound,
-  LoaderCircle,
   LockKeyhole,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import type { PasswordValues } from "@/features/profile/profile.validation";
 import AuthLayout from "../components/AuthLayout";
+import AuthSubmitButton from "../components/AuthSubmitButton";
+import RevealMessage from "../components/RevealMessage";
 import CapsLockNote from "../components/CapsLockNote";
 import PasswordRuleChecklist from "../components/PasswordRuleChecklist";
 import { useCapsLock } from "../hooks/useCapsLock";
@@ -140,38 +141,28 @@ export default function ChangePasswordPage() {
                     value={model.values.newPassword}
                   />
                 )}
-                {fieldError && (
-                  <span
-                    className={styles.fieldError}
-                    id={`${id}-error`}
-                    role="alert"
-                  >
-                    {fieldError}
-                  </span>
-                )}
+                <RevealMessage
+                  message={fieldError ?? ""}
+                  id={`${id}-error`}
+                  className={styles.fieldError}
+                  role="alert"
+                />
               </div>
             );
           },
         )}
-        {model.error && (
-          <p className={styles.error} role="alert">
-            {model.error}
-          </p>
-        )}
-        <button
-          type="submit"
-          disabled={model.loading}
+        <RevealMessage
+          message={model.error}
+          className={styles.error}
+          role="alert"
+        />
+        <AuthSubmitButton
+          label="Save password"
+          busyLabel="Saving…"
+          busy={model.loading}
+          done={model.succeeded}
           className={styles.submit}
-        >
-          {model.loading && (
-            <LoaderCircle
-              className={styles.spinner}
-              size={16}
-              aria-hidden="true"
-            />
-          )}
-          {model.loading ? "Saving…" : "Save password"}
-        </button>
+        />
       </form>
     </AuthLayout>
   );

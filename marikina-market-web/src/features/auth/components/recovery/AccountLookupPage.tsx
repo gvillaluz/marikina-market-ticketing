@@ -1,5 +1,7 @@
 import { useRecoveryLookup } from "../../hooks/useRecoveryLookup";
 import { UserRound } from "lucide-react";
+import AuthSubmitButton from "../AuthSubmitButton";
+import RevealMessage from "../RevealMessage";
 import styles from "./AccountLookupPage.module.css";
 
 interface AccountLookupPageProps {
@@ -48,14 +50,13 @@ const AccountLookupPage = ({
             />
           </span>
         </label>
-        {error && (
-          <p id="recovery-lookup-error" className={styles.error} role="alert">
-            {error}
-          </p>
-        )}
-        <button className={styles.primaryButton} type="submit">
-          Continue
-        </button>
+        <RevealMessage
+          message={error}
+          id="recovery-lookup-error"
+          className={styles.error}
+          role="alert"
+        />
+        <AuthSubmitButton label="Continue" className={styles.primaryButton} />
       </form>
     </>
   );

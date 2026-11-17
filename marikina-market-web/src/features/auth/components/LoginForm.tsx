@@ -1,9 +1,5 @@
 import type { FC } from "react";
-import {
-  Eye,
-  EyeOff,
-  LoaderCircle,
-  LockKeyhole,
+import { Eye, EyeOff, LockKeyhole,
   Mail,
   UserRound,
 } from "lucide-react";
@@ -12,14 +8,17 @@ import type { LoginFormValues } from "../hooks/useLogin";
 import { useCapsLock } from "../hooks/useCapsLock";
 import { useLoginForm } from "../hooks/useLoginForm";
 import CapsLockNote from "./CapsLockNote";
+import AuthSubmitButton from "./AuthSubmitButton";
+import RevealMessage from "./RevealMessage";
 import styles from "./LoginForm.module.css";
 
 interface LoginFormProps {
   submit: (values: LoginFormValues) => Promise<void>;
   loading: boolean;
+  succeeded: boolean;
   error: string | null;
 }
-const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
+const LoginForm: FC<LoginFormProps> = ({ submit, loading, succeeded, error }) => {
   const model = useLoginForm(submit, loading);
   const caps = useCapsLock();
   return (
@@ -33,11 +32,11 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
           Your password has been changed. Please log in with your new password.
         </div>
       )}
-      {error && (
-        <div className={styles.errorMessage} role="alert">
-          {error}
-        </div>
-      )}
+      <RevealMessage
+        message={error ?? ""}
+        className={styles.errorMessage}
+        role="alert"
+      />
       <form
         className={styles.form}
         onSubmit={model.handleSubmit}
@@ -66,15 +65,12 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
               }
             />
           </div>
-          {model.fieldErrors.username && (
-            <span
-              id="login-username-error"
-              className={styles.fieldError}
-              role="alert"
-            >
-              {model.fieldErrors.username}
-            </span>
-          )}
+          <RevealMessage
+            message={model.fieldErrors.username ?? ""}
+            id="login-username-error"
+            className={styles.fieldError}
+            role="alert"
+          />
         </div>
         <div className={styles.field}>
           <div className={styles.labelRow}>
@@ -136,26 +132,20 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
           {caps.field === "login-password" && (
             <CapsLockNote id="login-password-caps" />
           )}
-          {model.fieldErrors.password && (
-            <span
-              id="login-password-error"
-              className={styles.fieldError}
-              role="alert"
-            >
-              {model.fieldErrors.password}
-            </span>
-          )}
+          <RevealMessage
+            message={model.fieldErrors.password ?? ""}
+            id="login-password-error"
+            className={styles.fieldError}
+            role="alert"
+          />
         </div>
-        <button type="submit" disabled={loading} className={styles.submit}>
-          {loading && (
-            <LoaderCircle
-              className={styles.spinner}
-              size={16}
-              aria-hidden="true"
-            />
-          )}
-          {loading ? "Sending code…" : "Log in"}
-        </button>
+        <AuthSubmitButton
+          label="Log in"
+          busyLabel="Sending code…"
+          busy={loading}
+          done={succeeded}
+          className={styles.submit}
+        />
       </form>
       <p className={styles.codeHint}>
         <Mail className={styles.codeHintIcon} size={18} aria-hidden="true" />
