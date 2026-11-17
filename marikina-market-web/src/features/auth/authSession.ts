@@ -15,7 +15,7 @@ interface StoredAuthSession {
 
 export class RefreshSessionExpiredError extends Error {
   constructor(
-    message = "Your session has expired. Please sign in again.",
+    message = "Your session has expired. Please log in again.",
     readonly sessionVersion?: number,
   ) {
     super(message);

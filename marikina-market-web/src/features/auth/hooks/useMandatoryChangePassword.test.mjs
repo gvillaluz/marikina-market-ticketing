@@ -156,7 +156,7 @@ test("a correct entry is sent once, then shows the success toast and signs out",
   assert.equal(h.toasts.length, 1);
   assert.equal(
     h.toasts[0].description,
-    "Please sign in again with your new password.",
+    "Please log in again with your new password.",
   );
   assert.deepEqual(h.events, ["logout"]);
   assert.equal(view.error, "");

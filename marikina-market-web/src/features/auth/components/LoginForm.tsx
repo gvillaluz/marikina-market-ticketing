@@ -9,7 +9,9 @@ import {
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { LoginFormValues } from "../hooks/useLogin";
+import { useCapsLock } from "../hooks/useCapsLock";
 import { useLoginForm } from "../hooks/useLoginForm";
+import CapsLockNote from "./CapsLockNote";
 import styles from "./LoginForm.module.css";
 
 interface LoginFormProps {
@@ -19,6 +21,7 @@ interface LoginFormProps {
 }
 const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
   const model = useLoginForm(submit, loading);
+  const caps = useCapsLock();
   return (
     <div className={styles.formWrapper}>
       <h2 className={styles.heading}>Log in</h2>
@@ -102,8 +105,14 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
               disabled={loading}
               aria-invalid={Boolean(model.fieldErrors.password)}
               aria-describedby={
-                model.fieldErrors.password ? "login-password-error" : undefined
+                [
+                  model.fieldErrors.password ? "login-password-error" : "",
+                  caps.field === "login-password" ? "login-password-caps" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ") || undefined
               }
+              {...caps.bind("login-password")}
             />
             <Button
               className={styles.passwordToggle}
@@ -124,6 +133,9 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, error }) => {
               )}
             </Button>
           </div>
+          {caps.field === "login-password" && (
+            <CapsLockNote id="login-password-caps" />
+          )}
           {model.fieldErrors.password && (
             <span
               id="login-password-error"

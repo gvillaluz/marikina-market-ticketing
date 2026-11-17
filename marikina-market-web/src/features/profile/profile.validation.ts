@@ -13,6 +13,15 @@ export interface PasswordValues {
 export const PASSWORD_RULE_HINT =
   "At least 8 characters, with a number and a capital letter.";
 
+export const PASSWORD_RULES: readonly {
+  label: string;
+  met: (value: string) => boolean;
+}[] = [
+  { label: "At least 8 characters", met: (value) => value.length >= 8 },
+  { label: "A number", met: (value) => /\d/.test(value) },
+  { label: "A capital letter", met: (value) => /[A-Z]/.test(value) },
+];
+
 export async function validateProfilePhoto(file: File): Promise<string | null> {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
     return "Choose a JPEG, PNG, or WebP image.";
@@ -83,7 +92,7 @@ export function validateProfileForm(
 }
 
 export function newPasswordError(value: string): string | undefined {
-  if (value.length < 8 || !/\d/.test(value) || !/[A-Z]/.test(value))
+  if (!PASSWORD_RULES.every((rule) => rule.met(value)))
     return "Use at least 8 characters, with a number and a capital letter.";
   return undefined;
 }

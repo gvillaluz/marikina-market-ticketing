@@ -342,7 +342,7 @@ test("the forgot-password page uses the login frame: navy panel, Head Admin note
     /Need an account\? Ask your Head Admin to add one for you\./,
   );
   assert.doesNotMatch(html, /Admin Access/);
-  assert.match(html, /<a[^>]*href="\/admin\/login"[^>]*>.*Back to Login<\/a>/);
+  assert.match(html, /<a[^>]*href="\/admin\/login"[^>]*>.*Back to log in<\/a>/);
   assert.match(html, /data-step="find-account"/);
 });
 
@@ -425,7 +425,6 @@ test("the change-password page heading is in the Log in style", () => {
     "features/auth/pages/ChangePasswordPage.tsx",
     {
       ...seal,
-      "@/features/profile": { PASSWORD_RULE_HINT: "rule hint" },
       "@/features/auth/hooks/useMandatoryChangePassword": {
         useMandatoryChangePassword: () => ({
           backToSignIn: noop,

@@ -97,7 +97,7 @@ export function useLoginChallenge(
         };
         const challenge = challengeFrom(await authApi.login(credentials));
         if (requestGeneration !== generation.current)
-          throw new ApiRequestError("Sign-in was cancelled. Please try again.");
+          throw new ApiRequestError("Login was cancelled. Please try again.");
         pending.current = { credentials, challenge };
         setLoginChallenge(challenge);
         onChallenge();
@@ -112,7 +112,7 @@ export function useLoginChallenge(
     const current = pending.current;
     if (!current)
       throw new ApiRequestError(
-        "Your sign-in session expired. Please sign in again.",
+        "Your login session expired. Please log in again.",
       );
     if (busy.current || Date.now() < current.challenge.resendAvailableAt)
       return current.challenge;
@@ -121,7 +121,7 @@ export function useLoginChallenge(
       const challenge = challengeFrom(await authApi.login(current.credentials));
       if (pending.current !== current)
         throw new ApiRequestError(
-          "Your sign-in session expired. Please sign in again.",
+          "Your login session expired. Please log in again.",
         );
       current.challenge = challenge;
       setLoginChallenge(challenge);
@@ -135,7 +135,7 @@ export function useLoginChallenge(
       const current = pending.current;
       if (!current)
         throw new ApiRequestError(
-          "Your sign-in session expired. Please sign in again.",
+          "Your login session expired. Please log in again.",
         );
       if (!/^\d{6}$/.test(code))
         throw new ApiRequestError("Enter a 6-digit code.");
@@ -149,7 +149,7 @@ export function useLoginChallenge(
         });
         if (pending.current !== current)
           throw new ApiRequestError(
-            "Sign-in was cancelled. Please sign in again.",
+            "Login was cancelled. Please log in again.",
           );
         const expiration =
           typeof response.accessToken === "string"
@@ -166,7 +166,7 @@ export function useLoginChallenge(
         const profile = await authApi.getMe(response.accessToken);
         if (pending.current !== current)
           throw new ApiRequestError(
-            "Sign-in was cancelled. Please sign in again.",
+            "Login was cancelled. Please log in again.",
           );
         const user: User = {
           ...profile,

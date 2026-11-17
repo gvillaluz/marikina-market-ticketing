@@ -8,9 +8,11 @@ import {
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
-import { PASSWORD_RULE_HINT } from "@/features/profile";
 import type { PasswordValues } from "@/features/profile/profile.validation";
 import AuthLayout from "../components/AuthLayout";
+import CapsLockNote from "../components/CapsLockNote";
+import PasswordRuleChecklist from "../components/PasswordRuleChecklist";
+import { useCapsLock } from "../hooks/useCapsLock";
 import { useMandatoryChangePassword } from "../hooks/useMandatoryChangePassword";
 import styles from "./ChangePasswordPage.module.css";
 
@@ -54,6 +56,7 @@ const FIELDS: {
 
 export default function ChangePasswordPage() {
   const model = useMandatoryChangePassword();
+  const caps = useCapsLock();
   return (
     <AuthLayout>
       <button
@@ -63,7 +66,7 @@ export default function ChangePasswordPage() {
         disabled={model.loading}
       >
         <ArrowLeft size={15} aria-hidden="true" />
-        Back to sign in
+        Back to log in
       </button>
       <h2 className={styles.heading}>Change password</h2>
       <p className={styles.description}>
@@ -87,7 +90,11 @@ export default function ChangePasswordPage() {
             const fieldError = model.fieldErrors[name];
             const isNew = name === "newPassword";
             const describedBy =
-              [fieldError ? `${id}-error` : "", isNew ? `${id}-hint` : ""]
+              [
+                fieldError ? `${id}-error` : "",
+                isNew ? `${id}-hint` : "",
+                caps.field === id ? `${id}-caps` : "",
+              ]
                 .filter(Boolean)
                 .join(" ") || undefined;
             return (
@@ -109,6 +116,7 @@ export default function ChangePasswordPage() {
                     disabled={model.loading}
                     aria-invalid={Boolean(fieldError)}
                     aria-describedby={describedBy}
+                    {...caps.bind(id)}
                   />
                   <button
                     className={styles.toggle}
@@ -125,10 +133,12 @@ export default function ChangePasswordPage() {
                     )}
                   </button>
                 </div>
+                {caps.field === id && <CapsLockNote id={`${id}-caps`} />}
                 {isNew && (
-                  <p className={styles.hint} id={`${id}-hint`}>
-                    {PASSWORD_RULE_HINT}
-                  </p>
+                  <PasswordRuleChecklist
+                    id={`${id}-hint`}
+                    value={model.values.newPassword}
+                  />
                 )}
                 {fieldError && (
                   <span
@@ -160,7 +170,7 @@ export default function ChangePasswordPage() {
               aria-hidden="true"
             />
           )}
-          {model.loading ? "Saving…" : "SAVE PASSWORD"}
+          {model.loading ? "Saving…" : "Save password"}
         </button>
       </form>
     </AuthLayout>

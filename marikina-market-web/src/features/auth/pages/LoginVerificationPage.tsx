@@ -27,12 +27,12 @@ export default function LoginVerificationPage() {
         disabled={model.verifying || model.resending}
       >
         <ArrowLeft size={15} aria-hidden="true" />
-        Back to sign in
+        Back to log in
       </button>
       <h2 className={styles.heading}>Sign-in verification</h2>
       <p className={styles.description} id="login-code-description">
         Enter the 6-digit code sent to{" "}
-        <strong>{model.loginChallenge.maskedEmail}</strong> to finish signing
+        <strong>{model.loginChallenge.maskedEmail}</strong> to finish logging
         in.
       </p>
       <form
@@ -97,7 +97,7 @@ export default function LoginVerificationPage() {
               aria-hidden="true"
             />
           )}
-          {model.verifying ? "Verifying…" : "Verify & sign in"}
+          {model.verifying ? "Verifying…" : "Verify and log in"}
         </button>
       </form>
     </AuthLayout>

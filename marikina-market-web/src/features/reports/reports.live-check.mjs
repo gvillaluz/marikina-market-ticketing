@@ -104,7 +104,7 @@ try {
       r.url().endsWith("/api/auth/verify-login"),
     );
     await page
-      .getByRole("button", { name: "Verify & sign in", exact: true })
+      .getByRole("button", { name: "Verify and log in", exact: true })
       .click();
     const response = await verified;
     assert.equal(response.status(), 200);
