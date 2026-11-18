@@ -22,14 +22,7 @@ using MarikinaMarket.API.Application.DTOs.Audits.Internal;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    serverOptions.ListenAnyIP(5000);
-    serverOptions.ListenAnyIP(5001, listenOptions =>
-    {
-        listenOptions.UseHttps();
-    });
-});
+builder.UseLocalPorts();
 
 // Add services to the container.
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
