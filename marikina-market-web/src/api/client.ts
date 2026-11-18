@@ -13,6 +13,7 @@ import {
   RefreshSessionExpiredError,
 } from "@/features/auth/authSession";
 import { ApiRequestError, getApiResponseMessage } from "@/utils/apiErrors";
+import env from "@/config/env";
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
   authRetry?: boolean;
@@ -36,7 +37,8 @@ function isPublicAuthRequest(url?: string): boolean {
 }
 
 const client: AxiosInstance = axios.create({
-  baseURL: "/api",
+  baseURL: env.apiBaseUrl,
+  withCredentials: true,
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",

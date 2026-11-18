@@ -174,9 +174,10 @@ Temporary backup files are written beneath the API process temporary directory (
 | Variable | Purpose |
 | --- | --- |
 | `VITE_APP_NAME` | Optional non-sensitive display name. |
+| `VITE_API_BASE_URL` | The server's address, without `/api` and without a slash at the end (for example `https://<app service address>`). Set it only when building for Azure (section 11.3). Leave it empty in development. |
 | `API_PROXY_TARGET` | Development-only Vite proxy target, default `http://127.0.0.1:5000`. Browser requests stay under `/api`; no `/api` suffix on this target. |
 
-The website always calls the server at `/api` on its own address (`src/api/client.ts`); it has no server-address setting and no Firebase settings. For Azure, see section 11.
+With `VITE_API_BASE_URL` empty, the website calls `/api` on its own address and the development proxy forwards it to the server. With it set, the website calls `<VITE_API_BASE_URL>/api` and sends the sign-in cookie with every request (`src/config/env.ts`, `src/api/client.ts`). The website has no Firebase settings. For Azure, see section 11.
 
 3. Run `npm run dev`; the configured port is 5173. The development proxy is same-origin from the browser's perspective. Restart Vite after changing env files.
 4. Run `npm run build` for production output. `VITE_` values are built into browser code. Never put JWT signing secrets, database passwords, SMTP passwords, B2 application keys, backup encryption keys or Firebase Admin private keys in them. Env files do not make client-side secrets private. [Vite environment variables](https://vite.dev/guide/env-and-mode)
@@ -279,15 +280,30 @@ Never run `dotnet ef database update` against the demo database.
    | `BackBlazeB2__General__KeyId`, `BackBlazeB2__General__ApplicationKey` (and the same for `Documents`, `Evidence`, `Backups`) | Storage keys |
    | `Backups__EncryptionKey` | The backup key. Keep a copy outside Azure (see the recovery guide) |
    | `Backups__PgDumpPath` | Where `pg_dump` is on the server *(confirm whether the demo sets it)* |
-   | `Cors__AllowedOrigins__0` | The website's address on Static Web Apps, so the server accepts its requests *(confirm)* |
+   | `Cors__AllowedOrigins__0` | The website's address on Static Web Apps, exactly as the browser shows it, without a slash at the end (for example `https://<name>.azurestaticapps.net`). Only this address may read the server's answers and send the sign-in cookie. If it is missing or different, the website cannot sign in. |
+
+4. **Leave the App Service's own CORS page empty.** In the Azure portal, open the App Service and type `CORS` in the search box of its left menu. The list of allowed origins there must be empty. Microsoft: "If you try to use them together, App Service CORS takes precedence and your own CORS code has no effect" ([App Service CORS tutorial](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-tutorial-rest-api), checked 2026-11-18). If addresses are listed there, the server's own rule (`Cors__AllowedOrigins__0`) is ignored and the sign-in cookie is not allowed, so the website signs users out on every refresh or cannot sign in.
 
 ### 11.3 Website
 
-**Not usable with the current code.** The website currently always calls `/api` on its own address (section 7), so on its own Static Web Apps address it cannot reach the server. A separate change (planned, not yet built) adds a server-address setting and makes "stay signed in" work across the two addresses. Once that change is in, this section gets the setting's name and value. Until then, do not deploy the website to Static Web Apps.
+The website runs on its own Static Web Apps address and calls the server on the App Service address. Two settings must point at each other:
 
-The deploy itself, as used before:
+| Where | Setting | Value |
+| --- | --- | --- |
+| Website build (step 1) | `VITE_API_BASE_URL` | The App Service address, for example `https://<app service address>` (no `/api`, no slash at the end) |
+| App Service (section 11.2) | `Cors__AllowedOrigins__0` | The Static Web Apps address, for example `https://<name>.azurestaticapps.net` |
 
-1. In `marikina-market-web`: `npm ci`, then `npm run build`. The result is in `marikina-market-web/dist`.
+Known limit: the two addresses count as different sites to browsers, so the sign-in cookie is a "third-party" cookie. Chrome and Edge on Windows and Android are expected to keep it, so refreshing a page keeps the user signed in. Safari (iPhone, iPad, Mac) and private/incognito windows are expected to block it, so there a refresh signs the user out and they log in again. Removing this limit needs both parts on one bought domain.
+
+1. In `marikina-market-web`: `npm ci`, then build with the server's address (the setting is built into the website, so build again whenever the address changes):
+
+   ```powershell
+   $env:VITE_API_BASE_URL = 'https://<app service address>'
+   npm run build
+   Remove-Item Env:VITE_API_BASE_URL
+   ```
+
+   The result is in `marikina-market-web/dist`. It includes `staticwebapp.config.json` (from `public/`), which makes refreshing a page such as `/tickets` load the website instead of "not found".
 2. Get the deployment token: Azure portal → the Static Web App → **Overview → Manage deployment token**. It is a secret. Put it in this PowerShell window without typing it on a command line, then deploy from the project folder:
 
    ```powershell
@@ -299,7 +315,7 @@ The deploy itself, as used before:
    Remove-Item Env:SWA_CLI_DEPLOYMENT_TOKEN
    ```
 
-   *(confirm that the tool reads the token from `SWA_CLI_DEPLOYMENT_TOKEN`; the form used before was `--deployment-token <TOKEN>`, which leaves the token in PowerShell's history.)*
+   The tool reads the token from `SWA_CLI_DEPLOYMENT_TOKEN` ([swa deploy documentation](https://azure.github.io/static-web-apps-cli/docs/cli/swa-deploy/), checked 2026-11-18). The form used before, `--deployment-token <TOKEN>`, leaves the token in PowerShell's history.
 3. **If the token was ever shown, pasted or shared**, reset it on the same page (**Reset token**) before the next deploy.
 
 ### 11.4 Phone app

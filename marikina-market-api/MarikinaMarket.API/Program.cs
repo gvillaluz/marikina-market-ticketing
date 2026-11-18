@@ -174,16 +174,7 @@ builder.Services.AddControllers(options => options.Filters.AddService<AuditLogAc
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddCors(options =>
-{
-    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-    options.AddPolicy("ConfiguredOrigins", policy =>
-    {
-        policy.WithOrigins(allowedOrigins)
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-    });
-});
+builder.Services.AddWebsiteCors(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
@@ -191,7 +182,7 @@ builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 var app = builder.Build();
 
 app.UseRouting();
-app.UseCors("ConfiguredOrigins");
+app.UseCors(WebsiteCors.PolicyName);
 app.UseMiddleware<AuditLogMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -226,5 +217,4 @@ if (!app.Environment.IsDevelopment()) {
 
 app.UseStaticFiles();
 app.MapControllers();
-app.MapWebsiteFallback();
 app.Run();

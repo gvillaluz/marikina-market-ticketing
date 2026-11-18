@@ -8,7 +8,7 @@ namespace MarikinaMarket.Tests;
 public class WebSessionCookieTests
 {
     private const string VerificationBody = "{\"username\":\"user8\",\"password\":\"valid-password-123\",\"code\":\"123456\"}";
-    private const string ExpectedCookie = "mmt_web_session=opaque-access-token; path=/api/auth; secure; samesite=strict; httponly";
+    private const string ExpectedCookie = "mmt_web_session=opaque-access-token; path=/api/auth; secure; samesite=none; httponly";
 
     [Theory]
     [InlineData(Role.AdminOfficer)]

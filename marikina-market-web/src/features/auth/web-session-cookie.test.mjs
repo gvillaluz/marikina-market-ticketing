@@ -52,6 +52,7 @@ test("renewing posts to /api/auth/refresh-web with no pass in the body, so the s
       },
     },
     "camelcase-keys": { __esModule: true, default: toCamel },
+    "@/config/env": { __esModule: true, default: { apiBaseUrl: "/api" } },
   });
 
   const refreshed = await authRefreshApi.refreshWeb();
