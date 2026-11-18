@@ -15,7 +15,10 @@ class AuthLoggingOut extends Authenticated {
   AuthLoggingOut({required super.user});
 }
 
-class AuthLoginLoading extends AuthState {}
+class AuthLoginLoading extends AuthState {
+  final bool succeeded;
+  AuthLoginLoading({this.succeeded = false});
+}
 
 class Unauthenticated extends AuthState {
   final bool sessionExpired;
@@ -39,7 +42,10 @@ class AuthError extends AuthState {
   AuthError({required this.message});
 }
 
-class AuthChangePasswordLoading extends AuthState {}
+class AuthChangePasswordLoading extends AuthState {
+  final bool succeeded;
+  AuthChangePasswordLoading({this.succeeded = false});
+}
 
 class AuthChangePasswordError extends AuthState {
   final String message;
@@ -59,6 +65,8 @@ class LoginOtpPending extends AuthState {
   final bool isVerifying;
   final bool isResending;
   final bool requiresNewCode;
+  final bool isVerified;
+  final bool codeRejected;
 
   LoginOtpPending({
     required this.maskedEmail,
@@ -68,6 +76,8 @@ class LoginOtpPending extends AuthState {
     this.isVerifying = false,
     this.isResending = false,
     this.requiresNewCode = false,
+    this.isVerified = false,
+    this.codeRejected = false,
   });
 
   bool get isBusy => isVerifying || isResending;

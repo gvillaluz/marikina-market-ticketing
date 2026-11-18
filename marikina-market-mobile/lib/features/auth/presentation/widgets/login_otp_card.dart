@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/resend_code_button.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/reveal_message.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
@@ -38,9 +40,6 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
     super.dispose();
   }
 
-  String _countdown(int seconds) =>
-      '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
-
   @override
   Widget build(BuildContext context) {
     final state = widget.state;
@@ -70,18 +69,33 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
                 LoginOtpField(
                   controller: _codeController,
                   enabled: state.canVerify,
+                  isWrong: state.codeRejected,
+                  isVerified: state.isVerified,
                 ),
-                if (errorMessage != null) ...[
-                  const SizedBox(height: AppTheme.authSmallGap),
-                  AuthErrorNotice(message: errorMessage),
-                ],
+                RevealMessage(
+                  child: errorMessage == null
+                      ? null
+                      : Padding(
+                          padding: const EdgeInsets.only(
+                            top: AppTheme.authSmallGap,
+                          ),
+                          child: AuthErrorNotice(message: errorMessage),
+                        ),
+                ),
                 const SizedBox(height: AppTheme.authGap),
                 AuthBtn(
                   label: 'Verify and log in',
-                  isLoading: state.isVerifying,
+                  isLoading: state.isVerifying && !state.isVerified,
+                  isSuccess: state.isVerified,
                   onPressed: state.canVerify
                       ? () => context.read<AuthBloc>().add(
-                          VerifyLoginSubmitted(_codeController.text),
+                          VerifyLoginSubmitted(
+                            _codeController.text,
+                            successHold: AppTheme.motionOf(
+                              context,
+                              AppTheme.authSuccessHold,
+                            ),
+                          ),
                         )
                       : null,
                 ),
@@ -98,33 +112,32 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
                         color: AppTheme.authVerificationBodyColor,
                       ),
                     ),
-                    TextButton(
-                      onPressed: state.canResend
-                          ? () => context.read<AuthBloc>().add(ResendLoginOtp())
-                          : null,
-                      child: Text(
-                        state.isResending
-                            ? 'Sending code...'
-                            : state.resendCooldownSeconds > 0
-                            ? 'Resend in ${_countdown(state.resendCooldownSeconds)}'
-                            : 'Resend code',
-                      ),
+                    ResendCodeButton(
+                      secondsLeft: state.resendCooldownSeconds,
+                      isSending: state.isResending,
+                      onResend: state.isVerifying
+                          ? null
+                          : () =>
+                                context.read<AuthBloc>().add(ResendLoginOtp()),
                     ),
                   ],
                 ),
-                if (isCodeSent)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppTheme.authSmallGap,
-                    ),
-                    child: Text(
-                      state.message!,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
+                RevealMessage(
+                  child: isCodeSent
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppTheme.authSmallGap,
+                          ),
+                          child: Text(
+                            state.message!,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
                 Align(
                   alignment: Alignment.center,
                   child: TextButton(

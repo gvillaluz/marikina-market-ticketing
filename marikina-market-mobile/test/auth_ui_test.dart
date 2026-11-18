@@ -292,7 +292,12 @@ void main() {
         home: Scaffold(
           body: Padding(
             padding: const EdgeInsets.all(40),
-            child: LoginOtpField(controller: code, enabled: true),
+            child: LoginOtpField(
+              controller: code,
+              enabled: true,
+              isWrong: false,
+              isVerified: false,
+            ),
           ),
         ),
       ),

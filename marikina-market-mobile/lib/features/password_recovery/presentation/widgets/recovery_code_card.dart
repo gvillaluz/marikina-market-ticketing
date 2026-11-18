@@ -9,6 +9,7 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/otp_code
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/reveal_message.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_bloc.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_event.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_state.dart';
@@ -56,6 +57,27 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
     super.dispose();
   }
 
+  // The server accepted the code and gave a reset token.
+  static String? _resetToken(PasswordRecoveryState state) {
+    if (state is! OtpVerified || !state.result.success) return null;
+    final token = state.result.resetToken;
+    return token == null || token.trim().isEmpty ? null : token;
+  }
+
+  Future<void> _openResetPassword(BuildContext context, String token) async {
+    await Future<void>.delayed(
+      AppTheme.motionOf(context, AppTheme.authSuccessHold),
+    );
+    if (!context.mounted) return;
+    context.goNamed(
+      Routes.resetPasswordName,
+      extra: ResetPasswordArgs(
+        username: widget.args.username,
+        resetToken: token,
+      ),
+    );
+  }
+
   @override
   Widget build(
     BuildContext context,
@@ -65,21 +87,13 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
         _code.clear();
         _countdown(state.result.resendCooldownSeconds);
       }
-      if (state is OtpVerified && state.result.success) {
-        final token = state.result.resetToken;
-        if (token != null && token.trim().isNotEmpty) {
-          context.goNamed(
-            Routes.resetPasswordName,
-            extra: ResetPasswordArgs(
-              username: widget.args.username,
-              resetToken: token,
-            ),
-          );
-        }
-      }
+      final token = _resetToken(state);
+      if (token != null) _openResetPassword(context, token);
     },
     builder: (context, state) {
-      final busy = state is SendOtpLoading || state is VerifyOtpLoading;
+      final verified = _resetToken(state) != null;
+      final busy =
+          state is SendOtpLoading || state is VerifyOtpLoading || verified;
       final String? error = switch (state) {
         SendOtpFailed(:final message) ||
         VerificationFailed(:final message) => message,
@@ -114,39 +128,53 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
                     ),
                   ),
                   const SizedBox(height: AppTheme.authGap),
-                  OtpCodeField(controller: _code, enabled: !busy),
+                  OtpCodeField(
+                    controller: _code,
+                    enabled: !busy,
+                    isWrong: state is OtpVerified && !state.result.success,
+                    isVerified: verified,
+                  ),
                   const SizedBox(height: AppTheme.authGap),
                   ValueListenableBuilder<int>(
                     valueListenable: _remaining,
                     builder: (context, seconds, child) => ResendText(
                       cooldownSeconds: seconds,
-                      isSending: busy,
-                      onResend: () => context.read<PasswordRecoveryBloc>().add(
-                        SendOtp(
-                          username: widget.args.username,
-                          channel: widget.args.channel,
-                        ),
-                      ),
+                      isSending: busy && !verified,
+                      onResend: verified
+                          ? null
+                          : () => context.read<PasswordRecoveryBloc>().add(
+                              SendOtp(
+                                username: widget.args.username,
+                                channel: widget.args.channel,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: AppTheme.authGap),
                   AuthBtn(
                     label: 'Verify',
                     isLoading: state is VerifyOtpLoading,
+                    isSuccess: verified,
                     onPressed: busy
                         ? null
                         : () => context.read<PasswordRecoveryBloc>().add(
                             VerifyCode(widget.args.username, _code.text.trim()),
                           ),
                   ),
-                  if (error != null) ...[
-                    const SizedBox(height: AppTheme.authSmallGap),
-                    AuthErrorNotice(
-                      message: error.trim().isEmpty
-                          ? 'Please try again to verify your code.'
-                          : error,
-                    ),
-                  ],
+                  RevealMessage(
+                    child: error == null
+                        ? null
+                        : Padding(
+                            padding: const EdgeInsets.only(
+                              top: AppTheme.authSmallGap,
+                            ),
+                            child: AuthErrorNotice(
+                              message: error.trim().isEmpty
+                                  ? 'Please try again to verify your code.'
+                                  : error,
+                            ),
+                          ),
+                  ),
                   BackToLoginButton(enabled: !busy),
                 ],
               ),

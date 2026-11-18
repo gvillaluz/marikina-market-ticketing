@@ -3,6 +3,7 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/utils/password_change_check.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/reveal_message.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
@@ -59,6 +60,7 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
         currentPassword: _currentPasswordController.text,
         newPassword: _newPasswordController.text,
         confirmNewPassword: _confirmNewPasswordController.text,
+        successHold: AppTheme.motionOf(context, AppTheme.authSuccessHold),
       ),
     );
   }
@@ -110,18 +112,26 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
                 child: Column(
                   children: [
                     AuthBtn(
-                      isLoading: state is AuthChangePasswordLoading,
+                      isLoading:
+                          state is AuthChangePasswordLoading &&
+                          !state.succeeded,
+                      isSuccess:
+                          state is AuthChangePasswordLoading && state.succeeded,
                       onPressed: _submit,
                       label: 'Save password',
                     ),
 
                     const SizedBox(height: 10),
 
-                    if (state
-                        case AuthChangePasswordError(:final message) ||
-                            AuthChangePasswordNetworkError(:final message)) ...{
-                      AuthErrorNotice(message: message),
-                    },
+                    RevealMessage(
+                      child: switch (state) {
+                        AuthChangePasswordError(:final message) ||
+                        AuthChangePasswordNetworkError(
+                          :final message,
+                        ) => AuthErrorNotice(message: message),
+                        _ => null,
+                      },
+                    ),
                   ],
                 ),
               );

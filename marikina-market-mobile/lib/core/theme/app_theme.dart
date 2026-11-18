@@ -56,6 +56,31 @@ class AppTheme {
   static const buttonProgressStrokeWidth = 2.0;
   static const buttonTextStyle = actionTextStyle;
   static const buttonAnimationDuration = Duration(milliseconds: 160);
+  static const buttonPressDuration = Duration(milliseconds: 100);
+  static const buttonPressScale = 0.97;
+  static const buttonContentOffset = Offset(0, 0.25);
+  // Login forms: messages open over enterDuration and close a little faster.
+  static const formMotionEnterDuration = Duration(milliseconds: 250);
+  static const formMotionLeaveDuration = Duration(milliseconds: 170);
+  // How long the tick shows on a button before the next screen opens.
+  static const authSuccessHold = Duration(milliseconds: 400);
+  static const authCodeShakeDuration = Duration(milliseconds: 350);
+  static const authCodeShakeDistance = 8.0;
+  static const authCodeShakeSwings = 3;
+  static const authCodeSuccessStagger = Duration(milliseconds: 40);
+  static const authCodeSuccessBoxDuration = Duration(milliseconds: 120);
+  static const authCodeSuccessColor = AppColors.primaryGreen;
+  static const authCodeSuccessFillOpacity = 0.12;
+  // Small enough that "Resend in 00:24" stays on one line beside the
+  // question on a 393-point-wide phone.
+  static const authResendRingSize = 12.0;
+  static const authResendRingGap = 4.0;
+  static const authResendRingStrokeWidth = 2.0;
+  static const authResendRingStep = Duration(seconds: 1);
+
+  /// [duration], or no time at all when the device asks for no animations.
+  static Duration motionOf(BuildContext context, Duration duration) =>
+      MediaQuery.disableAnimationsOf(context) ? Duration.zero : duration;
   static const skeletonDuration = Duration(milliseconds: 1000);
   static const skeletonMinOpacity = 0.5;
   static const skeletonMargin = EdgeInsets.symmetric(vertical: 5);

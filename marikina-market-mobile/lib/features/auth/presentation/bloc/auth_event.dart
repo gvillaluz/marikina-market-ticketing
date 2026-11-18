@@ -7,8 +7,13 @@ class CheckAuthStatus extends AuthEvent {}
 class LoginSubmitted extends AuthEvent {
   final String username;
   final String password;
+  final Duration successHold;
 
-  LoginSubmitted({required this.username, required this.password});
+  LoginSubmitted({
+    required this.username,
+    required this.password,
+    this.successHold = Duration.zero,
+  });
 }
 
 class UserUpdated extends AuthEvent {
@@ -21,12 +26,14 @@ class ChangePasswordSubmitted extends AuthEvent {
   final String currentPassword;
   final String newPassword;
   final String confirmNewPassword;
+  final Duration successHold;
 
   ChangePasswordSubmitted({
     required this.userId,
     required this.currentPassword,
     required this.newPassword,
     required this.confirmNewPassword,
+    this.successHold = Duration.zero,
   });
 }
 
@@ -41,7 +48,8 @@ class LogoutUser extends AuthEvent {
 
 class VerifyLoginSubmitted extends AuthEvent {
   final String code;
-  VerifyLoginSubmitted(this.code);
+  final Duration successHold;
+  VerifyLoginSubmitted(this.code, {this.successHold = Duration.zero});
 }
 
 class ResendLoginOtp extends AuthEvent {}
