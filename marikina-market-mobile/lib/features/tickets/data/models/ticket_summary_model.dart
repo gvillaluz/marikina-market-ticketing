@@ -10,7 +10,7 @@ class TicketSummaryModel {
   final int ticketId;
   final int enforcerId;
   final int? vendorId;
-  final String controlNumber;
+  final String? controlNumber;
   final TicketStatus ticketStatus;
   final String? businessName;
   final String? stallNumber;
@@ -59,7 +59,7 @@ class TicketSummaryModel {
       paperReference: json['paper_reference'] as String?,
       issuePlace: json['issue_place'] as String?,
       registeredOwnerName: json['registered_owner_name'] as String?,
-      controlNumber: json['control_number'] as String,
+      controlNumber: json['control_number'] as String?,
       ticketStatus: TicketStatus.fromValue(json['status'] as String),
       businessName: json['business_name'] as String?,
       stallNumber: json['stall_number'] as String?,

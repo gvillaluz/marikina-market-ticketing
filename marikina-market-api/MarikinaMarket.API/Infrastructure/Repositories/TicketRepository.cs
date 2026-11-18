@@ -225,8 +225,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public async Task<int> GetNewControlNumber()
         {
+            // Highest whole number used by a ticket. Records loaded outside the app may have no number (or text);
+            // they are skipped so they neither crash the submit nor cause a repeated number.
             var lastTicket = await _context.Tickets
-                .FromSqlRaw("SELECT *, xmin FROM tickets WHERE type = 'Ticket' ORDER BY id DESC LIMIT 1 FOR UPDATE")
+                .FromSqlRaw("SELECT *, xmin FROM tickets WHERE type = 'Ticket' AND control_number ~ '^[0-9]+$' ORDER BY control_number::int DESC LIMIT 1 FOR UPDATE")
                 .FirstOrDefaultAsync();
 
             if (lastTicket is null) return 1;
