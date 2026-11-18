@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 
 class AppTheme {
@@ -66,7 +67,7 @@ class AppTheme {
   static const authSlideDuration = Duration(milliseconds: 240);
   static const authSlideDistance = 24.0;
   // Opening sequence, played once when the login frame first appears: the
-  // logo, then the title, then the card content rises in.
+  // seal, the system name and the headline, then the form rises in.
   static const authOpeningDuration = Duration(milliseconds: 520);
   static const authOpeningLogoInterval = Interval(
     0,
@@ -76,6 +77,11 @@ class AppTheme {
   static const authOpeningTitleInterval = Interval(
     0.2,
     0.55,
+    curve: Curves.easeOutCubic,
+  );
+  static const authOpeningHeadlineInterval = Interval(
+    0.3,
+    0.65,
     curve: Curves.easeOutCubic,
   );
   static const authOpeningCardInterval = Interval(
@@ -490,22 +496,12 @@ class AppTheme {
     fontSize: 20,
     fontWeight: FontWeight.w600,
   );
-  static const authCardRadius = BorderRadius.all(Radius.circular(15));
-  static const authHeaderRadius = BorderRadius.only(
-    topLeft: Radius.circular(15),
-    topRight: Radius.circular(15),
-  );
-  static const authHeaderLogoSize = 80.0;
   static const authFieldPadding = EdgeInsets.symmetric(horizontal: 20);
   static const authHeadingStyle = pageTitleStyle;
   static const authPageTitleStyle = TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.w700,
     color: authVerificationTitleColor,
-  );
-  static const authHeaderTextStyle = TextStyle(
-    fontSize: 22,
-    fontWeight: FontWeight.w700,
   );
   static const authErrorPadding = EdgeInsets.all(12);
   static const authErrorIconSize = 20.0;
@@ -519,20 +515,54 @@ class AppTheme {
   static const authRuleCheckSize = 12.0;
   static const authRuleMarkBorderWidth = 1.5;
   static const authRuleGap = 4.0;
-
-  static BoxDecoration authCardDecoration(BuildContext context) =>
-      BoxDecoration(
-        borderRadius: authCardRadius,
-        color: Theme.of(context).colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.09),
-            blurRadius: 15,
-            spreadRadius: 1,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      );
+  // Navy band across the top of the login screens; matches the website.
+  static const authBandColor = authVerificationTitleColor;
+  static const authBandTextColor = Colors.white;
+  static const authBandMutedColor = Color(0xD9FFFFFF);
+  static const authBandPadding = EdgeInsets.fromLTRB(24, 40, 24, 28);
+  static const authBandGap = 20.0;
+  static const authBandBrandGap = 12.0;
+  static const authSealSize = 44.0;
+  static const authSealRingWidth = 2.0;
+  static const authSealRingColor = Color(0x8CFFFFFF);
+  static const authWatermarkSize = 256.0;
+  static const authWatermarkRight = -80.0;
+  static const authWatermarkBottom = -96.0;
+  static const authWatermarkOpacity = 0.07;
+  static const authBandNameStyle = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w700,
+    height: 1.3,
+    color: authBandTextColor,
+  );
+  static const authBandSystemStyle = TextStyle(
+    fontSize: 13,
+    height: 1.3,
+    color: authBandMutedColor,
+  );
+  static const authBandHeadlineStyle = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.w700,
+    height: 1.25,
+    color: authBandTextColor,
+  );
+  static const authNotePadding = EdgeInsets.fromLTRB(24, 8, 24, 32);
+  static const authNoteStyle = TextStyle(
+    fontSize: 13,
+    height: 1.55,
+    color: Color(0xFF46505E),
+  );
+  // Status-bar icons: light over the navy band, dark over the light page.
+  static const authBandSystemBarStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+  );
+  static const authPageSystemBarStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+  );
 
   static ThemeData get light {
     return ThemeData(
