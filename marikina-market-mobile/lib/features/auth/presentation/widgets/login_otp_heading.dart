@@ -12,22 +12,7 @@ class LoginOtpHeading extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: theme.colorScheme.primaryContainer,
-              foregroundColor: theme.colorScheme.onPrimaryContainer,
-              child: const Icon(Icons.verified_user_outlined),
-            ),
-            const SizedBox(width: AppTheme.authSmallGap),
-            Expanded(
-              child: Text(
-                'SIGN-IN VERIFICATION',
-                style: AppTheme.authPageTitleStyle,
-              ),
-            ),
-          ],
-        ),
+        const Text('Sign-in verification', style: AppTheme.authPageTitleStyle),
         const SizedBox(height: AppTheme.authSmallGap),
         Text.rich(
           TextSpan(

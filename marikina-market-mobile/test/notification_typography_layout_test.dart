@@ -42,7 +42,7 @@ void main() {
       final title = find.text(
         heading is EditProfileHeading
             ? 'Update your account information'
-            : 'SIGN-IN VERIFICATION',
+            : 'Sign-in verification',
       );
       expect(
         tester.widget<Text>(title).style?.fontSize,

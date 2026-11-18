@@ -213,7 +213,7 @@ void main() {
             ),
           ),
         );
-        expect(find.text('SIGN-IN VERIFICATION'), findsOneWidget);
+        expect(find.text('Sign-in verification'), findsOneWidget);
         expect(find.textContaining('e***@example.com'), findsOneWidget);
         expect(
           find.text(

@@ -56,40 +56,51 @@ class _LoginCardState extends State<LoginCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(height: 20),
-
-        BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) => LoginFields(
-            usernameController: _usernameController,
-            passwordController: _passwordController,
-            enabled: state is! AuthLoginLoading,
-            onSubmitted: _submit,
+    return Padding(
+      padding: AppTheme.authCardPadding,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Log in', style: AppTheme.authPageTitleStyle),
+          const SizedBox(height: 4),
+          const Text(
+            'Use your staff username and password.',
+            style: AppTheme.authSubtitleStyle,
           ),
-        ),
+          const SizedBox(height: AppTheme.authGap),
 
-        BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) => TextButton(
-            onPressed: state is AuthLoginLoading
-                ? null
-                : () => _forgotPassword(context),
-            child: const Text('Forgot password?'),
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) => LoginFields(
+              usernameController: _usernameController,
+              passwordController: _passwordController,
+              enabled: state is! AuthLoginLoading,
+              onSubmitted: _submit,
+              onForgotPassword: state is AuthLoginLoading
+                  ? null
+                  : () => _forgotPassword(context),
+            ),
           ),
-        ),
 
-        BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
+          const SizedBox(height: AppTheme.authGap),
+
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AuthBtn(
                     isLoading: state is AuthLoginLoading && !state.succeeded,
                     isSuccess: state is AuthLoginLoading && state.succeeded,
                     onPressed: _submit,
                     label: 'Log in',
+                  ),
+
+                  const SizedBox(height: AppTheme.authSmallGap),
+
+                  const Text(
+                    'Next, we email you a 6-digit code to finish logging in.',
+                    style: AppTheme.authSubtitleStyle,
                   ),
 
                   const SizedBox(height: 10),
@@ -109,13 +120,11 @@ class _LoginCardState extends State<LoginCard> {
                     },
                   ),
                 ],
-              ),
-            );
-          },
-        ),
-
-        const SizedBox(height: 20),
-      ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

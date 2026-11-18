@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_frame.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/router/mobile_route_access.dart';
@@ -218,7 +219,10 @@ void main() {
         for (var i = 0; i < values.length; i++) {
           await tester.enterText(find.byType(TextField).at(i), values[i]);
         }
-        final submit = find.text(mandatory ? 'Save password' : 'Log in');
+        final submit = find.widgetWithText(
+          AuthBtn,
+          mandatory ? 'Save password' : 'Log in',
+        );
         await tester.ensureVisible(submit);
         await tester.runAsync(() async {
           final failed = auth.stream.firstWhere(

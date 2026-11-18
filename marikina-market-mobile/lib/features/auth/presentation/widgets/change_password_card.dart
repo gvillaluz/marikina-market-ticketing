@@ -66,43 +66,33 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Column(
-            children: [
-              const Text(
-                'CHANGE PASSWORD',
-                style: AppTheme.authPageTitleStyle,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppTheme.authSmallGap),
-              Text(
-                'For your security, change the temporary password you were '
-                'given before you continue.',
-                style: AppTheme.authBodyStyle,
-                textAlign: TextAlign.center,
-              ),
-            ],
+    return Padding(
+      padding: AppTheme.authCardPadding,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Change password', style: AppTheme.authPageTitleStyle),
+          const SizedBox(height: AppTheme.authSmallGap),
+          const Text(
+            'For your security, change the temporary password you were '
+            'given before you continue.',
+            style: AppTheme.authBodyStyle,
           ),
-        ),
-        ChangePasswordFields(
-          enabled: context.select<AuthBloc, bool>(
-            (bloc) => bloc.state is! AuthChangePasswordLoading,
+          ChangePasswordFields(
+            enabled: context.select<AuthBloc, bool>(
+              (bloc) => bloc.state is! AuthChangePasswordLoading,
+            ),
+            currentPasswordController: _currentPasswordController,
+            newPasswordController: _newPasswordController,
+            confirmNewPasswordController: _confirmNewPasswordController,
+            check: _check,
+            onSubmitted: _submit,
           ),
-          currentPasswordController: _currentPasswordController,
-          newPasswordController: _newPasswordController,
-          confirmNewPasswordController: _confirmNewPasswordController,
-          check: _check,
-          onSubmitted: _submit,
-        ),
-        BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AuthBtn(
                     isLoading:
@@ -125,13 +115,11 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
                     },
                   ),
                 ],
-              ),
-            );
-          },
-        ),
-
-        const SizedBox(height: 20),
-      ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

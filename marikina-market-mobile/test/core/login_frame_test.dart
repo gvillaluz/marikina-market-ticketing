@@ -264,10 +264,12 @@ void main() {
         router.pop();
         await tester.pump();
         expect(find.byType(LoginCard), findsOneWidget);
-        expect(find.text('Log in'), findsOneWidget);
+        // The heading and the button.
+        expect(find.text('Log in'), findsNWidgets(2));
         await tester.pumpAndSettle();
         expect(find.byType(LoginCard), findsOneWidget);
-        expect(find.text('Log in'), findsOneWidget);
+        // The heading and the button.
+        expect(find.text('Log in'), findsNWidgets(2));
         expect(find.byType(FindAccountPage), findsNothing);
         expect(tester.takeException(), isNull);
       });

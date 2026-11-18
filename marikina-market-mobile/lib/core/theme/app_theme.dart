@@ -509,6 +509,12 @@ class AppTheme {
   static const authLogoutMaxWidth = 280.0;
   static const authLogoutIndicatorSize = 32.0;
   static const authBodyStyle = bodyTextStyle;
+  // Grey line under a login heading, and the note under the Log in button.
+  static const authSubtitleStyle = TextStyle(
+    fontSize: bodyFontSize,
+    height: 1.45,
+    color: authVerificationBodyColor,
+  );
   // Darker than primaryGreen so small text keeps a 4.5:1 contrast on white.
   static const authRuleMetColor = Color(0xFF16803C);
   static const authRuleMarkSize = 18.0;

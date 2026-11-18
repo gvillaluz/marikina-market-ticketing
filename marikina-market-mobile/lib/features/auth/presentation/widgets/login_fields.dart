@@ -5,6 +5,7 @@ import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 class LoginFields extends StatefulWidget {
   final bool enabled;
   final VoidCallback? onSubmitted;
+  final VoidCallback? onForgotPassword;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
 
@@ -12,6 +13,7 @@ class LoginFields extends StatefulWidget {
     super.key,
     this.enabled = true,
     this.onSubmitted,
+    this.onForgotPassword,
     required this.usernameController,
     required this.passwordController,
   });
@@ -25,67 +27,77 @@ class _LoginFieldsState extends State<LoginFields> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('USERNAME'),
-          const SizedBox(height: 7),
-          TextField(
-            enabled: widget.enabled,
-            controller: widget.usernameController,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.username],
-            autocorrect: false,
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.person_rounded),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('USERNAME'),
+        const SizedBox(height: 7),
+        TextField(
+          enabled: widget.enabled,
+          controller: widget.usernameController,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.username],
+          autocorrect: false,
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.person_rounded),
 
-              hintText: 'Enter your username',
-              hintStyle: TextStyle(
-                color: AppColors.lightGrey,
-                fontSize: AppTheme.bodyFontSize,
-              ),
+            hintText: 'Enter your username',
+            hintStyle: TextStyle(
+              color: AppColors.lightGrey,
+              fontSize: AppTheme.bodyFontSize,
             ),
           ),
+        ),
 
-          const SizedBox(height: 20),
+        const SizedBox(height: 20),
 
-          const Text('PASSWORD'),
-          const SizedBox(height: 7),
-          TextField(
-            enabled: widget.enabled,
-            controller: widget.passwordController,
-            obscureText: !isPasswordVisible,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.password],
-            autocorrect: false,
-            enableSuggestions: false,
-            onSubmitted: (_) => widget.onSubmitted?.call(),
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.lock_rounded),
-              suffixIcon: IconButton(
-                tooltip: isPasswordVisible ? 'Hide password' : 'Show password',
-                onPressed: !widget.enabled
-                    ? null
-                    : () => setState(() {
-                        isPasswordVisible = !isPasswordVisible;
-                      }),
-                icon: Icon(
-                  isPasswordVisible
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility,
-                ),
-              ),
-              hintText: 'Enter your password',
-              hintStyle: TextStyle(
-                color: AppColors.lightGrey,
-                fontSize: AppTheme.bodyFontSize,
+        // "Forgot password?" sits on the label's line, on the right, and
+        // wraps instead of overflowing on narrow screens with large text.
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('PASSWORD'),
+            Flexible(
+              child: TextButton(
+                onPressed: widget.onForgotPassword,
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                child: const Text('Forgot password?', textAlign: TextAlign.end),
               ),
             ),
+          ],
+        ),
+        TextField(
+          enabled: widget.enabled,
+          controller: widget.passwordController,
+          obscureText: !isPasswordVisible,
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.password],
+          autocorrect: false,
+          enableSuggestions: false,
+          onSubmitted: (_) => widget.onSubmitted?.call(),
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.lock_rounded),
+            suffixIcon: IconButton(
+              tooltip: isPasswordVisible ? 'Hide password' : 'Show password',
+              onPressed: !widget.enabled
+                  ? null
+                  : () => setState(() {
+                      isPasswordVisible = !isPasswordVisible;
+                    }),
+              icon: Icon(
+                isPasswordVisible
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility,
+              ),
+            ),
+            hintText: 'Enter your password',
+            hintStyle: TextStyle(
+              color: AppColors.lightGrey,
+              fontSize: AppTheme.bodyFontSize,
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

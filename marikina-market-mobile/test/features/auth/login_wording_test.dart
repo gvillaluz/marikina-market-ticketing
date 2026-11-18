@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_frame.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/errors/exceptions.dart';
@@ -51,7 +52,7 @@ import 'logout_test_network_info.dart';
 final signInText = find.byWidgetPredicate((widget) {
   if (widget is! RichText) return false;
   final text = widget.text.toPlainText();
-  return text != 'SIGN-IN VERIFICATION' &&
+  return text != 'Sign-in verification' &&
       RegExp(r'sign(ing)?[ -]?in', caseSensitive: false).hasMatch(text);
 });
 
@@ -97,7 +98,7 @@ void main() {
           const Scaffold(body: SingleChildScrollView(child: LoginCard())),
         ),
       );
-      expect(find.text('Log in'), findsOneWidget);
+      expect(find.widgetWithText(AuthBtn, 'Log in'), findsOneWidget);
       expect(find.text('LOGIN'), findsNothing);
       expect(signInText, findsNothing);
     });
@@ -153,7 +154,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Back to log in'), findsOneWidget);
-      expect(find.text('SIGN-IN VERIFICATION'), findsOneWidget);
+      expect(find.text('Sign-in verification'), findsOneWidget);
       expect(signInText, findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
     });
