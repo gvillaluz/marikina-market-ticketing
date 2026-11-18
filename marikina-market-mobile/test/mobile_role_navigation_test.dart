@@ -12,7 +12,7 @@ import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubi
 import 'package:marikina_market_mobile/core/di/dependency_injection.dart';
 import 'package:marikina_market_mobile/core/router/app_router.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_band.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/widgets/change_password_card.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
@@ -110,16 +110,14 @@ void main() {
       MaterialApp(
         theme: AppTheme.light,
         home: const Scaffold(
-          body: LoginCardHeader(opening: AlwaysStoppedAnimation(1)),
+          body: LoginBand(opening: AlwaysStoppedAnimation(1)),
         ),
       ),
     );
     expect(find.text('Enforcer Access'), findsNothing);
     expect(find.text('Vendor Access'), findsNothing);
-    expect(
-      find.text('Marikina Public Market Inspection System'),
-      findsOneWidget,
-    );
+    expect(find.text('Marikina Public Market'), findsOneWidget);
+    expect(find.text('Inspection System'), findsOneWidget);
   });
 
   testWidgets(
