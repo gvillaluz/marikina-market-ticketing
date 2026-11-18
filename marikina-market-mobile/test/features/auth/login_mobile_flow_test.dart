@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_frame.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/router/app_router.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
@@ -208,7 +209,7 @@ void main() {
             value: bloc,
             child: MaterialApp(
               theme: AppTheme.light,
-              home: const LoginOtpPage(),
+              home: LoginFrame(path: '/', child: const LoginOtpPage()),
             ),
           ),
         );

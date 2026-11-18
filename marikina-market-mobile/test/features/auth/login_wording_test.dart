@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_frame.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/errors/exceptions.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
@@ -141,7 +142,9 @@ void main() {
         );
         await pending.timeout(const Duration(seconds: 5));
       });
-      await tester.pumpWidget(screen(bloc, const LoginOtpPage()));
+      await tester.pumpWidget(
+        screen(bloc, LoginFrame(path: '/', child: const LoginOtpPage())),
+      );
       expect(find.text('Verify and log in'), findsOneWidget);
       expect(
         find.text(

@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_frame.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/router/route_args.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
@@ -474,10 +475,13 @@ void main() {
               data: MediaQuery.of(
                 context,
               ).copyWith(disableAnimations: reduceMotion),
-              child: ResetPasswordPage(
-                args: ResetPasswordArgs(
-                  username: 'vendor01',
-                  resetToken: 'synthetic-reset',
+              child: LoginFrame(
+                path: '/',
+                child: ResetPasswordPage(
+                  args: ResetPasswordArgs(
+                    username: 'vendor01',
+                    resetToken: 'synthetic-reset',
+                  ),
                 ),
               ),
             ),

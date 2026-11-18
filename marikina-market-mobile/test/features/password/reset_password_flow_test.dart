@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_frame.dart';
 import 'package:marikina_market_mobile/core/network/client.dart';
 import 'package:marikina_market_mobile/core/router/route_args.dart';
 import 'package:marikina_market_mobile/features/password_recovery/data/data_sources/password_recovery_remote_data_source.dart';
@@ -164,15 +165,19 @@ void main() {
       BlocProvider.value(
         value: bloc,
         child: MaterialApp(
-          home: ResetPasswordPage(
-            args: ResetPasswordArgs(
-              username: 'vendor01',
-              resetToken: 'synthetic-reset',
+          home: LoginFrame(
+            path: '/',
+            child: ResetPasswordPage(
+              args: ResetPasswordArgs(
+                username: 'vendor01',
+                resetToken: 'synthetic-reset',
+              ),
             ),
           ),
         ),
       ),
     );
+    expect(find.text('Step 4 of 4'), findsOneWidget);
     for (final rule in [
       'At least 8 characters',
       'A number',

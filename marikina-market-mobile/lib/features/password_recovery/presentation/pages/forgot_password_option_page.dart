@@ -12,7 +12,7 @@ import 'package:marikina_market_mobile/features/password_recovery/presentation/b
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_state.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/factor_option_btn.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/back_to_login_button.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
+import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/recovery_step_counter.dart';
 
 class ForgotPasswordOptionPage extends StatefulWidget {
   final ForgotPasswordOptionArgs args;
@@ -51,100 +51,60 @@ class _ForgotPasswordOptionPageState extends State<ForgotPasswordOptionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: AppTheme.authPagePadding,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: AppTheme.authMaxWidth,
-                ),
-                child: Container(
-                  width: double.infinity,
-                  decoration: AppTheme.authCardDecoration(context),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const LoginCardHeader(),
-                      Padding(
-                        padding: AppTheme.authCardPadding,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Choose a recovery method',
-                              style: AppTheme.authPageTitleStyle,
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Select how you would like to access your account.',
-                              style: TextStyle(
-                                color: AppTheme.authVerificationBodyColor,
-                                fontSize: AppTheme.bodyFontSize,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            BlocBuilder<
-                              PasswordRecoveryBloc,
-                              PasswordRecoveryState
-                            >(
-                              builder: (context, state) {
-                                if (_account != null) {
-                                  return _buildContent(context, _account!);
-                                }
-
-                                if (state is SearchAccountLoading) {
-                                  return const SizedBox(
-                                    height: 180,
-                                    child: Center(
-                                      child: CircularProgressIndicator(
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  );
-                                }
-
-                                if (state is SearchAccountFailed) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    child: AuthErrorNotice(
-                                      message: state.message,
-                                    ),
-                                  );
-                                }
-
-                                if (state is AccountFound) {
-                                  return _buildContent(
-                                    context,
-                                    state.accountLookup,
-                                  );
-                                }
-
-                                return const SizedBox.shrink();
-                              },
-                            ),
-                            BackToLoginButton(
-                              enabled: context
-                                  .select<PasswordRecoveryBloc, bool>(
-                                    (bloc) =>
-                                        bloc.state is! SearchAccountLoading,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+    return Padding(
+      padding: AppTheme.authCardPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const RecoveryStepCounter(step: 2),
+          const Text(
+            'Choose a recovery method',
+            style: AppTheme.authPageTitleStyle,
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Select how you would like to access your account.',
+            style: TextStyle(
+              color: AppTheme.authVerificationBodyColor,
+              fontSize: AppTheme.bodyFontSize,
             ),
           ),
-        ),
+          const SizedBox(height: 20),
+          BlocBuilder<PasswordRecoveryBloc, PasswordRecoveryState>(
+            builder: (context, state) {
+              if (_account != null) {
+                return _buildContent(context, _account!);
+              }
+
+              if (state is SearchAccountLoading) {
+                return const SizedBox(
+                  height: 180,
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
+                );
+              }
+
+              if (state is SearchAccountFailed) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: AuthErrorNotice(message: state.message),
+                );
+              }
+
+              if (state is AccountFound) {
+                return _buildContent(context, state.accountLookup);
+              }
+
+              return const SizedBox.shrink();
+            },
+          ),
+          BackToLoginButton(
+            enabled: context.select<PasswordRecoveryBloc, bool>(
+              (bloc) => bloc.state is! SearchAccountLoading,
+            ),
+          ),
+        ],
       ),
     );
   }

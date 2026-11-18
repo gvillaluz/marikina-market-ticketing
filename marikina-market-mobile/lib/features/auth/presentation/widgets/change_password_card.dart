@@ -9,7 +9,6 @@ import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_even
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/widgets/change_password_fields.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 
 class ChangePasswordCard extends StatefulWidget {
   const ChangePasswordCard({super.key});
@@ -67,80 +66,72 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-
-    return Container(
-      width: screenSize.width * 0.9,
-      decoration: AppTheme.authCardDecoration(context),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const LoginCardHeader(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Column(
-              children: [
-                const Text(
-                  'CHANGE PASSWORD',
-                  style: AppTheme.authPageTitleStyle,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.authSmallGap),
-                Text(
-                  'For your security, change the temporary password you were '
-                  'given before you continue.',
-                  style: AppTheme.authBodyStyle,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          child: Column(
+            children: [
+              const Text(
+                'CHANGE PASSWORD',
+                style: AppTheme.authPageTitleStyle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppTheme.authSmallGap),
+              Text(
+                'For your security, change the temporary password you were '
+                'given before you continue.',
+                style: AppTheme.authBodyStyle,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          ChangePasswordFields(
-            enabled: context.select<AuthBloc, bool>(
-              (bloc) => bloc.state is! AuthChangePasswordLoading,
-            ),
-            currentPasswordController: _currentPasswordController,
-            newPasswordController: _newPasswordController,
-            confirmNewPasswordController: _confirmNewPasswordController,
-            check: _check,
-            onSubmitted: _submit,
+        ),
+        ChangePasswordFields(
+          enabled: context.select<AuthBloc, bool>(
+            (bloc) => bloc.state is! AuthChangePasswordLoading,
           ),
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    AuthBtn(
-                      isLoading:
-                          state is AuthChangePasswordLoading &&
-                          !state.succeeded,
-                      isSuccess:
-                          state is AuthChangePasswordLoading && state.succeeded,
-                      onPressed: _submit,
-                      label: 'Save password',
-                    ),
+          currentPasswordController: _currentPasswordController,
+          newPasswordController: _newPasswordController,
+          confirmNewPasswordController: _confirmNewPasswordController,
+          check: _check,
+          onSubmitted: _submit,
+        ),
+        BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  AuthBtn(
+                    isLoading:
+                        state is AuthChangePasswordLoading && !state.succeeded,
+                    isSuccess:
+                        state is AuthChangePasswordLoading && state.succeeded,
+                    onPressed: _submit,
+                    label: 'Save password',
+                  ),
 
-                    const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                    RevealMessage(
-                      child: switch (state) {
-                        AuthChangePasswordError(:final message) ||
-                        AuthChangePasswordNetworkError(
-                          :final message,
-                        ) => AuthErrorNotice(message: message),
-                        _ => null,
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                  RevealMessage(
+                    child: switch (state) {
+                      AuthChangePasswordError(:final message) ||
+                      AuthChangePasswordNetworkError(
+                        :final message,
+                      ) => AuthErrorNotice(message: message),
+                      _ => null,
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
 
-          const SizedBox(height: 20),
-        ],
-      ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }

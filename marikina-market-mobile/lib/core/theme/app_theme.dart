@@ -62,6 +62,27 @@ class AppTheme {
   // Login forms: messages open over enterDuration and close a little faster.
   static const formMotionEnterDuration = Duration(milliseconds: 250);
   static const formMotionLeaveDuration = Duration(milliseconds: 170);
+  // Login screens: the new screen slides in a short way while it fades in.
+  static const authSlideDuration = Duration(milliseconds: 240);
+  static const authSlideDistance = 24.0;
+  // Opening sequence, played once when the login frame first appears: the
+  // logo, then the title, then the card content rises in.
+  static const authOpeningDuration = Duration(milliseconds: 520);
+  static const authOpeningLogoInterval = Interval(
+    0,
+    0.35,
+    curve: Curves.easeOutCubic,
+  );
+  static const authOpeningTitleInterval = Interval(
+    0.2,
+    0.55,
+    curve: Curves.easeOutCubic,
+  );
+  static const authOpeningCardInterval = Interval(
+    0.45,
+    1,
+    curve: Curves.easeOutCubic,
+  );
   // How long the tick shows on a button before the next screen opens.
   static const authSuccessHold = Duration(milliseconds: 400);
   static const authCodeShakeDuration = Duration(milliseconds: 350);
@@ -460,6 +481,9 @@ class AppTheme {
   static const authPinRadius = BorderRadius.all(Radius.circular(10));
   static const authVerificationTitleColor = Color(0xFF0B2D5B);
   static const authVerificationBodyColor = Color(0xFF5B6472);
+  static const authStepBarHeight = 4.0;
+  static const authStepBarRadius = BorderRadius.all(Radius.circular(2));
+  static const authStepTrackColor = Color(0xFFE3E7EC);
   static const authPinBorderColor = Color(0xFFE0E0E0);
   static const authPinFocusBorderWidth = 1.5;
   static const authPinTextStyle = TextStyle(

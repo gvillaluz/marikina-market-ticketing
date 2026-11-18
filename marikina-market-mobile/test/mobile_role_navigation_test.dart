@@ -109,7 +109,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
-        home: const Scaffold(body: LoginCardHeader()),
+        home: const Scaffold(
+          body: LoginCardHeader(opening: AlwaysStoppedAnimation(1)),
+        ),
       ),
     );
     expect(find.text('Enforcer Access'), findsNothing);

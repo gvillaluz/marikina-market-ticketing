@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
@@ -18,23 +17,9 @@ class LoginOtpPage extends StatelessWidget {
           context.read<AuthBloc>().add(CancelLogin());
         }
       },
-      child: Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: AppTheme.authPagePadding,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: AppTheme.authMaxWidth,
-                ),
-                child: state is LoginOtpPending
-                    ? LoginOtpCard(state: state)
-                    : const SizedBox.shrink(),
-              ),
-            ),
-          ),
-        ),
-      ),
+      child: state is LoginOtpPending
+          ? LoginOtpCard(state: state)
+          : const SizedBox.shrink(),
     ),
   );
 }
