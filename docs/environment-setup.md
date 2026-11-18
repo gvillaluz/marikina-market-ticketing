@@ -8,14 +8,14 @@ Install Git, .NET SDK 10, Node.js with npm (the verification machine uses Node 2
 
 On Windows, Flutter plugin setup also needs symlink permission. Enable Windows **Developer Mode** in Settings → System → For developers, subject to your organization's device policy, or use an authorized environment with the required symlink privileges. Fresh-clone dependency resolution on the verification computer succeeded, but Flutter's subsequent native plugin-link creation reported this prerequisite missing. Migration tooling did not change the OS setting. Pure Dart analysis/tests are checked separately from native readiness.
 
-After the repository is published, clone it using:
+Clone the repository from GitHub (access is given by the project owner):
 
 ```powershell
 git clone https://github.com/gvillaluz/marikina-market-ticketing.git
 cd marikina-market-ticketing
 ```
 
-The monorepo is adopted locally at the original workspace path. Until publication is separately approved, use that local repository; no push has been performed. Read root and application `AGENTS.md` files. API, web and mobile remain separate build/deployment units inside one Git repository.
+Read root and application `AGENTS.md` files. API, web and mobile remain separate build/deployment units inside one Git repository.
 
 ## 2. What was sanitized from Git history
 
@@ -162,7 +162,7 @@ The API uses `AWSSDK.S3` with **explicit Backblaze B2 credentials and endpoint**
 3. Set `Backups:EncryptionKey` to Base64 encoding of **exactly 32 random bytes**, as generated in section 3. Store it securely and independently of backups.
 4. Configure the Backups bucket credential pair. Manual and automatic backups use the same database connection, dump executable, encryption key and B2 storage configuration.
 5. Retain the authorized existing encryption key if existing encrypted archives need to remain decryptable. Do not regenerate it casually: replacing it without a recovery plan can make retained backups unusable. No key-rotation/multiple-key feature was added by this migration.
-6. In the administrator UI, verify a manual backup, an automatic scheduled run/retry and a user-operated restore drill on a disposable database. Application configuration alone does not establish any of these results. Scheduling/retention live in the database, not a new environment flag. Do not assume backups are disabled when starting a populated development database.
+6. In the administrator UI, verify a manual backup, an automatic scheduled run/retry and a user-operated restore drill on a disposable database (steps in the [recovery guide](recovery-guide.md)). Application configuration alone does not establish any of these results. Scheduling/retention live in the database, not a new environment flag. Do not assume backups are disabled when starting a populated development database.
 
 Temporary backup files are written beneath the API process temporary directory (`MarikinaMarket-backups`); ensure the process can create/write/delete there. No dump or restore was executed during migration verification.
 
@@ -175,19 +175,11 @@ Temporary backup files are written beneath the API process temporary directory (
 | --- | --- |
 | `VITE_APP_NAME` | Optional non-sensitive display name. |
 | `API_PROXY_TARGET` | Development-only Vite proxy target, default `http://127.0.0.1:5000`. Browser requests stay under `/api`; no `/api` suffix on this target. |
-| `VITE_API_BASE_URL` | Production API **origin without `/api`**; the API client appends `/api`. Development uses the Vite proxy instead. Set your intended origin explicitly for production builds; the previous developer tunnel is only a legacy fallback in source. |
-| `VITE_FIREBASE_API_KEY` | Firebase web app public client API key. |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase web app auth domain. |
-| `VITE_FIREBASE_PROJECT_ID` | Firebase project identifier. |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender identifier. |
-| `VITE_FIREBASE_APP_ID` | Firebase web app ID. |
-| `VITE_FIREBASE_VAPID_KEY` | Public Web Push certificate key from Firebase Cloud Messaging. `VITE_FIREBASE_KEY` is a supported legacy fallback; prefer the explicit VAPID name. |
 
-3. Obtain the public Firebase web configuration from Project settings → Your apps and the public VAPID key from Cloud Messaging → Web Push certificates. Use the same intended project as the API/mobile notifications. Set all Firebase fields to real public configuration to exercise push; leave all those Firebase values empty to leave push unconfigured. The placeholder strings in the example are not usable configuration and should not be left in a running build.
-4. Run `npm run dev`; the configured port is 5173. Configure matching API CORS origins when calling the API directly; the development proxy is same-origin from the browser's perspective. Restart Vite after changing env files.
-5. Run `npm run build` for production output. `VITE_` values are built into browser code. Never put JWT signing secrets, database passwords, SMTP passwords, B2 application keys, backup encryption keys or Firebase Admin private keys in them. Env files do not make client-side secrets private. [Vite environment variables](https://vite.dev/guide/env-and-mode)
+The website always calls the server at `/api` on its own address (`src/api/client.ts`); it has no server-address setting and no Firebase settings. For Azure, see section 11.
 
-Web push additionally needs browser permission, service-worker support and an eligible secure context (HTTPS or supported localhost behavior). Verify device registration and actual delivery separately.
+3. Run `npm run dev`; the configured port is 5173. The development proxy is same-origin from the browser's perspective. Restart Vite after changing env files.
+4. Run `npm run build` for production output. `VITE_` values are built into browser code. Never put JWT signing secrets, database passwords, SMTP passwords, B2 application keys, backup encryption keys or Firebase Admin private keys in them. Env files do not make client-side secrets private. [Vite environment variables](https://vite.dev/guide/env-and-mode)
 
 ## 8. Mobile setup
 
@@ -236,3 +228,80 @@ Repository checks after dependency restoration:
 - Mobile: `flutter analyze --no-pub`, `flutter test --no-pub`, and the approved native build/run target when platform prerequisites are supplied.
 
 Manual requirements not established by source, sanitization or mocked tests: credential rotation at providers, SMTP delivery, Firebase IAM/APNs/browser/device push delivery, bucket permissions/version cleanup, database schema/data readiness and role accounts, device/network/TLS connectivity, real manual/automatic backups and restoration. No production or operational database is authorized for these checks.
+
+## 11. Azure (demo hosting)
+
+**Status: written 2026-11-18 from the project owner's description of how they deploy. Not yet followed step by step; it counts as checked only after the next demo update is done by following it.** Items marked *(confirm)* are to be checked during that update. To restore data, see the [recovery guide](recovery-guide.md).
+
+The demo has three parts, each deployed from VS Code or the terminal:
+
+| Part | Azure service | Deployed with |
+| --- | --- | --- |
+| Database | Azure Database for PostgreSQL | SQL files run in the VS Code PostgreSQL extension |
+| Server | Azure App Service | The VS Code Azure App Service extension, from the `publish-api` folder |
+| Website | Azure Static Web Apps | The Static Web Apps command-line tool through `npx` |
+
+Order for an update: **backup → database → server → website → phone app**. The server must understand the new database before the website uses it.
+
+### 11.1 Database
+
+1. **Take a backup first**: on the website, **Backups** → **Back Up Now**, then **Download** and keep the file.
+2. **See which schema changes the demo already has.** In the VS Code PostgreSQL extension, connected to the demo database, run this read-only query:
+
+   ```sql
+   SELECT migration_id FROM "__EFMigrationsHistory" ORDER BY migration_id DESC LIMIT 5;
+   ```
+
+   Compare the newest name with the newest migration files in `marikina-market-api/MarikinaMarket.API/Infrastructure/Migrations/` (the file names start with the same date and time). If the query fails because the table does not exist, stop: the demo database was not set up from migrations, and the next step needs a separate decision.
+3. **Get one SQL file per missing migration.** Each file is written from the migration, reviewed against it line by line, and wrapped so that it skips itself if that migration is already recorded (the same pattern as the market-streets update of 2026-11-16). Agents write and review these files but **never connect to the demo database**.
+4. **Run each file on the local throwaway database first**, then on the demo database in the VS Code PostgreSQL extension, oldest first. Running a file twice does nothing the second time.
+5. Run the query from step 2 again: the newest migration name must now match the newest migration file.
+
+Never run `dotnet ef database update` against the demo database.
+
+### 11.2 Server
+
+1. From the project folder, refresh the `publish-api` folder from the current code *(confirm the exact command)*:
+
+   ```powershell
+   dotnet publish marikina-market-api/MarikinaMarket.API -c Release -o publish-api
+   ```
+
+   Keep `publish-api/wwwroot/evidences/` and the Firebase Admin key file in `publish-api/Keys/` (the server loads `Keys/marikina-market-firebase-adminsdk-fbsvc-d28eb0ee73.json` at start and will not start without it). The key file is excluded from Git. **Do not commit `publish-api`**: it is build output.
+2. In VS Code, right-click `publish-api` → **Deploy to Web App...** (Azure App Service extension), pick the demo's App Service, and confirm the overwrite.
+3. The secrets are **settings on the App Service**, never files in the repository: Azure portal → the App Service → **Settings → Environment variables**. Names use `__` instead of `:`. **Your computer's User Secrets (section 3) are not sent to Azure**: they are stored in your Windows profile, not in the project, so publishing never copies them, and the server on Azure does not read User Secrets. Enter each value by hand once; it stays on the App Service across deploys, so you only change it when the value itself changes. Names only here; the values come from the project owner:
+
+   | Setting name | What it is |
+   | --- | --- |
+   | `ConnectionStrings__DefaultConnection` | The demo database connection |
+   | `Jwt__Secret` | Sign-in signing key |
+   | `Email__FromAddress`, `Email__AppPassword` | The email account that sends sign-in codes and reset emails |
+   | `BackBlazeB2__General__KeyId`, `BackBlazeB2__General__ApplicationKey` (and the same for `Documents`, `Evidence`, `Backups`) | Storage keys |
+   | `Backups__EncryptionKey` | The backup key. Keep a copy outside Azure (see the recovery guide) |
+   | `Backups__PgDumpPath` | Where `pg_dump` is on the server *(confirm whether the demo sets it)* |
+   | `Cors__AllowedOrigins__0` | The website's address on Static Web Apps, so the server accepts its requests *(confirm)* |
+
+### 11.3 Website
+
+**Not usable with the current code.** The website currently always calls `/api` on its own address (section 7), so on its own Static Web Apps address it cannot reach the server. A separate change (planned, not yet built) adds a server-address setting and makes "stay signed in" work across the two addresses. Once that change is in, this section gets the setting's name and value. Until then, do not deploy the website to Static Web Apps.
+
+The deploy itself, as used before:
+
+1. In `marikina-market-web`: `npm ci`, then `npm run build`. The result is in `marikina-market-web/dist`.
+2. Get the deployment token: Azure portal → the Static Web App → **Overview → Manage deployment token**. It is a secret. Put it in this PowerShell window without typing it on a command line, then deploy from the project folder:
+
+   ```powershell
+   $secure = Read-Host 'Deployment token' -AsSecureString
+   $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+   $env:SWA_CLI_DEPLOYMENT_TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+   [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr); $secure = $null
+   npx @azure/static-web-apps-cli deploy ./marikina-market-web/dist --env production
+   Remove-Item Env:SWA_CLI_DEPLOYMENT_TOKEN
+   ```
+
+   *(confirm that the tool reads the token from `SWA_CLI_DEPLOYMENT_TOKEN`; the form used before was `--deployment-token <TOKEN>`, which leaves the token in PowerShell's history.)*
+3. **If the token was ever shown, pasted or shared**, reset it on the same page (**Reset token**) before the next deploy.
+
+### 11.4 Phone app
+
+Build the phone app with the server's address in `firebase.local.json` (section 8): `API_BASE_URL` = `https://<app service address>/api`. Without it, the app falls back to an old development tunnel address.

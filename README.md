@@ -10,7 +10,7 @@ One product repository containing independently built applications:
 
 Read AGENTS.md, feature-workflow.md, roadmap.md and the affected application's AGENTS.md before changing code. Deferred mobile work is in deferred-enforcer-slices.md.
 
-Start with the [environment setup guide](docs/environment-setup.md) for prerequisites, PostgreSQL, ASP.NET Core User Secrets, Firebase, SMTP, B2 storage, backups, and web/mobile local configuration. The [verification report](docs/environment-verification.md) distinguishes automated checks from services that still need manual setup.
+Start with the [environment setup guide](docs/environment-setup.md) for prerequisites, PostgreSQL, ASP.NET Core User Secrets, Firebase, SMTP, B2 storage, backups, and web/mobile local configuration. The [verification report](docs/environment-verification.md) distinguishes automated checks from services that still need manual setup. The [recovery guide](docs/recovery-guide.md) covers restoring from a backup and what to do when a service is down.
 
 ## Build and test
 
@@ -24,6 +24,6 @@ Keep credentials in the existing user-secrets/environment mechanisms. Do not com
 
 ## Migration status
 
-The verified monorepo has been adopted in the original workspace at `C:\Users\berna\Documents\MarikinaMarketTicketing`. One root Git repository now contains all three applications and their sanitized histories. The temporary candidate copies are removed after in-place integrity and credential checks pass.
+One root Git repository contains all three applications and their sanitized histories. It is published on GitHub (`gvillaluz/marikina-market-ticketing`), and changes are merged through pull requests.
 
-Original source trees and Git metadata are retained in the ignored local recovery backup `.workspace-backups/monorepo-cutover-20261021`. Local credentials, caches and historical evidence remain private. Nothing has been pushed. See the [candidate verification history](docs/environment-verification.md) and the [cutover report](docs/cutover-verification.md).
+Original source trees and Git metadata were retained in the ignored local recovery backup `.workspace-backups/monorepo-cutover-20261021` on the computer where the migration was done (it is not on every computer). Local credentials, caches and historical evidence remain private. See the [candidate verification history](docs/environment-verification.md) and the [cutover report](docs/cutover-verification.md).
