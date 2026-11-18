@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_frame.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/router/mobile_route_access.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
@@ -202,8 +203,11 @@ void main() {
                 debugShowCheckedModeBanner: false,
                 theme: profilePreviewTheme,
                 home: mandatory
-                    ? const MandatoryChangePasswordPage()
-                    : const LoginPage(),
+                    ? LoginFrame(
+                        path: '/',
+                        child: const MandatoryChangePasswordPage(),
+                      )
+                    : LoginFrame(path: '/', child: const LoginPage()),
               ),
             ),
           ),
@@ -295,13 +299,16 @@ void main() {
                 debugShowCheckedModeBanner: false,
                 theme: profilePreviewTheme,
                 home: reset
-                    ? ResetPasswordPage(
-                        args: ResetPasswordArgs(
-                          username: 'vendor01',
-                          resetToken: 'synthetic-reset',
+                    ? LoginFrame(
+                        path: '/',
+                        child: ResetPasswordPage(
+                          args: ResetPasswordArgs(
+                            username: 'vendor01',
+                            resetToken: 'synthetic-reset',
+                          ),
                         ),
                       )
-                    : const FindAccountPage(),
+                    : LoginFrame(path: '/', child: const FindAccountPage()),
               ),
             ),
           ),
@@ -390,7 +397,7 @@ void main() {
             child: MaterialApp(
               debugShowCheckedModeBanner: false,
               theme: profilePreviewTheme,
-              home: const LoginOtpPage(),
+              home: LoginFrame(path: '/', child: const LoginOtpPage()),
             ),
           ),
         ),

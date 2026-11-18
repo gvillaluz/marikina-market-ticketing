@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/di/dependency_injection.dart';
 import 'package:marikina_market_mobile/core/router/route_args.dart';
+import 'package:marikina_market_mobile/core/router/login_slide_page.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_frame.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/layout/presentation/widgets/root_branch_container.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
@@ -45,90 +47,104 @@ import 'package:marikina_market_mobile/features/tickets/presentation/tickets/pag
 final appRoutes = buildAppRoutes();
 
 List<RouteBase> buildAppRoutes({String? sessionKey}) => [
-  GoRoute(
-    name: Routes.loginOtpName,
-    path: Routes.loginOtp,
-    pageBuilder: (context, state) =>
-        CupertinoPage(key: state.pageKey, child: const LoginOtpPage()),
-  ),
-  GoRoute(
-    name: Routes.loginName,
-    path: Routes.login,
-    pageBuilder: (context, state) =>
-        _fadePage(context, state, key: state.pageKey, child: const LoginPage()),
-  ),
-  GoRoute(
-    name: Routes.mandatoryChangePasswordName,
-    path: Routes.mandatoryChangePassword,
-    pageBuilder: (context, state) => _fadePage(
-      context,
-      state,
-      key: ValueKey((state.pageKey, sessionKey)),
-      child: const MandatoryChangePasswordPage(),
-    ),
-  ),
-  GoRoute(
-    name: Routes.findAccountName,
-    path: Routes.findAccount,
-    pageBuilder: (context, state) => _fadePage(
-      context,
-      state,
-      key: state.pageKey,
-      child: BlocProvider(
-        create: (_) => sl<PasswordRecoveryBloc>(),
-        child: const FindAccountPage(),
+  ShellRoute(
+    builder: (context, state, child) =>
+        LoginFrame(path: state.uri.path, child: child),
+    routes: [
+      GoRoute(
+        name: Routes.loginOtpName,
+        path: Routes.loginOtp,
+        pageBuilder: (context, state) => loginSlidePage(
+          context,
+          state,
+          key: state.pageKey,
+          child: const LoginOtpPage(),
+        ),
       ),
-    ),
-  ),
-  GoRoute(
-    name: Routes.forgotPasswordOptionName,
-    path: Routes.forgotPasswordOption,
-    pageBuilder: (context, state) {
-      final extra = state.extra as ForgotPasswordOptionArgs;
+      GoRoute(
+        name: Routes.loginName,
+        path: Routes.login,
+        pageBuilder: (context, state) => loginSlidePage(
+          context,
+          state,
+          key: state.pageKey,
+          child: const LoginPage(),
+        ),
+      ),
+      GoRoute(
+        name: Routes.mandatoryChangePasswordName,
+        path: Routes.mandatoryChangePassword,
+        pageBuilder: (context, state) => loginSlidePage(
+          context,
+          state,
+          key: ValueKey((state.pageKey, sessionKey)),
+          child: const MandatoryChangePasswordPage(),
+        ),
+      ),
+      GoRoute(
+        name: Routes.findAccountName,
+        path: Routes.findAccount,
+        pageBuilder: (context, state) => loginSlidePage(
+          context,
+          state,
+          key: state.pageKey,
+          child: BlocProvider(
+            create: (_) => sl<PasswordRecoveryBloc>(),
+            child: const FindAccountPage(),
+          ),
+        ),
+      ),
+      GoRoute(
+        name: Routes.forgotPasswordOptionName,
+        path: Routes.forgotPasswordOption,
+        pageBuilder: (context, state) {
+          final extra = state.extra as ForgotPasswordOptionArgs;
 
-      return _fadePage(
-        context,
-        state,
-        key: state.pageKey,
-        child: BlocProvider(
-          create: (_) => sl<PasswordRecoveryBloc>(),
-          child: ForgotPasswordOptionPage(args: extra),
-        ),
-      );
-    },
-  ),
-  GoRoute(
-    name: Routes.codeVerificationName,
-    path: Routes.codeVerification,
-    pageBuilder: (context, state) {
-      final extra = state.extra as CodeValidationArgs;
-      return _fadePage(
-        context,
-        state,
-        key: state.pageKey,
-        child: BlocProvider(
-          create: (_) => sl<PasswordRecoveryBloc>(),
-          child: CodeValidationPage(args: extra),
-        ),
-      );
-    },
-  ),
-  GoRoute(
-    name: Routes.resetPasswordName,
-    path: Routes.resetPassword,
-    pageBuilder: (context, state) {
-      final extra = state.extra as ResetPasswordArgs;
+          return loginSlidePage(
+            context,
+            state,
+            key: state.pageKey,
+            child: BlocProvider(
+              create: (_) => sl<PasswordRecoveryBloc>(),
+              child: ForgotPasswordOptionPage(args: extra),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        name: Routes.codeVerificationName,
+        path: Routes.codeVerification,
+        pageBuilder: (context, state) {
+          final extra = state.extra as CodeValidationArgs;
+          return loginSlidePage(
+            context,
+            state,
+            key: state.pageKey,
+            child: BlocProvider(
+              create: (_) => sl<PasswordRecoveryBloc>(),
+              child: CodeValidationPage(args: extra),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        name: Routes.resetPasswordName,
+        path: Routes.resetPassword,
+        pageBuilder: (context, state) {
+          final extra = state.extra as ResetPasswordArgs;
 
-      return _fadePage(
-        context,
-        state,
-        key: state.pageKey,
-        child: BlocProvider(
-          create: (_) => sl<PasswordRecoveryBloc>(),
-          child: ResetPasswordPage(args: extra),
-        ),
-      );
-    },
+          return loginSlidePage(
+            context,
+            state,
+            key: state.pageKey,
+            child: BlocProvider(
+              create: (_) => sl<PasswordRecoveryBloc>(),
+              child: ResetPasswordPage(args: extra),
+            ),
+          );
+        },
+      ),
+    ],
   ),
   GoRoute(
     name: Routes.splashName,

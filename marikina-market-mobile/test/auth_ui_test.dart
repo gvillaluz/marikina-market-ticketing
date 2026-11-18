@@ -136,6 +136,7 @@ void main() {
       }
       expect(bloc.state, isA<OtpSent>());
       await tester.pump();
+      expect(find.text('Step 3 of 4'), findsOneWidget);
       final field = tester.widget<OtpCodeField>(find.byType(OtpCodeField));
       expect(find.text('Resend in 00:30'), findsOneWidget);
       await tester.pump(const Duration(seconds: 1));

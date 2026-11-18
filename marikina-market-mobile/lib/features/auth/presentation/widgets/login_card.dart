@@ -10,7 +10,6 @@ import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/widgets/login_fields.dart';
 
 class LoginCard extends StatefulWidget {
@@ -57,72 +56,66 @@ class _LoginCardState extends State<LoginCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: AppTheme.authCardDecoration(context),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const LoginCardHeader(),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: 20),
 
-          const SizedBox(height: 20),
-
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) => LoginFields(
-              usernameController: _usernameController,
-              passwordController: _passwordController,
-              enabled: state is! AuthLoginLoading,
-              onSubmitted: _submit,
-            ),
+        BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) => LoginFields(
+            usernameController: _usernameController,
+            passwordController: _passwordController,
+            enabled: state is! AuthLoginLoading,
+            onSubmitted: _submit,
           ),
+        ),
 
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) => TextButton(
-              onPressed: state is AuthLoginLoading
-                  ? null
-                  : () => _forgotPassword(context),
-              child: const Text('Forgot password?'),
-            ),
+        BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) => TextButton(
+            onPressed: state is AuthLoginLoading
+                ? null
+                : () => _forgotPassword(context),
+            child: const Text('Forgot password?'),
           ),
+        ),
 
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    AuthBtn(
-                      isLoading: state is AuthLoginLoading && !state.succeeded,
-                      isSuccess: state is AuthLoginLoading && state.succeeded,
-                      onPressed: _submit,
-                      label: 'Log in',
-                    ),
+        BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  AuthBtn(
+                    isLoading: state is AuthLoginLoading && !state.succeeded,
+                    isSuccess: state is AuthLoginLoading && state.succeeded,
+                    onPressed: _submit,
+                    label: 'Log in',
+                  ),
 
-                    const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                    RevealMessage(
-                      child: switch (state) {
-                        AuthInvalidCredentials(:final message) ||
-                        AuthConnectionError(
-                          :final message,
-                        ) => AuthErrorNotice(message: message),
-                        Unauthenticated(sessionExpired: true) =>
-                          const AuthErrorNotice(
-                            message:
-                                'Your session has expired. Please log in again.',
-                          ),
-                        _ => null,
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                  RevealMessage(
+                    child: switch (state) {
+                      AuthInvalidCredentials(:final message) ||
+                      AuthConnectionError(
+                        :final message,
+                      ) => AuthErrorNotice(message: message),
+                      Unauthenticated(sessionExpired: true) =>
+                        const AuthErrorNotice(
+                          message:
+                              'Your session has expired. Please log in again.',
+                        ),
+                      _ => null,
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
 
-          const SizedBox(height: 20),
-        ],
-      ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/resend_code_button.dart';
@@ -52,106 +51,100 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
         : state.codeExpirySeconds == 0
         ? 'This code has expired. Request a new code below.'
         : null;
-    return Container(
-      width: double.infinity,
-      decoration: AppTheme.authCardDecoration(context),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const LoginCardHeader(),
-          Padding(
-            padding: AppTheme.authCardPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LoginOtpHeading(maskedEmail: state.maskedEmail),
-                const SizedBox(height: AppTheme.authGap),
-                LoginOtpField(
-                  controller: _codeController,
-                  enabled: state.canVerify,
-                  isWrong: state.codeRejected,
-                  isVerified: state.isVerified,
-                ),
-                RevealMessage(
-                  child: errorMessage == null
-                      ? null
-                      : Padding(
-                          padding: const EdgeInsets.only(
-                            top: AppTheme.authSmallGap,
-                          ),
-                          child: AuthErrorNotice(message: errorMessage),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: AppTheme.authCardPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LoginOtpHeading(maskedEmail: state.maskedEmail),
+              const SizedBox(height: AppTheme.authGap),
+              LoginOtpField(
+                controller: _codeController,
+                enabled: state.canVerify,
+                isWrong: state.codeRejected,
+                isVerified: state.isVerified,
+              ),
+              RevealMessage(
+                child: errorMessage == null
+                    ? null
+                    : Padding(
+                        padding: const EdgeInsets.only(
+                          top: AppTheme.authSmallGap,
                         ),
-                ),
-                const SizedBox(height: AppTheme.authGap),
-                AuthBtn(
-                  label: 'Verify and log in',
-                  isLoading: state.isVerifying && !state.isVerified,
-                  isSuccess: state.isVerified,
-                  onPressed: state.canVerify
-                      ? () => context.read<AuthBloc>().add(
-                          VerifyLoginSubmitted(
-                            _codeController.text,
-                            successHold: AppTheme.motionOf(
-                              context,
-                              AppTheme.authSuccessHold,
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-                const SizedBox(height: AppTheme.authSmallGap),
-                Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: AppTheme.authSmallGap,
-                  runSpacing: AppTheme.authSmallGap,
-                  children: [
-                    Text(
-                      'Didn’t receive the email?',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.authVerificationBodyColor,
+                        child: AuthErrorNotice(message: errorMessage),
                       ),
-                    ),
-                    ResendCodeButton(
-                      secondsLeft: state.resendCooldownSeconds,
-                      isSending: state.isResending,
-                      onResend: state.isVerifying
-                          ? null
-                          : () =>
-                                context.read<AuthBloc>().add(ResendLoginOtp()),
-                    ),
-                  ],
-                ),
-                RevealMessage(
-                  child: isCodeSent
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppTheme.authSmallGap,
+              ),
+              const SizedBox(height: AppTheme.authGap),
+              AuthBtn(
+                label: 'Verify and log in',
+                isLoading: state.isVerifying && !state.isVerified,
+                isSuccess: state.isVerified,
+                onPressed: state.canVerify
+                    ? () => context.read<AuthBloc>().add(
+                        VerifyLoginSubmitted(
+                          _codeController.text,
+                          successHold: AppTheme.motionOf(
+                            context,
+                            AppTheme.authSuccessHold,
                           ),
-                          child: Text(
-                            state.message!,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-                Align(
-                  alignment: Alignment.center,
-                  child: TextButton(
-                    onPressed: state.isVerifying
-                        ? null
-                        : () => context.read<AuthBloc>().add(CancelLogin()),
-                    child: const Text('Back to log in'),
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(height: AppTheme.authSmallGap),
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: AppTheme.authSmallGap,
+                runSpacing: AppTheme.authSmallGap,
+                children: [
+                  Text(
+                    'Didn’t receive the email?',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.authVerificationBodyColor,
+                    ),
                   ),
+                  ResendCodeButton(
+                    secondsLeft: state.resendCooldownSeconds,
+                    isSending: state.isResending,
+                    onResend: state.isVerifying
+                        ? null
+                        : () => context.read<AuthBloc>().add(ResendLoginOtp()),
+                  ),
+                ],
+              ),
+              RevealMessage(
+                child: isCodeSent
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppTheme.authSmallGap,
+                        ),
+                        child: Text(
+                          state.message!,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: TextButton(
+                  onPressed: state.isVerifying
+                      ? null
+                      : () => context.read<AuthBloc>().add(CancelLogin()),
+                  child: const Text('Back to log in'),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

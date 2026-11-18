@@ -169,12 +169,15 @@ void main() {
   );
 
   testWidgets(
-    'authentication fade honors reduced motion and keeps its route key',
+    'login screens keep their route key and never use a zero-length route change',
     (tester) async {
       CustomTransitionPage<void>? page;
-      final route = appRoutes.whereType<GoRoute>().singleWhere(
-        (route) => route.name == Routes.loginName,
-      );
+      final route = appRoutes
+          .whereType<ShellRoute>()
+          .first
+          .routes
+          .whereType<GoRoute>()
+          .singleWhere((route) => route.name == Routes.loginName);
       final router = GoRouter(
         routes: [
           GoRoute(
@@ -192,8 +195,11 @@ void main() {
       addTearDown(router.dispose);
       await showNavigation(tester, router, reduceMotion: true);
       await tester.pumpAndSettle();
-      expect(page!.transitionDuration, Duration.zero);
-      expect(page!.reverseTransitionDuration, Duration.zero);
+      // A zero-length change finishes before the navigator has handled it:
+      // on the phone, Back with animations removed left a blank card. Flutter
+      // shortens these by itself when the device asks for no animations.
+      expect(page!.transitionDuration, greaterThan(Duration.zero));
+      expect(page!.reverseTransitionDuration, greaterThan(Duration.zero));
     },
   );
 }

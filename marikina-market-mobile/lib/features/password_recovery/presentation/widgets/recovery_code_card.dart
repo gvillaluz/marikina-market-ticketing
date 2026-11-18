@@ -6,7 +6,6 @@ import 'package:marikina_market_mobile/core/router/route_args.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/otp_code_field.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/reveal_message.dart';
@@ -15,6 +14,7 @@ import 'package:marikina_market_mobile/features/password_recovery/presentation/b
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_state.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/resend_text.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/back_to_login_button.dart';
+import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/recovery_step_counter.dart';
 
 class RecoveryCodeCard extends StatefulWidget {
   final CodeValidationArgs args;
@@ -104,83 +104,79 @@ class _RecoveryCodeCardState extends State<RecoveryCodeCard> {
           'Verification could not be completed. Please try again.',
         _ => null,
       };
-      return Container(
-        width: double.infinity,
-        decoration: AppTheme.authCardDecoration(context),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const LoginCardHeader(),
-            Padding(
-              padding: AppTheme.authCardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Check your ${widget.args.channel}',
-                    style: AppTheme.authPageTitleStyle,
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: AppTheme.authCardPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const RecoveryStepCounter(step: 3),
+                Text(
+                  'Check your ${widget.args.channel}',
+                  style: AppTheme.authPageTitleStyle,
+                ),
+                const SizedBox(height: AppTheme.authSmallGap),
+                Text(
+                  'Enter the 6-digit verification code sent to ${widget.args.account.maskedEmail}.',
+                  style: AppTheme.authBodyStyle.copyWith(
+                    color: AppTheme.authVerificationBodyColor,
                   ),
-                  const SizedBox(height: AppTheme.authSmallGap),
-                  Text(
-                    'Enter the 6-digit verification code sent to ${widget.args.account.maskedEmail}.',
-                    style: AppTheme.authBodyStyle.copyWith(
-                      color: AppTheme.authVerificationBodyColor,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.authGap),
-                  OtpCodeField(
-                    controller: _code,
-                    enabled: !busy,
-                    isWrong: state is OtpVerified && !state.result.success,
-                    isVerified: verified,
-                  ),
-                  const SizedBox(height: AppTheme.authGap),
-                  ValueListenableBuilder<int>(
-                    valueListenable: _remaining,
-                    builder: (context, seconds, child) => ResendText(
-                      cooldownSeconds: seconds,
-                      isSending: busy && !verified,
-                      onResend: verified
-                          ? null
-                          : () => context.read<PasswordRecoveryBloc>().add(
-                              SendOtp(
-                                username: widget.args.username,
-                                channel: widget.args.channel,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.authGap),
-                  AuthBtn(
-                    label: 'Verify',
-                    isLoading: state is VerifyOtpLoading,
-                    isSuccess: verified,
-                    onPressed: busy
+                ),
+                const SizedBox(height: AppTheme.authGap),
+                OtpCodeField(
+                  controller: _code,
+                  enabled: !busy,
+                  isWrong: state is OtpVerified && !state.result.success,
+                  isVerified: verified,
+                ),
+                const SizedBox(height: AppTheme.authGap),
+                ValueListenableBuilder<int>(
+                  valueListenable: _remaining,
+                  builder: (context, seconds, child) => ResendText(
+                    cooldownSeconds: seconds,
+                    isSending: busy && !verified,
+                    onResend: verified
                         ? null
                         : () => context.read<PasswordRecoveryBloc>().add(
-                            VerifyCode(widget.args.username, _code.text.trim()),
-                          ),
-                  ),
-                  RevealMessage(
-                    child: error == null
-                        ? null
-                        : Padding(
-                            padding: const EdgeInsets.only(
-                              top: AppTheme.authSmallGap,
-                            ),
-                            child: AuthErrorNotice(
-                              message: error.trim().isEmpty
-                                  ? 'Please try again to verify your code.'
-                                  : error,
+                            SendOtp(
+                              username: widget.args.username,
+                              channel: widget.args.channel,
                             ),
                           ),
                   ),
-                  BackToLoginButton(enabled: !busy),
-                ],
-              ),
+                ),
+                const SizedBox(height: AppTheme.authGap),
+                AuthBtn(
+                  label: 'Verify',
+                  isLoading: state is VerifyOtpLoading,
+                  isSuccess: verified,
+                  onPressed: busy
+                      ? null
+                      : () => context.read<PasswordRecoveryBloc>().add(
+                          VerifyCode(widget.args.username, _code.text.trim()),
+                        ),
+                ),
+                RevealMessage(
+                  child: error == null
+                      ? null
+                      : Padding(
+                          padding: const EdgeInsets.only(
+                            top: AppTheme.authSmallGap,
+                          ),
+                          child: AuthErrorNotice(
+                            message: error.trim().isEmpty
+                                ? 'Please try again to verify your code.'
+                                : error,
+                          ),
+                        ),
+                ),
+                BackToLoginButton(enabled: !busy),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       );
     },
   );

@@ -6,13 +6,13 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_err
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/reveal_message.dart';
 import 'package:marikina_market_mobile/core/router/route_args.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
-import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_bloc.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_event.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_state.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/reset_password_fields.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/back_to_login_button.dart';
+import 'package:marikina_market_mobile/features/password_recovery/presentation/widgets/recovery_step_counter.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   final ResetPasswordArgs args;
@@ -61,99 +61,57 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: AppTheme.authPagePadding,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: AppTheme.authMaxWidth,
-                ),
-                child:
-                    BlocListener<PasswordRecoveryBloc, PasswordRecoveryState>(
-                      listener: (context, state) {
-                        if (_succeeded(state)) _openLogin(context);
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        decoration: AppTheme.authCardDecoration(context),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const LoginCardHeader(),
-                            Padding(
-                              padding: AppTheme.authCardPadding,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Create a new password',
-                                    style: AppTheme.authPageTitleStyle,
-                                  ),
-                                  const SizedBox(height: 24),
-                                  ResetPasswordFields(
-                                    enabled: context
-                                        .select<PasswordRecoveryBloc, bool>(
-                                          (bloc) => !_busy(bloc.state),
-                                        ),
-                                    newPasswordController:
-                                        newPasswordController,
-                                    confirmNewPasswordController:
-                                        confirmNewPasswordController,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  BlocBuilder<
-                                    PasswordRecoveryBloc,
-                                    PasswordRecoveryState
-                                  >(
-                                    builder: (context, state) {
-                                      final error = switch (state) {
-                                        ResetPasswordFailed(:final message) =>
-                                          message,
-                                        _ => null,
-                                      };
-                                      return Column(
-                                        children: [
-                                          AuthBtn(
-                                            onPressed: () => _submit(context),
-                                            isLoading:
-                                                state is ResetPasswordLoading,
-                                            isSuccess: _succeeded(state),
-                                            label: 'Change Password',
-                                          ),
-                                          RevealMessage(
-                                            child: error == null
-                                                ? null
-                                                : Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          top: 12,
-                                                        ),
-                                                    child: AuthErrorNotice(
-                                                      message: error,
-                                                    ),
-                                                  ),
-                                          ),
-                                          BackToLoginButton(
-                                            enabled: !_busy(state),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-              ),
+    return BlocListener<PasswordRecoveryBloc, PasswordRecoveryState>(
+      listener: (context, state) {
+        if (_succeeded(state)) _openLogin(context);
+      },
+      child: Padding(
+        padding: AppTheme.authCardPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const RecoveryStepCounter(step: 4),
+            const Text(
+              'Create a new password',
+              style: AppTheme.authPageTitleStyle,
             ),
-          ),
+            const SizedBox(height: 24),
+            ResetPasswordFields(
+              enabled: context.select<PasswordRecoveryBloc, bool>(
+                (bloc) => !_busy(bloc.state),
+              ),
+              newPasswordController: newPasswordController,
+              confirmNewPasswordController: confirmNewPasswordController,
+            ),
+            const SizedBox(height: 20),
+            BlocBuilder<PasswordRecoveryBloc, PasswordRecoveryState>(
+              builder: (context, state) {
+                final error = switch (state) {
+                  ResetPasswordFailed(:final message) => message,
+                  _ => null,
+                };
+                return Column(
+                  children: [
+                    AuthBtn(
+                      onPressed: () => _submit(context),
+                      isLoading: state is ResetPasswordLoading,
+                      isSuccess: _succeeded(state),
+                      label: 'Change Password',
+                    ),
+                    RevealMessage(
+                      child: error == null
+                          ? null
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: AuthErrorNotice(message: error),
+                            ),
+                    ),
+                    BackToLoginButton(enabled: !_busy(state)),
+                  ],
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

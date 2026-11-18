@@ -85,6 +85,7 @@ void main() {
     tester,
   ) async {
     await pumpOptions(tester);
+    expect(find.text('Step 2 of 4'), findsOneWidget);
     expect(find.text('Reset via Email'), findsOneWidget);
     expect(find.text('Continue with password'), findsOneWidget);
     expect(find.text('Reset via SMS number'), findsNothing);
