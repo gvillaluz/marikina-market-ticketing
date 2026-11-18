@@ -1,6 +1,7 @@
 import axios from "axios";
 import camelcaseKeys from "camelcase-keys";
 import type { TokenRefreshResponse } from "@/features/auth/auth.types";
+import env from "@/config/env";
 
 export class InvalidAccessTokenError extends Error {
   constructor(message: string) {
@@ -13,9 +14,10 @@ export const authRefreshApi = {
   // The server reads the website's pass from its hidden cookie, so no pass is sent here.
   async refreshWeb(): Promise<TokenRefreshResponse> {
     const { data } = await axios.post<unknown>(
-      "/api/auth/refresh-web",
+      `${env.apiBaseUrl}/auth/refresh-web`,
       undefined,
       {
+        withCredentials: true,
         timeout: 15000,
         headers: {
           "Content-Type": "application/json",

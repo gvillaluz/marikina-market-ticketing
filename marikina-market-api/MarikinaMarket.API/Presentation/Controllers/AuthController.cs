@@ -20,12 +20,13 @@ namespace MarikinaMarket.API.Presentation.Controllers
         public AuthController(IAuthService service) => _service = service;
 
         // Holds the website's pass so a page refresh can sign the user back in. Page scripts cannot read it,
-        // it is sent only to the sign-in routes, and it is deleted when the browser closes.
+        // it is sent only to the sign-in routes, and it is deleted when the browser closes. The website runs on
+        // another address, so the cookie must be allowed from another site (SameSite=None).
         private static CookieOptions WebSessionCookieOptions() => new()
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = SameSiteMode.None,
             Path = "/api/auth"
         };
 

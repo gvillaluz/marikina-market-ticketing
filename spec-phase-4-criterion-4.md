@@ -1,6 +1,6 @@
 # Plan: Phase 4, line 4 — setup/recovery instructions and beneficiary evaluation
 
-Written 2026-11-18 (recreated the same day after the project folder was cleaned). **Status: slice 1 approved and built 2026-11-18, uncommitted in the work copy `C:\Users\Admin\orca\workspaces\marikina-market-ticketing\phase-4-criterion-4`; waiting for your read-through. D1 = B (keep the website on Static Web Apps); its code change is planned below as slice W, not approved, not built.**
+Written 2026-11-18 (recreated the same day after the project folder was cleaned). **Status: slice 1 built and merged (PR #86); your read-through is still pending. D1 = B (keep the website on Static Web Apps); its code change, slice W, was approved, built, checked automatically and live-checked on this computer 2026-11-18 (branch `feature/phase-4-criterion-4-slice-w`, pull request opened); its final proof is the demo update (slice 2).**
 
 This file is committed with slice 1 (branch `feature/phase-4-criterion-4`), so it reaches every computer once that pull request is merged.
 
@@ -27,6 +27,9 @@ The roadmap line:
 | 8 | D1: how the website reaches the server | **B**: keep the website on Static Web Apps, separate from the server (code change: slice W). |
 | 9 | Slice 1 | Approved. |
 | 10 | A list of the secret settings | Yes, names only, in a file at the project root (`user-secrets-list.md`, built). |
+| 11 | Slice W | Approved: remove the server's website fallback; setting name `VITE_API_BASE_URL`. |
+| 12 | Slice W installs | Yes: `dotnet restore` and `npm ci` in this work copy. |
+| 13 | Move the CORS rule into its own file so a test can check it | Yes: `Presentation/WebsiteCors.cs`. |
 
 ## How you deploy today (as you described it, 2026-11-18)
 
@@ -65,8 +68,8 @@ A ticket cannot be saved without one paper photo and at least one supporting pho
 
 ## Order
 
-1. **Slice 1** (the guide): **built 2026-11-18**; your read-through pending.
-2. **Slice W** (website on its own address): needs its own approval; built and checked before slice 2. It changes sign-in code that line 3 checks, so the affected line 3 checks are re-run after it.
+1. **Slice 1** (the guide): **merged (PR #86)**; your read-through pending.
+2. **Slice W** (website on its own address): **built and checked 2026-11-18** (results below). It changes sign-in code that line 3 checks, so the affected line 3 checks are re-run after it is merged.
 3. **Slice 2** (after line 3 and slice W pass): you update the demo by following the Azure section. This updates the demo and tests the written steps.
 4. **Slice 3**: evaluation gaps.
 5. **Slice 4**: closing note and roadmap tick proposal.
@@ -93,11 +96,11 @@ All in the work copy `C:\Users\Admin\orca\workspaces\marikina-market-ticketing\p
 | Read-through table | In the guide. Marked **not tested**: typing the key with `Read-Host`, restoring into an Azure database, switching an Azure server to a restored database |
 | Your read-through | **Pending** (acceptance) |
 
-Azure items marked *(confirm)*, to settle in slice 2: the exact `dotnet publish` command; whether the demo sets `Backups__PgDumpPath`; the `Cors__AllowedOrigins__0` value; whether the Static Web Apps tool reads the token from `SWA_CLI_DEPLOYMENT_TOKEN`.
+Azure items marked *(confirm)*, to settle in slice 2: the exact `dotnet publish` command; whether the demo sets `Backups__PgDumpPath`. (The `Cors__AllowedOrigins__0` value and the `SWA_CLI_DEPLOYMENT_TOKEN` question were settled in slice W.)
 
 Not in slice 1: any fix for F1, any app change, any change on Azure, any deploy, installing the EF tool.
 
-## Slice W — Website on its own address with "stay signed in" (code change; plan only, not approved)
+## Slice W — Website on its own address with "stay signed in" (approved; built and checked 2026-11-18)
 
 **Why:** you chose B. Today the website can only reach the server when both are at one address (PR #62).
 
@@ -124,10 +127,40 @@ No database change. The phone app is not affected. No new package.
 
 **Checks:** server build and all server tests; website build and all Node tests; each new test fails first and catches a deliberate break. A local live check runs the website and the server on different ports, but a computer's own ports do not behave exactly like two Azure addresses, so criterion 2 is only fully proven on the demo in slice 2 (Chrome; Safari expected to sign out on refresh, recorded as a known limit).
 
-**Questions for W's approval**
+**Your answers:** remove the server's website fallback; setting name `VITE_API_BASE_URL`.
 
-- Remove the server's website fallback (recommended, rule 1), or keep it so either setup still works?
-- The setting name `VITE_API_BASE_URL` (the name used before PR #62)?
+### Slice W — what was built (2026-11-18)
+
+Branch `feature/phase-4-criterion-4-slice-w`, from `main` at 82c50a7.
+
+| File | Change |
+| --- | --- |
+| `Presentation/WebsiteCors.cs` (new, approved) | The CORS rule moved out of `Program.cs` so a test can check it; only `Cors:AllowedOrigins` addresses may read answers and send the cookie (`AllowCredentials`). |
+| `Program.cs` | Uses `WebsiteCors`; `MapWebsiteFallback()` removed. |
+| `Presentation/Controllers/AuthController.cs` | Cookie `SameSite=None` (still `HttpOnly`, `Secure`, path `/api/auth`, ends when the browser closes). |
+| `Presentation/WebsiteFallback.cs`, `WebsiteFallbackTests.cs` | Deleted. |
+| `MarikinaMarket.Tests/WebsiteCorsTests.cs` (new), `WebSessionCookieTests.cs` | 6 new address tests; cookie tests expect `samesite=none`. |
+| `src/config/env.ts`, `src/vite-env.d.ts` | `apiBaseUrl` = `VITE_API_BASE_URL` + `/api` (just `/api` when empty). The typing file was not in the plan's list; needed to declare the setting. |
+| `src/api/client.ts`, `src/api/endpoints/authRefresh.api.ts` | Use `apiBaseUrl`; send the cookie (`withCredentials`). |
+| `public/staticwebapp.config.json` (new) | Page refresh on Static Web Apps. In `public/`, not the web folder's root as planned, because Microsoft's `swa deploy` docs say the file goes in the deployed folder; the build copies it into `dist`. |
+| `src/api/server-address.test.mjs` (new), `web-session-cookie.test.mjs` | 4 new website tests; the existing renewal test gets the setting. |
+| `administration.test.mjs`, `market-street-options.test.mjs` | One stand-in line each for the settings file (their file loader cannot read Vite's build settings); their checks are unchanged. |
+| `.env.example`, `docs/environment-setup.md` | The setting; sections 7, 11.2 (the exact `Cors__AllowedOrigins__0` value and a new step 4: the App Service's own CORS page must stay empty, because Microsoft says it overrides the server's rule) and 11.3 (build with the setting; known Safari limit; `SWA_CLI_DEPLOYMENT_TOKEN` confirmed from Microsoft's docs). |
+
+| Check | Result |
+| --- | --- |
+| Server build | 0 errors, the same 8 old warnings |
+| Server tests (test folder settings given) | 996 passed, 2 skipped, 0 failed (before: 1,000; 10 removed with the fallback, 6 added) |
+| Website build | OK; `staticwebapp.config.json` is in `dist` |
+| Website tests | 379 passed, 0 failed (before: 375) |
+| New tests failed first, for the right reason | Yes (cookie still `strict`; no credentials permission; no server address) |
+| Deliberate breaks caught | Every address allowed (4 tests failed); cookie not sent (1); setting ignored (1) |
+| Live check on this computer (`evidence/phase-4-criterion-4-slice-w-live/`, off Git) | 14 of 14 passed on run 1: built website on `http://127.0.0.1:4173`, server on `http://localhost:5000` (different sites to Chrome), throwaway database, real Chrome. Criteria 1, 2, 3, 4 and 6 shown; throwaway account removed |
+| Pre-existing | 22 backup tests fail only when `BACKUP_TEST_TEMP_ROOT`, `TEMP` and `TMP` are not set to the same folder (test setup, same on `main`) |
+
+Not proven yet (slice 2, on the demo): criterion 5 (the Static Web Apps refresh file); HTTPS on both addresses (this computer's HTTPS development certificate is not trusted and was not changed); Safari and private windows (expected to sign out on refresh).
+
+Risk: with `SameSite=None`, another website can make the browser call "log out" on our server, so the user's next refresh shows the login page. It cannot read anything or sign in as them.
 
 ## Slice 2 — Update the demo by following the guide (after line 3 and slice W pass)
 
@@ -181,8 +214,9 @@ A note in `docs/closed-work/phases/phase-4-setup-and-evaluation.md`, listed in `
 
 ## Still open
 
-- Your read-through of slice 1 (acceptance), then commit and pull request when you say so.
-- Slice W approval and its two questions.
+- Your read-through of slice 1 (acceptance).
+- Slice W: your acceptance and merging its pull request; then re-run the affected line 3 sign-in checks.
+- Before the next demo deploy: the App Service's own CORS page must be empty (setup guide 11.2, step 4).
 - Reset the Static Web Apps deployment token before the next deploy.
 - The form's answers (CSV), the date, and which version people saw (before slice 3).
 - Whether the demo uses the same photo storage (before slice 2).

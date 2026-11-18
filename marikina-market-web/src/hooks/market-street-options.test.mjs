@@ -37,6 +37,9 @@ function load(relative, overrides = {}, cache = new Map()) {
       Date,
       require(id) {
         if (id in overrides) return { __esModule: true, ...overrides[id] };
+        // Build-time settings (Vite's import.meta.env) are an outer boundary here.
+        if (id === "@/config/env")
+          return { __esModule: true, default: { apiBaseUrl: "/api" } };
         if (id.endsWith(".css"))
           return { __esModule: true, default: new Proxy({}, { get: (_, key) => key }) };
         if (!id.startsWith(".") && !id.startsWith("@/")) return require(id);
