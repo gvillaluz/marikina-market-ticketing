@@ -73,6 +73,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             isVerifying: pending.isVerifying,
             isResending: pending.isResending,
             requiresNewCode: pending.requiresNewCode,
+            isVerified: pending.isVerified,
+            codeRejected: pending.codeRejected,
           ),
         );
       }
@@ -149,11 +151,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       LoginParams(username: username, password: event.password),
     );
     if (generation != _loginGeneration || emit.isDone) return;
-    _loginBusy = false;
     switch (result) {
       case ResultFailure(failure: final failure):
+        _loginBusy = false;
         emit(AuthInvalidCredentials(failure.message));
       case Success(data: final otp):
+        if (event.successHold > Duration.zero) {
+          emit(AuthLoginLoading(succeeded: true));
+          await Future<void>.delayed(event.successHold);
+          if (generation != _loginGeneration || emit.isDone) return;
+        }
+        _loginBusy = false;
         _loginUsername = username;
         _loginPassword = event.password;
         _applyOtpResult(otp);
@@ -226,9 +234,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ),
     );
     if (generation != _loginGeneration || emit.isDone) return;
-    _loginBusy = false;
     switch (result) {
       case ResultFailure(failure: final failure):
+        _loginBusy = false;
         final requiresNewCode =
             failure.message == 'Too many attempts. Request a new code.' ||
             failure.message == 'Code expired. Request a new one.' ||
@@ -237,9 +245,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           _pendingState(
             message: failure.message,
             requiresNewCode: requiresNewCode,
+            codeRejected: failure is! NetworkFailure,
           ),
         );
       case Success(data: final user):
+        if (event.successHold > Duration.zero) {
+          emit(_pendingState(isVerifying: true, isVerified: true));
+          await Future<void>.delayed(event.successHold);
+          if (generation != _loginGeneration || emit.isDone) return;
+        }
         _clearPendingLogin();
         emit(Authenticated(user: user));
         add(RegisterDeviceTokenRequested());
@@ -268,6 +282,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     bool isVerifying = false,
     bool isResending = false,
     bool requiresNewCode = false,
+    bool isVerified = false,
+    bool codeRejected = false,
   }) => LoginOtpPending(
     maskedEmail: _maskedEmail,
     resendCooldownSeconds: _secondsUntil(_resendAvailableAt),
@@ -276,6 +292,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     isVerifying: isVerifying,
     isResending: isResending,
     requiresNewCode: requiresNewCode,
+    isVerified: isVerified,
+    codeRejected: codeRejected,
   );
 
   void _clearPendingLogin() {
@@ -309,6 +327,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (emit.isDone) return;
     switch (result) {
       case Success(data: final user):
+        if (event.successHold > Duration.zero) {
+          emit(AuthChangePasswordLoading(succeeded: true));
+          await Future<void>.delayed(event.successHold);
+          if (emit.isDone) return;
+        }
         emit(Authenticated(user: user));
       case ResultFailure(
         failure: NetworkFailure(:final message) ||

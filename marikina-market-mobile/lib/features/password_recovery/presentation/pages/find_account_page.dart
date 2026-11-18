@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/reveal_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
@@ -135,12 +136,19 @@ class _FindAccountPageState extends State<FindAccountPage> {
                                             onPressed: _searchAccount,
                                             label: 'Continue',
                                           ),
-                                          if (state is SearchAccountFailed) ...[
-                                            const SizedBox(height: 12),
-                                            AuthErrorNotice(
-                                              message: state.message,
-                                            ),
-                                          ],
+                                          RevealMessage(
+                                            child: state is SearchAccountFailed
+                                                ? Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          top: 12,
+                                                        ),
+                                                    child: AuthErrorNotice(
+                                                      message: state.message,
+                                                    ),
+                                                  )
+                                                : null,
+                                          ),
                                           BackToLoginButton(
                                             enabled:
                                                 state is! SearchAccountLoading,

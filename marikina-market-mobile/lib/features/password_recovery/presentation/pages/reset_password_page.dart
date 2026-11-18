@@ -3,6 +3,7 @@ import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/reveal_message.dart';
 import 'package:marikina_market_mobile/core/router/route_args.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/login_card_header.dart';
@@ -33,6 +34,20 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     super.dispose();
   }
 
+  // Waiting for the server, or showing the tick before the next screen.
+  static bool _busy(PasswordRecoveryState state) =>
+      state is ResetPasswordLoading || _succeeded(state);
+
+  static bool _succeeded(PasswordRecoveryState state) =>
+      state is ResetPasswordSuccessfully && state.result.success;
+
+  Future<void> _openLogin(BuildContext context) async {
+    await Future<void>.delayed(
+      AppTheme.motionOf(context, AppTheme.authSuccessHold),
+    );
+    if (context.mounted) context.goNamed(Routes.loginName);
+  }
+
   void _submit(BuildContext context) {
     context.read<PasswordRecoveryBloc>().add(
       ResetPassword(
@@ -60,10 +75,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 child:
                     BlocListener<PasswordRecoveryBloc, PasswordRecoveryState>(
                       listener: (context, state) {
-                        if (state is ResetPasswordSuccessfully &&
-                            state.result.success) {
-                          context.goNamed(Routes.loginName);
-                        }
+                        if (_succeeded(state)) _openLogin(context);
                       },
                       child: Container(
                         width: double.infinity,
@@ -85,9 +97,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                   ResetPasswordFields(
                                     enabled: context
                                         .select<PasswordRecoveryBloc, bool>(
-                                          (bloc) =>
-                                              bloc.state
-                                                  is! ResetPasswordLoading,
+                                          (bloc) => !_busy(bloc.state),
                                         ),
                                     newPasswordController:
                                         newPasswordController,
@@ -111,15 +121,24 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                             onPressed: () => _submit(context),
                                             isLoading:
                                                 state is ResetPasswordLoading,
+                                            isSuccess: _succeeded(state),
                                             label: 'Change Password',
                                           ),
-                                          if (error != null) ...[
-                                            const SizedBox(height: 12),
-                                            AuthErrorNotice(message: error),
-                                          ],
+                                          RevealMessage(
+                                            child: error == null
+                                                ? null
+                                                : Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          top: 12,
+                                                        ),
+                                                    child: AuthErrorNotice(
+                                                      message: error,
+                                                    ),
+                                                  ),
+                                          ),
                                           BackToLoginButton(
-                                            enabled:
-                                                state is! ResetPasswordLoading,
+                                            enabled: !_busy(state),
                                           ),
                                         ],
                                       );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_error_notice.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/reveal_message.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/router/route_args.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
@@ -36,6 +37,7 @@ class _LoginCardState extends State<LoginCard> {
       LoginSubmitted(
         username: _usernameController.text.trim(),
         password: _passwordController.text,
+        successHold: AppTheme.motionOf(context, AppTheme.authSuccessHold),
       ),
     );
   }
@@ -90,23 +92,28 @@ class _LoginCardState extends State<LoginCard> {
                 child: Column(
                   children: [
                     AuthBtn(
-                      isLoading: state is AuthLoginLoading,
+                      isLoading: state is AuthLoginLoading && !state.succeeded,
+                      isSuccess: state is AuthLoginLoading && state.succeeded,
                       onPressed: _submit,
                       label: 'Log in',
                     ),
 
                     const SizedBox(height: 10),
 
-                    if (state
-                        case AuthInvalidCredentials(:final message) ||
-                            AuthConnectionError(:final message)) ...{
-                      AuthErrorNotice(message: message),
-                    },
-                    if (state is Unauthenticated && state.sessionExpired)
-                      const AuthErrorNotice(
-                        message:
-                            'Your session has expired. Please log in again.',
-                      ),
+                    RevealMessage(
+                      child: switch (state) {
+                        AuthInvalidCredentials(:final message) ||
+                        AuthConnectionError(
+                          :final message,
+                        ) => AuthErrorNotice(message: message),
+                        Unauthenticated(sessionExpired: true) =>
+                          const AuthErrorNotice(
+                            message:
+                                'Your session has expired. Please log in again.',
+                          ),
+                        _ => null,
+                      },
+                    ),
                   ],
                 ),
               );
