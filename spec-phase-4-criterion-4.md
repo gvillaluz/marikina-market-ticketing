@@ -1,6 +1,6 @@
 # Plan: Phase 4, line 4 — setup/recovery instructions and beneficiary evaluation
 
-Written 2026-11-18 (recreated the same day after the project folder was cleaned). **Status: slice 1 built and merged (PR #86); your read-through is still pending. D1 = B (keep the website on Static Web Apps); its code change, slice W, was approved, built, checked automatically and live-checked on this computer 2026-11-18 (branch `feature/phase-4-criterion-4-slice-w`, pull request opened); its final proof is the demo update (slice 2).**
+Written 2026-11-18 (recreated the same day after the project folder was cleaned). **Status: slice 1 built and merged (PR #86); your read-through is still pending. D1 = B (keep the website on Static Web Apps); its code change, slice W, is closed 2026-11-18 (PR #89 merged; checked automatically, live-checked on this computer, and line 3's website checks re-run); its final proof on Azure is the demo update (slice 2), which is next.**
 
 This file is committed with slice 1 (branch `feature/phase-4-criterion-4`), so it reaches every computer once that pull request is merged.
 
@@ -69,7 +69,7 @@ A ticket cannot be saved without one paper photo and at least one supporting pho
 ## Order
 
 1. **Slice 1** (the guide): **merged (PR #86)**; your read-through pending.
-2. **Slice W** (website on its own address): **built and checked 2026-11-18** (results below). It changes sign-in code that line 3 checks, so the affected line 3 checks are re-run after it is merged.
+2. **Slice W** (website on its own address): **closed 2026-11-18** (PR #89; results below, including the re-run of line 3's website checks).
 3. **Slice 2** (after line 3 and slice W pass): you update the demo by following the Azure section. This updates the demo and tests the written steps.
 4. **Slice 3**: evaluation gaps.
 5. **Slice 4**: closing note and roadmap tick proposal.
@@ -157,6 +157,9 @@ Branch `feature/phase-4-criterion-4-slice-w`, from `main` at 82c50a7.
 | Deliberate breaks caught | Every address allowed (4 tests failed); cookie not sent (1); setting ignored (1) |
 | Live check on this computer (`evidence/phase-4-criterion-4-slice-w-live/`, off Git) | 14 of 14 passed on run 1: built website on `http://127.0.0.1:4173`, server on `http://localhost:5000` (different sites to Chrome), throwaway database, real Chrome. Criteria 1, 2, 3, 4 and 6 shown; throwaway account removed |
 | Pre-existing | 22 backup tests fail only when `BACKUP_TEST_TEMP_ROOT`, `TEMP` and `TMP` are not set to the same folder (test setup, same on `main`) |
+| Merged | PR #89, merge commit 88c3c35, 2026-11-18 |
+| All checks again on `main` 88c3c35 (line 3's fixes and slice W together) | Server 997 passed, 2 skipped, 0 failed (line 3's 1,001 − 10 + 6), no new warnings; website build OK, 379 / 379 |
+| Line 3's website checks re-run on `main` 88c3c35, website and server on different sites (`expected-line3-rerun.md` in the same evidence folder) | Run 2: 6 of 6 passed — Head Admin sign-in through the server address; tickets 76, 78 Cleared and 79, 80 Paid with photos and receipts loading; ticket 85 without a receipt not offered Paid/Cleared; blood donation turned on and off again from the Ordinances page; nothing else changed. Run 1: 5 of 6, because the script read "Pending" from lower down the ticket page while the badge showed the right status (script fault, kept). C4 not repeated (it needs new tickets and photo uploads) |
 
 Not proven yet (slice 2, on the demo): criterion 5 (the Static Web Apps refresh file); HTTPS on both addresses (this computer's HTTPS development certificate is not trusted and was not changed); Safari and private windows (expected to sign out on refresh).
 
@@ -215,7 +218,7 @@ A note in `docs/closed-work/phases/phase-4-setup-and-evaluation.md`, listed in `
 ## Still open
 
 - Your read-through of slice 1 (acceptance).
-- Slice W: your acceptance and merging its pull request; then re-run the affected line 3 sign-in checks.
+- Line 3's hosted-demo check (`evidence/phase-4-criterion-3-live/hosted-demo/1-check-hidden-numbers.sql`, run by you) — or deploy the fixed server and phone app in slice 2, which makes it unnecessary.
 - Before the next demo deploy: the App Service's own CORS page must be empty (setup guide 11.2, step 4).
 - Reset the Static Web Apps deployment token before the next deploy.
 - The form's answers (CSV), the date, and which version people saw (before slice 3).
