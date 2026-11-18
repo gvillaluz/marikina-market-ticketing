@@ -9,7 +9,7 @@ class TicketSummary {
   final int ticketId;
   final int enforcerId;
   final int? vendorId;
-  final String controlNumber;
+  final String? controlNumber;
   final TicketStatus ticketStatus;
   final String? businessName;
   final String? stallNumber;
