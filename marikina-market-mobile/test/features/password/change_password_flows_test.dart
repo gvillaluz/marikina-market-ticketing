@@ -350,7 +350,7 @@ void main() {
 
     testWidgets('shows the title and the explanation line', (tester) async {
       await pumpForced(tester);
-      expect(find.text('CHANGE PASSWORD'), findsOneWidget);
+      expect(find.text('Change password'), findsOneWidget);
       expect(
         find.text(
           'For your security, change the temporary password you were given '

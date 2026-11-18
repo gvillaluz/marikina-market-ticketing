@@ -34,7 +34,7 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.authGap),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
