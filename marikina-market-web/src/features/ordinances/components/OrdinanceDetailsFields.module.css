@@ -19,16 +19,16 @@
 
 .identity {
   display: grid;
-  gap: var(--ordinance-space-md);
+  gap: var(--space-md);
 }
 
 .explanation {
-  color: var(--text-muted);
-  font-size: var(--market-font-size-caption);
+  color: var(--text-body);
+  font-size: var(--form-font-caption);
 }
 
 @media (min-width: 640px) {
   .identity {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

@@ -486,6 +486,53 @@ test("failed detail loading blocks saving and retries the selected ordinance", a
   assert.equal(h.requests[0][1], "/ordinance/7");
 });
 
+// Ordinance window slice: Save is never a silent grey button for missing information.
+test("pressing Save with missing information marks every problem instead of doing nothing", async () => {
+  const h = editorHarness();
+  h.render().launch();
+  assert.equal(h.render().canSave, true);
+  h.render().submit();
+  await Promise.resolve();
+  assert.equal(h.requests.length, 0);
+  for (const name of ["ordinanceNumber", "series", "section", "title", "category", "severity"])
+    assert.equal(h.render().touched[name], true, name);
+  assert.equal(h.render().error, "Add at least one penalty tier and fix any fields marked in red.");
+  h.render().addTier();
+  const key = h.render().tiers[0].key;
+  h.render().submit();
+  await Promise.resolve();
+  assert.equal(h.requests.length, 0);
+  assert.equal(h.render().tierTouched[key].amount, true);
+  assert.equal(h.render().error, "Fix the fields marked in red.");
+});
+
+test("the window uses Create/Edit wording, shows the save message beside the buttons and names each tier once", () => {
+  const Modal = ({ open, title, children, footer }) =>
+    open
+      ? React.createElement("div", null, React.createElement("h3", null, title), children, React.createElement("footer", null, footer))
+      : null;
+  const EditorModal = load("features/ordinances/components/OrdinanceEditorModal.tsx", {
+    "@/components/ui/Modal": { default: Modal },
+  }).default;
+  const created = editorHarness();
+  created.render().launch();
+  created.render().submit();
+  let html = renderToStaticMarkup(React.createElement(EditorModal, { editor: created.render() }));
+  assert.match(html, /<h3>Create Ordinance<\/h3>/);
+  const [body, footer] = html.split("<footer>");
+  assert.doesNotMatch(body, /fix any fields marked in red/);
+  assert.match(footer, /fix any fields marked in red\..*Create Ordinance<\/span><\/button>/s);
+  assert.match(body, /aria-invalid="true"/);
+  const edited = editorHarness();
+  edited.render().launch(summary);
+  edited.render();
+  edited.flush();
+  html = renderToStaticMarkup(React.createElement(EditorModal, { editor: edited.render() }));
+  assert.match(html, /<h3>Edit Ordinance<\/h3>/);
+  assert.match(html, /Save Changes<\/span><\/button>/);
+  assert.doesNotMatch(html, /Manage Ordinance|Save Ordinance|Penalty tier \d/);
+});
+
 test("new category choices preserve historical numeric category identities", () => {
   const { CATEGORY_OPTIONS } = load("features/ordinances/ordinances.constants.ts");
   assert.deepEqual(Array.from(CATEGORY_OPTIONS, ({ value }) => value), [

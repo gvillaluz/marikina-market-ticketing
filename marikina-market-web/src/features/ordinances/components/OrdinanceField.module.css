@@ -2,12 +2,12 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--ordinance-space-xs);
+  gap: var(--space-sm);
 }
 
 .label {
-  color: var(--text-body);
-  font-size: var(--market-font-size-caption);
+  color: var(--text-heading);
+  font-size: var(--form-font-body);
   font-weight: 500;
 }
 
@@ -15,31 +15,41 @@
   min-width: 0;
 }
 
+/* The shared dropdown is resized only inside this window. */
+.dropdown > button {
+  height: var(--form-control-height);
+  padding-inline: var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--form-font-body);
+}
+
 .control {
   width: 100%;
   min-width: 0;
-  min-height: var(--ordinance-control-height);
-  padding: var(--ordinance-space-sm);
+  min-height: var(--form-control-height);
+  padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--border-default);
-  border-radius: var(--market-radius-button);
+  border-radius: var(--radius-sm);
   background: var(--bg-surface);
   color: var(--text-heading);
   font-family: inherit;
-  font-size: var(--market-font-size-caption);
+  font-size: var(--form-font-body);
   line-height: 1.4;
+  caret-color: var(--button-primary);
 }
 
 .control::placeholder {
-  color: var(--text-muted);
+  color: var(--text-body);
 }
 
 .control:hover:not(:disabled) {
-  border-color: var(--market-search-focus);
+  border-color: var(--text-muted);
 }
 
 .control:focus-visible {
-  outline: 2px solid var(--info);
-  outline-offset: 1px;
+  border-color: var(--button-primary);
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
 }
 
 .control:disabled {
@@ -59,6 +69,6 @@
 
 .error {
   color: var(--danger);
-  font-size: var(--market-font-size-micro);
+  font-size: var(--form-font-caption);
   line-height: 1.4;
 }

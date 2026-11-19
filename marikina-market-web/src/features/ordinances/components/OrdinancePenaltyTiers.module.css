@@ -7,9 +7,8 @@
 
 .add {
   flex-shrink: 0;
-  min-height: 0;
-  padding: var(--ordinance-space-xs) var(--ordinance-space-sm);
-  font-size: var(--market-font-size-micro);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--form-font-caption);
 }
 
 .actions {
@@ -35,14 +34,14 @@
 }
 
 .empty strong {
-  color: var(--text-body);
-  font-size: var(--market-font-size-caption);
+  color: var(--text-heading);
+  font-size: var(--form-font-body);
   font-weight: 500;
 }
 
 .empty span {
-  color: var(--text-muted);
-  font-size: var(--market-font-size-micro);
+  color: var(--text-body);
+  font-size: var(--form-font-caption);
 }
 
 .list {
@@ -56,17 +55,17 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--ordinance-space-lg);
-  padding: var(--ordinance-space-md);
-  border-radius: var(--market-radius-button);
+  gap: var(--space-lg);
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
   background: var(--ordinance-muted-surface);
   color: var(--text-body);
-  font-size: var(--market-font-size-micro);
+  font-size: var(--form-font-caption);
 }
 
 .summary strong {
   color: var(--market-action);
-  font-size: var(--market-font-size-body);
+  font-size: var(--market-font-size-heading);
   font-weight: 700;
 }
 
@@ -81,5 +80,5 @@
   border-radius: var(--market-radius-button);
   background: var(--ordinance-danger-surface);
   color: var(--danger);
-  font-size: var(--market-font-size-caption);
+  font-size: var(--form-font-body);
 }

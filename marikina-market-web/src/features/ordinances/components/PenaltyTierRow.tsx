@@ -38,10 +38,7 @@ export default function PenaltyTierRow({
           <span className={styles.number} aria-hidden="true">
             {number}
           </span>
-          <div>
-            <strong>{offenseLabel(number)}</strong>
-            <span>Penalty tier {number}</span>
-          </div>
+          <strong>{offenseLabel(number)}</strong>
         </div>
         <button
           type="button"
@@ -91,10 +88,23 @@ export default function PenaltyTierRow({
           />
         )}
       </div>
-      {tier.fineKind === "UpTo" && <p className={styles.note}>Minimum fine: ₱100. The enforcer enters the amount assessed on paper.</p>}
-      {tier.fineKind === "Unconfirmed" && <p className={styles.note}>Citation assessment is unavailable until a confirmed fine rule is configured.</p>}
+      {tier.fineKind === "UpTo" && (
+        <p className={styles.note}>
+          Minimum fine: ₱100. The enforcer enters the amount assessed on paper.
+        </p>
+      )}
+      {tier.fineKind === "Unconfirmed" && (
+        <p className={styles.note}>
+          Citation assessment is unavailable until a confirmed fine rule is
+          configured.
+        </p>
+      )}
       <OrdinanceField
-        label={tier.fineKind === "Unconfirmed" ? "Penalty terms" : "Penalty terms (optional)"}
+        label={
+          tier.fineKind === "Unconfirmed"
+            ? "Penalty terms"
+            : "Penalty terms (optional)"
+        }
         ariaLabel={`${offenseLabel(number)} penalty terms`}
         value={tier.penaltyTerms}
         placeholder="Enter penalty wording or conditions"
@@ -108,12 +118,24 @@ export default function PenaltyTierRow({
       {number === 1 ? (
         <fieldset className={styles.alternatives} disabled={disabled}>
           <legend>First-offense alternatives</legend>
-          <OrdinanceOption label="Blood donation" checked={tier.allowBloodDonation} disabled={disabled}
-            onChange={(value) => onChange("allowBloodDonation", value)} />
-          <OrdinanceOption label="Community service" checked={tier.allowCommunityService} disabled={disabled}
-            onChange={(value) => onChange("allowCommunityService", value)} />
+          <OrdinanceOption
+            label="Blood donation"
+            checked={tier.allowBloodDonation}
+            disabled={disabled}
+            onChange={(value) => onChange("allowBloodDonation", value)}
+          />
+          <OrdinanceOption
+            label="Community service"
+            checked={tier.allowCommunityService}
+            disabled={disabled}
+            onChange={(value) => onChange("allowCommunityService", value)}
+          />
         </fieldset>
-      ) : <p className={styles.note}>Alternative penalties are available on the first offense only.</p>}
+      ) : (
+        <p className={styles.note}>
+          Alternative penalties are available on the first offense only.
+        </p>
+      )}
     </li>
   );
 }

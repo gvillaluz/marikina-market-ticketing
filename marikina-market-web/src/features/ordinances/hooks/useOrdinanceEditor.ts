@@ -133,12 +133,18 @@ export function useOrdinanceEditor() {
     baseline.current !== null &&
     hasDraftChanges({ fields, tiers }, baseline.current);
   const configuredAmounts = tiers.flatMap((tier) => {
-    const value = tier.fineKind === "Fixed" ? tier.amount
-      : tier.fineKind === "UpTo" ? tier.maximumFine : "";
+    const value =
+      tier.fineKind === "Fixed"
+        ? tier.amount
+        : tier.fineKind === "UpTo"
+          ? tier.maximumFine
+          : "";
     const amount = parsePenaltyAmount(value);
     return amount === null ? [] : [amount];
   });
-  const highestFee = configuredAmounts.length ? Math.max(...configuredAmounts) : null;
+  const highestFee = configuredAmounts.length
+    ? Math.max(...configuredAmounts)
+    : null;
   const save = useMutation({
     mutationFn: ({
       id,
@@ -211,7 +217,6 @@ export function useOrdinanceEditor() {
       open &&
       canManage &&
       ready &&
-      validation.isValid &&
       (!selected || hasChanges) &&
       !save.isPending,
     canUndo: open && canManage && ready && hasChanges && !save.isPending,
@@ -262,14 +267,18 @@ export function useOrdinanceEditor() {
     changeField(name: OrdinanceFieldName, value: string | boolean) {
       if (disabled) return;
       setFields((current) => {
-        if (name === "warningEligible") return { ...current, warningEligible: value === true };
+        if (name === "warningEligible")
+          return { ...current, warningEligible: value === true };
         if (typeof value !== "string") return current;
-        if (name === "severity") return { ...current, severity: isSeverity(value) ? value : "" };
-        return name === "category" ? {
-          ...current,
-          category: isCategory(value) ? value : "",
-          specificCategory: value === "Others" ? current.specificCategory : "",
-        }
+        if (name === "severity")
+          return { ...current, severity: isSeverity(value) ? value : "" };
+        return name === "category"
+          ? {
+              ...current,
+              category: isCategory(value) ? value : "",
+              specificCategory:
+                value === "Others" ? current.specificCategory : "",
+            }
           : { ...current, [name]: value };
       });
       setError("");
@@ -282,8 +291,13 @@ export function useOrdinanceEditor() {
       setTiers((current) => [
         ...current,
         {
-          key: crypto.randomUUID(), fineKind: "Fixed", amount: "", maximumFine: "", penaltyTerms: "",
-          allowBloodDonation: false, allowCommunityService: false
+          key: crypto.randomUUID(),
+          fineKind: "Fixed",
+          amount: "",
+          maximumFine: "",
+          penaltyTerms: "",
+          allowBloodDonation: false,
+          allowCommunityService: false,
         },
       ]);
       setError("");
@@ -306,9 +320,13 @@ export function useOrdinanceEditor() {
           if (name === "allowBloodDonation" || name === "allowCommunityService")
             return { ...item, [name]: index === 0 && value === true };
           if (typeof value !== "string") return item;
-          if (name === "fineKind") return {
-            ...item, fineKind: isFineKind(value) ? value : "", amount: "", maximumFine: "",
-          };
+          if (name === "fineKind")
+            return {
+              ...item,
+              fineKind: isFineKind(value) ? value : "",
+              amount: "",
+              maximumFine: "",
+            };
           return { ...item, [name]: value };
         }),
       );
@@ -330,8 +348,32 @@ export function useOrdinanceEditor() {
         return;
       const request = buildOrdinanceRequest(fields, tiers);
       if (!request) {
+        setTouched({
+          ordinanceNumber: true,
+          series: true,
+          section: true,
+          title: true,
+          category: true,
+          specificCategory: true,
+          severity: true,
+        });
+        setTierTouched(
+          Object.fromEntries(
+            tiers.map((tier) => [
+              tier.key,
+              {
+                fineKind: true,
+                amount: true,
+                maximumFine: true,
+                penaltyTerms: true,
+              },
+            ]),
+          ),
+        );
         setError(
-          "Complete the ordinance details and at least one valid penalty tier.",
+          tiers.length === 0
+            ? "Add at least one penalty tier and fix any fields marked in red."
+            : "Fix the fields marked in red.",
         );
         return;
       }
