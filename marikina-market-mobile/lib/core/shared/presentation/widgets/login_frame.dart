@@ -122,8 +122,8 @@ class _LoginFrameState extends State<LoginFrame>
                       child: Padding(
                         padding: AppTheme.authNotePadding,
                         child: Text(
-                          'Need an account? Ask your Head Admin to add one '
-                          'for you.',
+                          'Need an account? Ask your Head Admin to create '
+                          'one for you.',
                           style: AppTheme.authNoteStyle,
                         ),
                       ),

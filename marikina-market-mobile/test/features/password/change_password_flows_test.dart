@@ -366,7 +366,9 @@ void main() {
       expect(find.text('UPDATE PASSWORD'), findsNothing);
     });
 
-    testWidgets('a server error shows below the button', (tester) async {
+    testWidgets('a server error shows under the heading, above the fields', (
+      tester,
+    ) async {
       await pumpForced(tester);
       await tester.enterText(find.byType(TextField).at(0), 'OldPass123');
       await tester.enterText(find.byType(TextField).at(1), 'NewPass123');
@@ -379,10 +381,11 @@ void main() {
       );
       await tester.tap(find.text('Save password'));
       expect(await sent, isTrue);
-      await tester.pump();
+      // Let the message finish opening before measuring.
+      await tester.pumpAndSettle();
       expect(
-        tester.getTopLeft(find.text('Incorrect password.')).dy,
-        greaterThan(tester.getBottomLeft(find.text('Save password')).dy),
+        tester.getBottomLeft(find.text('Incorrect password.')).dy,
+        lessThan(tester.getTopLeft(find.byType(TextField).first).dy),
       );
     });
 

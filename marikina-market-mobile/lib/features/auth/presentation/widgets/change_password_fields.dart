@@ -1,6 +1,5 @@
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/password_rule_checklist.dart';
 import 'package:marikina_market_mobile/core/utils/password_change_check.dart';
 
@@ -38,80 +37,79 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('CURRENT PASSWORD'),
+          const ExcludeSemantics(child: Text('CURRENT PASSWORD')),
           const SizedBox(height: 7),
-          TextField(
-            enabled: widget.enabled,
-            autocorrect: false,
-            enableSuggestions: false,
-            controller: widget.currentPasswordController,
-            obscureText: !isCurrentPasswordVisible,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.password],
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.lock_rounded),
-              suffixIcon: ExcludeFocus(
-                child: IconButton(
-                  tooltip: isCurrentPasswordVisible
-                      ? 'Hide current password'
-                      : 'Show current password',
-                  onPressed: !widget.enabled
-                      ? null
-                      : () => setState(() {
-                          isCurrentPasswordVisible = !isCurrentPasswordVisible;
-                        }),
-                  icon: Icon(
-                    isCurrentPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility,
+          Semantics(
+            label: 'Current password',
+            child: TextField(
+              enabled: widget.enabled,
+              autocorrect: false,
+              enableSuggestions: false,
+              controller: widget.currentPasswordController,
+              obscureText: !isCurrentPasswordVisible,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.password],
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.lock_rounded),
+                suffixIcon: ExcludeFocus(
+                  child: IconButton(
+                    tooltip: isCurrentPasswordVisible
+                        ? 'Hide current password'
+                        : 'Show current password',
+                    onPressed: !widget.enabled
+                        ? null
+                        : () => setState(() {
+                            isCurrentPasswordVisible =
+                                !isCurrentPasswordVisible;
+                          }),
+                    icon: Icon(
+                      isCurrentPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility,
+                    ),
                   ),
                 ),
-              ),
-              hintText: 'Enter your current password',
-              errorText: widget.check?.currentError,
-              hintStyle: TextStyle(
-                color: AppColors.lightGrey,
-                fontSize: AppTheme.bodyFontSize,
+                hintText: 'Enter your current password',
+                errorText: widget.check?.currentError,
               ),
             ),
           ),
 
           const SizedBox(height: 20),
 
-          const Text('NEW PASSWORD'),
+          const ExcludeSemantics(child: Text('NEW PASSWORD')),
           const SizedBox(height: 7),
-          TextField(
-            enabled: widget.enabled,
-            autocorrect: false,
-            enableSuggestions: false,
-            controller: widget.newPasswordController,
-            obscureText: !isNewPasswordVisible,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.newPassword],
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.lock_rounded),
-              suffixIcon: ExcludeFocus(
-                child: IconButton(
-                  tooltip: isNewPasswordVisible
-                      ? 'Hide new password'
-                      : 'Show new password',
-                  onPressed: !widget.enabled
-                      ? null
-                      : () => setState(() {
-                          isNewPasswordVisible = !isNewPasswordVisible;
-                        }),
-                  icon: Icon(
-                    isNewPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility,
+          Semantics(
+            label: 'New password',
+            child: TextField(
+              enabled: widget.enabled,
+              autocorrect: false,
+              enableSuggestions: false,
+              controller: widget.newPasswordController,
+              obscureText: !isNewPasswordVisible,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.newPassword],
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.lock_rounded),
+                suffixIcon: ExcludeFocus(
+                  child: IconButton(
+                    tooltip: isNewPasswordVisible
+                        ? 'Hide new password'
+                        : 'Show new password',
+                    onPressed: !widget.enabled
+                        ? null
+                        : () => setState(() {
+                            isNewPasswordVisible = !isNewPasswordVisible;
+                          }),
+                    icon: Icon(
+                      isNewPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility,
+                    ),
                   ),
                 ),
-              ),
-              hintText: 'Enter your new password',
-              errorText: widget.check?.newPasswordError,
-              hintStyle: TextStyle(
-                color: AppColors.lightGrey,
-                fontSize: AppTheme.bodyFontSize,
+                hintText: 'Enter your new password',
+                errorText: widget.check?.newPasswordError,
               ),
             ),
           ),
@@ -121,42 +119,41 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
 
           const SizedBox(height: 20),
 
-          const Text('CONFIRM NEW PASSWORD'),
+          const ExcludeSemantics(child: Text('CONFIRM NEW PASSWORD')),
           const SizedBox(height: 7),
-          TextField(
-            enabled: widget.enabled,
-            autocorrect: false,
-            enableSuggestions: false,
-            controller: widget.confirmNewPasswordController,
-            obscureText: !isConfirmNewPasswordVisible,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.newPassword],
-            onSubmitted: (_) => widget.onSubmitted(),
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.lock_rounded),
-              suffixIcon: ExcludeFocus(
-                child: IconButton(
-                  tooltip: isConfirmNewPasswordVisible
-                      ? 'Hide confirm new password'
-                      : 'Show confirm new password',
-                  onPressed: !widget.enabled
-                      ? null
-                      : () => setState(() {
-                          isConfirmNewPasswordVisible =
-                              !isConfirmNewPasswordVisible;
-                        }),
-                  icon: Icon(
-                    isConfirmNewPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility,
+          Semantics(
+            label: 'Confirm new password',
+            child: TextField(
+              enabled: widget.enabled,
+              autocorrect: false,
+              enableSuggestions: false,
+              controller: widget.confirmNewPasswordController,
+              obscureText: !isConfirmNewPasswordVisible,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.newPassword],
+              onSubmitted: (_) => widget.onSubmitted(),
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.lock_rounded),
+                suffixIcon: ExcludeFocus(
+                  child: IconButton(
+                    tooltip: isConfirmNewPasswordVisible
+                        ? 'Hide confirm new password'
+                        : 'Show confirm new password',
+                    onPressed: !widget.enabled
+                        ? null
+                        : () => setState(() {
+                            isConfirmNewPasswordVisible =
+                                !isConfirmNewPasswordVisible;
+                          }),
+                    icon: Icon(
+                      isConfirmNewPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility,
+                    ),
                   ),
                 ),
-              ),
-              hintText: 'Confirm your new password',
-              errorText: widget.check?.confirmError,
-              hintStyle: TextStyle(
-                color: AppColors.lightGrey,
-                fontSize: AppTheme.bodyFontSize,
+                hintText: 'Confirm your new password',
+                errorText: widget.check?.confirmError,
               ),
             ),
           ),

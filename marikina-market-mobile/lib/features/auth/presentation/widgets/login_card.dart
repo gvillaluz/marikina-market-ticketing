@@ -70,6 +70,29 @@ class _LoginCardState extends State<LoginCard> {
           ),
           const SizedBox(height: AppTheme.authGap),
 
+          // The message sits under the heading, where it is seen first.
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              final message = switch (state) {
+                AuthInvalidCredentials(:final message) ||
+                AuthConnectionError(:final message) => message,
+                Unauthenticated(sessionExpired: true) =>
+                  'Your session has expired. Please log in again.',
+                _ => null,
+              };
+              return RevealMessage(
+                child: message == null
+                    ? null
+                    : Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: AppTheme.authGap,
+                        ),
+                        child: AuthErrorNotice(message: message),
+                      ),
+              );
+            },
+          ),
+
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) => LoginFields(
               usernameController: _usernameController,
@@ -85,43 +108,12 @@ class _LoginCardState extends State<LoginCard> {
           const SizedBox(height: AppTheme.authGap),
 
           BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AuthBtn(
-                    isLoading: state is AuthLoginLoading && !state.succeeded,
-                    isSuccess: state is AuthLoginLoading && state.succeeded,
-                    onPressed: _submit,
-                    label: 'Log in',
-                  ),
-
-                  const SizedBox(height: AppTheme.authSmallGap),
-
-                  const Text(
-                    'Next, we email you a 6-digit code to finish logging in.',
-                    style: AppTheme.authSubtitleStyle,
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  RevealMessage(
-                    child: switch (state) {
-                      AuthInvalidCredentials(:final message) ||
-                      AuthConnectionError(
-                        :final message,
-                      ) => AuthErrorNotice(message: message),
-                      Unauthenticated(sessionExpired: true) =>
-                        const AuthErrorNotice(
-                          message:
-                              'Your session has expired. Please log in again.',
-                        ),
-                      _ => null,
-                    },
-                  ),
-                ],
-              );
-            },
+            builder: (context, state) => AuthBtn(
+              isLoading: state is AuthLoginLoading && !state.succeeded,
+              isSuccess: state is AuthLoginLoading && state.succeeded,
+              onPressed: _submit,
+              label: 'Log in',
+            ),
           ),
         ],
       ),

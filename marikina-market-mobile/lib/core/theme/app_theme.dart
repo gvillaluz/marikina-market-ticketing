@@ -48,6 +48,10 @@ class AppTheme {
   );
 
   static const controlRadius = BorderRadius.all(Radius.circular(12));
+  // Text boxes across the app: an outline that stands out at least 3:1 and
+  // hint text and box icons that read at least 4.5:1 on white.
+  static const fieldOutlineColor = Color(0xFF7D8A9C);
+  static const fieldHintColor = Color(0xFF5B6472);
   static const buttonPadding = EdgeInsets.symmetric(
     horizontal: 20,
     vertical: 16,
@@ -509,7 +513,7 @@ class AppTheme {
   static const authLogoutMaxWidth = 280.0;
   static const authLogoutIndicatorSize = 32.0;
   static const authBodyStyle = bodyTextStyle;
-  // Grey line under a login heading, and the note under the Log in button.
+  // Grey line under a login heading.
   static const authSubtitleStyle = TextStyle(
     fontSize: bodyFontSize,
     height: 1.45,
@@ -632,18 +636,22 @@ class AppTheme {
           color: AppColors.primaryBlack,
           fontSize: bodyFontSize,
         ),
-        iconColor: AppColors.lightGrey,
-        prefixIconColor: AppColors.lightGrey,
-        suffixIconColor: AppColors.lightGrey,
+        hintStyle: const TextStyle(
+          color: fieldHintColor,
+          fontSize: bodyFontSize,
+        ),
+        iconColor: fieldHintColor,
+        prefixIconColor: fieldHintColor,
+        suffixIconColor: fieldHintColor,
 
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.lightGrey),
+          borderSide: const BorderSide(color: fieldOutlineColor),
         ),
 
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.lightGrey),
+          borderSide: const BorderSide(color: fieldOutlineColor),
         ),
 
         focusedBorder: OutlineInputBorder(

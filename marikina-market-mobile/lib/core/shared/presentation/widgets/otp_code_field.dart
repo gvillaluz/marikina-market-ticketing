@@ -160,7 +160,7 @@ class _OtpCodeFieldState extends State<OtpCodeField>
         ),
         decoration: BoxDecoration(
           borderRadius: AppTheme.authPinRadius,
-          border: Border.all(color: AppTheme.authPinBorderColor),
+          border: Border.all(color: AppTheme.fieldOutlineColor),
         ),
       );
       final errorPinTheme = pinTheme.copyDecorationWith(
@@ -214,7 +214,7 @@ class _OtpCodeFieldState extends State<OtpCodeField>
       );
       return AnimatedBuilder(
         animation: Listenable.merge([_shake, _success]),
-        child: pinput,
+        child: Semantics(label: '6-digit code', child: pinput),
         builder: (context, child) => Transform.translate(
           key: const ValueKey('otp-shake'),
           offset: Offset(_shakeOffset, 0),
