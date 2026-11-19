@@ -1,8 +1,5 @@
 import type { FC } from "react";
-import { Eye, EyeOff, LockKeyhole,
-  Mail,
-  UserRound,
-} from "lucide-react";
+import { Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { LoginFormValues } from "../hooks/useLogin";
 import { useCapsLock } from "../hooks/useCapsLock";
@@ -73,19 +70,9 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, succeeded, error }) =>
           />
         </div>
         <div className={styles.field}>
-          <div className={styles.labelRow}>
-            <label className={styles.label} htmlFor="login-password">
-              Password
-            </label>
-            <button
-              type="button"
-              onClick={model.forgotPassword}
-              disabled={loading}
-              className={styles.forgot}
-            >
-              Forgot password?
-            </button>
-          </div>
+          <label className={styles.label} htmlFor="login-password">
+            Password
+          </label>
           <div className={styles.inputWrapper}>
             <LockKeyhole className={styles.icon} size={18} aria-hidden="true" />
             <input
@@ -138,6 +125,15 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, succeeded, error }) =>
             className={styles.fieldError}
             role="alert"
           />
+          {/* Under the password box, on the right, as on the phone. */}
+          <button
+            type="button"
+            onClick={model.forgotPassword}
+            disabled={loading}
+            className={styles.forgot}
+          >
+            Forgot password?
+          </button>
         </div>
         <AuthSubmitButton
           label="Log in"
@@ -147,10 +143,6 @@ const LoginForm: FC<LoginFormProps> = ({ submit, loading, succeeded, error }) =>
           className={styles.submit}
         />
       </form>
-      <p className={styles.codeHint}>
-        <Mail className={styles.codeHintIcon} size={18} aria-hidden="true" />
-        Next, we email you a 6-digit code to finish logging in.
-      </p>
     </div>
   );
 };

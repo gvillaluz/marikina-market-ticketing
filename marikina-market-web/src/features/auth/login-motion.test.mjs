@@ -280,7 +280,10 @@ const ROUTES = {
   dashboard: "/dashboard",
 };
 const realMotion = load("features/auth/motion.ts");
-const errorText = { getApiErrorMessage: (error, fallback) => error?.message ?? fallback };
+const errorText = {
+  getApiErrorMessage: (error, fallback) => error?.message ?? fallback,
+  isConnectionError: () => false,
+};
 
 test("code page: the tick shows first, the next page opens after the pause, and the page keeps its details meanwhile", async () => {
   const h = reactHarness();
@@ -802,4 +805,44 @@ test("the find-your-account Continue button has the press feel but no waiting or
   );
   assert.match(html, /data-state="idle"[^]*>Continue<\/span>/);
   assert.match(html, /data-open="true"[^]*Enter your username\./);
+});
+
+test("log in: when the server cannot be reached, it says there is no connection", async () => {
+  const apiErrors = load("utils/apiErrors.ts");
+  const loginWith = (h, error) =>
+    load("features/auth/hooks/useLogin.ts", {
+      react: h.react,
+      "react-router-dom": {
+        useNavigate: () => noop,
+        useLocation: () => ({ state: null }),
+      },
+      "@/context/AuthContext": {
+        useAuth: () => ({
+          login: async () => {
+            throw error;
+          },
+          cancelLogin: noop,
+        }),
+      },
+      "@/routes/routePaths": { ROUTES },
+      "@/utils/apiErrors": apiErrors,
+      "../motion": { successPause: async () => {} },
+    }).useLogin;
+  const errorAfterLogin = async (error) => {
+    const h = reactHarness();
+    const useLogin = loginWith(h, error);
+    const view = () => h.render(() => useLogin());
+    await view().submit({ username: "x", password: "y" });
+    return view().error;
+  };
+  // No answer at all from the server: the request never arrived.
+  assert.equal(
+    await errorAfterLogin(new apiErrors.ApiRequestError()),
+    "No internet connection. Please try again.",
+  );
+  // The server answered with an error and no message: keep the general one.
+  assert.equal(
+    await errorAfterLogin(new apiErrors.ApiRequestError(undefined, 500)),
+    "Login failed.",
+  );
 });
