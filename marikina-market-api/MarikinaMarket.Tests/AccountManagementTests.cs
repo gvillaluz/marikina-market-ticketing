@@ -42,10 +42,13 @@ public class AccountManagementTests
         using var counts = await host.Send(HttpMethod.Get, "/api/admin/accounts/counts");
         Assert.Equal(HttpStatusCode.OK, counts.StatusCode);
         var metrics = await counts.Content.ReadFromJsonAsync<JsonElement>();
-        // 13 users: 12 staff plus one roleless inactive account. One staff user
-        // also has vendor membership; joining roles must not inflate Total Users.
+        // 14 users: 12 staff, one roleless inactive account, and one vendor-only
+        // account (user 14, active). Vendor-only accounts are left out of every count.
+        // Users 2 and 3 also hold vendor membership; joining roles must not inflate totals.
         Assert.Equal(13, metrics.GetProperty("total_users").GetInt32());
         Assert.Equal(12, metrics.GetProperty("total_staff_users").GetInt32());
+        Assert.Equal(12, metrics.GetProperty("total_active_accounts").GetInt32());
+        Assert.False(metrics.TryGetProperty("total_market_vendor_users", out _));
         using var first = await host.Send(HttpMethod.Get, "/api/admin/accounts?offset=0");
         var page = await first.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(12, page.GetProperty("total").GetInt32());
@@ -59,6 +62,34 @@ public class AccountManagementTests
         using var filtered = await host.Send(HttpMethod.Get, "/api/admin/accounts?role=HeadAdmin&search=Reyes");
         var match = await filtered.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(1, match.GetProperty("total").GetInt32());
+    }
+
+    [Fact]
+    public async Task Vendor_only_accounts_are_hidden_from_directory_search_and_admin_routes()
+    {
+        await using var host = await AccountManagementHost.Create();
+        using var vendorRole = await host.Send(HttpMethod.Get, "/api/admin/accounts?role=MarketVendor");
+        Assert.Equal(HttpStatusCode.BadRequest, vendorRole.StatusCode);
+        using var search = await host.Send(HttpMethod.Get, "/api/admin/accounts?search=User14");
+        var found = await search.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(0, found.GetProperty("total").GetInt32());
+        using var get = await host.Send(HttpMethod.Get, "/api/admin/users/14");
+        Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
+        using var put = await host.Send(HttpMethod.Put, "/api/admin/users/14", body: host.Edit());
+        Assert.Equal(HttpStatusCode.NotFound, put.StatusCode);
+        Assert.Equal(0, host.Writes);
+    }
+
+    [Fact]
+    public async Task Staff_member_who_also_holds_vendor_role_is_listed_with_staff_role()
+    {
+        await using var host = await AccountManagementHost.Create();
+        using var response = await host.Send(HttpMethod.Get, "/api/admin/accounts?role=MarketEnforcer&search=User3");
+        var page = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(1, page.GetProperty("total").GetInt32());
+        var item = Assert.Single(page.GetProperty("items").EnumerateArray());
+        Assert.Equal(3, item.GetProperty("id").GetInt32());
+        Assert.Equal("MarketEnforcer", item.GetProperty("role").GetString());
     }
 
     [Fact]
@@ -143,7 +174,7 @@ internal sealed class AccountManagementHost : IAsyncDisposable
     private HttpClient _client = null!;
     private AppDbContext _context = null!;
     private readonly SymmetricSecurityKey _key = new(RandomNumberGenerator.GetBytes(32));
-    public List<User> Users { get; } = Enumerable.Range(1, 13).Select(id => new User {
+    public List<User> Users { get; } = Enumerable.Range(1, 14).Select(id => new User {
         Id = id, UserName = $"HAD{id:D4}-test", FirstName = $"User{id}", LastName = "Reyes",
         Email = $"user{id}@example.invalid", EmailConfirmed = true, DateOfBirth = new(1990, 1, 1),
         PhoneNumber = "09171234567", HouseNumber = "12", Street = "Sampaguita", Barangay = "Santa Elena",
@@ -159,6 +190,8 @@ internal sealed class AccountManagementHost : IAsyncDisposable
     {
         var host = new AccountManagementHost();
         host.Memberships[2].Add("MarketVendor");
+        host.Memberships[3].Add("MarketVendor");
+        host.Memberships[14] = new List<string> { "MarketVendor" };
         host._context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options) {
             Users = new AccountDatabaseSet<User>(host.Users),
             Roles = new AccountDatabaseSet<IdentityRole<int>>([new("HeadAdmin") { Id = 1 }, new("MarketVendor") { Id = 2 }, new("MarketEnforcer") { Id = 3 }, new("AdminOfficer") { Id = 4 }]),

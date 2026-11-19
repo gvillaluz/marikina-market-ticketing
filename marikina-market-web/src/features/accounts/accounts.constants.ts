@@ -7,5 +7,4 @@ export const ACCOUNT_TABS: { label: string; role: UserRole | "all" }[] = [
   { label: "Head Admin", role: "HeadAdmin" },
   { label: "Admin Officers", role: "AdminOfficer" },
   { label: "Market Enforcers", role: "MarketEnforcer" },
-  { label: "Market Vendors", role: "MarketVendor" },
 ];

@@ -28,6 +28,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task RevokeRefreshTokensAsync(int userId);
         Task<string> GetNextUserNameAsync();
         Task<User?> GetUserAsync(int userId);
+        Task<bool> IsHiddenFromAccountPagesAsync(int userId);
         Task<Dictionary<int, UserNamesResponse>> GetNamesByIdsAsync(IEnumerable<int> userIds,
             CancellationToken cancellationToken = default);
         Task<List<User>> GetEnforcersAsync(int offset, int limit, EnforcerSummaryFilter filters);
