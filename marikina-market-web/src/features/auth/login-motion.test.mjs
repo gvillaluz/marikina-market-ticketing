@@ -840,9 +840,9 @@ test("log in: when the server cannot be reached, it says there is no connection"
     await errorAfterLogin(new apiErrors.ApiRequestError()),
     "No internet connection. Please try again.",
   );
-  // The server answered with an error and no message: keep the general one.
+  // The server answered with an error and no message: say the system is the problem, not the details.
   assert.equal(
     await errorAfterLogin(new apiErrors.ApiRequestError(undefined, 500)),
-    "Login failed.",
+    "Sign-in isn't available right now. Please try again in a few minutes.",
   );
 });

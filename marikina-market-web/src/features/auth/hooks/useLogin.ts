@@ -78,7 +78,10 @@ export function useLogin(options: UseLoginOptions = {}) {
           // Same words as the phone app when the server cannot be reached.
           isConnectionError(err)
             ? "No internet connection. Please try again."
-            : getApiErrorMessage(err, "Login failed."),
+            : getApiErrorMessage(
+                err,
+                "Sign-in isn't available right now. Please try again in a few minutes.",
+              ),
         );
     } finally {
       busy.current = false;

@@ -118,7 +118,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw NetworkException('No internet connection. Please try again.');
     }
     throw ServerException(
-      message ?? 'Something went wrong. Please try again later.',
+      message ??
+          "Sign-in isn't available right now. Please try again in a few minutes.",
     );
   }
 

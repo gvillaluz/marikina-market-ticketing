@@ -59,6 +59,12 @@ class PasswordRecoveryRemoteDataSourceImpl
         throw NetworkException('No internet connection. Please try again.');
       }
 
+      // The server could not send the email and says so in plain words.
+      final message = ApiErrorMessage.fromBody(e.response?.data);
+      if (e.response?.statusCode == 503 && message != null) {
+        throw ServerException(message);
+      }
+
       throw ServerException('Something went wrong. Please try again later');
     }
   }
