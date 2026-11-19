@@ -245,7 +245,7 @@ The demo has three parts, each deployed from VS Code or the terminal:
 | Part | Azure service | Deployed with |
 | --- | --- | --- |
 | Database | Azure Database for PostgreSQL | SQL files run in the VS Code PostgreSQL extension |
-| Server | Azure App Service | The VS Code Azure App Service extension, from the `publish-api` folder |
+| Server | Azure App Service (`marikina-market-server`) | The server package, uploaded to the package store `marikinamarketregistry` (11.2, section 12) |
 | Website | Azure Static Web Apps | The Static Web Apps command-line tool through `npx` |
 
 Order for an update: **backup → database → server → website → phone app**. The server must understand the new database before the website uses it.
@@ -268,15 +268,30 @@ Never run `dotnet ef database update` against the demo database.
 
 ### 11.2 Server
 
-1. From the project folder, refresh the `publish-api` folder from the current code *(confirm the exact command)*:
+Since 2026-11-19 the demo server is **`marikina-market-server`**, an App Service that runs the **server package** (section 12) from the package store **`marikinamarketregistry`** (Azure Container Registry, Standard, resource group `marikina-market-rg`, East Asia). It fetches the package with its own managed identity (AcrPull role on the store), so no registry password is stored. Proof: `evidence/docker-d2-demo/results.md`. The earlier server `marikina-market-api` (files from `publish-api`) is kept only as the way back until the project owner deletes it: rebuild the website (11.3) with its address `https://marikina-market-api-e2drfvf7h5c5e9ak.eastasia-01.azurewebsites.net`.
+
+1. **Build the package** from the current `main`, labelled with the commit. From `marikina-market-api`:
 
    ```powershell
-   dotnet publish marikina-market-api/MarikinaMarket.API -c Release -o publish-api
+   $tag = git rev-parse --short HEAD
+   docker build -t marikinamarketregistry.azurecr.io/marikina-market-api:$tag .
    ```
 
-   Keep `publish-api/wwwroot/evidences/`. Since 2026-11-19 the server reads the Firebase Admin key from the setting `Firebase__ServiceAccountJson` (step 3), not from a file in `publish-api/Keys/`: **add that setting before deploying code from 2026-11-19 or later**, or the server stops at start. **Do not commit `publish-api`**: it is build output.
-2. In VS Code, right-click `publish-api` → **Deploy to Web App...** (Azure App Service extension), pick the demo's App Service, and confirm the overwrite.
-3. The secrets are **settings on the App Service**, never files in the repository: Azure portal → the App Service → **Settings → Environment variables**. Names use `__` instead of `:`. **Your computer's User Secrets (section 3) are not sent to Azure**: they are stored in your Windows profile, not in the project, so publishing never copies them, and the server on Azure does not read User Secrets. Enter each value by hand once; it stays on the App Service across deploys, so you only change it when the value itself changes. Names only here; the values come from the project owner:
+2. **Upload it.** Sign in once per window with `az login` (if Azure answers that multi-factor sign-in is required, use `az login --tenant <directory id>`), then:
+
+   ```powershell
+   az acr login --name marikinamarketregistry
+   docker push marikinamarketregistry.azurecr.io/marikina-market-api:$tag
+   ```
+
+3. **Point the server at the new label.** App Service fetches it and restarts *(confirm on the first package update after 2026-11-19)*:
+
+   ```powershell
+   az webapp config set -g marikina-market-rg -n marikina-market-server --linux-fx-version "DOCKER|marikinamarketregistry.azurecr.io/marikina-market-api:$tag"
+   ```
+
+   Check that `https://marikina-market-server.azurewebsites.net/api/does-not-exist` answers 404 with `{"message":"The requested resource was not found."}`, then sign in on the website. To go back to the previous version, run step 3 with the previous label.
+4. The secrets are **settings on the App Service**, never files in the repository: Azure portal → the App Service → **Settings → Environment variables**. Names use `__` instead of `:`. **Your computer's User Secrets (section 3) are not sent to Azure**: they are stored in your Windows profile, not in the project, so publishing never copies them, and the server on Azure does not read User Secrets. Enter each value by hand once; it stays on the App Service across deploys, so you only change it when the value itself changes. Names only here; the values come from the project owner:
 
    | Setting name | What it is |
    | --- | --- |
@@ -286,10 +301,10 @@ Never run `dotnet ef database update` against the demo database.
    | `BackBlazeB2__General__KeyId`, `BackBlazeB2__General__ApplicationKey` (and the same for `Documents`, `Evidence`, `Backups`) | Storage keys |
    | `Backups__EncryptionKey` | The backup key. Keep a copy outside Azure (see the recovery guide) |
    | `Firebase__ServiceAccountJson` | The Firebase Admin key: paste the whole service-account JSON file's content as the value (section 5) |
-   | `Backups__PgDumpPath` | Where `pg_dump` is on the server *(confirm whether the demo sets it)* |
+   | `WEBSITES_PORT` | `8080`, the port the server package listens on |
    | `Cors__AllowedOrigins__0` | The website's address on Static Web Apps, exactly as the browser shows it, without a slash at the end (for example `https://<name>.azurestaticapps.net`). Only this address may read the server's answers and send the sign-in cookie. If it is missing or different, the website cannot sign in. |
 
-4. **Leave the App Service's own CORS page empty.** In the Azure portal, open the App Service and type `CORS` in the search box of its left menu. The list of allowed origins there must be empty. Microsoft: "If you try to use them together, App Service CORS takes precedence and your own CORS code has no effect" ([App Service CORS tutorial](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-tutorial-rest-api), checked 2026-11-18). If addresses are listed there, the server's own rule (`Cors__AllowedOrigins__0`) is ignored and the sign-in cookie is not allowed, so the website signs users out on every refresh or cannot sign in.
+5. **Leave the App Service's own CORS page empty.** In the Azure portal, open the App Service and type `CORS` in the search box of its left menu. The list of allowed origins there must be empty. Microsoft: "If you try to use them together, App Service CORS takes precedence and your own CORS code has no effect" ([App Service CORS tutorial](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-tutorial-rest-api), checked 2026-11-18). If addresses are listed there, the server's own rule (`Cors__AllowedOrigins__0`) is ignored and the sign-in cookie is not allowed, so the website signs users out on every refresh or cannot sign in.
 
 ### 11.3 Website
 
@@ -331,7 +346,7 @@ Build the phone app with the server's address in `firebase.local.json` (section 
 
 ## 12. Docker: the server package
 
-**Status: written 2026-11-19 (Docker slice D1); checked on the developer computer only.** The recipe `marikina-market-api/Dockerfile` turns the server into a **package** (a Docker image): the .NET 10 server plus PostgreSQL 18's `pg_dump`, which the Backups page runs. The same package is meant to run on Azure (slice D2 of `spec-docker-hosting.md`, not done yet). `marikina-market-api/.dockerignore` keeps the `Keys` folder, build output and tests out of it. No secret is inside the package: every setting in section 3 is given when it runs.
+**Status: written 2026-11-19 (Docker slice D1, checked on the developer computer); running on the demo since 2026-11-19 (slice D2, `evidence/docker-d2-demo/results.md`).** The recipe `marikina-market-api/Dockerfile` turns the server into a **package** (a Docker image): the .NET 10 server plus PostgreSQL 18's `pg_dump`, which the Backups page runs. The same package runs the demo server on Azure (section 11.2). `marikina-market-api/.dockerignore` keeps the `Keys` folder, build output and tests out of it. No secret is inside the package: every setting in section 3 is given when it runs.
 
 ### 12.1 Install Docker Desktop (once per computer)
 
