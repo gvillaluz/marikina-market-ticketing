@@ -1,4 +1,5 @@
-import { FileText, RefreshCw, Upload } from "lucide-react";
+import { FileText, RefreshCw } from "lucide-react";
+import { useState } from "react";
 import type { AdminCommunityServiceLog } from "@/api/types/admin-vendor.types";
 import Card from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -7,6 +8,7 @@ import Table, { type Column } from "@/components/ui/Table";
 import { formatControlNumber, formatDate, UNREGISTERED_VENDOR } from "@/utils/formatters";
 import type { CommunityServiceStatusFilter } from "../hooks/useAdminCommunityServiceLogs";
 import styles from "./AdminCommunityServiceLogs.module.css";
+import CommunityServiceLogModal from "./CommunityServiceLogModal";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -65,6 +67,8 @@ export default function AdminCommunityServiceLogs({
   refetch,
   getProgressStatus,
 }: AdminCommunityServiceLogsProps) {
+  const [viewingLog, setViewingLog] =
+    useState<AdminCommunityServiceLog | null>(null);
   const columns: Column<AdminCommunityServiceLog>[] = [
     {
       key: "controlNumber",
@@ -142,26 +146,17 @@ export default function AdminCommunityServiceLogs({
       header: "Proof Documents",
       width: "16%",
       render: (log) => (
-        <div className={styles.documentActions}>
-          <span className={styles.documentCount}>
-            <FileText size={12} aria-hidden="true" />
-            {log.proofDocumentCount}{" "}
-            {log.proofDocumentCount === 1 ? "doc" : "docs"}
-          </span>
-          <button
-            type="button"
-            className={styles.uploadButton}
-            disabled={getProgressStatus(log) === "completed"}
-            title={
-              getProgressStatus(log) === "completed"
-                ? "Community service has been completed"
-                : "Document upload is not available yet"
-            }
-          >
-            <Upload size={12} aria-hidden="true" />
-            Upload
-          </button>
-        </div>
+        <button
+          type="button"
+          className={styles.documentCount}
+          disabled={log.proofDocumentCount === 0}
+          aria-label={`${log.proofDocumentCount} ${log.proofDocumentCount === 1 ? "doc" : "docs"}, view community service logs for ${log.vendorName ?? UNREGISTERED_VENDOR}`}
+          onClick={() => setViewingLog(log)}
+        >
+          <FileText size={12} aria-hidden="true" />
+          {log.proofDocumentCount}{" "}
+          {log.proofDocumentCount === 1 ? "doc" : "docs"}
+        </button>
       ),
     },
   ];
@@ -251,6 +246,10 @@ export default function AdminCommunityServiceLogs({
           </footer>
         </>
       )}
+      <CommunityServiceLogModal
+        log={viewingLog}
+        onClose={() => setViewingLog(null)}
+      />
     </Card>
   );
 }
