@@ -525,17 +525,17 @@ test("business editing loads saved fields and sends only editable fields", async
 const violatorRows = [
   {
     ticketId: 1, type: "Ticket", controlNumber: "000456", issuedAt: "2026-11-10T01:00:00Z",
-    ordinanceNumbers: ["2019-12"], enforcerName: "Test Officer", paperViolatorName: "Jose Ramos",
+    ordinanceNumbers: ["2019-12"], ordinanceTitles: ["Market Stall Rules"], enforcerName: "Test Officer", paperViolatorName: "Jose Ramos",
     personFullName: "Jose P. Ramos", businessSnapshot: { businessName: "Aling Nena's Store" },
   },
   {
     ticketId: 2, type: "Warning", controlNumber: "WRN-0011", issuedAt: "2026-11-09T01:00:00Z",
-    ordinanceNumbers: ["2019-12"], enforcerName: "Test Officer", paperViolatorName: null,
+    ordinanceNumbers: ["2019-12"], ordinanceTitles: ["Market Stall Rules"], enforcerName: "Test Officer", paperViolatorName: null,
     personFullName: "Maria Santos", businessSnapshot: null,
   },
   {
     ticketId: 3, type: "Ticket", controlNumber: null, issuedAt: "2026-11-08T01:00:00Z",
-    ordinanceNumbers: [], enforcerName: "Test Officer", paperViolatorName: null,
+    ordinanceNumbers: [], ordinanceTitles: [], enforcerName: "Test Officer", paperViolatorName: null,
     personFullName: null, businessSnapshot: null,
   },
 ];
@@ -576,7 +576,7 @@ const business = {
 };
 const inspection = {
   ticketId: 41, controlNumber: "000041", type: "Ticket", issuedAt: "2026-10-30T02:15:00Z",
-  ordinanceNumbers: ["12", "123"], enforcerName: "Pedro Santos", paperViolatorName: "Jun Reyes",
+  ordinanceNumbers: ["12", "123"], ordinanceTitles: ["Stall Hours", "Fish Handling"], enforcerName: "Pedro Santos", paperViolatorName: "Jun Reyes",
   personFullName: null, businessSnapshot: { businessName: "Sari Shop" },
 };
 
@@ -598,7 +598,8 @@ test("business inspection history highlights the control number and ordinance se
     [...(html.match(/<tbody>[\s\S]*?<\/tr>/)?.[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g) ?? [])]
       .map((m) => [...m[1].matchAll(/<mark[^>]*>([^<]*)<\/mark>/g)].map((x) => x[1]))[index];
   assert.deepEqual(marksIn(render("41"), 0), ["41"]);
-  assert.deepEqual(marksIn(render("12"), 4), ["12", "12"]);
+  assert.deepEqual(marksIn(render("12"), 4), []); // the ordinance column shows titles, which are not highlighted
+  assert.ok(render("stall").includes("Stall Hours") && render("stall").includes("Fish Handling"));
   for (const search of ["santos", "reyes", "sari"]) assert.ok(!render(search).includes("<mark"), search); // not searched
   assert.ok(!render("").includes("<mark"));
 });

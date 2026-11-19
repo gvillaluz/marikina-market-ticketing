@@ -11,6 +11,7 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Response
         public ViolationType Type { get; set; }
         public DateTime IssuedAt { get; set; }
         public required List<string> OrdinanceNumbers { get; set; }
+        public required List<string> OrdinanceTitles { get; set; }
         public required string EnforcerName { get; set; }
         public string? PaperViolatorName { get; set; }
         public string? PersonFullName { get; set; }

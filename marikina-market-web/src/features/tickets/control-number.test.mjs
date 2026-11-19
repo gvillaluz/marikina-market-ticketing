@@ -182,7 +182,7 @@ test('community service log shows the control number', async () => {
 });
 
 test('business inspection history shows the control number for tickets and a dash for warnings', async () => {
-  const rows = [ticket, warning, legacy].map(row => ({ ...row, ordinanceNumbers: [], enforcerName: 'Santos' }));
+  const rows = [ticket, warning, legacy].map(row => ({ ...row, ordinanceNumbers: [], ordinanceTitles: [], enforcerName: 'Santos' }));
   const html = render(await component('features/vendors/components/AdminVendorInspectionHistory.tsx'), {
     search: '', onSearchChange: () => {}, type: 'all', onTypeChange: () => {}, sortDirection: 'desc', onSortDirectionChange: () => {},
     page: 1, totalPages: 1, onPageChange: () => {}, inspections: rows, total: 3, hasMore: false, isLoading: false, isFetching: false,

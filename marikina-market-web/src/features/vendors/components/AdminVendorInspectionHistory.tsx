@@ -122,16 +122,17 @@ export default function AdminVendorInspectionHistory({
       render: (inspection) => formatDateTime(inspection.issuedAt),
     },
     {
-      key: "ordinanceNumbers",
+      key: "ordinanceTitles",
       header: "ORDINANCE(S)",
       width: "15%",
       align: "left",
       render: (inspection) =>
-        inspection.ordinanceNumbers.length ? (
-          <SearchHighlight
-            text={inspection.ordinanceNumbers.join(", ")}
-            search={search}
-          />
+        inspection.ordinanceTitles.length ? (
+          inspection.ordinanceTitles.map((title, index) => (
+            <span key={index} className={styles.ordinanceTitle}>
+              {title}
+            </span>
+          ))
         ) : (
           "—"
         ),
