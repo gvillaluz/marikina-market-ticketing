@@ -318,6 +318,13 @@ The website runs on its own Static Web Apps address and calls the server on the 
 
 Known limit: the two addresses count as different sites to browsers, so the sign-in cookie is a "third-party" cookie. Chrome and Edge on Windows and Android are expected to keep it, so refreshing a page keeps the user signed in. Safari (iPhone, iPad, Mac) and private/incognito windows are expected to block it, so there a refresh signs the user out and they log in again. Removing this limit needs both parts on one bought domain.
 
+**Deploy with the button (since 2026-11-19).** GitHub → the repository → **Actions → Deploy website → Run workflow** (branch `main`). GitHub builds the website from `main` (`npm ci`, then `npm run build` with `VITE_API_BASE_URL` = `https://marikina-market-server.azurewebsites.net`, Node 26) and uploads `marikina-market-web/dist` to the Static Web App. It runs only when pressed: press it after the server is updated. The recipe is `.github/workflows/deploy-website.yml`; if the server's address changes, change it there. Your computer's `marikina-market-web/.env` is not used and not changed.
+
+- It needs the deployment token once, as the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN`: Azure portal → the Static Web App → **Overview → Manage deployment token**, then GitHub → the repository → **Settings → Secrets and variables → Actions → New repository secret**. If the token is reset in Azure, update the secret.
+- Each run is listed under **Actions → Deploy website** with its version and result. A run that fails at the build uploads nothing; the live website stays as it was.
+
+**From this computer instead** (backup, for example when GitHub is unavailable):
+
 1. In `marikina-market-web`: `npm ci`, then build with the server's address (the setting is built into the website, so build again whenever the address changes):
 
    ```powershell
