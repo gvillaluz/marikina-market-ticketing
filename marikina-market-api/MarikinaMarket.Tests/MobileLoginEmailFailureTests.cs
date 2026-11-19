@@ -24,6 +24,7 @@ namespace MarikinaMarket.Tests;
 public class MobileLoginEmailFailureTests
 {
     private const string LoginBody = "{\"username\":\"synthetic-enforcer\",\"password\":\"valid-test-password\"}";
+    private const string ResetBody = "{\"username\":\"synthetic-enforcer\",\"channel\":\"email\"}";
     private const string DeliveryMessage = "Unable to send your sign-in code. Please try again shortly.";
 
     [Theory]
@@ -159,17 +160,49 @@ public class MobileLoginEmailFailureTests
     }
 
     [Fact]
-    public async Task Web_login_preserves_its_existing_email_failure_and_timeout_behavior()
+    public async Task Web_login_delivery_failure_is_the_same_safe_503_and_cancels_the_failed_code()
     {
         var fixture = new LoginFixture(Role.AdminOfficer);
         fixture.Mail.Send = _ => throw new SocketException((int)SocketError.TimedOut);
         await using var host = await fixture.HostAsync();
         using var response = await host.SendAsync(HttpMethod.Post, "/api/Auth/login", null, LoginBody);
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        Assert.False(fixture.Mail.LastToken.CanBeCanceled);
-        Assert.False(Assert.Single(fixture.Store.Records).IsUsed);
-        Assert.Empty(fixture.Store.InvalidatedIds);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.Equal(DeliveryMessage, JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("message").GetString());
+        Assert.True(fixture.Mail.LastToken.CanBeCanceled);
+        Assert.True(Assert.Single(fixture.Store.Records).IsUsed);
+        Assert.Equal(new[] { 1 }, fixture.Store.InvalidatedIds);
         Assert.Equal(0, fixture.TokensIssued);
+    }
+
+    [Fact]
+    public async Task Web_login_cancels_stalled_delivery_after_15_seconds_with_the_safe_503()
+    {
+        var fixture = new LoginFixture(Role.AdminOfficer);
+        fixture.Mail.Send = cancellationToken => Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        await using var host = await fixture.HostAsync();
+        using var response = await host.SendAsync(HttpMethod.Post, "/api/Auth/login", null, LoginBody).WaitAsync(TimeSpan.FromSeconds(25));
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.True(fixture.Mail.LastToken.IsCancellationRequested);
+        Assert.True(Assert.Single(fixture.Store.Records).IsUsed);
+    }
+
+    [Fact]
+    public async Task Forgot_password_delivery_failure_is_a_safe_503_and_an_immediate_retry_sends_again()
+    {
+        var fixture = new LoginFixture(Role.AdminOfficer);
+        fixture.Mail.Send = _ => throw new IOException("provider-detail");
+        await using var host = await fixture.HostAsync();
+        using var failed = await host.SendAsync(HttpMethod.Post, "/api/Auth/send-otp", null, ResetBody);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, failed.StatusCode);
+        var body = await failed.Content.ReadAsStringAsync();
+        Assert.Equal("Unable to send your verification code. Please try again shortly.", JsonDocument.Parse(body).RootElement.GetProperty("message").GetString());
+        Assert.DoesNotContain("provider-detail", body);
+        Assert.True(fixture.Store.Records.Single(code => code.Purpose == OtpPurpose.ResetPassword).IsUsed);
+
+        fixture.Mail.Send = _ => Task.CompletedTask;
+        using var retry = await host.SendAsync(HttpMethod.Post, "/api/Auth/send-otp", null, ResetBody);
+        Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
+        Assert.Equal(2, fixture.Mail.Calls);
     }
 
     [Fact]

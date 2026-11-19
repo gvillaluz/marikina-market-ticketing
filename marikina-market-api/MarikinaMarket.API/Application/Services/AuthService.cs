@@ -26,6 +26,7 @@ namespace MarikinaMarket.API.Application.Services
         private const int REQUIRE_LOGIN_AFTER_DAYS = 60;
         private const int LOGIN_OTP_EXPIRY_MINUTES = 10;
         private const int LOGIN_OTP_RESEND_SECONDS = 30;
+        private const int EMAIL_SEND_TIMEOUT_SECONDS = 15;
 
         public AuthService(
             IUserRepository repository,
@@ -93,7 +94,7 @@ namespace MarikinaMarket.API.Application.Services
         {
             Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
             var user = await GetLoginUserAsync(request.Username, request.Password, mobile: true);
-            return await SendLoginOtpAsync(user, mobile: true);
+            return await SendLoginOtpAsync(user);
         }
 
         public async Task<LoginResponse> VerifyLoginAsync(LoginVerificationRequest request)
@@ -171,7 +172,7 @@ namespace MarikinaMarket.API.Application.Services
             return user;
         }
 
-        private async Task<SendCodeResponse> SendLoginOtpAsync(User user, bool mobile = false)
+        private async Task<SendCodeResponse> SendLoginOtpAsync(User user)
         {
             var latest = await _otpService.GetLatestOtpAsync(user.Id, OtpPurpose.TwoFactorAuthentication);
             var now = DateTime.UtcNow;
@@ -179,45 +180,37 @@ namespace MarikinaMarket.API.Application.Services
                 (now - latest.CreatedAt).TotalSeconds < LOGIN_OTP_RESEND_SECONDS)
                 return CreateLoginOtpResponse(latest, user.Email!, "Code already sent.");
 
-            string code;
-            OtpVerification? otp;
-            if (mobile)
-            {
-                (code, otp) = await _otpService.GenerateOtpWithRecordAsync(user.Id, OtpPurpose.TwoFactorAuthentication, LOGIN_OTP_EXPIRY_MINUTES);
-            }
-            else
-            {
-                code = await _otpService.GenerateOtpAsync(user.Id, OtpPurpose.TwoFactorAuthentication, LOGIN_OTP_EXPIRY_MINUTES);
-                otp = await _otpService.GetLatestOtpAsync(user.Id, OtpPurpose.TwoFactorAuthentication);
-            }
-            if (otp is null)
-            {
-                if (_audit is not null) _audit.IsSecurityFailure = true;
-                throw new InvalidRequestException("Couldn't create a code. Try again.");
-            }
+            var (code, otp) = await _otpService.GenerateOtpWithRecordAsync(user.Id, OtpPurpose.TwoFactorAuthentication, LOGIN_OTP_EXPIRY_MINUTES);
 
-            using var deliveryTimeout = mobile ? new CancellationTokenSource(TimeSpan.FromSeconds(15)) : null;
-            try
-            {
-                await _emailService.SendEmailAsync(user.Email!, "Sign-in verification code",
+            await SendCodeEmailAsync(user.Email!, "Sign-in verification code",
                 $@"<h1 style=""margin:0 0 22px;color:#0B2D5B;font-size:26px;line-height:1.3;"">Verify your sign-in</h1>
                 <p style=""margin:0 0 14px;"">Use this verification code to finish signing in:</p>
                 <div style=""background-color:#E9F0F8;border:1px solid #D9E1EC;border-radius:8px;padding:20px;text-align:center;margin:20px 0;""><strong style=""font-size:28px;letter-spacing:6px;color:#0B2D5B;"">{code}</strong></div>
                 <p style=""margin:0 0 14px;"">It expires in {LOGIN_OTP_EXPIRY_MINUTES} minutes. If you didn't request it, ignore this email.</p>",
-                    cancellationToken: deliveryTimeout?.Token ?? CancellationToken.None);
-            }
-            catch (Exception exception) when (mobile)
+                otp, "Unable to send your sign-in code. Please try again shortly.");
+
+            return CreateLoginOtpResponse(otp, user.Email!, "Code sent.");
+        }
+
+        // Gives up after 15 seconds and turns a mail failure into a safe message, so a stalled mail server never
+        // looks like a crash or a lost connection. The code that was not delivered is cancelled.
+        private async Task SendCodeEmailAsync(string toEmail, string subject, string body, OtpVerification otp, string failureMessage)
+        {
+            using var deliveryTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(EMAIL_SEND_TIMEOUT_SECONDS));
+            try
             {
-                // Never invalidate a newer request's code, even if sending failed after a concurrent login.
+                await _emailService.SendEmailAsync(toEmail, subject, body, cancellationToken: deliveryTimeout.Token);
+            }
+            catch (Exception exception)
+            {
+                // Never invalidate a newer request's code, even if sending failed after a concurrent request.
                 await _otpService.InvalidateOtpAsync(otp.Id);
                 if (exception is SocketException or IOException or TimeoutException or OperationCanceledException
                     or SmtpCommandException or SmtpProtocolException or MailKit.Security.AuthenticationException
                     or MailKit.Security.SslHandshakeException or System.Security.Authentication.AuthenticationException)
-                    throw new LoginCodeDeliveryException();
+                    throw new CodeDeliveryException(failureMessage);
                 throw;
             }
-
-            return CreateLoginOtpResponse(otp, user.Email!, "Code sent.");
         }
 
         private SendCodeResponse CreateLoginOtpResponse(OtpVerification otp, string email, string message)
@@ -547,7 +540,8 @@ namespace MarikinaMarket.API.Application.Services
             if (_audit?.Entry is not null) _audit.Entry.TargetId = user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
             var latestOtp = await _otpService.GetLatestOtpAsync(user.Id, OtpPurpose.ResetPassword);
 
-            if (latestOtp is not null)
+            // A code that failed to send is cancelled, so an immediate retry sends a new one instead of claiming it was sent.
+            if (latestOtp is not null && !latestOtp.IsUsed)
             {
                 var secondsSinceSent = (DateTime.UtcNow - latestOtp.CreatedAt).TotalSeconds;
                 if (secondsSinceSent < resendCooldownSeconds)
@@ -561,9 +555,7 @@ namespace MarikinaMarket.API.Application.Services
                 }
             }
 
-            var otp = await _otpService.GenerateOtpAsync(user.Id, OtpPurpose.ResetPassword, codeExpiryMinutes);
-            var sentOtp = await _otpService.GetLatestOtpAsync(user.Id, OtpPurpose.ResetPassword)
-                ?? throw new InvalidRequestException("Couldn't create a code. Try again.");
+            var (otp, sentOtp) = await _otpService.GenerateOtpWithRecordAsync(user.Id, OtpPurpose.ResetPassword, codeExpiryMinutes);
 
             if (string.Equals(request.Channel, "email", StringComparison.OrdinalIgnoreCase))
             {
@@ -582,11 +574,8 @@ namespace MarikinaMarket.API.Application.Services
 
                 ";
 
-                await _emailService.SendEmailAsync(
-                    user.Email!,
-                    "Reset Password OTP",
-                    emailBody
-                );
+                await SendCodeEmailAsync(user.Email!, "Reset Password OTP", emailBody, sentOtp,
+                    "Unable to send your verification code. Please try again shortly.");
             }
             return new SendCodeResponse
             {

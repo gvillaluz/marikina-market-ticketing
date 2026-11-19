@@ -229,6 +229,37 @@ void main() {
     }
   }
 
+  for (final entry in <String, Object?>{
+    'the server says the code could not be sent': {
+      'message': 'Unable to send your sign-in code. Please try again shortly.',
+    },
+    'the server gives no message': null,
+  }.entries) {
+    test('503 when ${entry.key} never blames the details', () async {
+      final client = contractClient(
+        (options) async => throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response<Object?>(
+            requestOptions: options,
+            statusCode: 503,
+            data: entry.value,
+          ),
+        ),
+      );
+      final sent = await contractRepository(
+        client,
+      ).loginUser('enforcer01', 'ExamplePass123');
+      expect(
+        (sent as ResultFailure).failure.message,
+        entry.value == null
+            ? "Sign-in isn't available right now. Please try again in a few minutes."
+            : 'Unable to send your sign-in code. Please try again shortly.',
+      );
+      client.dio.close();
+    });
+  }
+
   test('ASP.NET field validation messages become domain failures', () async {
     final client = contractClient(
       (options) async => throw DioException(
