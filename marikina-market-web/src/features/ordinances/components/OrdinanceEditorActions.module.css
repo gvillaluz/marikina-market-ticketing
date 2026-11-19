@@ -1,6 +1,22 @@
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.error {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  background: var(--form-error-surface);
+  font-size: var(--form-font-caption);
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--ordinance-space-sm);
-  width: 100%;
+  gap: var(--space-sm);
 }

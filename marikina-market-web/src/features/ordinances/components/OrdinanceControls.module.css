@@ -22,22 +22,22 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--ordinance-space-sm);
-  padding: var(--ordinance-space-md);
+  gap: var(--space-md);
+  padding: var(--space-lg);
   border: 1px solid var(--border-default);
   border-radius: var(--market-radius-button);
   background: var(--bg-surface);
 }
 
 .sectionTitle {
-  font-size: var(--market-font-size-caption);
+  font-size: var(--market-font-size-heading);
   font-weight: 600;
 }
 
 .sectionSubtitle {
-  margin-top: var(--ordinance-space-xs);
-  color: var(--text-muted);
-  font-size: var(--market-font-size-micro);
+  margin-top: var(--space-xs);
+  color: var(--text-body);
+  font-size: var(--form-font-caption);
 }
 
 .button:focus-visible {

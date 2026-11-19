@@ -1,15 +1,16 @@
 .option {
   display: flex;
-  align-items: start;
+  align-items: center;
   gap: var(--ordinance-space-sm);
-  color: var(--text-body);
-  font-size: var(--market-font-size-caption);
+  color: var(--text-heading);
+  font-size: var(--form-font-body);
   cursor: pointer;
 }
 
 .option input {
   flex-shrink: 0;
-  margin-top: var(--ordinance-space-xs);
+  width: var(--space-lg);
+  height: var(--space-lg);
   accent-color: var(--market-action);
 }
 
