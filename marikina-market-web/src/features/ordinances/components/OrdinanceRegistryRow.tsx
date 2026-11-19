@@ -38,9 +38,10 @@ export default function OrdinanceRegistryRow({
         </span>
       </th>
       <td>
-        {CATEGORY_OPTIONS.find((option) => option.value === ordinance.category)
-          ?.label ?? ordinance.category}
-        {ordinance.category === "Others" && ordinance.specificCategory ? ` — ${ordinance.specificCategory}` : ""}
+        {ordinance.category === "Others" && ordinance.specificCategory
+          ? ordinance.specificCategory
+          : CATEGORY_OPTIONS.find((option) => option.value === ordinance.category)
+              ?.label ?? ordinance.category}
       </td>
       <td>
         {ordinance.penaltyTierCount}{" "}
