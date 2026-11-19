@@ -25,6 +25,7 @@ const stubs = {
   '../hooks/useTicketStatusSelection': 'export const useTicketStatusSelection = () => ({ selectedStatus: null, setSelectedStatus() {}, availableStatuses: [], canUpdateStatus: false, receiptUrls: [] });',
   '../hooks/useUpdateStatus': 'export const useUpdateStatus = () => ({ mutateAsync: async () => {}, isPending: false });',
   '../components/detail/TicketChangeHistory': 'export default () => null;',
+  './CommunityServiceLogModal': 'export default () => null;',
 };
 const cache = new Map();
 async function load(file) {
