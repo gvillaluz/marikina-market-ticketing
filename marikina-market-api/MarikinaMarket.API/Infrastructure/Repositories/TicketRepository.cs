@@ -956,6 +956,36 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        // One row per enforcer per Philippine calendar day. Settled = Paid, Cleared or Waived, as on the Reports page.
+        public async Task<List<EnforcerReportDay>> GetEnforcerReportDaysAsync(DateTime startUtc, DateTime endUtc)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.IssuedAt >= startUtc && t.IssuedAt < endUtc)
+                .Select(t => new
+                {
+                    t.EnforcerId,
+                    t.Type,
+                    t.IssuedAt,
+                    Day = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(t.IssuedAt, "Asia/Manila").Date,
+                    Settled = t.Type == ViolationType.Ticket && (t.Status == TicketStatus.Paid ||
+                        t.Status == TicketStatus.Cleared || t.Status == TicketStatus.Waived),
+                    Fine = t.Type == ViolationType.Ticket ? t.TotalPaymentAmount ?? 0m : 0m
+                })
+                .GroupBy(t => new { t.EnforcerId, t.Day })
+                .Select(g => new EnforcerReportDay
+                {
+                    EnforcerId = g.Key.EnforcerId,
+                    Warnings = g.Count(t => t.Type == ViolationType.Warning),
+                    Tickets = g.Count(t => t.Type == ViolationType.Ticket),
+                    SettledTickets = g.Count(t => t.Settled),
+                    FinesCharged = g.Sum(t => t.Fine),
+                    FinesSettled = g.Sum(t => t.Settled ? t.Fine : 0m),
+                    LastRecordAt = g.Max(t => t.IssuedAt)
+                })
+                .ToListAsync();
+        }
+
         public async Task<PerformanceSummaryResponse> GetEnforcerPerformanceSummaryAsync(int enforcerId, DateTime yearStart, DateTime yearEnd)
         {
             var byType = await _context.Tickets

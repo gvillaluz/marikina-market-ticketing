@@ -1,10 +1,15 @@
+using MarikinaMarket.API.Application.DTOs.Enforcers.Internal;
 using MarikinaMarket.API.Application.DTOs.Enforcers.Request;
 using MarikinaMarket.API.Application.DTOs.Enforcers.Response;
+using MarikinaMarket.API.Application.DTOs.Reports.Response;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using MarikinaMarket.API.Application.Interfaces;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Application.Interfaces.Services;
+using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace MarikinaMarket.API.Application.Services
 {
@@ -186,6 +191,80 @@ namespace MarikinaMarket.API.Application.Services
                 HasMore = hasMore,
                 Total = totalInspections
             };
+        }
+
+        // Every active enforcer, plus inactive ones with records in the period. Most records first, then by name.
+        public async Task<EnforcerReportResponse> GetReportAsync(string? from, string? to)
+        {
+            var (fromDate, toDate, startUtc, endUtc) = ManilaDateRange(from, to);
+
+            var enforcers = await _userRepository.GetAllEnforcersAsync();
+            var days = await _ticketRepository.GetEnforcerReportDaysAsync(startUtc, endUtc);
+
+            var rows = enforcers
+                .Select(e => ReportRow(e, days.Where(d => d.EnforcerId == e.Id).ToList()))
+                .Where(r => r.Status == AccountStatus.Active || r.TotalRecords > 0)
+                .OrderByDescending(r => r.TotalRecords)
+                .ThenBy(r => r.LastName)
+                .ThenBy(r => r.FirstName)
+                .ToList();
+
+            return new EnforcerReportResponse
+            {
+                DateRange = new ReportDateRangeResponse { From = fromDate, To = toDate },
+                Enforcers = rows,
+                Totals = new EnforcerReportTotalsResponse
+                {
+                    Warnings = rows.Sum(r => r.Warnings),
+                    Tickets = rows.Sum(r => r.Tickets),
+                    TotalRecords = rows.Sum(r => r.TotalRecords),
+                    SettledTickets = rows.Sum(r => r.SettledTickets),
+                    OpenTickets = rows.Sum(r => r.OpenTickets),
+                    FinesCharged = rows.Sum(r => r.FinesCharged),
+                    FinesSettled = rows.Sum(r => r.FinesSettled)
+                }
+            };
+        }
+
+        private static EnforcerReportRowResponse ReportRow(User enforcer, List<EnforcerReportDay> days)
+        {
+            var warnings = days.Sum(d => d.Warnings);
+            var tickets = days.Sum(d => d.Tickets);
+            var settled = days.Sum(d => d.SettledTickets);
+
+            return new EnforcerReportRowResponse
+            {
+                EnforcerId = enforcer.Id,
+                Username = enforcer.UserName ?? "",
+                FirstName = enforcer.FirstName,
+                LastName = enforcer.LastName,
+                Status = enforcer.Status,
+                Warnings = warnings,
+                Tickets = tickets,
+                TotalRecords = warnings + tickets,
+                SettledTickets = settled,
+                OpenTickets = tickets - settled,
+                FinesCharged = days.Sum(d => d.FinesCharged),
+                FinesSettled = days.Sum(d => d.FinesSettled),
+                DaysWithRecords = days.Count,
+                LastRecordAt = days.Count == 0 ? null : days.Max(d => d.LastRecordAt)
+            };
+        }
+
+        // The From and To dates as whole Philippine days, and the UTC moments they start and end.
+        private static (DateOnly From, DateOnly To, DateTime StartUtc, DateTime EndUtc) ManilaDateRange(string? fromValue, string? toValue)
+        {
+            if (!DateOnly.TryParseExact(fromValue, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var from) ||
+                !DateOnly.TryParseExact(toValue, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var to))
+                throw new ValidationException("Dates are required and must use YYYY-MM-DD.");
+            if (from > to) throw new ValidationException("From must be on or before to.");
+            if (to == DateOnly.MaxValue)
+                throw new ValidationException("Dates are outside the supported report range.");
+
+            var zone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            var startUtc = TimeZoneInfo.ConvertTimeToUtc(from.ToDateTime(TimeOnly.MinValue), zone);
+            var endUtc = TimeZoneInfo.ConvertTimeToUtc(to.AddDays(1).ToDateTime(TimeOnly.MinValue), zone);
+            return (from, to, startUtc, endUtc);
         }
     }
 }

@@ -36,6 +36,10 @@ namespace MarikinaMarket.API.Presentation.Controllers
         public async Task<ActionResult> GetAverageTickets()
             => Ok(await _enforcerService.GetDailyTicketsAverage());
 
+        [HttpGet("report")]
+        public async Task<ActionResult<EnforcerReportResponse>> GetReport([FromQuery] string? from, [FromQuery] string? to)
+            => Ok(await _enforcerService.GetReportAsync(from, to));
+
         [HttpGet("profile/{enforcerId}")]
         public async Task<ActionResult<EnforcerInfoResponse>> GetEnforcerInfo([FromRoute] int enforcerId)
         {

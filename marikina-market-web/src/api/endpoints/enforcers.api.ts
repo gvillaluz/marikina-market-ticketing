@@ -4,6 +4,7 @@ import {
   EnforcerActivityData,
   EnforcerPerformanceData,
   EnforcerProfile,
+  EnforcerReport,
   EnforcerSummary,
   InspectionHistorySummary,
 } from "../types/enforcer.types";
@@ -33,6 +34,16 @@ export const enforcersApi = {
     return apiClient
       .get("/admin/enforcers/activities")
       .then((response) => response.data as EnforcerActivityData);
+  },
+
+  enforcerReport(
+    from: string,
+    to: string,
+    signal?: AbortSignal,
+  ): Promise<EnforcerReport> {
+    return apiClient
+      .get("/admin/enforcers/report", { params: { from, to }, signal })
+      .then((response) => response.data as EnforcerReport);
   },
 
   enforcerProfile(enforcerId: number): Promise<EnforcerProfile> {
