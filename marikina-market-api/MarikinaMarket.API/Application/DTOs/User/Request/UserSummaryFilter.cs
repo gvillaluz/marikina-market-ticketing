@@ -6,7 +6,7 @@ namespace MarikinaMarket.API.Application.DTOs.User.Request
     public class UserSummaryFilter
     {
         [FromQuery(Name = "role")]
-        [RegularExpression(@"(?i)\A(All|HeadAdmin|AdminOfficer|MarketEnforcer|MarketVendor|[0-3])\z",
+        [RegularExpression(@"(?i)\A(All|HeadAdmin|AdminOfficer|MarketEnforcer|[013])\z",
             ErrorMessage = "Invalid account role.")]
         public string? Role { get; set; }
 

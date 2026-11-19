@@ -7,7 +7,6 @@ import type {
 export interface AccountCounts {
   totalUsers: number;
   totalStaffUsers: number;
-  totalMarketVendorUsers: number;
   totalAdministrators: number;
   totalActiveAccounts: number;
 }

@@ -124,6 +124,7 @@ namespace MarikinaMarket.API.Application.Services
         public async Task<AdminAccountDetailsResponse> GetAccountAsync(int userId, int adminId)
         {
             ValidateAccountTarget(userId, adminId);
+            if (await _repository.IsHiddenFromAccountPagesAsync(userId)) throw new RecordNotFoundException("User not found.");
             var user = await _repository.GetUserAsync(userId) ?? throw new RecordNotFoundException("User not found.");
             return await AccountDetailsAsync(user);
         }
@@ -139,6 +140,7 @@ namespace MarikinaMarket.API.Application.Services
             await _unitOfWork.BeginTransactionAsync();
             try
             {
+                if (await _repository.IsHiddenFromAccountPagesAsync(userId)) throw new RecordNotFoundException("User not found.");
                 var user = await _repository.GetUserAsync(userId) ?? throw new RecordNotFoundException("User not found.");
                 if (user.Version != request.Version)
                     throw new ConcurrencyConflictException("This account was updated by another user. Reload the account before saving again.");
