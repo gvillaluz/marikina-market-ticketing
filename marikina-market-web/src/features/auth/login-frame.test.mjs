@@ -407,3 +407,56 @@ test("the brand name uses the normal bold font on the login page and in the side
     "the typewriter font is no longer downloaded",
   );
 });
+
+// ---------------------------------------------------------------------------
+// Who the website is for (computer view)
+// ---------------------------------------------------------------------------
+
+test("the panel says who the website is for: the label, the two admin roles and the field note", () => {
+  const html = renderFrameAt(ADDRESSES.login, React.createElement("div"));
+  assert.match(html, /FOR MARKET ADMINISTRATORS/);
+  assert.ok(
+    html.indexOf("FOR MARKET ADMINISTRATORS") <
+      html.indexOf("For managing market inspections"),
+    "the label sits above the big line",
+  );
+  assert.match(html, />Head Admin</);
+  assert.match(
+    html,
+    /Everything an Admin Officer does, plus creating and managing staff accounts\./,
+  );
+  assert.match(html, />Admin Officer</);
+  assert.match(
+    html,
+    /Reviews inspections and tickets, keeps business and person records, reads reports\./,
+  );
+  assert.match(
+    html,
+    /Market enforcers record inspections in the field with the phone app\./,
+  );
+  assert.ok(
+    html.indexOf(">Head Admin<") > html.indexOf("For managing market inspections"),
+    "the roles sit below the big line",
+  );
+});
+
+test("the label and the roles show only on computer screens, and their motion stops when motion is off", () => {
+  const css = fs.readFileSync(
+    path.resolve(root, "features/auth/components/AuthLayout.module.css"),
+    "utf8",
+  );
+  const wide = css.slice(css.indexOf("@media (min-width: 1024px)"));
+  for (const part of ["eyebrow", "audience"]) {
+    const base = css.match(new RegExp(String.raw`\.${part} \{([^}]*)\}`));
+    assert.ok(base, `.${part} has a rule`);
+    assert.match(base[1], /display:\s*none/, `.${part} is hidden on phones`);
+    assert.match(
+      wide,
+      new RegExp(String.raw`\.${part} \{[^}]*display:\s*(flex|grid)`),
+      `.${part} shows on computer screens`,
+    );
+  }
+  const still = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+  for (const selector of [".eyebrow", ".role", ".fieldNote"])
+    assert.ok(still.includes(selector), `${selector} stops animating`);
+});

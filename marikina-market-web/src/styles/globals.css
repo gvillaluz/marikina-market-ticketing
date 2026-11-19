@@ -93,6 +93,7 @@
   --auth-content-glow-warm: rgba(184, 121, 47, 0.08);
   --auth-panel-text: #ffffff;
   --auth-panel-muted: rgba(255, 255, 255, 0.85);
+  --auth-panel-accent: #e6b86a;
   --auth-panel-line: rgba(255, 255, 255, 0.18);
   --auth-seal-ring: rgba(255, 255, 255, 0.55);
   --auth-watermark-opacity: 0.07;

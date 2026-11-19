@@ -4,6 +4,17 @@ import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import { useAuthSlide } from "../hooks/useAuthSlide";
 import styles from "./AuthLayout.module.css";
 
+const roles = [
+  {
+    name: "Head Admin",
+    text: "Everything an Admin Officer does, plus creating and managing staff accounts.",
+  },
+  {
+    name: "Admin Officer",
+    text: "Reviews inspections and tickets, keeps business and person records, reads reports.",
+  },
+];
+
 const AuthLayout: FC = () => {
   const slide = useAuthSlide();
   return (
@@ -26,9 +37,24 @@ const AuthLayout: FC = () => {
         </div>
 
         <div className={styles.intro}>
+          <p className={styles.eyebrow}>FOR MARKET ADMINISTRATORS</p>
           <p className={styles.headline}>
             For managing market inspections, tickets and records.
           </p>
+          <div className={styles.audience}>
+            <ul className={styles.roles}>
+              {roles.map(({ name, text }) => (
+                <li key={name} className={styles.role}>
+                  <span className={styles.roleName}>{name}</span>
+                  {text}
+                </li>
+              ))}
+            </ul>
+            <p className={styles.fieldNote}>
+              Market enforcers record inspections in the field with the phone
+              app.
+            </p>
+          </div>
         </div>
       </div>
 
