@@ -131,15 +131,7 @@
   white-space: nowrap;
 }
 
-.documentActions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
-}
-
-.documentCount,
-.uploadButton {
+.documentCount {
   display: inline-flex;
   min-height: 29px;
   align-items: center;
@@ -152,21 +144,40 @@
   color: var(--button-primary);
   font-size: 0.67rem;
   font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
-.uploadButton {
+.documentCount:hover:not(:disabled) {
   border-color: var(--button-primary);
-  background: var(--button-primary);
-  color: #fff;
-  cursor: not-allowed;
-  opacity: 0.78;
+  background: #e3f0fd;
 }
 
-.uploadButton:disabled {
-  border-color: #aeb7c3;
-  background: #aeb7c3;
-  cursor: not-allowed;
-  opacity: 0.65;
+.documentCount:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+
+.documentCount:disabled {
+  border-color: #d4dce7;
+  background: #f4f6f9;
+  color: #6b7686;
+  cursor: default;
+}
+
+/* Same side spacing as the window header (components/ui/Modal). */
+.modalContent {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.modalLoading {
+  padding: 40px 0;
+  color: #68778a;
+  font-size: 0.8rem;
+  text-align: center;
 }
 
 .errorState {
@@ -270,6 +281,12 @@
 .pagination :global(button:disabled) {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .modalContent {
+    padding: 1rem 1.125rem 1.125rem;
+  }
 }
 
 @media (max-width: 760px) {

@@ -305,6 +305,72 @@ test("blank and overlength section drafts cannot make requests", async () => {
   assert.match(h.render().error, /150/);
 });
 
+// Street window slice: editing without a real change has nothing to save.
+test("editing a street keeps Save off until the name really changes", async () => {
+  const h = harness();
+  h.render().launch(section);
+  assert.equal(h.render().canSave, false);
+  h.render().setName(" Fresh Produce ");
+  assert.equal(h.render().canSave, false);
+  h.render().submit();
+  await h.settle();
+  assert.equal(h.requests.length, 0);
+  h.render().setName("Fresh Produce Row");
+  assert.equal(h.render().canSave, true);
+  h.render().close();
+  h.render().launch();
+  assert.equal(h.render().canSave, true);
+});
+
+test("the street window ties its error to the name box and explains where streets are used", () => {
+  const MarketSectionModal = load(
+    "features/market-section/components/MarketSectionModal.tsx",
+    {
+      "@/components/ui/Modal": {
+        default: ({ open, subtitle, children, footer }) =>
+          open
+            ? React.createElement("div", null, subtitle, children, footer)
+            : null,
+      },
+    },
+  ).default;
+  const render = (editor) =>
+    renderToStaticMarkup(
+      React.createElement(MarketSectionModal, {
+        editor: {
+          open: true,
+          selected: section,
+          name: "",
+          setName() {},
+          error: "",
+          isSaving: false,
+          canSave: true,
+          close() {},
+          submit() {},
+          ...editor,
+        },
+      }),
+    );
+  const failed = render({ error: "Street name is required.", canSave: false });
+  // The app's own message shows instead of the browser's "Please fill out this field" bubble.
+  assert.match(failed, /<form(?=[^>]*novalidate="")/);
+  assert.match(failed, /aria-invalid="true"/);
+  assert.match(failed, /aria-describedby="section-name-error"/);
+  assert.match(
+    failed,
+    /id="section-name-error"[^>]*>Street name is required\./,
+  );
+  assert.match(failed, /<button(?=[^>]*type="submit")(?=[^>]*disabled="")/);
+  assert.match(
+    failed,
+    /Used when choosing a street for businesses, registration and tickets\./,
+  );
+  const clean = render({});
+  assert.doesNotMatch(clean, /aria-invalid="true"/);
+  assert.doesNotMatch(clean, /aria-describedby/);
+  assert.doesNotMatch(clean, /<button(?=[^>]*type="submit")(?=[^>]*disabled="")/);
+});
+
 // Slice 3: a street has a name only; the request carries nothing else.
 test("a street is saved with its name only", async () => {
   const h = harness();
@@ -495,6 +561,7 @@ test("the table and the street form have no description", () => {
           canManage: true,
           canOpenConfiguration: true,
           isSaving: false,
+          canSave: true,
           pendingId: null,
           launch() {},
           close() {},

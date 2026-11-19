@@ -20,6 +20,7 @@ export function useMarketSectionEditor() {
   const [error, setError] = useState("");
   const lock = useRef(false);
   const [pendingId, setPendingId] = useState<number | null>(null);
+  const unchanged = selected !== null && name.trim() === selected.name;
   const save = useMutation({
     mutationFn: async () => {
       await client.cancelQueries({ queryKey: marketSectionsListKey });
@@ -112,6 +113,7 @@ export function useMarketSectionEditor() {
     canManage,
     canOpenConfiguration: role === "HeadAdmin",
     isSaving: save.isPending,
+    canSave: !save.isPending && !unchanged,
     pendingId,
     launch(section: MarketSectionResponse | null = null) {
       if (!canManage || lock.current) return;
@@ -124,7 +126,7 @@ export function useMarketSectionEditor() {
       if (!lock.current) setOpen(false);
     },
     submit() {
-      if (!canManage || lock.current || !open) return;
+      if (!canManage || lock.current || !open || unchanged) return;
       if (!name.trim()) {
         setError("Street name is required.");
         return;

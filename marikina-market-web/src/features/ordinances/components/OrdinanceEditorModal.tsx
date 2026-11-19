@@ -16,25 +16,26 @@ export default function OrdinanceEditorModal({ editor }: Props) {
       onClose={editor.close}
       closeDisabled={editor.isSaving}
       size="md"
-      title={editor.selected ? "Manage Ordinance" : "Create Ordinance"}
+      title={editor.selected ? "Edit Ordinance" : "Create Ordinance"}
       footer={<OrdinanceEditorActions editor={editor} />}
     >
       <form
         id="ordinance-editor-form"
         className={styles.form}
+        noValidate
         aria-busy={editor.isSaving || editor.isLoadingDetails}
         onSubmit={(event) => {
           event.preventDefault();
+          const form = event.currentTarget;
           editor.submit();
+          // After the problem fields turn red, move to the first one (this also scrolls it into view).
+          requestAnimationFrame(() =>
+            form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
+          );
         }}
       >
         <OrdinanceDetailsFields editor={editor} />
         <OrdinancePenaltyTiers editor={editor} />
-        {editor.error && (
-          <p className={styles.error} role="alert">
-            {editor.error}
-          </p>
-        )}
       </form>
     </Modal>
   );
