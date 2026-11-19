@@ -66,7 +66,7 @@ class _FindAccountPageState extends State<FindAccountPage> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text('USERNAME'),
+            const Text('Username', style: AppTheme.authFieldLabelStyle),
             const SizedBox(height: 7),
             TextField(
               enabled: context.select<PasswordRecoveryBloc, bool>(
@@ -79,7 +79,7 @@ class _FindAccountPageState extends State<FindAccountPage> {
               onSubmitted: (_) => _searchAccount(),
               onTapOutside: (_) => FocusScope.of(context).unfocus(),
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.person_rounded),
+                prefixIcon: const Icon(Icons.person_outline_rounded),
                 hintText: 'Enter your username',
                 filled: true,
                 fillColor: Colors.white,

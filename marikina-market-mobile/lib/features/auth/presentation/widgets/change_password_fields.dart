@@ -37,11 +37,17 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ExcludeSemantics(child: Text('CURRENT PASSWORD')),
+          const ExcludeSemantics(
+            child: Text(
+              'Current password',
+              style: AppTheme.authFieldLabelStyle,
+            ),
+          ),
           const SizedBox(height: 7),
           Semantics(
             label: 'Current password',
             child: TextField(
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
               enabled: widget.enabled,
               autocorrect: false,
               enableSuggestions: false,
@@ -50,7 +56,7 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.password],
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.lock_rounded),
+                prefixIcon: Icon(Icons.lock_outline_rounded),
                 suffixIcon: ExcludeFocus(
                   child: IconButton(
                     tooltip: isCurrentPasswordVisible
@@ -65,11 +71,11 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
                     icon: Icon(
                       isCurrentPasswordVisible
                           ? Icons.visibility_off_outlined
-                          : Icons.visibility,
+                          : Icons.visibility_outlined,
                     ),
                   ),
                 ),
-                hintText: 'Enter your current password',
+                hintText: 'Enter current password',
                 errorText: widget.check?.currentError,
               ),
             ),
@@ -77,11 +83,14 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
 
           const SizedBox(height: 20),
 
-          const ExcludeSemantics(child: Text('NEW PASSWORD')),
+          const ExcludeSemantics(
+            child: Text('New password', style: AppTheme.authFieldLabelStyle),
+          ),
           const SizedBox(height: 7),
           Semantics(
             label: 'New password',
             child: TextField(
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
               enabled: widget.enabled,
               autocorrect: false,
               enableSuggestions: false,
@@ -90,7 +99,7 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.newPassword],
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.lock_rounded),
+                prefixIcon: Icon(Icons.key_outlined),
                 suffixIcon: ExcludeFocus(
                   child: IconButton(
                     tooltip: isNewPasswordVisible
@@ -104,11 +113,11 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
                     icon: Icon(
                       isNewPasswordVisible
                           ? Icons.visibility_off_outlined
-                          : Icons.visibility,
+                          : Icons.visibility_outlined,
                     ),
                   ),
                 ),
-                hintText: 'Enter your new password',
+                hintText: 'Enter new password',
                 errorText: widget.check?.newPasswordError,
               ),
             ),
@@ -119,11 +128,17 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
 
           const SizedBox(height: 20),
 
-          const ExcludeSemantics(child: Text('CONFIRM NEW PASSWORD')),
+          const ExcludeSemantics(
+            child: Text(
+              'Confirm new password',
+              style: AppTheme.authFieldLabelStyle,
+            ),
+          ),
           const SizedBox(height: 7),
           Semantics(
             label: 'Confirm new password',
             child: TextField(
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
               enabled: widget.enabled,
               autocorrect: false,
               enableSuggestions: false,
@@ -133,7 +148,7 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
               autofillHints: const [AutofillHints.newPassword],
               onSubmitted: (_) => widget.onSubmitted(),
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.lock_rounded),
+                prefixIcon: Icon(Icons.verified_user_outlined),
                 suffixIcon: ExcludeFocus(
                   child: IconButton(
                     tooltip: isConfirmNewPasswordVisible
@@ -148,11 +163,11 @@ class _ChangePasswordFieldsState extends State<ChangePasswordFields> {
                     icon: Icon(
                       isConfirmNewPasswordVisible
                           ? Icons.visibility_off_outlined
-                          : Icons.visibility,
+                          : Icons.visibility_outlined,
                     ),
                   ),
                 ),
-                hintText: 'Confirm your new password',
+                hintText: 'Re-enter new password',
                 errorText: widget.check?.confirmError,
               ),
             ),

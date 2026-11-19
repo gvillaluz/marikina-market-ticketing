@@ -486,7 +486,6 @@ class AppTheme {
   static const authGap = 20.0;
   static const authSmallGap = 8.0;
   static const authPinHeight = 50.0;
-  static const authPinMaxWidth = 44.0;
   static const authPinGap = 6.0;
   static const authPinRadius = BorderRadius.all(Radius.circular(10));
   static const authVerificationTitleColor = Color(0xFF0B2D5B);
@@ -519,6 +518,14 @@ class AppTheme {
     height: 1.45,
     color: authVerificationBodyColor,
   );
+  // The label above a login text box, as on the website: bold navy.
+  static const authFieldLabelStyle = TextStyle(
+    fontSize: bodyFontSize,
+    fontWeight: FontWeight.w600,
+    color: authVerificationTitleColor,
+  );
+  // The page under the navy band, white like the website.
+  static const authPageColor = Colors.white;
   // Darker than primaryGreen so small text keeps a 4.5:1 contrast on white.
   static const authRuleMetColor = Color(0xFF16803C);
   static const authRuleMarkSize = 18.0;

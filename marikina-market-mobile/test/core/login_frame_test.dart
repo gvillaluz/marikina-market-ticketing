@@ -585,7 +585,7 @@ void main() {
 
 const bandName = 'Marikina Public Market';
 const bandSystem = 'Inspection System';
-const bandHeadline = 'Market inspections, tickets and records in one place.';
+const bandHeadline = 'For recording market inspections and tickets.';
 const bandNote = 'Need an account? Ask your Head Admin to create one for you.';
 
 /// Contrast between [text] (blended over [background]) and [background], as

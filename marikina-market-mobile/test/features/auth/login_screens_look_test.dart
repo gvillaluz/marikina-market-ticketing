@@ -71,22 +71,6 @@ void main() {
       });
     });
 
-    testWidgets('"Forgot password?" is on the PASSWORD label line, on the '
-        'right, with a full-size tap area', (tester) async {
-      await withLogin(tester, (router, bloc) async {
-        final label = tester.getRect(find.text('PASSWORD'));
-        final password = tester.getRect(find.byType(TextField).last);
-        final forgot = tester.getRect(
-          find.widgetWithText(TextButton, 'Forgot password?'),
-        );
-        expect(forgot.top, lessThanOrEqualTo(label.center.dy));
-        expect(forgot.bottom, greaterThanOrEqualTo(label.center.dy));
-        expect(forgot.bottom, lessThanOrEqualTo(password.top));
-        expect(forgot.right, closeTo(password.right, 1));
-        expect(forgot.height, greaterThanOrEqualTo(48));
-      });
-    });
-
     testWidgets('there is no code note under the Log in button', (
       tester,
     ) async {

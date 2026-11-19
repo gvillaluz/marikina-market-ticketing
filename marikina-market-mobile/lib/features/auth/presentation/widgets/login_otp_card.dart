@@ -59,6 +59,22 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // At the top, as on the website: the way back is found first.
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: state.isVerifying
+                      ? null
+                      : () => context.read<AuthBloc>().add(CancelLogin()),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    size: AppTheme.buttonIconSize,
+                  ),
+                  label: const Text('Back to log in'),
+                ),
+              ),
+              const SizedBox(height: AppTheme.authSmallGap),
               LoginOtpHeading(maskedEmail: state.maskedEmail),
               const SizedBox(height: AppTheme.authGap),
               LoginOtpField(
@@ -77,24 +93,9 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
                         child: AuthErrorNotice(message: errorMessage),
                       ),
               ),
-              const SizedBox(height: AppTheme.authGap),
-              AuthBtn(
-                label: 'Verify and log in',
-                isLoading: state.isVerifying && !state.isVerified,
-                isSuccess: state.isVerified,
-                onPressed: state.canVerify
-                    ? () => context.read<AuthBloc>().add(
-                        VerifyLoginSubmitted(
-                          _codeController.text,
-                          successHold: AppTheme.motionOf(
-                            context,
-                            AppTheme.authSuccessHold,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
               const SizedBox(height: AppTheme.authSmallGap),
+              // The resend line sits between the boxes and the button, as
+              // on the website.
               Wrap(
                 alignment: WrapAlignment.spaceBetween,
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -132,14 +133,22 @@ class _LoginOtpCardState extends State<LoginOtpCard> {
                       )
                     : null,
               ),
-              Align(
-                alignment: Alignment.center,
-                child: TextButton(
-                  onPressed: state.isVerifying
-                      ? null
-                      : () => context.read<AuthBloc>().add(CancelLogin()),
-                  child: const Text('Back to log in'),
-                ),
+              const SizedBox(height: AppTheme.authGap),
+              AuthBtn(
+                label: 'Verify and log in',
+                isLoading: state.isVerifying && !state.isVerified,
+                isSuccess: state.isVerified,
+                onPressed: state.canVerify
+                    ? () => context.read<AuthBloc>().add(
+                        VerifyLoginSubmitted(
+                          _codeController.text,
+                          successHold: AppTheme.motionOf(
+                            context,
+                            AppTheme.authSuccessHold,
+                          ),
+                        ),
+                      )
+                    : null,
               ),
             ],
           ),

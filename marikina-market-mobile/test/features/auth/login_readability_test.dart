@@ -135,9 +135,9 @@ void main() {
       await withMustChangeLogin(tester, (verify) async {
         verify('001234');
         await tester.pumpAndSettle();
-        expect(shown('Enter your current password'), hint);
-        expect(shown('Enter your new password'), hint);
-        expect(shown('Confirm your new password'), hint);
+        expect(shown('Enter current password'), hint);
+        expect(shown('Enter new password'), hint);
+        expect(shown('Re-enter new password'), hint);
       });
     });
 

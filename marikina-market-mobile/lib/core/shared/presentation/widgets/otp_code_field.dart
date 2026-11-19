@@ -145,9 +145,8 @@ class _OtpCodeFieldState extends State<OtpCodeField>
     builder: (context, constraints) {
       final theme = Theme.of(context);
       final pinTheme = PinTheme(
-        width: ((constraints.maxWidth - AppTheme.authPinGap * 5) / 6)
-            .clamp(0.0, AppTheme.authPinMaxWidth)
-            .toDouble(),
+        // Six boxes across the full width, like the website.
+        width: (constraints.maxWidth - AppTheme.authPinGap * 5) / 6,
         height:
             (MediaQuery.textScalerOf(
                       context,
@@ -167,6 +166,7 @@ class _OtpCodeFieldState extends State<OtpCodeField>
         border: Border.all(color: theme.colorScheme.error),
       );
       final pinput = Pinput(
+        onTapOutside: (_) => FocusScope.of(context).unfocus(),
         animationDuration: AppTheme.motionOf(
           context,
           AppTheme.buttonAnimationDuration,

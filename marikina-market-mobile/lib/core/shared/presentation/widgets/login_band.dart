@@ -95,7 +95,7 @@ class LoginBand extends StatelessWidget {
                     _fadeIn(
                       AppTheme.authOpeningHeadlineInterval,
                       const Text(
-                        'Market inspections, tickets and records in one place.',
+                        'For recording market inspections and tickets.',
                         style: AppTheme.authBandHeadlineStyle,
                       ),
                     ),

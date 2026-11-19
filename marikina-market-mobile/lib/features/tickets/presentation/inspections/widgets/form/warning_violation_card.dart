@@ -57,13 +57,17 @@ class WarningViolationCard extends StatelessWidget {
 
           const Text('PLACE OF APPREHENSION'),
           const SizedBox(height: 5),
-          TextField(controller: placeOfApprehensionController),
+          TextField(
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
+            controller: placeOfApprehensionController,
+          ),
 
           const SizedBox(height: 20),
 
           const Text('DESCRIPTION'),
           const SizedBox(height: 5),
           TextField(
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
             controller: descriptionController,
             maxLines: 5,
             minLines: 3,
