@@ -481,6 +481,30 @@ void main() {
     );
 
     testWidgets(
+      '3e: Next from the bottom of the form scrolls back to the first problem',
+      (tester) async {
+        // The screen is 390 x 844 logical pixels (see openPage).
+        const screenHeight = 844.0;
+        await openPage(tester);
+        await chooseBusiness(tester, bertsFish);
+        await tester.ensureVisible(find.text('Next'));
+        await flush(tester);
+        final place = find.byKey(const ValueKey('warning-issue-place'));
+        expect(tester.getRect(place).top, lessThan(0));
+        await tester.tap(find.text('Next'));
+        await flush(tester);
+        // Lets the 300 ms scroll finish.
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(tester.getRect(place).top, greaterThanOrEqualTo(0));
+        final error = tester.getRect(
+          find.text('Enter where the warning was issued.'),
+        );
+        expect(error.top, greaterThanOrEqualTo(0));
+        expect(error.bottom, lessThanOrEqualTo(screenHeight));
+      },
+    );
+
+    testWidgets(
       '4: warning has no control number and the same Place of Apprehension',
       (tester) async {
         await openPage(tester);
