@@ -3,7 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { LoginInput } from "@/features/auth/auth.types";
 import { ROUTES } from "@/routes/routePaths";
-import { getApiErrorMessage } from "@/utils/apiErrors";
+import { getApiErrorMessage, isConnectionError } from "@/utils/apiErrors";
 import { successPause } from "../motion";
 
 export interface LoginFormValues {
@@ -73,7 +73,13 @@ export function useLogin(options: UseLoginOptions = {}) {
           : undefined;
       navigate(ROUTES.loginVerification, { state: { redirectTo } });
     } catch (err) {
-      if (mounted.current) setError(getApiErrorMessage(err, "Login failed."));
+      if (mounted.current)
+        setError(
+          // Same words as the phone app when the server cannot be reached.
+          isConnectionError(err)
+            ? "No internet connection. Please try again."
+            : getApiErrorMessage(err, "Login failed."),
+        );
     } finally {
       busy.current = false;
       if (mounted.current) setLoading(false);

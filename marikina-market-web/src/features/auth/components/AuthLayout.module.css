@@ -57,7 +57,6 @@
   color: var(--auth-panel-text);
 }
 .brandName {
-  font-family: "IBM Plex Mono", monospace;
   font-size: 0.9375rem;
   font-weight: 700;
 }
@@ -66,58 +65,12 @@
   font-weight: 400;
   color: var(--auth-panel-muted);
 }
-.intro {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-}
-.eyebrow {
-  display: none;
-  align-items: center;
-  gap: 0.625rem;
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--auth-panel-accent);
-}
-.eyebrow::before {
-  width: 1.5rem;
-  height: 2px;
-  background: var(--auth-panel-accent);
-  content: "";
-}
 .headline {
   margin: 0;
   font-size: 1.375rem;
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.01em;
-}
-.features {
-  display: none;
-  flex-direction: column;
-  gap: 1.125rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.feature {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  font-size: 0.9375rem;
-  color: var(--auth-panel-muted);
-}
-.featureIcon {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-md);
-  color: var(--auth-panel-accent);
-  background: var(--auth-panel-icon-surface);
 }
 .content {
   display: flex;
@@ -139,25 +92,13 @@
     var(--form-motion-ease) both;
 }
 .brand,
-.eyebrow,
 .headline,
-.feature,
 .contentInner {
   animation: auth-intro var(--form-motion-duration) var(--form-motion-ease) both;
-}
-.eyebrow {
-  animation-delay: var(--auth-stagger);
 }
 .headline {
   animation-delay: calc(var(--auth-stagger) * 2);
 }
-.feature:nth-child(1) {
-  animation-delay: calc(var(--auth-stagger) * 3);
-}
-.feature:nth-child(2) {
-  animation-delay: calc(var(--auth-stagger) * 4);
-}
-.feature:nth-child(3),
 .contentInner {
   animation-delay: calc(var(--auth-stagger) * 5);
 }
@@ -256,19 +197,10 @@
     width: 3.25rem;
     height: 3.25rem;
   }
-  .eyebrow {
-    display: flex;
-  }
   .headline {
     font-size: clamp(2.375rem, 1rem + 2.2vw, 3.5rem);
     line-height: 1.15;
     letter-spacing: -0.02em;
-  }
-  .features {
-    display: flex;
-  }
-  .feature {
-    font-size: clamp(0.9375rem, 0.5rem + 0.6vw, 1.0625rem);
   }
   .note {
     margin: 0 var(--auth-panel-gutter);
@@ -279,9 +211,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .brand,
-  .eyebrow,
   .headline,
-  .feature,
   .watermark,
   .contentInner,
   .slide[data-direction] {

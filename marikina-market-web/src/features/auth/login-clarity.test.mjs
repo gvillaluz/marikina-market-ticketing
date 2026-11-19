@@ -327,3 +327,61 @@ test("no login-page message says sign in any more", () => {
     assert.deepEqual(said, [], file);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Log in form layout (matches the phone app)
+// ---------------------------------------------------------------------------
+
+const plainLoginForm = () => {
+  const formModel = {
+    username: "",
+    password: "",
+    showPassword: false,
+    fieldErrors: {},
+    usernameRef: null,
+    passwordRef: null,
+    changeUsername: noop,
+    changePassword: noop,
+    togglePassword: noop,
+    forgotPassword: noop,
+    handleSubmit: noop,
+  };
+  const LoginForm = load("features/auth/components/LoginForm.tsx", {
+    "@/features/auth/hooks/useLoginForm": { useLoginForm: () => formModel },
+    "@/features/auth/hooks/useCapsLock": {
+      useCapsLock: () => ({ field: null, bind: () => ({}) }),
+    },
+  }).default;
+  return render(
+    React.createElement(LoginForm, {
+      submit: async () => {},
+      loading: false,
+      error: null,
+    }),
+  );
+};
+
+test("Forgot password? sits under the password box, before the Log in button", () => {
+  const html = plainLoginForm();
+  const box = html.indexOf('id="login-password"');
+  const forgot = html.indexOf("Forgot password?");
+  const button = html.indexOf('type="submit"');
+  assert.ok(box > 0 && forgot > box, "after the password box");
+  assert.ok(button > forgot, "before the Log in button");
+});
+
+test("the log in form has no code note under the button", () => {
+  assert.doesNotMatch(plainLoginForm(), /6-digit code to finish logging in/);
+});
+
+test("the login boxes' darker outline wins over the shared box style", () => {
+  // The shared box style loads later in the built file, so the outline must
+  // sit on the stronger two-part rule to take effect.
+  const css = fs.readFileSync(
+    path.resolve(root, "features/auth/components/LoginForm.module.css"),
+    "utf8",
+  );
+  const rule = css.match(/\.inputWrapper \.input\s*\{([^}]*)\}/);
+  assert.ok(rule, "there is an .inputWrapper .input rule");
+  assert.match(rule[1], /border-color:\s*var\(--auth-input-border\)/);
+});

@@ -302,14 +302,10 @@ function renderLoginPage() {
 
 test("the login page's navy panel says what the system is for and tells staff how to get an account", () => {
   const html = renderLoginPage();
-  assert.match(html, /MARIKINA CITY · PUBLIC MARKET/);
-  assert.match(html, /Market inspections, tickets and records in one place\./);
-  assert.match(html, /Inspections and tickets recorded in the field/);
-  assert.match(html, /Business and person records kept together/);
-  assert.match(html, /Reports, analytics and a full audit trail/);
+  assert.match(html, /For managing market inspections, tickets and records\./);
   assert.match(
     html,
-    /Need an account\? Ask your Head Admin to add one for you\./,
+    /Need an account\? Ask your Head Admin to create one for you\./,
   );
   assert.doesNotMatch(
     html,
@@ -318,7 +314,7 @@ test("the login page's navy panel says what the system is for and tells staff ho
   assert.doesNotMatch(html, /Admin Access/);
 });
 
-test("the login form says Log in, explains the emailed code and keeps Forgot password", () => {
+test("the login form says Log in, has no code note and keeps Forgot password", () => {
   const html = renderLoginPage();
   assert.match(html, /<h2[^>]*>Log in<\/h2>/);
   assert.match(
@@ -326,10 +322,7 @@ test("the login form says Log in, explains the emailed code and keeps Forgot pas
     /Administrator access\. Use your staff username and password\./,
   );
   assert.match(html, /<button type="submit"[^>]*><span[^>]*>Log in<\/span><\/button>/);
-  assert.match(
-    html,
-    /Next, we email you a 6-digit code to finish logging in\./,
-  );
+  assert.doesNotMatch(html, /6-digit code to finish logging in/);
   assert.match(html, />Forgot password\?<\/button>/);
   assert.doesNotMatch(html, /LOGIN/);
 });
@@ -408,11 +401,10 @@ function renderForgotPasswordAt(step, state) {
 
 test("the forgot-password page uses the login frame: navy panel, Head Admin note, no Admin Access", () => {
   const html = renderForgotPasswordAt("find-account", null);
-  assert.match(html, /MARIKINA CITY · PUBLIC MARKET/);
-  assert.match(html, /Market inspections, tickets and records in one place\./);
+  assert.match(html, /For managing market inspections, tickets and records\./);
   assert.match(
     html,
-    /Need an account\? Ask your Head Admin to add one for you\./,
+    /Need an account\? Ask your Head Admin to create one for you\./,
   );
   assert.doesNotMatch(html, /Admin Access/);
   assert.match(html, /<a[^>]*href="\/admin\/login"[^>]*>.*Back to log in<\/a>/);
@@ -439,7 +431,11 @@ test("each forgot-password step shows in the frame with a heading in the Log in 
     assert.match(html, new RegExp(`data-step="${step}"`), step);
     assert.match(html, new RegExp(`<h2[^>]*>${heading}</h2>`), step);
     assert.doesNotMatch(html, new RegExp(heading.toUpperCase()), step);
-    assert.match(html, /MARIKINA CITY · PUBLIC MARKET/, step);
+    assert.match(
+      html,
+      /For managing market inspections, tickets and records\./,
+      step,
+    );
   }
 });
 

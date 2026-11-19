@@ -180,10 +180,9 @@ test("the frame holds the navy panel and the card once, and shows the page insid
     React.createElement("div", { "data-page": "inside" }),
   );
   assert.equal(html.split('alt="Marikina City seal"').length - 1, 1);
-  assert.match(html, /MARIKINA CITY · PUBLIC MARKET/);
   assert.match(
     html,
-    /Need an account\? Ask your Head Admin to add one for you\./,
+    /Need an account\? Ask your Head Admin to create one for you\./,
   );
   const card = html.indexOf("contentInner");
   assert.ok(card > 0, "the card is there");
@@ -236,9 +235,7 @@ test("with motion turned off, the opening sequence and the slides do not animate
   const block = css.slice(start);
   for (const selector of [
     ".brand",
-    ".eyebrow",
     ".headline",
-    ".feature",
     ".watermark",
     ".contentInner",
     // The slide rules name the direction, so the switch-off must be as specific.
@@ -366,4 +363,47 @@ test("each forgot-password step shows its counter above the heading", () => {
     assert.match(html, new RegExp(`data-step="${step}"`), step);
     assert.doesNotMatch(html, /Marikina City seal/, `${step}: no frame of its own`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// Navy panel wording and brand font (matches the phone app)
+// ---------------------------------------------------------------------------
+
+test("the navy panel says what the website is for, with no advert lines", () => {
+  const html = renderFrameAt(ADDRESSES.login, React.createElement("div"));
+  assert.match(html, /For managing market inspections, tickets and records\./);
+  assert.doesNotMatch(html, /in one place/);
+  assert.doesNotMatch(html, /MARIKINA CITY · PUBLIC MARKET/);
+  for (const line of [
+    "Inspections and tickets recorded in the field",
+    "Business and person records kept together",
+    "Reports, analytics and a full audit trail",
+  ])
+    assert.ok(!html.includes(line), `no feature line: ${line}`);
+});
+
+test("the note at the bottom asks the Head Admin to create an account", () => {
+  const html = renderFrameAt(ADDRESSES.login, React.createElement("div"));
+  assert.match(
+    html,
+    /Need an account\? Ask your Head Admin to create one for you\./,
+  );
+  assert.doesNotMatch(html, /add one for you/);
+});
+
+test("the brand name uses the normal bold font on the login page and in the sidebar", () => {
+  for (const file of [
+    "features/auth/components/AuthLayout.module.css",
+    "components/layout/Sidebar/Sidebar.module.css",
+  ])
+    assert.doesNotMatch(
+      fs.readFileSync(path.resolve(root, file), "utf8"),
+      /IBM Plex Mono/,
+      file,
+    );
+  assert.doesNotMatch(
+    fs.readFileSync(path.resolve(root, "../index.html"), "utf8"),
+    /IBM\+Plex\+Mono/,
+    "the typewriter font is no longer downloaded",
+  );
 });

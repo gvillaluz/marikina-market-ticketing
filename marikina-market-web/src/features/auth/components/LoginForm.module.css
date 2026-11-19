@@ -23,22 +23,14 @@
   margin-bottom: var(--space-sm);
   font-size: var(--form-font-body);
 }
-.labelRow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-md);
-  margin-bottom: var(--space-sm);
-}
-.labelRow .label {
-  margin-bottom: 0;
-}
 .input {
   composes: input from "../../../styles/FormControls.module.css";
-  border-color: var(--auth-input-border);
   border-radius: var(--radius-md);
 }
+/* Two-part rule: the shared box style loads later and would otherwise
+   replace the darker outline. */
 .inputWrapper .input {
+  border-color: var(--auth-input-border);
   padding-left: var(--form-control-height);
   padding-right: var(--space-lg);
 }
@@ -100,7 +92,10 @@
   color: var(--danger);
 }
 .forgot {
-  margin: calc(var(--space-md) * -1) calc(var(--space-xs) * -1);
+  /* Under the password box, on the right; the padding keeps a full tap
+     area without adding visible space. */
+  align-self: flex-end;
+  margin: 0 calc(var(--space-xs) * -1) calc(var(--space-md) * -1);
   padding: var(--space-md) var(--space-xs);
   border: 0;
   border-radius: var(--radius-sm);
@@ -121,23 +116,6 @@
 .forgot:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
-}
-.codeHint {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  margin: var(--space-xl) 0 0;
-  padding: var(--space-md) 0.875rem;
-  border-radius: var(--radius-md);
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  text-wrap: pretty;
-  color: var(--auth-hint-text);
-  background: var(--auth-hint-surface);
-}
-.codeHintIcon {
-  flex-shrink: 0;
-  color: var(--button-primary);
 }
 @media (min-width: 1024px) {
   .heading {

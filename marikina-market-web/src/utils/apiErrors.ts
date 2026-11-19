@@ -58,6 +58,13 @@ export function getApiResponseMessage(response: unknown): string | undefined {
   return firstMessage(response);
 }
 
+/** True when the request got no answer at all from the server. */
+export function isConnectionError(error: unknown): boolean {
+  return error instanceof ApiRequestError
+    ? error.status === undefined && !error.serverMessage
+    : axios.isAxiosError(error) && !error.response;
+}
+
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   const status =
     error instanceof ApiRequestError
