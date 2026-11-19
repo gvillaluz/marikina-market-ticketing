@@ -1,0 +1,8 @@
+# Never send these into the server package: secrets, build output, tests and local evidence.
+**/Keys/
+**/bin/
+**/obj/
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+MarikinaMarket.Tests/
+evidence/
