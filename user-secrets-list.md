@@ -2,7 +2,7 @@
 
 The names of the secret settings the server needs, what each one is, and where to set it. **Names only. Never write a value into this file or anywhere in the project.** Keep the values in a password manager.
 
-Checked 2026-11-18 against the code, `marikina-market-api/MarikinaMarket.API/user-secrets.example.json`, and the names (not the values) in the project owner's own User Secrets.
+Checked 2026-11-18 against the code, `marikina-market-api/MarikinaMarket.API/user-secrets.example.json`, and the names (not the values) in the project owner's own User Secrets. Updated 2026-11-19: the Firebase Admin key moved from a file into the setting `Firebase:ServiceAccountJson` (Docker slice D1).
 
 ## Where they go
 
@@ -28,12 +28,9 @@ Checked 2026-11-18 against the code, `marikina-market-api/MarikinaMarket.API/use
 | `BackBlazeB2:Backups:KeyId` | `BackBlazeB2__Backups__KeyId` | Storage key ID, Backups bucket | Backblaze → Application Keys |
 | `BackBlazeB2:Backups:ApplicationKey` | `BackBlazeB2__Backups__ApplicationKey` | Storage key, Backups bucket | Shown once when the key is created |
 | `Backups:EncryptionKey` | `Backups__EncryptionKey` | Key that locks every backup. **Without it no backup can be opened** | Keep the existing one safe (recovery guide, section 1). Only generate a new one for a brand-new system |
-| `Backups:PgDumpPath` | `Backups__PgDumpPath` | Where `pg_dump.exe` is (not secret, but differs per computer) | Your PostgreSQL install folder, for example `C:\Program Files\PostgreSQL\18\bin\pg_dump.exe` |
+| `Firebase:ServiceAccountJson` | `Firebase__ServiceAccountJson` | The Firebase Admin key: the whole service-account JSON file's content, as one value. It holds a private key. The server does not start without it | Firebase → Project settings → Service accounts. On your computer, set it with the command in setup guide section 5; on Azure, paste the file's content as the value |
+| `Backups:PgDumpPath` | `Backups__PgDumpPath` | Where `pg_dump.exe` is (not secret, but differs per computer). Not set for the server package (Docker): it has its own `pg_dump` | Your PostgreSQL install folder, for example `C:\Program Files\PostgreSQL\18\bin\pg_dump.exe` |
 | `Cors:AllowedOrigins:0` | `Cors__AllowedOrigins__0` | Website address allowed to call the server (not secret) | On Azure: the Static Web Apps address. Not in your computer's User Secrets today (local development goes through the website's `/api` forwarding) |
-
-## Not a setting: the Firebase Admin key file
-
-The server also needs the file `Keys/marikina-market-firebase-adminsdk-fbsvc-d28eb0ee73.json` beside it (in `marikina-market-api/MarikinaMarket.API/Keys/` on your computer, in `publish-api/Keys/` for Azure). It holds a private key: copy it by hand, never commit it. Git already leaves it out.
 
 ## Test-only settings (your computer only, never Azure)
 
@@ -50,5 +47,5 @@ Your computer's User Secrets also hold settings used only by the automated live 
 
 1. Clone the project from GitHub.
 2. Bring the values over from your password manager (not by copying files through chat or email), fill `user-secrets.local.json`, import it (setup guide, section 3), then delete `user-secrets.local.json`.
-3. Copy the Firebase Admin key file into `Keys/`.
+3. Set `Firebase:ServiceAccountJson` from the Firebase Admin key file (setup guide, section 5). The server no longer reads a key file from `Keys/`.
 4. Nothing changes on Azure: its settings stay where they are.

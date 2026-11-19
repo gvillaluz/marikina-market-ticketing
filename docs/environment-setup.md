@@ -100,7 +100,7 @@ These runtime keys are read by the current code. SMTP, B2 application credential
 | API | `BackBlazeB2:Backups:ApplicationKey` | `BackBlazeB2__Backups__ApplicationKey` or User Secrets | Corresponding secret application key. |
 | API | `Backups:EncryptionKey` | `Backups__EncryptionKey` or User Secrets | New 32-byte Base64-encoded key for a new development environment. Securely retain an authorized existing key to decrypt its existing backups; section 6. |
 | API | `Backups:PgDumpPath` | `Backups__PgDumpPath` or User Secrets | Non-secret machine-specific executable path, or `pg_dump` available on PATH. |
-| API | Firebase Admin service account JSON → `private_key`, `private_key_id`, `client_email`, project fields | Ignored file at `MarikinaMarket.API/Keys/marikina-market-firebase-adminsdk-fbsvc-d28eb0ee73.json` | Obtain an authorized development service account or generate one through Firebase IAM; section 5. The file was already ignored, not removed from tracked history. |
+| API | `Firebase:ServiceAccountJson` (the whole Firebase Admin service-account JSON, including `private_key`) | `Firebase__ServiceAccountJson` or User Secrets | Obtain an authorized development service account or generate one through Firebase IAM; section 5. Until 2026-11-19 the server read it from the ignored file `Keys/marikina-market-firebase-adminsdk-fbsvc-d28eb0ee73.json`; that file is no longer read. |
 
 Non-sensitive configuration remains tracked: logging levels, allowed hosts, JWT issuer/audience, SMTP host/port, B2 endpoint/bucket mappings, application identifiers and launch URLs. Override environment-specific values using the same User Secrets JSON or environment variables; do not blindly ignore appsettings. For example, `Cors:AllowedOrigins:0` maps to `Cors__AllowedOrigins__0`. Add actual development browser origins such as `http://localhost:5173` and, if used, `http://127.0.0.1:5173` as separate entries.
 
@@ -137,11 +137,17 @@ Background services include backup scheduling/cleanup, overdue-ticket processing
 
 1. Ask the project owner for access to the intended development Firebase project; use a separate development project where possible.
 2. In Firebase Project settings → Service accounts, obtain/generate an authorized service-account JSON with the permissions needed for Firebase Cloud Messaging. Transfer it through a secure channel.
-3. Create `marikina-market-api/MarikinaMarket.API/Keys/` locally and save that JSON using the **exact filename** `marikina-market-firebase-adminsdk-fbsvc-d28eb0ee73.json`. The basename is hardcoded in `Program.cs`; the file's own contents must belong to your actual project. Run the API with its application directory as the content/working directory, as `dotnet run --project ...` normally does.
-4. Restrict local file permissions and confirm it is ignored by Git. Never put it in web/mobile bundles. `GOOGLE_APPLICATION_CREDENTIALS` alone does not replace this explicit `FromFile` call; this code currently requires the file at that path.
+3. Put the JSON's content into the setting `Firebase:ServiceAccountJson` (read by `Presentation/FirebaseKey.cs`). On your computer, from the repository root, replace `<path to the key file>` and run (nothing is printed; the Node wrapper keeps the JSON's quotes intact, which a PowerShell command line does not):
+
+```powershell
+node -e "const fs=require('fs'),{spawnSync}=require('child_process');const key=JSON.parse(fs.readFileSync(process.argv[1],'utf8').replace(/^﻿/,''));const r=spawnSync('dotnet',['user-secrets','set','Firebase:ServiceAccountJson',JSON.stringify(key),'--project','marikina-market-api/MarikinaMarket.API/MarikinaMarket.API.csproj'],{stdio:'ignore'});console.log(r.status===0?'Firebase:ServiceAccountJson set.':'Failed, exit code '+r.status);process.exit(r.status ?? 1);" "<path to the key file>"
+```
+
+   On Azure it is the App Service setting `Firebase__ServiceAccountJson` (section 11.2).
+4. Keep the downloaded key file outside the repository or in the ignored `marikina-market-api/MarikinaMarket.API/Keys/` folder, restrict its permissions, and never put it in web/mobile bundles or the server package. `GOOGLE_APPLICATION_CREDENTIALS` is not read.
 5. The private key is a server credential, unlike Firebase client API keys. Existing authorized service-account credentials can be configured securely; create a development credential if none is available. Rotate any service-account private key that has actually been exposed. No tracked service-account private key was found by this migration scan.
 
-API startup currently initializes Firebase unconditionally, so the Admin JSON is required even for local API sessions where push is not being exercised. Firebase project permissions and live delivery cannot be established by mocked tests.
+API startup initializes Firebase unconditionally, so the setting is required even for local API sessions where push is not being exercised; without it the server stops at start-up with "The setting Firebase:ServiceAccountJson is missing." Firebase project permissions and live delivery cannot be established by mocked tests.
 
 ## 6. Storage and encrypted backups
 
@@ -158,7 +164,7 @@ The API uses `AWSSDK.S3` with **explicit Backblaze B2 credentials and endpoint**
 ### Database dump and encryption
 
 1. Install PostgreSQL client tools; use `pg_dump` compatible with your server major version. Test the executable with `pg_dump --version` (this prints version only).
-2. Set `Backups:PgDumpPath` to its absolute path on this computer, such as `<YOUR_ABSOLUTE_PG_DUMP_PATH>`, or ensure `pg_dump` is on the API process PATH. Another developer's Windows installation path is not portable.
+2. Set `Backups:PgDumpPath` to its absolute path on this computer, such as `<YOUR_ABSOLUTE_PG_DUMP_PATH>`, or ensure `pg_dump` is on the API process PATH. Another developer's Windows installation path is not portable. The server package (section 12) has PostgreSQL 18's `pg_dump` on its PATH; do not set `Backups:PgDumpPath` there.
 3. Set `Backups:EncryptionKey` to Base64 encoding of **exactly 32 random bytes**, as generated in section 3. Store it securely and independently of backups.
 4. Configure the Backups bucket credential pair. Manual and automatic backups use the same database connection, dump executable, encryption key and B2 storage configuration.
 5. Retain the authorized existing encryption key if existing encrypted archives need to remain decryptable. Do not regenerate it casually: replacing it without a recovery plan can make retained backups unusable. No key-rotation/multiple-key feature was added by this migration.
@@ -268,7 +274,7 @@ Never run `dotnet ef database update` against the demo database.
    dotnet publish marikina-market-api/MarikinaMarket.API -c Release -o publish-api
    ```
 
-   Keep `publish-api/wwwroot/evidences/` and the Firebase Admin key file in `publish-api/Keys/` (the server loads `Keys/marikina-market-firebase-adminsdk-fbsvc-d28eb0ee73.json` at start and will not start without it). The key file is excluded from Git. **Do not commit `publish-api`**: it is build output.
+   Keep `publish-api/wwwroot/evidences/`. Since 2026-11-19 the server reads the Firebase Admin key from the setting `Firebase__ServiceAccountJson` (step 3), not from a file in `publish-api/Keys/`: **add that setting before deploying code from 2026-11-19 or later**, or the server stops at start. **Do not commit `publish-api`**: it is build output.
 2. In VS Code, right-click `publish-api` → **Deploy to Web App...** (Azure App Service extension), pick the demo's App Service, and confirm the overwrite.
 3. The secrets are **settings on the App Service**, never files in the repository: Azure portal → the App Service → **Settings → Environment variables**. Names use `__` instead of `:`. **Your computer's User Secrets (section 3) are not sent to Azure**: they are stored in your Windows profile, not in the project, so publishing never copies them, and the server on Azure does not read User Secrets. Enter each value by hand once; it stays on the App Service across deploys, so you only change it when the value itself changes. Names only here; the values come from the project owner:
 
@@ -279,6 +285,7 @@ Never run `dotnet ef database update` against the demo database.
    | `Email__FromAddress`, `Email__AppPassword` | The email account that sends sign-in codes and reset emails |
    | `BackBlazeB2__General__KeyId`, `BackBlazeB2__General__ApplicationKey` (and the same for `Documents`, `Evidence`, `Backups`) | Storage keys |
    | `Backups__EncryptionKey` | The backup key. Keep a copy outside Azure (see the recovery guide) |
+   | `Firebase__ServiceAccountJson` | The Firebase Admin key: paste the whole service-account JSON file's content as the value (section 5) |
    | `Backups__PgDumpPath` | Where `pg_dump` is on the server *(confirm whether the demo sets it)* |
    | `Cors__AllowedOrigins__0` | The website's address on Static Web Apps, exactly as the browser shows it, without a slash at the end (for example `https://<name>.azurestaticapps.net`). Only this address may read the server's answers and send the sign-in cookie. If it is missing or different, the website cannot sign in. |
 
@@ -321,3 +328,45 @@ Known limit: the two addresses count as different sites to browsers, so the sign
 ### 11.4 Phone app
 
 Build the phone app with the server's address in `firebase.local.json` (section 8): `API_BASE_URL` = `https://<app service address>/api`. Without it, the app falls back to an old development tunnel address.
+
+## 12. Docker: the server package
+
+**Status: written 2026-11-19 (Docker slice D1); checked on the developer computer only.** The recipe `marikina-market-api/Dockerfile` turns the server into a **package** (a Docker image): the .NET 10 server plus PostgreSQL 18's `pg_dump`, which the Backups page runs. The same package is meant to run on Azure (slice D2 of `spec-docker-hosting.md`, not done yet). `marikina-market-api/.dockerignore` keeps the `Keys` folder, build output and tests out of it. No secret is inside the package: every setting in section 3 is given when it runs.
+
+### 12.1 Install Docker Desktop (once per computer)
+
+1. Download Docker Desktop for Windows from docker.com (free for personal use, education and small businesses).
+2. Choose **All-users installation** and keep **WSL 2** ticked. It needs administrator rights, turns on the Windows feature "Virtual Machine Platform", and asks for a restart. (The per-user installation stops with "Docker Desktop requires the Virtual Machine Platform Windows feature" when that feature is off.)
+3. Open Docker Desktop once and accept its terms. Check with `docker info` (prints the engine version).
+
+### 12.2 Build
+
+From `marikina-market-api`:
+
+```powershell
+docker build -t marikina-market-api .
+```
+
+The first build downloads Microsoft's .NET 10 images and PostgreSQL 18's client from PostgreSQL's package site (about 2 minutes); later builds reuse them. The package is about 560 MB.
+
+### 12.3 Run on this computer
+
+The package listens on port 8080 and starts in Production mode (no development certificate, no User Secrets, no Swagger). Give it its settings as environment variables with the Azure names (`__` instead of `:`, section 11.2), without `Backups__PgDumpPath`. Pass them by name only (`--env NAME`) after setting them in the current PowerShell window, so values never appear on a command line:
+
+```powershell
+docker run --detach --name mmt-server --publish 127.0.0.1:8090:8080 `
+  --env ConnectionStrings__DefaultConnection --env Jwt__Secret --env Email__FromAddress --env Email__AppPassword `
+  --env Backups__EncryptionKey --env Firebase__ServiceAccountJson --env Cors__AllowedOrigins__0 `
+  --env BackBlazeB2__General__KeyId --env BackBlazeB2__General__ApplicationKey `
+  --env BackBlazeB2__Documents__KeyId --env BackBlazeB2__Documents__ApplicationKey `
+  --env BackBlazeB2__Evidence__KeyId --env BackBlazeB2__Evidence__ApplicationKey `
+  --env BackBlazeB2__Backups__KeyId --env BackBlazeB2__Backups__ApplicationKey `
+  marikina-market-api
+```
+
+- Port: `8090` on this computer because 8080 may be taken by another program; inside the package it is always 8080, as on Azure.
+- Database on this computer: in the connection string use `Host=host.docker.internal` instead of `localhost`. Use only the disposable `marikina_market_e2e` database.
+- Stop and remove it with `docker rm --force mmt-server`; read its log first with `docker logs mmt-server`.
+- `docker inspect` shows the values given to a running package; remove it when done.
+
+Running the server the usual way (`dotnet run`, section 4) is unchanged and does not need Docker.

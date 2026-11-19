@@ -1,7 +1,9 @@
 # Plan: Docker hosting — server with `pg_dump`, daily recommended-actions job
 
-Written 2026-11-19. **Status: planned, not approved.** Nothing is built. Each slice below needs your approval before it
-starts, and every install, purchase or Azure change is asked for first.
+Written 2026-11-19. **Status (2026-11-19): decisions D1–D4 answered (below); slice D1 built, automatically checked and
+live-checked on the developer computer (`evidence/docker-server-package-live/results.md`); D0 facts awaited; D2–D4 not
+started.** Each slice below needs your approval before it starts, and every install, purchase or Azure change is asked
+for first.
 
 ## Why
 
@@ -66,6 +68,11 @@ vCPU-seconds and 10,800 GiB-seconds a month, inside the free grant.
 | D6 | `pg_dump` version in the server package | Must be the database's major version or newer | Set from D0's answer |
 | D7 | Roadmap | (a) a Phase 4 line (added now as ⏸, waiting); (b) outside Phase 4, after it closes | **(a)**, as ⏸ until you approve; you decide whether it must pass before Phase 4 closes |
 
+**Answers (2026-11-19):** the recommendations for D1–D4. The demo check list then passed (W1–W8, private window, phone),
+and you chose to start Docker now: D1 is built on this computer only; when D2 (switching the demo) happens, compared with
+the evaluation, is decided at D2's gate. D5: Docker Desktop installed (All-users installation, WSL 2). D6: PostgreSQL 18's
+`pg_dump` (newest; works for any database version up to 18), to be confirmed against D0's database version. D7: (a).
+
 ## Slices
 
 ### D0 — Facts from Azure (you, read-only, about 15 minutes)
@@ -102,6 +109,12 @@ Installs (each asked first): Docker Desktop; the base packages Docker downloads 
 **Checks:** full server tests; new tests fail first; the package built and run locally against `marikina_market_e2e`
 (start, `/api/does-not-exist`, CORS preflight, sign-in, backup and restore listing). The backup is uploaded to the test
 system's Backups storage (asked first; check whether that storage locks files).
+
+**Result (2026-11-19):** criteria 1–5 met. Package built in about 2 minutes, 560 MB, `pg_dump` 18.7. Live check
+P0–P11, S1, B1, Z all pass (run 2; run 1 had a check-script fault), backup id 10 opened and listed all 30 tables. Server
+tests 1,004 passed, 2 skipped, 0 failed (4 new); same 8 old build warnings. Setting name: `Firebase:ServiceAccountJson`
+(`Presentation/FirebaseKey.cs`). The package reaches the computer's PostgreSQL at `host.docker.internal` with no access
+rule change; port 8090 on the computer because 8080 is taken.
 
 ### D2 — Demo server runs the package (you on Azure, me writing the steps)
 
