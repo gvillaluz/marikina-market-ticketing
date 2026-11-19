@@ -37,6 +37,12 @@ def load_model(model_dir):
 
     sys.path.insert(0, str(evaluate.SCRIPTS))
     from evaluate_targeted_v4 import CHECKS, PilotReplay, normalize, with_targeted_v4
+    import evaluate_pilot_consumption
+
+    # The frozen baseline's fingerprint list names its files with Windows "\" separators. Read them as "/"
+    # so the same check also runs on Linux (the daily Azure job). Every fingerprint is still checked.
+    digest = evaluate_pilot_consumption.digest
+    evaluate_pilot_consumption.digest = lambda path: digest(Path(str(path).replace("\\", "/")))
 
     if list(CHECKS) != [addon["id"] for addon in manifest["enabled_add_ons"]]:
         raise ValueError("Frozen add-on order differs from the manifest")
