@@ -494,6 +494,7 @@ class _CommunityServiceLogSectionState
               ),
               const SizedBox(height: 5),
               TextFormField(
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 controller: _hoursController,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,

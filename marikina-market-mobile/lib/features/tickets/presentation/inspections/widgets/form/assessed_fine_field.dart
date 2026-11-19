@@ -58,6 +58,7 @@ class _AssessedFineFieldState extends State<AssessedFineField> {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: AppTheme.inspectionSmallGap),
     child: TextFormField(
+      onTapOutside: (_) => FocusScope.of(context).unfocus(),
       key: ValueKey('assessed-fine-${widget.item.ordinanceId}'),
       controller: _controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),

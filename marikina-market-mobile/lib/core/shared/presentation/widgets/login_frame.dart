@@ -55,6 +55,7 @@ class _LoginFrameState extends State<LoginFrame>
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppTheme.authPageColor,
     body: AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppTheme.authPageSystemBarStyle,
       child: LayoutBuilder(

@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/password_rule_checklist.dart';
 
@@ -26,9 +27,10 @@ class _ResetPasswordFieldsState extends State<ResetPasswordFields> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('NEW PASSWORD'),
+        const Text('New password', style: AppTheme.authFieldLabelStyle),
         const SizedBox(height: 7),
         TextField(
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
           enabled: widget.enabled,
           autocorrect: false,
           enableSuggestions: false,
@@ -37,7 +39,7 @@ class _ResetPasswordFieldsState extends State<ResetPasswordFields> {
           controller: widget.newPasswordController,
           obscureText: !isNewPasswordVisible,
           decoration: InputDecoration(
-            prefixIcon: Icon(Icons.lock_rounded),
+            prefixIcon: Icon(Icons.lock_outline_rounded),
             suffixIcon: IconButton(
               tooltip: isNewPasswordVisible ? 'Hide password' : 'Show password',
               onPressed: !widget.enabled
@@ -48,7 +50,7 @@ class _ResetPasswordFieldsState extends State<ResetPasswordFields> {
               icon: Icon(
                 isNewPasswordVisible
                     ? Icons.visibility_off_outlined
-                    : Icons.visibility,
+                    : Icons.visibility_outlined,
               ),
             ),
             hintText: 'Enter your new password',
@@ -60,9 +62,10 @@ class _ResetPasswordFieldsState extends State<ResetPasswordFields> {
 
         const SizedBox(height: 20),
 
-        const Text('CONFIRM NEW PASSWORD'),
+        const Text('Confirm new password', style: AppTheme.authFieldLabelStyle),
         const SizedBox(height: 7),
         TextField(
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
           enabled: widget.enabled,
           autocorrect: false,
           enableSuggestions: false,
@@ -71,7 +74,7 @@ class _ResetPasswordFieldsState extends State<ResetPasswordFields> {
           controller: widget.confirmNewPasswordController,
           obscureText: !isConfirmNewPasswordVisible,
           decoration: InputDecoration(
-            prefixIcon: Icon(Icons.lock_rounded),
+            prefixIcon: Icon(Icons.lock_outline_rounded),
             suffixIcon: IconButton(
               tooltip: isConfirmNewPasswordVisible
                   ? 'Hide password'
@@ -85,7 +88,7 @@ class _ResetPasswordFieldsState extends State<ResetPasswordFields> {
               icon: Icon(
                 isConfirmNewPasswordVisible
                     ? Icons.visibility_off_outlined
-                    : Icons.visibility,
+                    : Icons.visibility_outlined,
               ),
             ),
             hintText: 'Confirm your new password',

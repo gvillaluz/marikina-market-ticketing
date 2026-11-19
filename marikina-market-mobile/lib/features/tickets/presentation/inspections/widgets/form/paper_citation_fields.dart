@@ -36,6 +36,7 @@ class PaperCitationFields extends StatelessWidget {
         Semantics(
           label: 'Control number',
           child: TextFormField(
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
             key: const ValueKey('paper-reference'),
             controller: referenceController,
             maxLength: 200,
@@ -61,6 +62,7 @@ class PaperCitationFields extends StatelessWidget {
       Semantics(
         label: 'Place of Apprehension',
         child: TextFormField(
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
           key: ValueKey(isTicket ? 'issue-place' : 'warning-issue-place'),
           controller: placeController,
           maxLength: 500,

@@ -65,6 +65,7 @@ class _CreatePersonSheetState extends State<CreatePersonSheet> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 TextFormField(
+                  onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   controller: _name,
                   enabled: !_busy,
                   maxLength: 200,
@@ -74,6 +75,7 @@ class _CreatePersonSheetState extends State<CreatePersonSheet> {
                       : null,
                 ),
                 TextFormField(
+                  onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   controller: _address,
                   enabled: !_busy,
                   maxLength: 500,
@@ -83,6 +85,7 @@ class _CreatePersonSheetState extends State<CreatePersonSheet> {
                       : null,
                 ),
                 TextFormField(
+                  onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   controller: _phone,
                   enabled: !_busy,
                   maxLength: 11,

@@ -114,7 +114,7 @@ class _ForgotPasswordOptionPageState extends State<ForgotPasswordOptionPage> {
       children: [
         if (account.maskedEmail.trim().isNotEmpty) ...[
           FactorOptionBtn(
-            icon: Icons.email,
+            icon: Icons.email_outlined,
             title: 'Reset via Email',
             subtitle:
                 'To reset your password, a code will be sent to your email.',
@@ -123,7 +123,7 @@ class _ForgotPasswordOptionPageState extends State<ForgotPasswordOptionPage> {
           const SizedBox(height: 10),
         ],
         FactorOptionBtn(
-          icon: Icons.lock,
+          icon: Icons.lock_outline_rounded,
           title: 'Continue with password',
           subtitle: 'Use your password instead.',
           onTap: () => Navigator.popUntil(context, (route) => route.isFirst),

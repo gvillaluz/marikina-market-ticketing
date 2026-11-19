@@ -98,4 +98,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Code by email'), findsOneWidget);
   });
+
+  testWidgets('option icons are outline icons, like the other login screens', (
+    tester,
+  ) async {
+    await pumpOptions(tester);
+    expect(find.byIcon(Icons.email), findsNothing);
+    expect(find.byIcon(Icons.lock), findsNothing);
+    expect(find.byIcon(Icons.email_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
+  });
 }
