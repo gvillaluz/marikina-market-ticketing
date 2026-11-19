@@ -64,7 +64,7 @@ export const BUSINESS_HISTORY_COLUMNS: ExportColumn<AdminVendorInspection>[] = [
   {
     key: "ordinances",
     header: "Ordinance(s)",
-    value: (row) => row.ordinanceNumbers.join(", ") || "—",
+    value: (row) => row.ordinanceTitles.join(", ") || "—",
   },
   { key: "enforcer", header: "Enforcer", value: (row) => row.enforcerName || "—" },
 ];

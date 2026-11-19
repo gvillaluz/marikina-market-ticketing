@@ -1109,6 +1109,9 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     OrdinanceNumbers = t.TicketViolations
                         .Select(tv => tv.Ordinance!.OrdinanceNo)
                         .ToList(),
+                    OrdinanceTitles = t.TicketViolations
+                        .Select(tv => tv.Ordinance!.Title)
+                        .ToList(),
                     EnforcerFirstName = t.Enforcer!.FirstName,
                     EnforcerLastName = t.Enforcer.LastName,
                     PaperViolatorName = t.PaperViolatorName,

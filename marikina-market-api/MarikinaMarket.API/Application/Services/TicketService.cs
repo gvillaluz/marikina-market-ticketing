@@ -1040,6 +1040,7 @@ namespace MarikinaMarket.API.Application.Services
                     Type = inspection.Type,
                     IssuedAt = inspection.IssuedAt,
                     OrdinanceNumbers = inspection.OrdinanceNumbers,
+                    OrdinanceTitles = inspection.OrdinanceTitles,
                     EnforcerName = FormatEnforcerName(
                         inspection.EnforcerFirstName,
                         inspection.EnforcerLastName),

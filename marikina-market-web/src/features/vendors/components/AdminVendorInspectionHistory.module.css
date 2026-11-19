@@ -132,6 +132,10 @@
   white-space: nowrap;
 }
 
+.ordinanceTitle {
+  display: block;
+}
+
 .typeBadge {
   display: inline-flex;
   min-width: 64px;
