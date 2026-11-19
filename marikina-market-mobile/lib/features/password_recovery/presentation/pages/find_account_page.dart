@@ -4,7 +4,6 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_err
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/reveal_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/router/route_args.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/auth_btn.dart';
@@ -82,10 +81,6 @@ class _FindAccountPageState extends State<FindAccountPage> {
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.person_rounded),
                 hintText: 'Enter your username',
-                hintStyle: const TextStyle(
-                  color: AppColors.lightGrey,
-                  fontSize: AppTheme.bodyFontSize,
-                ),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(

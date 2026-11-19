@@ -87,14 +87,11 @@ void main() {
       });
     });
 
-    testWidgets('the code note sits under the Log in button', (tester) async {
+    testWidgets('there is no code note under the Log in button', (
+      tester,
+    ) async {
       await withLogin(tester, (router, bloc) async {
-        final button = tester.getRect(find.text('Log in').last);
-        expect(find.text(codeNote), findsOneWidget);
-        expect(
-          tester.getRect(find.text(codeNote)).top,
-          greaterThan(button.bottom),
-        );
+        expect(find.text(codeNote), findsNothing);
       });
     });
 
@@ -139,7 +136,7 @@ void main() {
           .ancestor(of: screen, matching: find.byType(ClipRect))
           .first;
       expect(
-        tester.getRect(find.text(codeNote)).bottom,
+        tester.getRect(find.text('Log in').last).bottom,
         lessThanOrEqualTo(tester.getRect(area).bottom),
       );
       expect(tester.getRect(screen).height, tester.getRect(area).height);
@@ -216,7 +213,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await withLogin(tester, (router, bloc) async {
       expect(find.text(subtitle), findsOneWidget);
-      expect(find.text(codeNote), findsOneWidget);
+      expect(find.text('Log in'), findsNWidgets(2));
       expect(tester.takeException(), isNull);
     });
   });

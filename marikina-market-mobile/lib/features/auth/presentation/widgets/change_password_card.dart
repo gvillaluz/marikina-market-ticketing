@@ -79,6 +79,19 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
             'given before you continue.',
             style: AppTheme.authBodyStyle,
           ),
+          // The message sits under the heading, where it is seen first.
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) => RevealMessage(
+              child: switch (state) {
+                AuthChangePasswordError(:final message) ||
+                AuthChangePasswordNetworkError(:final message) => Padding(
+                  padding: const EdgeInsets.only(top: AppTheme.authGap),
+                  child: AuthErrorNotice(message: message),
+                ),
+                _ => null,
+              },
+            ),
+          ),
           ChangePasswordFields(
             enabled: context.select<AuthBloc, bool>(
               (bloc) => bloc.state is! AuthChangePasswordLoading,
@@ -90,33 +103,12 @@ class _ChangePasswordCardState extends State<ChangePasswordCard> {
             onSubmitted: _submit,
           ),
           BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AuthBtn(
-                    isLoading:
-                        state is AuthChangePasswordLoading && !state.succeeded,
-                    isSuccess:
-                        state is AuthChangePasswordLoading && state.succeeded,
-                    onPressed: _submit,
-                    label: 'Save password',
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  RevealMessage(
-                    child: switch (state) {
-                      AuthChangePasswordError(:final message) ||
-                      AuthChangePasswordNetworkError(
-                        :final message,
-                      ) => AuthErrorNotice(message: message),
-                      _ => null,
-                    },
-                  ),
-                ],
-              );
-            },
+            builder: (context, state) => AuthBtn(
+              isLoading: state is AuthChangePasswordLoading && !state.succeeded,
+              isSuccess: state is AuthChangePasswordLoading && state.succeeded,
+              onPressed: _submit,
+              label: 'Save password',
+            ),
           ),
         ],
       ),
