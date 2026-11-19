@@ -11,10 +11,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/di/dependency_injection.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
+
 import '../../../domain/entities/fine_assessment.dart';
 import '../../../domain/enums/fine_kind.dart';
 import '../widgets/form/assessed_fine_field.dart';
 import '../widgets/form/copy_to_paper_card.dart';
+
 import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_primary_btn.dart';
 import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/duplicate_ordinance.dart';
@@ -52,6 +54,13 @@ class AddNewInspectionPage extends StatefulWidget {
 
 class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
   final _formKey = GlobalKey<FormState>();
+  // Sections that can show an error, in top-to-bottom order on the form.
+  final _vendorKey = GlobalKey();
+  final _paperKey = GlobalKey();
+  final _ordinanceKey = GlobalKey();
+  final _communityHrsKey = GlobalKey();
+  final _descriptionKey = GlobalKey();
+  final _photoErrorKey = GlobalKey();
 
   final TextEditingController _ticketDescriptionController =
       TextEditingController();
@@ -494,8 +503,59 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
         _communityHrsError == null;
   }
 
+  // True when a text field inside this section shows an error after validation.
+  bool _hasFieldError(GlobalKey key) {
+    final element = key.currentContext as Element?;
+    if (element == null) return false;
+    var found = false;
+    void visit(Element child) {
+      if (found) return;
+      final state = child is StatefulElement ? child.state : null;
+      if (state is FormFieldState && state.hasError) {
+        found = true;
+        return;
+      }
+      child.visitChildren(visit);
+    }
+
+    visit(element);
+    return found;
+  }
+
+  // Scrolls to the first section, from the top, that has a problem.
+  void _scrollToFirstError() {
+    final problems = <(GlobalKey, bool)>[
+      (_vendorKey, _vendorError != null),
+      (_paperKey, _hasFieldError(_paperKey)),
+      (_ordinanceKey, _ordinanceError != null),
+      (_communityHrsKey, _communityHrsError != null),
+      (_descriptionKey, _descriptionError != null),
+      (_photoErrorKey, _photoError != null),
+    ];
+    for (final (key, hasProblem) in problems) {
+      final target = key.currentContext;
+      if (hasProblem && target != null) {
+        Scrollable.ensureVisible(
+          target,
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+        return;
+      }
+    }
+  }
+
   Future<void> _submit() async {
-    if (_isOpeningPreview || !_validateForm()) return;
+    if (_isOpeningPreview) return;
+    if (!_validateForm()) {
+      // Wait for the rebuild that shows the error messages before scrolling.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToFirstError();
+      });
+      return;
+    }
     final isTicket = _selectedType == ViolationType.ticket;
     int? communityHrs;
     if (isTicket && _selectedPenaltyType == PenaltyType.communityService) {
@@ -600,6 +660,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                         ),
                         const SizedBox(height: 20),
                         ViolatorInfoCard(
+                          key: _vendorKey,
                           isUnregistered: _isUnregistered,
                           onKindChanged: (value) =>
                               setState(() => _isUnregistered = value),
@@ -646,6 +707,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           title: 'Paper details',
                           children: [
                             PaperCitationFields(
+                              key: _paperKey,
                               isTicket: isTicket,
                               referenceController: _paperReferenceController,
                               placeController: _issuePlaceController,
@@ -668,6 +730,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                           title: 'Violation',
                           children: [
                             TicketViolationCard(
+                              key: _ordinanceKey,
                               onPressed: _handleOrdinanceSelect,
                               onDelete: _onDeleteFineSummary,
                               ordinances: _selectedOrdinances,
@@ -686,6 +749,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                                 _selectedOrdinances.isNotEmpty) ...[
                               const SizedBox(height: AppTheme.inspectionGap),
                               PaymentTypeSection(
+                                key: _communityHrsKey,
                                 selectedPenaltyType: _selectedPenaltyType,
                                 allowBloodDonation:
                                     _localFineSummary?.allowBloodDonation ??
@@ -707,25 +771,28 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                               style: AppTheme.ticketPaperLabelStyle,
                             ),
                             const SizedBox(height: AppTheme.inspectionTinyGap),
-                            TextFormField(
-                              key: const ValueKey('inspection-description'),
-                              controller: _ticketDescriptionController,
-                              maxLines: 5,
-                              minLines: 3,
-                              keyboardType: TextInputType.multiline,
-                              textInputAction: TextInputAction.newline,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              onTapOutside: (event) =>
-                                  FocusScope.of(context).unfocus(),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Description is required.';
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                errorText: _descriptionError,
+                            KeyedSubtree(
+                              key: _descriptionKey,
+                              child: TextFormField(
+                                key: const ValueKey('inspection-description'),
+                                controller: _ticketDescriptionController,
+                                maxLines: 5,
+                                minLines: 3,
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
+                                onTapOutside: (event) =>
+                                    FocusScope.of(context).unfocus(),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Description is required.';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  errorText: _descriptionError,
+                                ),
                               ),
                             ),
                           ],
@@ -808,6 +875,7 @@ class _AddNewInspectionPageState extends State<AddNewInspectionPage> {
                                 height: AppTheme.inspectionTinyGap,
                               ),
                               Text(
+                                key: _photoErrorKey,
                                 _photoError!,
                                 style: const TextStyle(
                                   color: AppColors.primaryRed,
