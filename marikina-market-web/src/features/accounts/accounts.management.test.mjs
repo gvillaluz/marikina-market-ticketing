@@ -95,18 +95,48 @@ test("Total Users uses the all-user metric and the Manage button is enabled", ()
           totalStaffUsers: 12,
           totalActiveAccounts: 12,
           totalAdministrators: 12,
-          totalMarketVendorUsers: 1,
         },
         countsLoading: false,
       },
     }),
   );
   assert.match(html, /<dd>13<\/dd>\s*<dt>Total Users<\/dt>/);
+  assert.doesNotMatch(html, /Vendors/);
   const Row = load("features/accounts/components/AccountRow.tsx").default;
   const row = renderToStaticMarkup(
     React.createElement(Row, { account, search: "", onManage() {} }),
   );
   assert.doesNotMatch(row, /<button[^>]*disabled/);
+});
+
+test("account tabs and directory text no longer offer market vendors", () => {
+  const { ACCOUNT_TABS } = load("features/accounts/accounts.constants.ts");
+  assert.ok(!ACCOUNT_TABS.some((tab) => tab.role === "MarketVendor"));
+  const Directory = load(
+    "features/accounts/components/AccountDirectory.tsx",
+  ).default;
+  const html = renderToStaticMarkup(
+    React.createElement(Directory, {
+      model: {
+        role: "all",
+        search: "",
+        page: 1,
+        totalPages: 1,
+        items: [],
+        isLoading: false,
+        isFetching: false,
+        error: "",
+        rangeLabel: "Showing 0–0 of 0 system accounts",
+        canNext: false,
+        changeRole() {},
+        changeSearch() {},
+        changePage() {},
+        retry() {},
+      },
+      onManage() {},
+    }),
+  );
+  assert.doesNotMatch(html, /vendor/i);
 });
 
 test("signed-in account card identifies the current user without a Manage action", () => {

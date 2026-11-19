@@ -52,7 +52,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public async Task<AccountCountsResponse> GetAccountCountsAsync()
         {
-            var users = _context.Users.AsNoTracking();
+            var users = ExcludeVendorOnly(_context.Users.AsNoTracking());
             return new AccountCountsResponse
             {
                 TotalUsers = await users.CountAsync(),
@@ -60,9 +60,6 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     ur.UserId == u.Id && _context.Roles.Any(r => r.Id == ur.RoleId &&
                         (r.Name == nameof(Role.HeadAdmin) || r.Name == nameof(Role.AdminOfficer) ||
                          r.Name == nameof(Role.MarketEnforcer))))),
-                TotalMarketVendorUsers = await users.CountAsync(u => _context.UserRoles.Any(ur =>
-                    ur.UserId == u.Id && _context.Roles.Any(r => r.Id == ur.RoleId &&
-                        r.Name == nameof(Role.MarketVendor)))),
                 TotalAdministrators = await users.CountAsync(u => _context.UserRoles.Any(ur =>
                     ur.UserId == u.Id && _context.Roles.Any(r => r.Id == ur.RoleId &&
                         (r.Name == nameof(Role.HeadAdmin) || r.Name == nameof(Role.AdminOfficer))))),
@@ -72,7 +69,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
 
         public async Task<List<UserSummaryResponse>> GetUserSummariesAsync(int offset, int limit, UserSummaryFilter filters, int excludedUserId)
         {
-            var users = ApplyUserSummaryFilters(_context.Users.AsNoTracking().Where(u => u.Id != excludedUserId), filters);
+            var users = ApplyUserSummaryFilters(ExcludeVendorOnly(_context.Users.AsNoTracking()).Where(u => u.Id != excludedUserId), filters);
 
             var ordered = string.IsNullOrWhiteSpace(filters.Search)
                 ? users.OrderBy(u => u.LastName)
@@ -89,11 +86,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     Role = (from ur in _context.UserRoles
                             join r in _context.Roles on ur.RoleId equals r.Id
                             where ur.UserId == u.Id
-                            orderby r.Name == nameof(Role.HeadAdmin) ? 0 : r.Id
+                            orderby r.Name == nameof(Role.MarketVendor) ? 1 : 0, r.Name == nameof(Role.HeadAdmin) ? 0 : r.Id
                             select r.Name == nameof(Role.HeadAdmin) ? (Role?)Role.HeadAdmin :
                                    r.Name == nameof(Role.AdminOfficer) ? (Role?)Role.AdminOfficer :
-                                   r.Name == nameof(Role.MarketEnforcer) ? (Role?)Role.MarketEnforcer :
-                                   r.Name == nameof(Role.MarketVendor) ? (Role?)Role.MarketVendor : null)
+                                   r.Name == nameof(Role.MarketEnforcer) ? (Role?)Role.MarketEnforcer : null)
                            .FirstOrDefault(),
                     Username = u.UserName ?? "",
                     FirstName = u.FirstName,
@@ -118,7 +114,18 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 ? 0 : 1;
 
         public Task<int> GetUserSummariesCountAsync(UserSummaryFilter filters, int excludedUserId)
-            => ApplyUserSummaryFilters(_context.Users.AsNoTracking().Where(u => u.Id != excludedUserId), filters).CountAsync();
+            => ApplyUserSummaryFilters(ExcludeVendorOnly(_context.Users.AsNoTracking()).Where(u => u.Id != excludedUserId), filters).CountAsync();
+
+        public async Task<bool> IsHiddenFromAccountPagesAsync(int userId)
+            => !await ExcludeVendorOnly(_context.Users.AsNoTracking().Where(u => u.Id == userId)).AnyAsync();
+
+        // Vendor-only accounts (a vendor role and no staff role) are kept off the admin account pages.
+        private IQueryable<User> ExcludeVendorOnly(IQueryable<User> query) => query.Where(u =>
+            !(_context.UserRoles.Any(ur => ur.UserId == u.Id && _context.Roles.Any(r => r.Id == ur.RoleId &&
+                    r.Name == nameof(Role.MarketVendor))) &&
+              !_context.UserRoles.Any(ur => ur.UserId == u.Id && _context.Roles.Any(r => r.Id == ur.RoleId &&
+                    (r.Name == nameof(Role.HeadAdmin) || r.Name == nameof(Role.AdminOfficer) ||
+                     r.Name == nameof(Role.MarketEnforcer))))));
 
         private IQueryable<User> ApplyUserSummaryFilters(IQueryable<User> query, UserSummaryFilter filters)
         {

@@ -21,7 +21,7 @@ export default function AccountDirectory({
     >
       <header className={styles.header}>
         <h2 id="account-directory-title">Account Directory</h2>
-        <p>Staff access and vendor identities in one controlled register</p>
+        <p>Staff access in one controlled register</p>
       </header>
       <div className={styles.controls}>
         <div className={styles.tabs} role="group" aria-label="Filter by role">
