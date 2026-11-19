@@ -65,7 +65,7 @@ Raw inspectable command output, test results and machine-readable cutover checks
 ## Manual follow-up
 
 1. Reopen the original workspace in the editor and confirm it shows one root Git repository. Run `git status` from the root or any application directory.
-2. Read [environment-setup.md](environment-setup.md) before starting services. Existing local credentials are retained; rotate previously exposed database/JWT values where still applicable with the service owner. No rotation or live operation was performed here.
+2. Read [environment-setup.md](../environment-setup.md) before starting services. Existing local credentials are retained; rotate previously exposed database/JWT values where still applicable with the service owner. No rotation or live operation was performed here.
 3. Start the API and relevant client only against an explicitly approved disposable database. User-provisioned schema/accounts and external-service permissions are still needed for live E2E checks.
 4. For mobile, run `flutter run --dart-define-from-file=firebase.local.json` from `marikina-market-mobile` when a device session is authorized. Native symlink/device prerequisites and the pre-existing failures remain unresolved.
 5. Keep the local recovery backup. Publishing the monorepo requires separate approval; no commit or test result here establishes live product readiness or phase completion.

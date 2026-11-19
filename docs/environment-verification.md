@@ -26,7 +26,7 @@ Original local recovery material can contain old credentials and is outside the 
 
 The [redacted inventory](sanitization-inventory.json) identifies 10 historical file/key locations. Seven distinct non-placeholder literal values were checked in memory without printing or persisting those values. Historical and working files were checked for those removed values and common Firebase-key, private-key and GitHub-token patterns. All imported refs passed, as did six local-secret ignore checks and tracked-local-configuration checks. `git fsck --full --no-reflogs` passed.
 
-The scan is pattern-based and covers locally imported refs. It does not prove the absence of unknown credential formats, inspect provider accounts, revoke credentials, or remove old values from existing original clones/bundles. Rotate any still-valid historical database password and JWT signing default. Firebase public-client keys require owner review of restrictions and usage; they are distinct from a server service-account private key. See the [setup guide](environment-setup.md) for every replacement location and provisioning step.
+The scan is pattern-based and covers locally imported refs. It does not prove the absence of unknown credential formats, inspect provider accounts, revoke credentials, or remove old values from existing original clones/bundles. Rotate any still-valid historical database password and JWT signing default. Firebase public-client keys require owner review of restrictions and usage; they are distinct from a server service-account private key. See the [setup guide](../environment-setup.md) for every replacement location and provisioning step.
 
 Machine-readable preservation and credential-check results are in [migration-verification](migration-verification/). Raw local logs and recovery bundles remain under the original workspace's `.monorepo-migration/`; recovery bundles must stay local. Selected command output is preserved in [command-output.txt](migration-verification/command-output.txt).
 
@@ -67,7 +67,7 @@ The local migration tooling is deliberately outside the publishable candidate. F
 
 ## Manual setup and remaining verification
 
-1. Review [environment-setup.md](environment-setup.md), the safe examples, commit mappings and redacted inventory.
+1. Review [environment-setup.md](../environment-setup.md), the safe examples, commit mappings and redacted inventory.
 2. On a new machine, install the documented SDKs and enable authorized native symlink support, then restore dependencies without upgrading lockfiles. Native Android/iOS builds remain unverified.
 3. Configure your own authorized development User Secrets, Firebase Admin/native/client configuration, SMTP and B2 access. Verify effective provider permissions and any required credential rotation with the owner.
 4. Have the user provision a disposable local database and its schema, plus synthetic role accounts. No migrations or database operations were executed by this migration task.

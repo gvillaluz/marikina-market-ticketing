@@ -2,7 +2,7 @@
 //
 //   In your own terminal (not a recorded or shared one), put the Base64 backup key in MMBAK_KEY
 //   for this window only, without typing it on a command line (PowerShell keeps a history):
-//     see "Restore from a backup" in docs/recovery-guide.md
+//     see "Restore from a backup" in recovery-guide.md
 //   then:
 //     node tools/recovery/decrypt-mmbak.mjs <backup.mmbak> <output.dump>
 //   and afterwards:
