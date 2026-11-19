@@ -10,7 +10,7 @@ One product repository containing independently built applications:
 
 Read AGENTS.md, feature-workflow.md, roadmap.md and the affected application's AGENTS.md before changing code. Deferred mobile work is in deferred-enforcer-slices.md.
 
-Start with the [environment setup guide](docs/environment-setup.md) for prerequisites, PostgreSQL, ASP.NET Core User Secrets, Firebase, SMTP, B2 storage, backups, and web/mobile local configuration. The [verification report](docs/environment-verification.md) distinguishes automated checks from services that still need manual setup. The [recovery guide](docs/recovery-guide.md) covers restoring from a backup and what to do when a service is down.
+Start with the [environment setup guide](environment-setup.md) for prerequisites, PostgreSQL, ASP.NET Core User Secrets, Firebase, SMTP, B2 storage, backups, and web/mobile local configuration. The [verification report](docs/environment-verification.md) distinguishes automated checks from services that still need manual setup. The [recovery guide](recovery-guide.md) covers restoring from a backup and what to do when a service is down.
 
 ## Build and test
 

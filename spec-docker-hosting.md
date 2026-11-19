@@ -1,7 +1,8 @@
 # Plan: Docker hosting — server with `pg_dump`, daily recommended-actions job
 
 Written 2026-11-19. **Status (2026-11-19): decisions D1–D4 answered (below); slices D1 (server package, PR #95) and D2
-(the demo runs it, `evidence/docker-d2-demo/results.md`) done and checked; D3 and D4 not started.** Each slice below needs your approval before it starts, and every install, purchase or Azure change is asked
+(the demo runs it, `evidence/docker-d2-demo/results.md`) done and checked; D3 (model package, PR #98, and the daily job) built
+and checked except its first scheduled run (2026-11-20, 4:00 AM Manila); D4 not started.** Each slice below needs your approval before it starts, and every install, purchase or Azure change is asked
 for first.
 
 ## Why
@@ -92,7 +93,7 @@ Azure, and the Backups page makes a backup that restores.
 | --- | --- |
 | Recipe: build the server, then a small runtime package with the .NET server and PostgreSQL's own `pg_dump` (version from D6); listens on 8080; no secrets inside | `marikina-market-api/Dockerfile` (new), `marikina-market-api/.dockerignore` (new) |
 | Firebase key (if D3 = a): read from one setting instead of the file | `Program.cs`, one small new file in `Presentation/` if needed for a test, tests in `MarikinaMarket.Tests` |
-| Settings list and guide: new section "Docker" (build, run locally) | `docs/environment-setup.md`, `user-secrets-list.md` |
+| Settings list and guide: new section "Docker" (build, run locally) | `environment-setup.md`, `user-secrets-list.md` |
 
 Installs (each asked first): Docker Desktop; the base packages Docker downloads from Microsoft and PostgreSQL.
 
@@ -149,11 +150,36 @@ package's `pg_dump` 18.7 from the database's 18.6. Guide section 11.2 now descri
 | Part | Files |
 | --- | --- |
 | Recipe: Python 3.12, the exact package versions recorded in model plan step 1 plus the database package, the connector; the model folder (git-ignored) copied in from this computer at build time | `description-model/Dockerfile` (new), `description-model/.dockerignore` (new) |
-| Guide: build, push, create the Container Apps job (schedule `0 20 * * *`, 1 vCPU, 2 GiB, database settings as secrets) | `docs/environment-setup.md` |
+| Guide: build, push, create the Container Apps job (schedule `0 20 * * *`, 1 vCPU, 2 GiB, database settings as secrets) | `environment-setup.md` |
 
 **Acceptance:** the connector's 7 tests pass inside the package; one run against `marikina_market_e2e` gives the same
 results as a run by hand on the same data; on Azure, a manual start of the job fills the demo's Recommended Actions
 page ("Last updated" shows the run); the next scheduled run happens at 4:00 AM Manila; warnings and tickets unchanged.
+
+**Approved 2026-11-19** with run logs kept (Log Analytics, first 5 GB a month free) and one retry (a failed run saves
+nothing). The model is not copied in: the build takes it from the git-ignored folder as a second input, and only the
+final version's folder (0.47 GB) is used. A fourth file, `description-model/requirements-lock.txt`, pins the 59
+add-ons.
+
+**Finding, fixed with the owner's approval:** the model's self-check failed on Linux. Its fingerprint record
+(`frozen-33/manifest.json`, part of the locked model) names 12 files with Windows `\` separators. The connector
+(`description-model/connector/run.py`, outside the files listed above) now reads them as `/`; every fingerprint is still
+checked.
+
+**D3 result (2026-11-19, `evidence/docker-d3-model/results.md`):**
+
+| Acceptance | Result |
+| --- | --- |
+| Connector's 7 tests inside the package | Pass |
+| A run against `marikina_market_e2e` matches a run by hand | Pass: both 52 records, 26 findings, 3 cards, no difference; the package run had the Azure limits (1 CPU, 2 GB) |
+| Warnings and tickets unchanged | Pass (same fingerprint before and after) |
+| Manual start on Azure fills the page | Pass: "Run 1: 15 records, 0 with findings, 0 section recommendations."; the page shows "Last updated" with no cards, because the model found nothing in the demo's 15 records of the last 30 days |
+| Next scheduled run at 4:00 AM Manila | Waiting (2026-11-20) |
+
+Azure parts (resource group `marikina-market-rg`, East Asia): job `marikina-market-recommendations`, Consumption
+environment `marikina-market-jobs`, logs `marikina-market-logs`, identity `marikina-market-jobs-identity` (AcrPull
+only), package `marikina-market-model:acd722d` (3.09 GB, 823 MB compressed). The demo database already allowed Azure
+services. Guide: setup guide 11.5 and section 13.
 
 ### D4 — Closing
 
