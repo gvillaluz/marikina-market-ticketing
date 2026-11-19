@@ -28,7 +28,6 @@ export function useAccounts() {
         ![
           data.totalUsers,
           data.totalStaffUsers,
-          data.totalMarketVendorUsers,
           data.totalAdministrators,
           data.totalActiveAccounts,
         ].every((value) => Number.isSafeInteger(value) && value >= 0)
