@@ -1,8 +1,7 @@
 # Plan: Docker hosting — server with `pg_dump`, daily recommended-actions job
 
-Written 2026-11-19. **Status (2026-11-19): decisions D1–D4 answered (below); slice D1 built, automatically checked and
-live-checked on the developer computer (`evidence/docker-server-package-live/results.md`); D0 facts awaited; D2–D4 not
-started.** Each slice below needs your approval before it starts, and every install, purchase or Azure change is asked
+Written 2026-11-19. **Status (2026-11-19): decisions D1–D4 answered (below); slices D1 (server package, PR #95) and D2
+(the demo runs it, `evidence/docker-d2-demo/results.md`) done and checked; D3 and D4 not started.** Each slice below needs your approval before it starts, and every install, purchase or Azure change is asked
 for first.
 
 ## Why
@@ -125,6 +124,23 @@ rule change; port 8090 on the computer because 8080 is taken.
 **Acceptance:** the demo check list W1–W8 passes again; on the demo, Back Up Now completes and the downloaded file opens
 and lists the tables. **Way back:** until D2 passes, the old way (`publish-api`, Deploy to Web App) stays in the guide,
 so the demo can be restored to files in minutes. Do it when nobody is using the demo.
+
+**D0 facts (2026-11-19):** free trial, 22 days of credit left (about 11 December 2026; upgrade to pay-as-you-go before
+then or Azure disables the whole subscription); App Service plan Basic B1 (about US$13 a month after the trial);
+database version 18.6 (seen in the demo backup's header); Deployment Center of the existing code app offered no
+container source, and Microsoft documents a "main" container only for apps created with Publish: Container. The
+registry is free for 12 months on this account ("1 Standard tier registry with 100 GB storage").
+
+**What was done instead of switching (option a, approved 2026-11-19):** a new App Service `marikina-market-server`,
+created as a package app on the same B1 plan (no extra plan cost), pulling from `marikinamarketregistry` with its managed
+identity; settings copied by name from `marikina-market-api` plus `Firebase__ServiceAccountJson` and `WEBSITES_PORT`;
+the website rebuilt with the new address. The old `marikina-market-api` is unchanged and is the way back until the
+owner deletes it. The phone app must be rebuilt with the new address (P1–P3 when it is).
+
+**Result (2026-11-19):** all checks pass. New server: 404 answer, Production mode, website allowed with credentials,
+refresh without cookie refused, http → https. Website: W1–W8 pass. Backups on the demo: Back Up Now completed; the
+downloaded file (269,199 bytes) unlocked with `tools/recovery`, `pg_restore --list` showed 30 tables, dumped by the
+package's `pg_dump` 18.7 from the database's 18.6. Guide section 11.2 now describes package updates.
 
 ### D3 — Model package and the daily job
 
