@@ -188,7 +188,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Insights",
+    label: "ANALYSIS",
     items: [
       {
         to: "/analytics",
@@ -198,7 +198,7 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         to: "/recommendations",
-        label: "Recommended Actions",
+        label: "Insights & Recommendations",
         icon: <Lightbulb size={18} strokeWidth={2} />,
         allowedRoles: ADMIN_ROLES,
       },

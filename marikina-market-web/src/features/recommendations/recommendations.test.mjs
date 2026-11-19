@@ -422,29 +422,29 @@ function sidebarLabels(role) {
     ),
   );
   return [...html.matchAll(/<a\b[^>]*>/g)].map(([tag]) => ({
-    label: tag.match(/aria-label="([^"]+)"/)[1],
+    label: tag.match(/aria-label="([^"]+)"/)[1].replaceAll("&amp;", "&"),
     to: tag.match(/href="([^"]+)"/)[1],
   }));
 }
 
-test("W4: Head Admin and Admin Officer see Recommended Actions directly after Analytics", () => {
+test("W4: Head Admin and Admin Officer see Insights & Recommendations directly after Analytics", () => {
   for (const role of ["HeadAdmin", "AdminOfficer"]) {
     const items = sidebarLabels(role);
     const labels = items.map((item) => item.label);
     const analytics = labels.indexOf("Analytics");
     assert.ok(analytics >= 0, `${role} must see Analytics`);
-    assert.equal(labels[analytics + 1], "Recommended Actions", role);
+    assert.equal(labels[analytics + 1], "Insights & Recommendations", role);
     assert.equal(
-      items.find((item) => item.label === "Recommended Actions").to,
+      items.find((item) => item.label === "Insights & Recommendations").to,
       "/recommendations",
     );
   }
 });
 
-test("W4: a Market Enforcer does not see Recommended Actions", () => {
+test("W4: a Market Enforcer does not see Insights & Recommendations", () => {
   const labels = sidebarLabels("MarketEnforcer").map((item) => item.label);
   assert.ok(labels.includes("Dashboard"));
-  assert.ok(!labels.includes("Recommended Actions"));
+  assert.ok(!labels.includes("Insights & Recommendations"));
 });
 
 // ---- Step 4: administrator review ------------------------------------------
