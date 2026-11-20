@@ -56,11 +56,14 @@ namespace MarikinaMarket.API.Presentation.Middleware
             var status = context.Response.StatusCode;
             if (status is StatusCodes.Status401Unauthorized or StatusCodes.Status403Forbidden)
             {
+                var details = await AuthorizationDetailsAsync(context, module);
+                // The apps renew an expired sign-in on their own, so it is not recorded.
+                if (details is null) return;
                 CaptureActor(context, audit);
                 audit.Entry.Action = "AuthorizationFailed";
                 audit.Entry.Module = Module.Security;
                 audit.Entry.Result = LogResult.Failed;
-                audit.Entry.Details = await AuthorizationDetailsAsync(context, action, module, audit.Entry.UserId is null);
+                audit.Entry.Details = details;
                 await service.RecordAsync(audit.Entry);
                 return;
             }
@@ -83,42 +86,57 @@ namespace MarikinaMarket.API.Presentation.Middleware
             await service.RecordAsync(audit.Entry);
         }
 
-        private static async Task<string> AuthorizationDetailsAsync(HttpContext context,
-            ControllerActionDescriptor action, Module requestedModule, bool anonymous)
+        // Plain-language details for staff; never the URL, query string, credentials, or exception message.
+        private static async Task<string?> AuthorizationDetailsAsync(HttpContext context, Module requestedModule)
         {
-            var reason = "Access denied.";
+            var request = (HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method)
+                ? "view " : "change ") + ModuleLabel(requestedModule);
+            string sentence;
             if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
             {
                 var authentication = await context.AuthenticateAsync();
-                reason = authentication.Failure switch
+                if (authentication.Failure is SecurityTokenExpiredException) return null;
+                sentence = authentication.Failure switch
                 {
-                    SecurityTokenExpiredException => "Authentication token expired.",
-                    SecurityTokenException => "Authentication credentials invalid.",
-                    not null => "Authentication failed.",
+                    SecurityTokenException => $"A request to {request} was refused because its sign-in could not be trusted.",
+                    not null => $"The server could not check the sign-in, so it refused a request to {request}.",
                     _ when authentication.None && string.IsNullOrEmpty(context.Request.Headers.Authorization)
-                        => "Authentication credentials missing.",
-                    _ => "Authentication required."
+                        => $"Someone who was not signed in tried to {request}. The server refused.",
+                    _ => $"A request to {request} was refused because it did not include a usable sign-in."
                 };
             }
-
-            var endpoint = context.GetEndpoint();
-            var roleGroups = endpoint?.Metadata.GetOrderedMetadata<IAuthorizeData>()
-                .Where(data => !string.IsNullOrWhiteSpace(data.Roles))
-                .Select(data => string.Join(" or ", data.Roles!.Split(',',
-                    StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)))
-                .ToArray() ?? [];
-            var roles = roleGroups.Length == 0 ? "not declared" :
-                string.Join(" and ", roleGroups.Select(group => roleGroups.Length > 1 ? $"({group})" : group));
-            // Use server route metadata, never the URL, query string, credentials, or exception message.
-            var route = (endpoint as RouteEndpoint)?.RoutePattern.RawText ?? "not available";
-            var details = $"{(anonymous ? "Anonymous: " : "")}Request was denied (HTTP {context.Response.StatusCode}). " +
-                $"Reason: {reason} Authenticated: {(context.User.Identity?.IsAuthenticated == true ? "yes" : "no")}. " +
-                $"Method: {LimitAuditMetadata(context.Request.Method, 10)}. Route: {LimitAuditMetadata(route, 100)}. " +
-                $"Endpoint: {LimitAuditMetadata($"{action.ControllerName}.{action.ActionName}", 60)}. " +
-                $"Requested module: {requestedModule}. Declared roles: {LimitAuditMetadata(roles, 80)}. " +
-                $"Request ID: {LimitAuditMetadata(context.TraceIdentifier, 48)}.";
-            return LimitAuditMetadata(details, 500);
+            else
+            {
+                var roleGroups = context.GetEndpoint()?.Metadata.GetOrderedMetadata<IAuthorizeData>()
+                    .Where(data => !string.IsNullOrWhiteSpace(data.Roles))
+                    .Select(data => string.Join(" or ", data.Roles!.Split(',',
+                        StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(RoleLabel)))
+                    .ToArray() ?? [];
+                sentence = $"This account's role is not allowed to {request}.";
+                if (roleGroups.Length > 0)
+                    sentence += " Allowed roles: " +
+                        string.Join(" and ", roleGroups.Select(group => roleGroups.Length > 1 ? $"({group})" : group)) + ".";
+            }
+            return LimitAuditMetadata($"{sentence} Reference: {LimitAuditMetadata(context.TraceIdentifier, 48)}.", 500);
         }
+
+        // Same names the website shows in its Audit Logs filter and account roles.
+        private static string ModuleLabel(Module module) => module switch
+        {
+            Module.MarketSections => "Market Streets",
+            Module.Backups => "Data & Backups",
+            Module.AuditLogs => "Audit Logs",
+            _ => module.ToString()
+        };
+
+        private static string RoleLabel(string role) => role switch
+        {
+            nameof(Role.HeadAdmin) => "Head Admin",
+            nameof(Role.AdminOfficer) => "Admin Officer",
+            nameof(Role.MarketEnforcer) => "Market Enforcer",
+            nameof(Role.MarketVendor) => "Market Vendor",
+            _ => role
+        };
 
         private static string LimitAuditMetadata(string value, int limit)
         {
