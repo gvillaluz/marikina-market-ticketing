@@ -1,8 +1,8 @@
 # Plan: Docker hosting — server with `pg_dump`, daily recommended-actions job
 
-Written 2026-11-19. **Status (2026-11-19): decisions D1–D4 answered (below); slices D1 (server package, PR #95) and D2
-(the demo runs it, `evidence/docker-d2-demo/results.md`) done and checked; D3 (model package, PR #98, and the daily job) built
-and checked except its first scheduled run (2026-11-20, 4:00 AM Manila); D4 not started.** Each slice below needs your approval before it starts, and every install, purchase or Azure change is asked
+Written 2026-11-19. **Status (2026-11-20): decisions D1–D4 answered (below); slices D1 (server package, PR #95) and D2
+(the demo runs it, `evidence/docker-d2-demo/results.md`) done and checked; D3 (model package, PR #98, and the daily job) done
+and checked, including its first scheduled run (2026-11-20, 4:00 AM Manila); D4 done: closed 2026-11-20, [closing note](docs/closed-work/phases/phase-4-docker-hosting.md).** Each slice below needs your approval before it starts, and every install, purchase or Azure change is asked
 for first.
 
 ## Why
@@ -174,7 +174,7 @@ checked.
 | A run against `marikina_market_e2e` matches a run by hand | Pass: both 52 records, 26 findings, 3 cards, no difference; the package run had the Azure limits (1 CPU, 2 GB) |
 | Warnings and tickets unchanged | Pass (same fingerprint before and after) |
 | Manual start on Azure fills the page | Pass: "Run 1: 15 records, 0 with findings, 0 section recommendations."; the page shows "Last updated" with no cards, because the model found nothing in the demo's 15 records of the last 30 days |
-| Next scheduled run at 4:00 AM Manila | Waiting (2026-11-20) |
+| Next scheduled run at 4:00 AM Manila | Pass: 2026-11-20 4:00 AM, "Run 2: 18 records, 1 with findings, 0 section recommendations." |
 
 Azure parts (resource group `marikina-market-rg`, East Asia): job `marikina-market-recommendations`, Consumption
 environment `marikina-market-jobs`, logs `marikina-market-logs`, identity `marikina-market-jobs-identity` (AcrPull

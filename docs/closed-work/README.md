@@ -65,6 +65,8 @@ One file per task, grouped by topic. These are the notes that used to sit in `ro
 - [Phase 4 restore drill, slice 1](phases/phase-4-restore-drill.md) — passed 2026-11-17; the roadmap criterion stays open (outage and restart stories not run)
 - [Phase 4 outage and restart stories, slices 2 and 3](phases/phase-4-outage-and-restart-stories.md) — closed 2026-11-17 with accepted limits; the roadmap criterion ticked
 - [Phase 4 system checks and live run (line 3)](phases/phase-4-system-checks.md) — closed 2026-11-18 with accepted limits; two problems found were fixed; the roadmap criterion ticked
+- [Phase 4 setup, recovery and deployment instructions and beneficiary evaluation (line 4)](phases/phase-4-setup-and-evaluation.md) — closed 2026-11-20 with accepted limits (times not measured)
+- [Phase 4 Docker hosting](phases/phase-4-docker-hosting.md) — closed 2026-11-20; server package with pg_dump and the daily recommendations job on Azure
 
 ## resolved-backlog
 - [Analytics severity-count mismatch](resolved-backlog/analytics-severity-count-mismatch.md) — 2026-11-03
