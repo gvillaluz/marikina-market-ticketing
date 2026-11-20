@@ -1,6 +1,6 @@
 # The "Deploy website" button: GitHub → Actions → Deploy website → Run workflow.
 # Builds the website from main with the demo server's address and uploads it to the Static Web App.
-# It only runs when pressed, so the server can be updated first (setup guide, section 11).
+# It only runs when pressed, so the server can be updated first (deployment-guide.md, step 4).
 name: Deploy website
 on:
   workflow_dispatch:
