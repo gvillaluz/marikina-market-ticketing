@@ -1,6 +1,6 @@
 import type { TicketType } from "@/api/types/ticket.types";
 import type { VendorCategory } from "@/api/types/vendor.types";
-import type { Status } from "@/api/types/common.types";
+import type { RecordStatus, Status } from "@/api/types/common.types";
 
 type TicketSeverity = "low" | "medium" | "high" | "critical";
 
@@ -56,6 +56,20 @@ export const STATUS_LABELS: Record<Status, string> = {
   paid: "Paid",
   unpaid: "Unpaid",
 };
+
+export const RECORD_STATUS_LABELS: Record<RecordStatus, string> = {
+  Pending: "Pending",
+  Cleared: "Cleared",
+  Contested: "Contested",
+  Paid: "Paid",
+  Overdue: "Overdue",
+  InProgress: "In Progress",
+  Waived: "Waived",
+};
+
+export function recordStatusLabel(status: string): string {
+  return RECORD_STATUS_LABELS[status as RecordStatus] ?? status;
+}
 
 export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
   violation: "Violation",

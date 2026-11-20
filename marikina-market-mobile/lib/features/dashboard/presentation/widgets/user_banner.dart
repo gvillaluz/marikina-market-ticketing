@@ -4,7 +4,6 @@ import 'package:marikina_market_mobile/core/connectivity/connectivity_status.dar
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/auth/domain/entities/user.dart';
-import 'package:marikina_market_mobile/features/auth/domain/enums/role.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_state.dart';
 
@@ -33,12 +32,6 @@ class UserBanner extends StatelessWidget {
               ),
             );
           }
-          final role = switch (user.role) {
-            Role.marketEnforcer => 'Market Enforcer',
-            Role.marketVendor => 'Market Vendor',
-            Role.adminOfficer => 'Admin Officer',
-            Role.headAdmin => 'Head Admin',
-          };
           return Container(
             width: double.infinity,
             padding: AppTheme.dashboardCardPadding,
@@ -57,7 +50,7 @@ class UserBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTheme.dashboardTinyGap),
                 Text(
-                  role,
+                  user.role.label,
                   style: AppTheme.dashboardBodyStyle.copyWith(
                     color: colors.onPrimaryContainer,
                   ),

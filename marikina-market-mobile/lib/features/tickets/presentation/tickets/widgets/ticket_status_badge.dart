@@ -14,7 +14,7 @@ class TicketStatusBadge extends StatelessWidget {
     child: Padding(
       padding: AppTheme.ticketBadgePadding,
       child: Text(
-        status.value,
+        status.label,
         style: AppTheme.ticketCaptionStyle.copyWith(
           color: AppTheme.ticketStatusColor(status.value),
         ),

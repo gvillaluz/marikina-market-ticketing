@@ -81,7 +81,7 @@ class ProfileHeaderCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTheme.profileCompactGap),
                 Text(
-                  user.role.value,
+                  user.role.label,
                   textAlign: TextAlign.center,
                   style: AppTheme.pageSubtitleStyle.copyWith(
                     color: AppTheme.profileHeroForeground,
