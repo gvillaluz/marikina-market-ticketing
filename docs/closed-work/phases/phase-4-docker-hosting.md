@@ -31,7 +31,7 @@ No cards on the demo yet: a card needs at least 2 records with the same problem 
 
 ## Limits and open items
 
-1. **Two update steps not yet done as written:** pointing the server, and the daily job, at a new package label (marked "(not yet tried)" in the deployment guide).
+1. **Two update steps not yet done as written:** pointing the server, and the daily job, at a new package label (marked "(not yet tried)" in the deployment guide). **Update 2026-11-20:** the server step was done for the first time (version `48dbf48`); its command was corrected in the deployment guide. The daily job step is still untried.
 2. **Always On is off** on the server (App Service default, as before): automatic backups and the overdue-ticket check only run while the server is awake.
 3. **Phone apps built before 2026-11-19 still use the old server.** They must be rebuilt with the new address (deployment guide, step 5) before the old server `marikina-market-api` is deleted.
 4. **The Azure account is a free trial:** it must be upgraded to pay-as-you-go before about 11 December 2026, or the whole demo is switched off.
