@@ -20,6 +20,7 @@ import VendorDetailPage from "@/features/vendors/pages/VendorDetailPage";
 import { InspectionsPage } from "../features/inspections/pages/InspectionsPage";
 import EnforcersPage from "@/features/enforcers/pages/EnforcersPage";
 import EnforcerPerformancePage from "@/features/enforcers/pages/EnforcerPerformancePage";
+import EnforcerReportPage from "@/features/enforcers/pages/EnforcerReportPage";
 import AdminVendorsPage from "@/features/vendors/pages/AdminVendorsPage";
 import AdminVendorInspectionPage from "@/features/vendors/pages/AdminVendorInspectionPage";
 import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
@@ -115,6 +116,14 @@ const AppRoutes = () => {
           element={<TicketDetailPage />}
         />
         <Route path={ROUTES.enforcers} element={<EnforcersPage />} />
+        <Route
+          path={ROUTES.enforcerReport}
+          element={
+            <ProtectedRoute roles={ADMIN_ROLES}>
+              <EnforcerReportPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path={ROUTES.adminVendors}
           element={

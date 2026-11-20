@@ -41,6 +41,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task<string> GenerateResetPassTokenAsync(User user);
         Task<IdentityResult> ResetPasswordByUsernameAsync(User user, string resetToken, string newPassword);
         Task<int> GetEnforcersCountAsync(EnforcerSummaryFilter filters);
+        Task<List<User>> GetAllEnforcersAsync();
         Task SaveChangesAsync();
     }
 }

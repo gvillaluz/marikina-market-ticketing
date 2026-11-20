@@ -1,7 +1,10 @@
 import { FC, useState } from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { Search, Users } from "lucide-react";
+import { FileText, Search, Users } from "lucide-react";
+import Button from "@/components/ui/Button";
+import { useAuth } from "@/context/AuthContext";
+import { ROUTES } from "@/routes/routePaths";
 import EnforcerCard from "../components/EnforcerCard";
 import EnforcerActivityPanel from "../components/EnforcerActivityPanel";
 import styles from "./EnforcersPage.module.css";
@@ -17,6 +20,7 @@ const STATUS_FILTERS = ["Active", "Inactive"] as const;
 
 const EnforcersPage: FC = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const { filters, setFilters, sortOptions, queryParams } = useEnforcerFilter();
   const {
     enforcers,
@@ -39,6 +43,19 @@ const EnforcersPage: FC = () => {
       <PageHeader
         title="Enforcers"
         subtitle="Browse staff profiles and review inspection activity."
+        actions={
+          isAdmin && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              icon={<FileText size={14} aria-hidden="true" />}
+              onClick={() => navigate(ROUTES.enforcerReport)}
+            >
+              Enforcer report
+            </Button>
+          )
+        }
       />
 
       <div className={styles.layout}>

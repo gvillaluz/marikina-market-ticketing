@@ -363,6 +363,9 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             return await query.CountAsync();
         }
 
+        public Task<List<User>> GetAllEnforcersAsync()
+            => ApplyEnforcerFilters(_userManager.Users, new EnforcerSummaryFilter()).ToListAsync();
+
         public Task<IdentityResult> ResetPasswordByUsernameAsync(User user, string resetToken, string newPassword)
         {
             return _userManager.ResetPasswordAsync(user, resetToken, newPassword);

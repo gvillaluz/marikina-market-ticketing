@@ -2,6 +2,32 @@ import type { BusinessSnapshot } from "./ticket.types";
 import type { UserRole } from "./common.types";
 import { AccountStatus } from "./common.types";
 
+export interface EnforcerReportTotals {
+  warnings: number;
+  tickets: number;
+  totalRecords: number;
+  settledTickets: number;
+  openTickets: number;
+  finesCharged: number;
+  finesSettled: number;
+}
+
+export interface EnforcerReportRow extends EnforcerReportTotals {
+  enforcerId: number;
+  username: string;
+  firstName: string;
+  lastName: string;
+  status: AccountStatus;
+  daysWithRecords: number;
+  lastRecordAt: string | null;
+}
+
+export interface EnforcerReport {
+  dateRange: { from: string; to: string };
+  enforcers: EnforcerReportRow[];
+  totals: EnforcerReportTotals;
+}
+
 export interface EnforcerSummary {
   enforcerId: number;
   username: string;
