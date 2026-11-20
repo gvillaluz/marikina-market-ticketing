@@ -143,7 +143,7 @@ Background services include backup scheduling/cleanup, overdue-ticket processing
 node -e "const fs=require('fs'),{spawnSync}=require('child_process');const key=JSON.parse(fs.readFileSync(process.argv[1],'utf8').replace(/^﻿/,''));const r=spawnSync('dotnet',['user-secrets','set','Firebase:ServiceAccountJson',JSON.stringify(key),'--project','marikina-market-api/MarikinaMarket.API/MarikinaMarket.API.csproj'],{stdio:'ignore'});console.log(r.status===0?'Firebase:ServiceAccountJson set.':'Failed, exit code '+r.status);process.exit(r.status ?? 1);" "<path to the key file>"
 ```
 
-   On Azure it is the App Service setting `Firebase__ServiceAccountJson` (section 11.2).
+   On Azure it is the App Service setting `Firebase__ServiceAccountJson` ([deployment guide](deployment-guide.md), step 3).
 4. Keep the downloaded key file outside the repository or in the ignored `marikina-market-api/MarikinaMarket.API/Keys/` folder, restrict its permissions, and never put it in web/mobile bundles or the server package. `GOOGLE_APPLICATION_CREDENTIALS` is not read.
 5. The private key is a server credential, unlike Firebase client API keys. Existing authorized service-account credentials can be configured securely; create a development credential if none is available. Rotate any service-account private key that has actually been exposed. No tracked service-account private key was found by this migration scan.
 
@@ -180,7 +180,7 @@ Temporary backup files are written beneath the API process temporary directory (
 | Variable | Purpose |
 | --- | --- |
 | `VITE_APP_NAME` | Optional non-sensitive display name. |
-| `VITE_API_BASE_URL` | The server's address, without `/api` and without a slash at the end (for example `https://<app service address>`). Set it only when building for Azure (section 11.3). Leave it empty in development. |
+| `VITE_API_BASE_URL` | The server's address, without `/api` and without a slash at the end (for example `https://<app service address>`). Set it only when building for Azure ([deployment guide](deployment-guide.md), step 4). Leave it empty in development. |
 | `API_PROXY_TARGET` | Development-only Vite proxy target, default `http://127.0.0.1:5000`. Browser requests stay under `/api`; no `/api` suffix on this target. |
 
 With `VITE_API_BASE_URL` empty, the website calls `/api` on its own address and the development proxy forwards it to the server. With it set, the website calls `<VITE_API_BASE_URL>/api` and sends the sign-in cookie with every request (`src/config/env.ts`, `src/api/client.ts`). The website has no Firebase settings. For Azure, see section 11.
@@ -238,164 +238,11 @@ Manual requirements not established by source, sanitization or mocked tests: cre
 
 ## 11. Azure (demo hosting)
 
-**Status: written 2026-11-18 from the project owner's description of how they deploy. Not yet followed step by step; it counts as checked only after the next demo update is done by following it.** Items marked *(confirm)* are to be checked during that update. To restore data, see the [recovery guide](recovery-guide.md).
-
-The demo has four parts, each deployed from VS Code or the terminal:
-
-| Part | Azure service | Deployed with |
-| --- | --- | --- |
-| Database | Azure Database for PostgreSQL | SQL files run in the VS Code PostgreSQL extension |
-| Server | Azure App Service (`marikina-market-server`) | The server package, uploaded to the package store `marikinamarketregistry` (11.2, section 12) |
-| Website | Azure Static Web Apps | The Static Web Apps command-line tool through `npx` |
-| Recommended actions | Azure Container Apps job (`marikina-market-recommendations`) | The model package, uploaded to the same package store (11.5, section 13) |
-
-Order for an update: **backup → database → server → website → phone app**. The server must understand the new database before the website uses it. The model package is only updated when the model or the connector (`description-model/connector`) changes.
-
-### 11.1 Database
-
-1. **Take a backup first**: on the website, **Backups** → **Back Up Now**, then **Download** and keep the file.
-2. **See which schema changes the demo already has.** In the VS Code PostgreSQL extension, connected to the demo database, run this read-only query:
-
-   ```sql
-   SELECT migration_id FROM "__EFMigrationsHistory" ORDER BY migration_id DESC LIMIT 5;
-   ```
-
-   Compare the newest name with the newest migration files in `marikina-market-api/MarikinaMarket.API/Infrastructure/Migrations/` (the file names start with the same date and time). If the query fails because the table does not exist, stop: the demo database was not set up from migrations, and the next step needs a separate decision.
-3. **Get one SQL file per missing migration.** Each file is written from the migration, reviewed against it line by line, and wrapped so that it skips itself if that migration is already recorded (the same pattern as the market-streets update of 2026-11-16). Agents write and review these files but **never connect to the demo database**.
-4. **Run each file on the local throwaway database first**, then on the demo database in the VS Code PostgreSQL extension, oldest first. Running a file twice does nothing the second time.
-5. Run the query from step 2 again: the newest migration name must now match the newest migration file.
-
-Never run `dotnet ef database update` against the demo database.
-
-### 11.2 Server
-
-Since 2026-11-19 the demo server is **`marikina-market-server`**, an App Service that runs the **server package** (section 12) from the package store **`marikinamarketregistry`** (Azure Container Registry, Standard, resource group `marikina-market-rg`, East Asia). It fetches the package with its own managed identity (AcrPull role on the store), so no registry password is stored. Proof: `evidence/docker-d2-demo/results.md`. The earlier server `marikina-market-api` (files from `publish-api`) is kept only as the way back until the project owner deletes it: rebuild the website (11.3) with its address `https://marikina-market-api-e2drfvf7h5c5e9ak.eastasia-01.azurewebsites.net`.
-
-1. **Build the package** from the current `main`, labelled with the commit. From `marikina-market-api`:
-
-   ```powershell
-   $tag = git rev-parse --short HEAD
-   docker build -t marikinamarketregistry.azurecr.io/marikina-market-api:$tag .
-   ```
-
-2. **Upload it.** Sign in once per window with `az login` (if Azure answers that multi-factor sign-in is required, use `az login --tenant <directory id>`), then:
-
-   ```powershell
-   az acr login --name marikinamarketregistry
-   docker push marikinamarketregistry.azurecr.io/marikina-market-api:$tag
-   ```
-
-3. **Point the server at the new label.** App Service fetches it and restarts *(confirm on the first package update after 2026-11-19)*:
-
-   ```powershell
-   az webapp config set -g marikina-market-rg -n marikina-market-server --linux-fx-version "DOCKER|marikinamarketregistry.azurecr.io/marikina-market-api:$tag"
-   ```
-
-   Check that `https://marikina-market-server.azurewebsites.net/api/does-not-exist` answers 404 with `{"message":"The requested resource was not found."}`, then sign in on the website. To go back to the previous version, run step 3 with the previous label.
-4. The secrets are **settings on the App Service**, never files in the repository: Azure portal → the App Service → **Settings → Environment variables**. Names use `__` instead of `:`. **Your computer's User Secrets (section 3) are not sent to Azure**: they are stored in your Windows profile, not in the project, so publishing never copies them, and the server on Azure does not read User Secrets. Enter each value by hand once; it stays on the App Service across deploys, so you only change it when the value itself changes. Names only here; the values come from the project owner:
-
-   | Setting name | What it is |
-   | --- | --- |
-   | `ConnectionStrings__DefaultConnection` | The demo database connection |
-   | `Jwt__Secret` | Sign-in signing key |
-   | `Email__FromAddress`, `Email__AppPassword` | The email account that sends sign-in codes and reset emails |
-   | `BackBlazeB2__General__KeyId`, `BackBlazeB2__General__ApplicationKey` (and the same for `Documents`, `Evidence`, `Backups`) | Storage keys |
-   | `Backups__EncryptionKey` | The backup key. Keep a copy outside Azure (see the recovery guide) |
-   | `Firebase__ServiceAccountJson` | The Firebase Admin key: paste the whole service-account JSON file's content as the value (section 5) |
-   | `WEBSITES_PORT` | `8080`, the port the server package listens on |
-   | `Cors__AllowedOrigins__0` | The website's address on Static Web Apps, exactly as the browser shows it, without a slash at the end (for example `https://<name>.azurestaticapps.net`). Only this address may read the server's answers and send the sign-in cookie. If it is missing or different, the website cannot sign in. |
-
-5. **Leave the App Service's own CORS page empty.** In the Azure portal, open the App Service and type `CORS` in the search box of its left menu. The list of allowed origins there must be empty. Microsoft: "If you try to use them together, App Service CORS takes precedence and your own CORS code has no effect" ([App Service CORS tutorial](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-tutorial-rest-api), checked 2026-11-18). If addresses are listed there, the server's own rule (`Cors__AllowedOrigins__0`) is ignored and the sign-in cookie is not allowed, so the website signs users out on every refresh or cannot sign in.
-
-### 11.3 Website
-
-The website runs on its own Static Web Apps address and calls the server on the App Service address. Two settings must point at each other:
-
-| Where | Setting | Value |
-| --- | --- | --- |
-| Website build (step 1) | `VITE_API_BASE_URL` | The App Service address, for example `https://<app service address>` (no `/api`, no slash at the end) |
-| App Service (section 11.2) | `Cors__AllowedOrigins__0` | The Static Web Apps address, for example `https://<name>.azurestaticapps.net` |
-
-Known limit: the two addresses count as different sites to browsers, so the sign-in cookie is a "third-party" cookie. Chrome and Edge on Windows and Android are expected to keep it, so refreshing a page keeps the user signed in. Safari (iPhone, iPad, Mac) and private/incognito windows are expected to block it, so there a refresh signs the user out and they log in again. Removing this limit needs both parts on one bought domain.
-
-**Deploy with the button (since 2026-11-19).** GitHub → the repository → **Actions → Deploy website → Run workflow** (branch `main`). GitHub builds the website from `main` (`npm ci`, then `npm run build` with `VITE_API_BASE_URL` = `https://marikina-market-server.azurewebsites.net`, Node 26) and uploads `marikina-market-web/dist` to the Static Web App. It runs only when pressed: press it after the server is updated. The recipe is `.github/workflows/deploy-website.yml`; if the server's address changes, change it there. Your computer's `marikina-market-web/.env` is not used and not changed.
-
-- It needs the deployment token once, as the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN`: Azure portal → the Static Web App → **Overview → Manage deployment token**, then GitHub → the repository → **Settings → Secrets and variables → Actions → New repository secret**. If the token is reset in Azure, update the secret.
-- Each run is listed under **Actions → Deploy website** with its version and result. A run that fails at the build uploads nothing; the live website stays as it was.
-
-**From this computer instead** (backup, for example when GitHub is unavailable):
-
-1. In `marikina-market-web`: `npm ci`, then build with the server's address (the setting is built into the website, so build again whenever the address changes):
-
-   ```powershell
-   $env:VITE_API_BASE_URL = 'https://<app service address>'
-   npm run build
-   Remove-Item Env:VITE_API_BASE_URL
-   ```
-
-   The result is in `marikina-market-web/dist`. It includes `staticwebapp.config.json` (from `public/`), which makes refreshing a page such as `/tickets` load the website instead of "not found".
-2. Get the deployment token: Azure portal → the Static Web App → **Overview → Manage deployment token**. It is a secret. Put it in this PowerShell window without typing it on a command line, then deploy from the project folder:
-
-   ```powershell
-   $secure = Read-Host 'Deployment token' -AsSecureString
-   $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-   $env:SWA_CLI_DEPLOYMENT_TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
-   [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr); $secure = $null
-   npx @azure/static-web-apps-cli deploy ./marikina-market-web/dist --env production
-   Remove-Item Env:SWA_CLI_DEPLOYMENT_TOKEN
-   ```
-
-   The tool reads the token from `SWA_CLI_DEPLOYMENT_TOKEN` ([swa deploy documentation](https://azure.github.io/static-web-apps-cli/docs/cli/swa-deploy/), checked 2026-11-18). The form used before, `--deployment-token <TOKEN>`, leaves the token in PowerShell's history.
-3. **If the token was ever shown, pasted or shared**, reset it on the same page (**Reset token**) before the next deploy.
-
-### 11.4 Phone app
-
-Build the phone app with the server's address in `firebase.local.json` (section 8): `API_BASE_URL` = `https://<app service address>/api`. Without it, the app falls back to an old development tunnel address.
-
-### 11.5 Recommended actions: the daily job
-
-Since 2026-11-19 the recommended actions are refreshed by **`marikina-market-recommendations`**, an Azure Container Apps job that runs the **model package** (section 13) every day at **4:00 AM Manila** (schedule `0 20 * * *`; Container Apps schedules are in UTC). Each run reads the warnings and tickets of the last 30 days, saves one recommendation run (the page's "Last updated") and stops; if anything fails, nothing is saved, so it is retried once. Proof: `evidence/docker-d3-model/results.md`. *(The first scheduled run, 2026-11-20 4:00 AM, is to be confirmed.)*
-
-What it is made of (resource group `marikina-market-rg`, East Asia):
-
-| Part | Name | Notes |
-| --- | --- | --- |
-| Job | `marikina-market-recommendations` | 1 CPU, 2 GB, stopped after 30 minutes, retried once |
-| Environment | `marikina-market-jobs` | Consumption (paid per second of running; a run is inside the monthly free amount) |
-| Run logs | `marikina-market-logs` (Log Analytics) | Kept 30 days; the first 5 GB a month are free |
-| Identity | `marikina-market-jobs-identity` | May only fetch packages from `marikinamarketregistry` (AcrPull); no registry password |
-
-Its settings are the standard PostgreSQL ones, taken from the demo server's `ConnectionStrings__DefaultConnection`: `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` (stored as the job's secret `pgpassword`) and `PGSSLMODE` = `require`. If the database password changes, change it in the Azure portal: the job → **Settings → Secrets** → `pgpassword`.
-
-1. **Build and upload the model package** (only when the model or the connector changes), from the project folder that holds the model (section 13):
-
-   ```powershell
-   $tag = git rev-parse --short HEAD
-   docker build -t marikinamarketregistry.azurecr.io/marikina-market-model:$tag --build-context model="description-model/New Training Model/evaluation/frozen-final-v4" description-model
-   az acr login --name marikinamarketregistry
-   docker push marikinamarketregistry.azurecr.io/marikina-market-model:$tag
-   ```
-
-2. **Point the job at the new label** *(confirm on the first model package update after 2026-11-19)*:
-
-   ```powershell
-   az containerapp job update -g marikina-market-rg -n marikina-market-recommendations --image marikinamarketregistry.azurecr.io/marikina-market-model:$tag
-   ```
-
-3. **Run it once now** instead of waiting for 4:00 AM, then follow it until it says `Succeeded`:
-
-   ```powershell
-   az containerapp job start -g marikina-market-rg -n marikina-market-recommendations
-   az containerapp job execution list -g marikina-market-rg -n marikina-market-recommendations -o table
-   ```
-
-   The run's summary line ("Run N: … records, … with findings, … section recommendations.") is in the Azure portal: the job → **Monitoring → Logs** (table `ContainerAppConsoleLogs_CL`), a few minutes after the run. The model's warning about an "incorrect regex pattern" is known (model plan step 1) and does not stop the run. Then check the Recommended Actions page's "Last updated". No cards means no street had two records of the same problem in the last 30 days.
-
-**Setting it up again** (for example on another Azure account), in this order: register Container Apps once (`az provider register --namespace Microsoft.App --wait`); install the Azure CLI add-on (`az extension add --name containerapp`); create the Log Analytics workspace, then the Container Apps environment sending its logs there; create the identity and give it **AcrPull** on the package store; create the job with the settings above (schedule trigger `0 20 * * *`, parallelism 1, retry limit 1, timeout 1800 s, the package store with that identity). Write the job's description in a file and pass it with `--yaml`, so the database password never appears on a command line. The script used on 2026-11-19 is `evidence/docker-d3-model/Create-Job.ps1` (evidence folder, not in Git).
+Updating the demo on Azure (backup, database, server, website, phone app and the daily recommendations job) is in the **[deployment guide](deployment-guide.md)**. To restore data, see the [recovery guide](recovery-guide.md).
 
 ## 12. Docker: the server package
 
-**Status: written 2026-11-19 (Docker slice D1, checked on the developer computer); running on the demo since 2026-11-19 (slice D2, `evidence/docker-d2-demo/results.md`).** The recipe `marikina-market-api/Dockerfile` turns the server into a **package** (a Docker image): the .NET 10 server plus PostgreSQL 18's `pg_dump`, which the Backups page runs. The same package runs the demo server on Azure (section 11.2). `marikina-market-api/.dockerignore` keeps the `Keys` folder, build output and tests out of it. No secret is inside the package: every setting in section 3 is given when it runs.
+**Status: written 2026-11-19 (Docker slice D1, checked on the developer computer); running on the demo since 2026-11-19 (slice D2, `evidence/docker-d2-demo/results.md`).** The recipe `marikina-market-api/Dockerfile` turns the server into a **package** (a Docker image): the .NET 10 server plus PostgreSQL 18's `pg_dump`, which the Backups page runs. The same package runs the demo server on Azure ([deployment guide](deployment-guide.md), step 3). `marikina-market-api/.dockerignore` keeps the `Keys` folder, build output and tests out of it. No secret is inside the package: every setting in section 3 is given when it runs.
 
 ### 12.1 Install Docker Desktop (once per computer)
 
@@ -415,7 +262,7 @@ The first build downloads Microsoft's .NET 10 images and PostgreSQL 18's client 
 
 ### 12.3 Run on this computer
 
-The package listens on port 8080 and starts in Production mode (no development certificate, no User Secrets, no Swagger). Give it its settings as environment variables with the Azure names (`__` instead of `:`, section 11.2), without `Backups__PgDumpPath`. Pass them by name only (`--env NAME`) after setting them in the current PowerShell window, so values never appear on a command line:
+The package listens on port 8080 and starts in Production mode (no development certificate, no User Secrets, no Swagger). Give it its settings as environment variables with the Azure names (`__` instead of `:`, [deployment guide](deployment-guide.md), step 3), without `Backups__PgDumpPath`. Pass them by name only (`--env NAME`) after setting them in the current PowerShell window, so values never appear on a command line:
 
 ```powershell
 docker run --detach --name mmt-server --publish 127.0.0.1:8090:8080 `
@@ -437,7 +284,7 @@ Running the server the usual way (`dotnet run`, section 4) is unchanged and does
 
 ## 13. Docker: the model package
 
-**Status: written 2026-11-19 (Docker slice D3, checked on the developer computer and on Azure, `evidence/docker-d3-model/results.md`).** The recipe `description-model/Dockerfile` turns the recommended-actions model into a **package**: Python 3.12.10, the 59 add-ons in `description-model/requirements-lock.txt` (the exact versions proven in model plan step 1; `torch` without graphics-card support), the connector (`description-model/connector`) and the frozen final model. Each start does one recommendation run and stops. The daily Azure job runs it (section 11.5). No secret is inside: the database settings are given when it runs.
+**Status: written 2026-11-19 (Docker slice D3, checked on the developer computer and on Azure, `evidence/docker-d3-model/results.md`).** The recipe `description-model/Dockerfile` turns the recommended-actions model into a **package**: Python 3.12.10, the 59 add-ons in `description-model/requirements-lock.txt` (the exact versions proven in model plan step 1; `torch` without graphics-card support), the connector (`description-model/connector`) and the frozen final model. Each start does one recommendation run and stops. The daily Azure job runs it ([deployment guide](deployment-guide.md), step 6). No secret is inside: the database settings are given when it runs.
 
 **The model is not in Git** (`description-model/New Training Model/` is ignored). The build takes it straight from that folder as a second input named `model`, so it only builds in a project folder that holds the model, and the model never enters Git. Only the final version's folder (`evaluation/frozen-final-v4`, 0.47 GB) is used; the model checks every one of its files against its recorded fingerprints when it starts and stops if anything differs. The connector reads that record's Windows-style file names (`\`) as `/` so the check also works on Linux.
 
