@@ -284,10 +284,11 @@ void main() {
       expect(find.text('Find Business'), findsOneWidget);
       expect(find.text('Find Vendor'), findsNothing);
       expect(find.text('Search for a registered business.'), findsOneWidget);
-      expect(find.text('Vendor information is required'), findsOneWidget);
+      expect(find.text('Business information is required'), findsOneWidget);
+      expect(find.text('Vendor information is required'), findsNothing);
       expect(
         find.text(
-          'Please find the vendor to view details and create a record.',
+          'Please find the business to view details and create a record.',
         ),
         findsOneWidget,
       );
@@ -307,7 +308,8 @@ void main() {
         find.text('Choose the market street where the vendor was found'),
         findsOneWidget,
       );
-      expect(find.text('Vendor information is required'), findsOneWidget);
+      expect(find.text('Business information is required'), findsOneWidget);
+      expect(find.text('Vendor information is required'), findsNothing);
       expect(
         find.text('Please choose the market street to create a record.'),
         findsOneWidget,

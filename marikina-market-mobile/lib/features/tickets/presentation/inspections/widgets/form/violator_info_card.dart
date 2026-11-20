@@ -144,7 +144,7 @@ class ViolatorInfoCard extends StatelessWidget {
               color: AppColors.primary,
             ),
             title: const Text(
-              'Vendor information is required',
+              'Business information is required',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
@@ -153,7 +153,7 @@ class ViolatorInfoCard extends StatelessWidget {
             subtitle: Text(
               isUnregistered
                   ? 'Please choose the market street to create a record.'
-                  : 'Please find the vendor to view details and create a record.',
+                  : 'Please find the business to view details and create a record.',
             ),
           ),
         ),

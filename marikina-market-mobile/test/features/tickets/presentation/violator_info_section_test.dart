@@ -60,6 +60,8 @@ void main() {
   testWidgets('confirmed person shows only the person name', (tester) async {
     await show(tester);
     expect(lines(tester)['CONFIRMED PERSON:'], 'Juan Dela Cruz');
+    expect(lines(tester).containsKey('VIOLATOR:'), isTrue);
+    expect(lines(tester).containsKey('RECORDED VIOLATOR:'), isFalse);
     expect(find.textContaining('Person 31'), findsNothing);
   });
 

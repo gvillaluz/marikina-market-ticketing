@@ -105,7 +105,7 @@ class ViolatorDetailSection extends StatelessWidget {
             ],
             if (isTicket)
               TicketPaperField(
-                label: 'RECORDED VIOLATOR:',
+                label: 'VIOLATOR:',
                 value:
                     ticket.paperViolatorName ?? 'Unconfirmed (legacy record)',
               ),
