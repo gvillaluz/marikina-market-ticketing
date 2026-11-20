@@ -18,12 +18,12 @@ const TONES: Record<string, string> = {
   inactive: "neutral",
 };
 
-export function RecordBadge({ value }: { value: string }) {
+export function RecordBadge({ value, label }: { value: string; label?: string }) {
   return (
     <span
       className={`${styles.badge} ${styles[TONES[value.toLowerCase()] ?? "neutral"]}`}
     >
-      {value || "—"}
+      {label || value || "—"}
     </span>
   );
 }

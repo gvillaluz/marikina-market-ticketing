@@ -60,8 +60,8 @@ class TicketPenaltyDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final penalty =
         penaltyType == PenaltyType.communityService && communityHrs != null
-        ? '${penaltyType.value}\n($communityHrs hrs)'
-        : penaltyType.value;
+        ? '${penaltyType.label}\n($communityHrs hrs)'
+        : penaltyType.label;
 
     final dueText =
         '${DateTimeFormatter.getDate(dueDate)}\n(5 days from issuance)';

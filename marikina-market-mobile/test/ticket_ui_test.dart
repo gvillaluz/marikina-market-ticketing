@@ -158,7 +158,7 @@ void main() {
       ),
     );
     expect(tester.getTopLeft(find.text('PENALTY TYPE:')).dx, 0);
-    expect(tester.getTopRight(find.text('CashFine')).dx, 390);
+    expect(tester.getTopRight(find.text('Cash Fine')).dx, 390);
     expect(
       tester.getTopRight(find.textContaining('(5 days from issuance)')).dx,
       390,

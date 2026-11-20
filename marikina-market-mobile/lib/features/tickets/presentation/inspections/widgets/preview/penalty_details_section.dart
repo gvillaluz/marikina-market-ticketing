@@ -51,8 +51,8 @@ class PenaltyDetailsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final penalty = penaltyType == PenaltyType.communityService
-        ? '${penaltyType.value} ($communityHrs hrs)'
-        : penaltyType.value;
+        ? '${penaltyType.label} ($communityHrs hrs)'
+        : penaltyType.label;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

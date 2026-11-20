@@ -7,6 +7,13 @@ enum Role {
   final String value;
   const Role(this.value);
 
+  String get label => switch (this) {
+    headAdmin => 'Head Admin',
+    adminOfficer => 'Admin Officer',
+    marketEnforcer => 'Market Enforcer',
+    marketVendor => 'Market Vendor',
+  };
+
   static Role fromValue(String value) {
     return Role.values.firstWhere(
       (role) => role.value == value,

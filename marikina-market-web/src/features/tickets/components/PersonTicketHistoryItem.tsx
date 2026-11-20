@@ -1,5 +1,6 @@
 import { RecordBadge } from "@/components/ui/Records";
 import type { PersonTicketHistoryItem as PersonTicketHistoryRecord } from "@/api/types/ticket.types";
+import { recordStatusLabel } from "@/utils/constants";
 import { formatCurrency, formatDateTime, UNREGISTERED_VENDOR } from "@/utils/formatters";
 import ControlNumber from "./detail/ControlNumber";
 import styles from "./PersonTicketHistoryItem.module.css";
@@ -15,7 +16,7 @@ export default function PersonTicketHistoryItem({ ticket }: { ticket: PersonTick
           <span className={styles.label}>Control number</span>
           <strong className={styles.number}><ControlNumber value={ticket.paperReference} /></strong>
         </div>
-        <RecordBadge value={ticket.status || "Unknown"} />
+        <RecordBadge value={ticket.status || "Unknown"} label={recordStatusLabel(ticket.status || "Unknown")} />
         <p className={styles.business}>{business}</p>
         {ticket.ordinances.length > 0 && <p className={styles.ordinances}>{ticket.ordinances.join("; ")}</p>}
       </div>
