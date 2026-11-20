@@ -2,7 +2,7 @@
 
 The roadmap line: "Setup/recovery instructions and beneficiary evaluation establish recording/retrieval time and practical usefulness. The faster-entry timing test was dropped 2026-11-10, so no time measurement exists yet. Separate implementation, automated checks, live E2E and acceptance evidence; record pre-existing failures separately."
 
-**Status: closed 2026-11-20 with accepted limits (owner decision: option B, "close with an accepted limit").** The instructions exist and were followed to update the demo; the intended users' evaluation gives practical usefulness; **recording and retrieval times were not measured.** Plan: `spec-phase-4-criterion-4.md`. Evidence (local, not in Git): `evidence/phase-4-criterion-4-demo-update/`, `evidence/phase-4-criterion-4-slice-w-live/`, `evidence/phase-4-evaluation/`.
+**Status: closed 2026-11-20 with accepted limits (owner decision: option B, "close with an accepted limit").** The instructions exist and were followed to update the demo; the intended users' evaluation gives practical usefulness; **recording and retrieval times were not measured.** Plan: `spec-phase-4-criterion-4.md` (deleted 2026-11-20 after closing, last version in commit 1aa71ac). Evidence (local, not in Git): `evidence/phase-4-criterion-4-demo-update/`, `evidence/phase-4-criterion-4-slice-w-live/`, `evidence/phase-4-evaluation/`.
 
 ## What was written (implementation)
 
@@ -16,7 +16,7 @@ The roadmap line: "Setup/recovery instructions and beneficiary evaluation establ
 | Deployment guide, in plain language, including the phone app | [`deployment-guide.md`](../../../deployment-guide.md) | PR #115, 2026-11-20 (replaces the setup guide's former Azure section) |
 | Deploy website button on GitHub | `.github/workflows/deploy-website.yml` | PR #103, 2026-11-19 |
 
-The Docker hosting work (server package with `pg_dump`, daily recommendations job; `spec-docker-hosting.md`) was done between the demo update and this closure; the deployment guide describes the demo as it runs now.
+The Docker hosting work (server package with `pg_dump`, daily recommendations job; see [Docker hosting](phase-4-docker-hosting.md)) was done between the demo update and this closure; the deployment guide describes the demo as it runs now.
 
 ## Automated checks
 

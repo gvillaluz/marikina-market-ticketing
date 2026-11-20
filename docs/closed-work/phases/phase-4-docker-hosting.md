@@ -2,7 +2,7 @@
 
 The roadmap line: "Docker hosting: the server package with `pg_dump` and the daily recommended-actions job on Azure."
 
-**Status: closed 2026-11-20.** All three build slices passed their acceptance checks, including the job's first run by its own schedule. Plan: `spec-docker-hosting.md` (decisions D1–D7, Azure facts, results per slice). How to update the demo now: [deployment guide](../../../deployment-guide.md). Evidence (local, not in Git): `evidence/docker-server-package-live/`, `evidence/docker-d2-demo/`, `evidence/docker-d3-model/`.
+**Status: closed 2026-11-20.** All three build slices passed their acceptance checks, including the job's first run by its own schedule. Plan: `spec-docker-hosting.md` (decisions D1–D7, Azure facts, results per slice; deleted 2026-11-20 after closing, last version in commit 1aa71ac). How to update the demo now: [deployment guide](../../../deployment-guide.md). Evidence (local, not in Git): `evidence/docker-server-package-live/`, `evidence/docker-d2-demo/`, `evidence/docker-d3-model/`.
 
 ## Why
 
