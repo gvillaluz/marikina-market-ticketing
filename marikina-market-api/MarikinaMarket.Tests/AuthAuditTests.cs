@@ -79,9 +79,7 @@ public class AuthAuditTests
         Assert.Equal(role, log.Role);
         Assert.Equal(LogResult.Failed, log.Result);
         Assert.Equal("AuthorizationFailed", log.Action);
-        Assert.Contains("Reason: Access denied.", log.Details);
-        Assert.Contains("Authenticated: no", log.Details);
-        Assert.Contains("Endpoint: Auth.", log.Details);
+        Assert.StartsWith("This account's role is not allowed to change Security. Reference: ", log.Details);
     }
 
     [Theory]

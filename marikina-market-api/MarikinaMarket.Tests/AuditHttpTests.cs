@@ -13,13 +13,13 @@ namespace MarikinaMarket.Tests;
 public class AuditHttpTests
 {
     [Theory]
-    [InlineData("missing", 401, "Authentication credentials missing.")]
-    [InlineData("invalid", 401, "Authentication credentials invalid.")]
-    [InlineData("expired", 401, "Authentication token expired.")]
-    [InlineData("unsupported", 401, "Authentication required.")]
-    [InlineData("forbidden", 403, "Access denied.")]
-    public async Task Authorization_details_describe_confirmed_authentication_failure_without_credentials(
-        string scenario, int status, string reason)
+    [InlineData("missing", 401, "Someone who was not signed in tried to view Audit Logs. The server refused.")]
+    [InlineData("invalid", 401, "A request to view Audit Logs was refused because its sign-in could not be trusted.")]
+    [InlineData("expired", 401, null)]
+    [InlineData("unsupported", 401, "A request to view Audit Logs was refused because it did not include a usable sign-in.")]
+    [InlineData("forbidden", 403, "This account's role is not allowed to view Audit Logs. Allowed roles: Head Admin or Admin Officer.")]
+    public async Task Authorization_details_describe_confirmed_authentication_failure_in_plain_words_without_credentials(
+        string scenario, int status, string? sentence)
     {
         var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
         await using var host = await AuditHost.CreateAsync(configureAuthentication: authentication =>
@@ -48,22 +48,24 @@ public class AuditHttpTests
             request.Headers.Authorization = new(scenario == "unsupported" ? "Basic" : "Bearer", token);
         using var response = await host.Client.SendAsync(request);
         Assert.Equal(status, (int)response.StatusCode);
+        if (sentence is null)
+        {
+            // An expired sign-in is renewed by the apps on their own; it is not recorded.
+            Assert.Empty(host.Repository.Logs);
+            return;
+        }
         var log = Assert.Single(host.Repository.Logs);
         Assert.Equal("AuthorizationFailed", log.Action);
         Assert.Equal(Module.Security, log.Module);
         Assert.Equal(LogResult.Failed, log.Result);
         Assert.Equal(scenario == "forbidden" ? 7 : (int?)null, log.UserId);
         Assert.Equal(scenario == "forbidden" ? Role.MarketVendor : (Role?)null, log.Role);
-        Assert.Contains($"HTTP {status}", log.Details);
-        Assert.Contains($"Reason: {reason}", log.Details);
-        Assert.Contains($"Authenticated: {(scenario == "forbidden" ? "yes" : "no")}", log.Details);
-        Assert.Contains("GET", log.Details);
-        Assert.Contains("Route: api/admin/audit-logs", log.Details);
-        Assert.Contains("Endpoint: AdminAuditLog.GetSummaries", log.Details);
-        Assert.Contains("Requested module: AuditLogs", log.Details);
-        Assert.Contains("Declared roles: HeadAdmin or AdminOfficer", log.Details);
-        Assert.Matches(@"Request ID: \S+", log.Details);
+        Assert.Matches("^" + System.Text.RegularExpressions.Regex.Escape(sentence + " Reference: ") + @"\S+\.$",
+            log.Details);
         Assert.InRange(log.Details.Length, 1, 500);
+        Assert.DoesNotContain("HTTP", log.Details);
+        Assert.DoesNotContain("api/", log.Details);
+        Assert.DoesNotContain("AdminAuditLog", log.Details);
         Assert.DoesNotContain(token, log.Details);
         Assert.DoesNotContain("private-query", log.Details);
         Assert.DoesNotContain("IDX", log.Details);
@@ -80,8 +82,9 @@ public class AuditHttpTests
         var log = Assert.Single(host.Repository.Logs);
         Assert.Null(log.UserId);
         Assert.Null(log.Role);
-        Assert.Contains("Reason: Authentication failed.", log.Details);
-        Assert.DoesNotContain("credentials invalid", log.Details);
+        Assert.StartsWith("The server could not check the sign-in, so it refused a request to view Audit Logs. Reference: ",
+            log.Details);
+        Assert.DoesNotContain("could not be trusted", log.Details);
         Assert.DoesNotContain("private-authentication-message", log.Details);
         Assert.DoesNotContain("InvalidOperationException", log.Details);
     }
@@ -95,7 +98,8 @@ public class AuditHttpTests
         var log = Assert.Single(host.Repository.Logs);
         Assert.Equal(7, log.UserId);
         Assert.Equal(Role.AdminOfficer, log.Role);
-        Assert.Contains("Declared roles: (HeadAdmin or AdminOfficer) and (HeadAdmin or MarketEnforcer)", log.Details);
+        Assert.StartsWith("This account's role is not allowed to view Reports. " +
+            "Allowed roles: (Head Admin or Admin Officer) and (Head Admin or Market Enforcer). Reference: ", log.Details);
     }
 
     [Fact]
@@ -114,14 +118,8 @@ public class AuditHttpTests
         Assert.Equal(7, log.UserId);
         Assert.Equal(Role.HeadAdmin, log.Role);
         Assert.Null(log.TargetId);
-        Assert.Contains("Reason: Access denied.", log.Details);
-        Assert.Contains("Authenticated: yes", log.Details);
-        Assert.Contains("POST", log.Details);
-        Assert.Contains("Route: api/audit-probe/denied/{target}", log.Details);
-        Assert.Contains("Endpoint: AuditProbe.Denied", log.Details);
-        Assert.Contains("Requested module: Reports", log.Details);
-        Assert.Contains("Declared roles: HeadAdmin or AdminOfficer", log.Details);
-        Assert.Contains("Request ID: " + new string('x', 47) + "…", log.Details);
+        Assert.Equal("This account's role is not allowed to change Reports. " +
+            "Allowed roles: Head Admin or Admin Officer. Reference: " + new string('x', 47) + "….", log.Details);
         Assert.InRange(log.Details.Length, 1, 500);
         Assert.DoesNotContain("private-", JsonSerializer.Serialize(log));
         Assert.DoesNotContain(new string('x', 49), log.Details);
@@ -178,7 +176,8 @@ public class AuditHttpTests
         Assert.Equal(Module.Security, log.Module);
         Assert.Equal(LogResult.Failed, log.Result);
         Assert.Equal(role is null ? null : 7, log.UserId);
-        Assert.Contains("was denied", log.Details);
+        Assert.StartsWith(role is null ? "Someone who was not signed in tried to view Audit Logs."
+            : "This account's role is not allowed to view Audit Logs.", log.Details);
     }
 
     [Theory]
@@ -415,7 +414,7 @@ public class AuditHttpTests
         Assert.Equal(1, data.RootElement.GetProperty("successful_actions").GetInt32());
         Assert.Equal(1, data.RootElement.GetProperty("security_events").GetInt32());
         Assert.Equal(3, host.Repository.Logs.Count);
-        var searched = await host.SendAsync(HttpMethod.Get, "/api/admin/audit-logs?" + filters + "&search=denied");
+        var searched = await host.SendAsync(HttpMethod.Get, "/api/admin/audit-logs?" + filters + "&search=not%20allowed");
         using var searchPage = JsonDocument.Parse(await searched.Content.ReadAsStringAsync());
         Assert.Equal(1, searchPage.RootElement.GetProperty("total").GetInt32());
     }
