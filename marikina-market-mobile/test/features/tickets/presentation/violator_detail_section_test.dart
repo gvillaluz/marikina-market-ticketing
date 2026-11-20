@@ -30,6 +30,8 @@ void main() {
     expect(find.text('MARKET STREET:'), findsOneWidget);
     expect(find.text('MARKET SECTION:'), findsNothing);
     expect(find.text('CONFIRMED PERSON:'), findsNothing);
+    expect(find.text('VIOLATOR:'), findsOneWidget);
+    expect(find.text('RECORDED VIOLATOR:'), findsNothing);
   });
 
   for (final isTicket in [true, false]) {

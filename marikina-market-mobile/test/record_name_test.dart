@@ -439,7 +439,7 @@ void main() {
       tester.widget<AppPrimaryButton>(formAction()).onPressed!();
       await flush(tester);
       expect(find.byType(NewInspectionPreviewPage), findsOneWidget);
-      expect(paperField(tester, 'RECORDED VIOLATOR:'), 'Juan Dela Cruz');
+      expect(paperField(tester, 'VIOLATOR:'), 'Juan Dela Cruz');
       expect(paperField(tester, 'CONFIRMED PERSON:'), 'Juan Dela Cruz');
 
       // Submit sends the record name with the chosen person.

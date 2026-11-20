@@ -476,7 +476,7 @@ void main() {
           'VIOLATION COMMITTED:',
           'BUSINESS ADDRESS:',
           'REGISTERED OWNER:',
-          'RECORDED VIOLATOR:',
+          'VIOLATOR:',
           'CONFIRMED PERSON:',
           'NAME & SIGNATURE OF APPREHENDING OFFICER:',
         ]) {
