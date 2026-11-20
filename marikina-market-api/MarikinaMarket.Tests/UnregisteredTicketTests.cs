@@ -264,8 +264,8 @@ public class UnregisteredTicketTests
 
         var unregisteredItem = page.Items.Single(item => item.TicketId == 11);
         Assert.Null(unregisteredItem.VendorId);
-        Assert.Null(unregisteredItem.VendorFirstName);
-        Assert.Null(unregisteredItem.VendorLastName);
+        Assert.Null(unregisteredItem.RegisteredOwnerName);
+        Assert.Null(unregisteredItem.BusinessName);
         Assert.Equal("Meat and Poultry", unregisteredItem.MarketSectionName);
         Assert.Equal(17, page.Items.Single(item => item.TicketId == 12).VendorId);
     }

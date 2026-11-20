@@ -1,11 +1,13 @@
 import { FC } from "react";
 import Table from "@/components/ui/Table";
 import Button from "@/components/ui/Button";
+import { RecordBadge } from "@/components/ui/Records";
 import { Eye } from "lucide-react";
-import { formatDateTime } from "@/utils/formatters";
+import { formatControlNumber, formatDateTime } from "@/utils/formatters";
 import styles from "./EnforcerInspectionList.module.css";
-import { formatControlNumber } from "@/utils/formatters";
 import { InspectionHistorySummary } from "@/api/types/enforcer.types";
+
+const UNAVAILABLE = "Historical business details unavailable.";
 
 interface EnforcerInspectionListProps {
   records: InspectionHistorySummary[];
@@ -13,6 +15,8 @@ interface EnforcerInspectionListProps {
   onView: (id: number) => void;
 }
 
+// The same rules as the Inspections page: a ticket shows its business as it was when issued
+// and the name written on it; a warning shows the business as it is now and the confirmed person.
 const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
   records,
   loading,
@@ -39,39 +43,56 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
           render: (record) => formatDateTime(record.issuedAt),
         },
         {
-          key: "vendor",
-          header: "Registered owner",
+          key: "violator",
+          header: "Violator",
           render: (record) =>
-            record.vendorId === null ? "—" : record.type === "Ticket" ? (record.businessSnapshot?.registeredOwnerName || "Historical business details unavailable.") : (`${record.vendorLastName}, ${record.vendorFirstName}`.trim() || "—"),
+            (record.type === "Ticket"
+              ? record.paperViolatorName
+              : record.personFullName) || "Unconfirmed (legacy record)",
         },
         {
-          key: "stallNo",
-          header: "Stall No.",
-          render: (record) => record.type === "Ticket" ? (record.businessSnapshot?.stallNumber || "—") : (record.stallNumber || "—"),
+          key: "businessName",
+          header: "Business name",
+          render: (record) =>
+            record.vendorId === null
+              ? "UNREGISTERED"
+              : record.type === "Ticket"
+                ? record.businessSnapshot?.businessName || UNAVAILABLE
+                : record.businessName || "—",
+        },
+        {
+          key: "registeredOwner",
+          header: "Registered owner",
+          render: (record) =>
+            record.vendorId === null
+              ? "—"
+              : record.type === "Ticket"
+                ? record.businessSnapshot?.registeredOwnerName || UNAVAILABLE
+                : record.registeredOwnerName || "—",
         },
         {
           key: "section",
           header: "Market street",
-          render: (record) => record.vendorId !== null && record.type === "Ticket" ? (record.businessSnapshot?.marketSectionName || "Historical business details unavailable.") : (record.marketSectionName || "—"),
+          render: (record) =>
+            record.vendorId !== null && record.type === "Ticket"
+              ? record.businessSnapshot?.marketSectionName || UNAVAILABLE
+              : record.marketSectionName || "—",
         },
         {
           key: "type",
           header: "Type",
-          render: (record) => record.type || "—",
+          render: (record) => record.type,
           align: "center",
         },
         {
           key: "status",
           header: "Status",
-          render: (record) => {
-            if (record.type === "Warning") return "—";
-            const status = (record.status || "").toLowerCase();
-            return (
-              <div className={`${styles.status} ${styles[status] || ""}`}>
-                <span className={styles.span}>{record.status || "N/A"}</span>
-              </div>
-            );
-          },
+          render: (record) =>
+            record.type === "Warning" || !record.status ? (
+              "—"
+            ) : (
+              <RecordBadge value={record.status} />
+            ),
           align: "center",
         },
         {
@@ -81,7 +102,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
             <div className={styles.actions}>
               <Button
                 icon={<Eye size={14} strokeWidth={3} aria-hidden="true" />}
-                className={`${styles.actionBtn} ${styles.view}`}
+                className={styles.actionBtn}
                 size="sm"
                 variant="ghost"
                 onClick={() => onView(record.ticketId)}

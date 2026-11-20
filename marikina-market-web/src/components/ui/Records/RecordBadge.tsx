@@ -3,6 +3,7 @@ import styles from "./RecordBadge.module.css";
 const TONES: Record<string, string> = {
   pending: "warning",
   contested: "warning",
+  inprogress: "warning",
   warning: "warning",
   moderate: "warning",
   paid: "success",

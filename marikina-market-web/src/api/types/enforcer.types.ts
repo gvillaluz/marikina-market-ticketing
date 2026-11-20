@@ -3,7 +3,7 @@ import type {
   PenaltyType,
   TicketCategories,
 } from "./ticket.types";
-import type { UserRole } from "./common.types";
+import type { RecordStatus, UserRole } from "./common.types";
 import { AccountStatus } from "./common.types";
 
 export interface EnforcerReportTotals {
@@ -131,11 +131,16 @@ export interface InspectionHistorySummary {
   controlNumber: string | null;
   issuedAt: Date;
   vendorId: number | null;
-  vendorFirstName: string | null;
-  vendorLastName: string | null;
-  stallNumber: string | null;
+  /** The name written on a ticket. */
+  paperViolatorName: string | null;
+  /** The confirmed person; the only violator name a warning has. */
+  personFullName: string | null;
+  /** The business as it is now (a ticket's own copy is in businessSnapshot). */
+  businessName: string | null;
+  registeredOwnerName: string | null;
   marketSectionId: number;
   marketSectionName: string;
   type: "Ticket" | "Warning";
-  status: AccountStatus;
+  /** Warnings have no status. */
+  status: RecordStatus | null;
 }
