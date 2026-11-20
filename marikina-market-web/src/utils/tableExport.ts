@@ -27,12 +27,16 @@ function csvCell(value: string): string {
   return `"${text.replace(/"/g, '""')}"`;
 }
 
+export function csvLine(values: string[]): string {
+  return values.map(csvCell).join(",");
+}
+
 export function toCsv<T>(columns: ExportColumn<T>[], rows: T[]): string {
   return [
     columns.map((column) => column.header),
     ...rows.map((row) => columns.map((column) => column.value(row))),
   ]
-    .map((line) => line.map(csvCell).join(","))
+    .map(csvLine)
     .join("\r\n");
 }
 
@@ -41,8 +45,13 @@ export function downloadCsv<T>(
   columns: ExportColumn<T>[],
   rows: T[],
 ): void {
+  downloadCsvText(fileName, toCsv(columns, rows));
+}
+
+// Saves ready-made CSV text, for a file that holds more than one table.
+export function downloadCsvText(fileName: string, csv: string): void {
   const url = URL.createObjectURL(
-    new Blob(["﻿", toCsv(columns, rows)], {
+    new Blob(["﻿", csv], {
       type: "text/csv;charset=utf-8",
     }),
   );

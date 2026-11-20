@@ -168,8 +168,17 @@ function renderReportPage(model = {}) {
     "react-router-dom": { ...realRouter, useNavigate: () => () => {} },
     "@/features/enforcers/hooks/useEnforcerReport": { useEnforcerReport: () => ({ ...idleModel, ...model }) },
   });
-  return renderToStaticMarkup(React.createElement(Page));
+  // Enforcer names are links, which need a router around them.
+  return renderToStaticMarkup(
+    React.createElement(realRouter.MemoryRouter, null, React.createElement(Page)),
+  );
 }
+
+test("each enforcer's name opens that enforcer's own report", () => {
+  const html = renderReportPage();
+  assert.match(html, /<a [^>]*href="\/enforcers\/report\/8"[^>]*>Dela Cruz, Juan<\/a>/);
+  assert.match(html, /<a [^>]*href="\/enforcers\/report\/11"[^>]*>Santos, Mia<\/a>/);
+});
 
 test("a loaded report shows every row, the total row, pesos and Philippine dates", () => {
   const html = renderReportPage();

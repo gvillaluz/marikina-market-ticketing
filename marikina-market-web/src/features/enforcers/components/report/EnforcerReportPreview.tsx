@@ -1,15 +1,18 @@
+import type { ReactNode } from "react";
 import { FileSpreadsheet, Printer } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { RecordsState } from "@/components/ui/Records";
-import type { EnforcerReportModel } from "../../hooks/useEnforcerReport";
-import EnforcerReportPaper from "./EnforcerReportPaper";
+import type { ReportDocument } from "../../hooks/useReportDocument";
 import EnforcerReportSkeleton from "./EnforcerReportSkeleton";
 import styles from "./EnforcerReportPreview.module.css";
 
+// The report panel: Print and CSV buttons, then loading, failure, or the paper given as children.
 export default function EnforcerReportPreview({
   model,
+  children,
 }: {
-  model: EnforcerReportModel;
+  model: ReportDocument<unknown>;
+  children: ReactNode;
 }) {
   const disabled = !model.report;
   return (
@@ -53,10 +56,7 @@ export default function EnforcerReportPreview({
             onRetry={model.retry}
           />
         ) : model.report ? (
-          <EnforcerReportPaper
-            report={model.report}
-            paperRef={model.paperRef}
-          />
+          children
         ) : (
           <RecordsState
             title="No report to show"

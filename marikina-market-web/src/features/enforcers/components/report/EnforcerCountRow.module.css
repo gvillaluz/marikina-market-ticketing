@@ -1,0 +1,29 @@
+tr th.muted {
+  font-style: italic;
+  color: var(--text-body);
+}
+.shareCell {
+  min-width: 9rem;
+}
+.track {
+  display: inline-block;
+  width: 5rem;
+  height: var(--space-sm);
+  margin-right: var(--space-sm);
+  vertical-align: middle;
+  border-radius: var(--backup-control-radius);
+  background: var(--backup-table-surface);
+  overflow: hidden;
+  print-color-adjust: exact;
+}
+.bar {
+  display: block;
+  height: 100%;
+  background: var(--button-primary);
+  print-color-adjust: exact;
+}
+.percent {
+  display: inline-block;
+  min-width: 2.75rem;
+  text-align: right;
+}

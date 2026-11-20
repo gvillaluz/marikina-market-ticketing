@@ -1,5 +1,5 @@
 import Button from "@/components/ui/Button";
-import type { EnforcerReportModel } from "../../hooks/useEnforcerReport";
+import type { ReportDocument } from "../../hooks/useReportDocument";
 import {
   REPORT_PERIOD_PRESETS,
   isPresetPeriod,
@@ -11,7 +11,7 @@ const MESSAGE_ID = "enforcer-report-period-message";
 export default function EnforcerReportPeriod({
   model,
 }: {
-  model: EnforcerReportModel;
+  model: ReportDocument<unknown>;
 }) {
   const describedBy = model.validation ? MESSAGE_ID : undefined;
   return (

@@ -40,6 +40,16 @@ namespace MarikinaMarket.API.Presentation.Controllers
         public async Task<ActionResult<EnforcerReportResponse>> GetReport([FromQuery] string? from, [FromQuery] string? to)
             => Ok(await _enforcerService.GetReportAsync(from, to));
 
+        [HttpGet("{enforcerId}/report")]
+        public async Task<ActionResult<EnforcerActivityReportResponse>> GetActivityReport(
+            [FromRoute] int enforcerId, [FromQuery] string? from, [FromQuery] string? to)
+        {
+            if (enforcerId <= 0)
+                return BadRequest("Enforcer identification must not be empty.");
+
+            return Ok(await _enforcerService.GetActivityReportAsync(enforcerId, from, to));
+        }
+
         [HttpGet("profile/{enforcerId}")]
         public async Task<ActionResult<EnforcerInfoResponse>> GetEnforcerInfo([FromRoute] int enforcerId)
         {

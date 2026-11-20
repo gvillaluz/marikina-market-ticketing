@@ -70,7 +70,8 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task<List<TopEnforcerResponse>> GetTopEnforcersAsync(DateTime startOfThisMonth);
         Task<DateTime?> GetLastEnforcerInspectionAsync(int enforcerId);
         Task<PerformanceSummaryResponse> GetEnforcerPerformanceSummaryAsync(int enforcerId, DateTime yearStart, DateTime yearEnd);
-        Task<List<EnforcerReportDay>> GetEnforcerReportDaysAsync(DateTime startUtc, DateTime endUtc);
+        Task<List<EnforcerReportDay>> GetEnforcerReportDaysAsync(DateTime startUtc, DateTime endUtc, int? enforcerId = null);
+        Task<List<EnforcerActivityRecord>> GetEnforcerActivityRecordsAsync(int enforcerId, DateTime startUtc, DateTime endUtc);
         Task<List<InspectionSummary>> GetEnforcerInspectionHistory(int enforcerId, int offset, int limit);
         Task<int> GetTotalIssuedTicketsByEnforcerIdAsync(int enforcerId);
         Task<List<VendorInspectionHistoryItem>> GetVendorInspectionHistoryAsync(

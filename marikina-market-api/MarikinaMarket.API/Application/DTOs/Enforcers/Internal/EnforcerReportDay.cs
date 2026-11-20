@@ -4,6 +4,7 @@ namespace MarikinaMarket.API.Application.DTOs.Enforcers.Internal
     public class EnforcerReportDay
     {
         public int EnforcerId { get; set; }
+        public DateTime Day { get; set; }
         public int Warnings { get; set; }
         public int Tickets { get; set; }
         public int SettledTickets { get; set; }

@@ -1,0 +1,4 @@
+tr th.notRecorded {
+  font-style: italic;
+  color: var(--text-body);
+}

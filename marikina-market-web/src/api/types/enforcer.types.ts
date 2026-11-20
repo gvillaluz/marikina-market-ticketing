@@ -1,4 +1,8 @@
-import type { BusinessSnapshot } from "./ticket.types";
+import type {
+  BusinessSnapshot,
+  PenaltyType,
+  TicketCategories,
+} from "./ticket.types";
 import type { UserRole } from "./common.types";
 import { AccountStatus } from "./common.types";
 
@@ -26,6 +30,45 @@ export interface EnforcerReport {
   dateRange: { from: string; to: string };
   enforcers: EnforcerReportRow[];
   totals: EnforcerReportTotals;
+}
+
+export interface EnforcerRecordCount {
+  warnings: number;
+  tickets: number;
+  total: number;
+}
+
+/** A null penalty type means none was recorded on the ticket. */
+export interface EnforcerPenaltyKind {
+  penaltyType: PenaltyType | null;
+  tickets: number;
+  settledTickets: number;
+  openTickets: number;
+  finesCharged: number;
+}
+
+/** A null category means the record has no ordinance recorded. */
+export interface EnforcerViolationType extends EnforcerRecordCount {
+  category: TicketCategories | null;
+}
+
+export interface EnforcerMarketStreet extends EnforcerRecordCount {
+  marketSectionId: number;
+  marketSectionName: string;
+}
+
+/** A Philippine calendar day (YYYY-MM-DD). */
+export interface EnforcerReportDate extends EnforcerRecordCount {
+  date: string;
+}
+
+export interface EnforcerActivityReport {
+  dateRange: { from: string; to: string };
+  enforcer: EnforcerReportRow;
+  penaltyKinds: EnforcerPenaltyKind[];
+  violationTypes: EnforcerViolationType[];
+  marketStreets: EnforcerMarketStreet[];
+  days: EnforcerReportDate[];
 }
 
 export interface EnforcerSummary {

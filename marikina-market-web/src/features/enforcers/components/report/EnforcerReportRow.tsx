@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import type { EnforcerReportRow as ReportRow } from "@/api/types/enforcer.types";
 import { formatCurrency, formatNumber } from "@/utils/formatters";
+import { ROUTES } from "@/routes/routePaths";
 import { formatManilaDate } from "../../enforcerReport.utils";
 import styles from "./EnforcerReportRow.module.css";
 
@@ -13,11 +15,14 @@ function countCell(value: number) {
 
 export default function EnforcerReportRow({ row }: { row: ReportRow }) {
   return (
-    <tr className={styles.row}>
-      <th scope="row" className={styles.name}>
-        <span className={styles.fullName}>
+    <tr>
+      <th scope="row">
+        <Link
+          className={styles.fullName}
+          to={ROUTES.enforcerActivityReport(String(row.enforcerId))}
+        >
           {row.lastName}, {row.firstName}
-        </span>
+        </Link>
         <span className={styles.username}>
           {row.username}
           {row.status === "Inactive" && (
