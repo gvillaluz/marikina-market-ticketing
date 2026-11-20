@@ -1,6 +1,6 @@
 # Plan: Phase 4, line 4 — setup/recovery instructions and beneficiary evaluation
 
-Written 2026-11-18 (recreated the same day after the project folder was cleaned). **Status: slice 1 built and merged (PR #86); your read-through is still pending. D1 = B (keep the website on Static Web Apps); its code change, slice W, is closed 2026-11-18 (PR #89 merged; checked automatically, live-checked on this computer, and line 3's website checks re-run); its final proof on Azure is the demo update (slice 2), which is next.**
+Written 2026-11-18 (recreated the same day after the project folder was cleaned). **Status (2026-11-20): closed with accepted limits. Slices 1, W and 2 done (demo check list passed 2026-11-19); slice 3 reduced by your decision (option B): the existing form's 29 answers give usefulness, the timing and correctness session was not run; slice 4 done: [closing note](docs/closed-work/phases/phase-4-setup-and-evaluation.md). Your read-through of the guides was not given.**
 
 This file is committed with slice 1 (branch `feature/phase-4-criterion-4`), so it reaches every computer once that pull request is merged.
 
@@ -70,9 +70,9 @@ A ticket cannot be saved without one paper photo and at least one supporting pho
 
 1. **Slice 1** (the guide): **merged (PR #86)**; your read-through pending.
 2. **Slice W** (website on its own address): **closed 2026-11-18** (PR #89; results below, including the re-run of line 3's website checks).
-3. **Slice 2** (after line 3 and slice W pass): you update the demo by following the Azure section. This updates the demo and tests the written steps.
-4. **Slice 3**: evaluation gaps.
-5. **Slice 4**: closing note and roadmap tick proposal.
+3. **Slice 2** (after line 3 and slice W pass): you update the demo by following the Azure section. This updates the demo and tests the written steps. **Done 2026-11-18/19; check list passed 2026-11-19.**
+4. **Slice 3**: evaluation gaps. **Reduced 2026-11-20 (option B):** the existing form's answers only (step A); step B not run.
+5. **Slice 4**: closing note and roadmap tick proposal. **Done 2026-11-20.**
 
 Line 3's live checks stay on the local test database, as the project rules require. Only the evaluation uses the demo.
 
