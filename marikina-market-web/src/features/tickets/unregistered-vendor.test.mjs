@@ -181,9 +181,9 @@ test('community service log names an unregistered vendor and has no account numb
   assert.doesNotMatch(text(html), /null|undefined/);
 });
 
-test('enforcer inspection list shows the unregistered section and no owner or stall', async () => {
+test('enforcer inspection list shows the unregistered section, no owner and UNREGISTERED as the business', async () => {
   const html = render(await component('features/enforcers/components/performance/EnforcerInspectionList.tsx'), { records: [ticket, warning], onView: () => {} });
   assert.deepEqual(column(html, 'Registered owner'), [DASH, DASH]);
-  assert.deepEqual(column(html, 'Stall No.'), [DASH, DASH]);
+  assert.deepEqual(column(html, 'Business name'), ['UNREGISTERED', 'UNREGISTERED']);
   assert.deepEqual(column(html, 'Market street'), ['Meat and Poultry', 'Meat and Poultry']);
 });

@@ -76,10 +76,11 @@ const performance = {
   enforcerId: 8, totalInspections: 6, resolutionRate: 75, warningRatio: 33.3, ticketRatio: 66.7,
   monthlyInspections: Array.from({ length: 12 }, (_, i) => ({ month: i + 1, totalIssuedTickets: i === 10 ? 6 : 0 })),
 };
-const row = (ticketId, type, status) => ({
+const row = (ticketId, type, status, names = {}) => ({
   ticketId, type, status, controlNumber: type === "Warning" ? `WRN-000${ticketId}` : `00045${ticketId}`,
-  issuedAt: "2026-11-10T02:00:00Z", vendorId: null, vendorFirstName: null, vendorLastName: null,
-  stallNumber: null, marketSectionId: 1, marketSectionName: "Dry Goods", businessSnapshot: null,
+  issuedAt: "2026-11-10T02:00:00Z", vendorId: null, paperViolatorName: null, personFullName: null,
+  businessName: null, registeredOwnerName: null, marketSectionId: 1, marketSectionName: "Dry Goods",
+  businessSnapshot: null, ...names,
 });
 const tenRows = Array.from({ length: 10 }, (_, i) => row(i + 1, "Ticket", "Pending"));
 
@@ -102,8 +103,70 @@ function renderPage({
     "@/features/enforcers/hooks/useFetchHistory": { useFetchHistory: () => history },
     "@/components/ui/TicketModal/TicketModal": { TicketModal: () => null },
   });
-  return renderToStaticMarkup(React.createElement(Page));
+  // The breadcrumb's link needs a router around the page.
+  return renderToStaticMarkup(
+    React.createElement(realRouter.MemoryRouter, null, React.createElement(Page)),
+  );
 }
+
+// The history table's rows, as the text of each cell.
+const tableRows = (html) =>
+  [...html.matchAll(/<tr[^>]*>([^]*?)<\/tr>/g)]
+    .map(([, cells]) =>
+      [...cells.matchAll(/<td[^>]*>([^]*?)<\/td>/g)].map(([, cell]) =>
+        cell.replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'").replace(/\s+/g, " ").trim(),
+      ),
+    )
+    .filter((cells) => cells.length > 0);
+
+test("a breadcrumb leads back to the Enforcers page", () => {
+  const html = renderPage();
+  assert.match(html, /<nav[^>]*aria-label="Breadcrumb"/);
+  assert.match(html, /<a [^>]*href="\/enforcers"[^>]*>Enforcers<\/a>/);
+  assert.match(html, /aria-current="page"[^>]*>Cruz, Maria</);
+  // While the profile loads, the trail still leads back.
+  const loading = renderPage({ profileHook: { profile: undefined, profileProcess: { ...idle, isLoading: true } } });
+  assert.match(loading, /href="\/enforcers"/);
+  assert.match(loading, /aria-current="page"[^>]*>Enforcer</);
+});
+
+test("history rows show the violator, business, owner and street for each kind of record", () => {
+  const store = { vendorId: 17, businessName: "Aling Nena's Store", registeredOwnerName: "Nena Reyes" };
+  const rows = [
+    // Registered ticket: business and owner as they were when issued; the violator written on the ticket.
+    row(1, "Ticket", "Overdue", {
+      ...store, paperViolatorName: "JUAN D. CRUZ", personFullName: "Juan Dela Cruz",
+      businessSnapshot: { businessName: "Aling Nena's Store (2025)", registeredOwnerName: "Nena Reyes", marketSectionName: "Shoe Avenue" },
+    }),
+    // Unregistered vendor's ticket.
+    row(2, "Ticket", "InProgress", { paperViolatorName: "PEDRO SANTOS", personFullName: "Pedro Santos" }),
+    // Warning at a registered business: the confirmed person is the violator.
+    row(3, "Warning", null, { ...store, personFullName: "Maria Lopez" }),
+    // Older ticket with no name recorded.
+    row(4, "Ticket", "Pending"),
+  ];
+  const html = renderPage({ historyHook: { inspections: rows, total: 4, totalPages: 1 } });
+  const cells = tableRows(html).map((r) => [r[0], ...r.slice(2, 8)]);
+  assert.deepEqual(cells, [
+    ["000451", "JUAN D. CRUZ", "Aling Nena's Store (2025)", "Nena Reyes", "Shoe Avenue", "Ticket", "Overdue"],
+    ["000452", "PEDRO SANTOS", "UNREGISTERED", "—", "Dry Goods", "Ticket", "InProgress"],
+    ["—", "Maria Lopez", "Aling Nena's Store", "Nena Reyes", "Dry Goods", "Warning", "—"],
+    ["000454", "Unconfirmed (legacy record)", "UNREGISTERED", "—", "Dry Goods", "Ticket", "Pending"],
+  ]);
+  assert.doesNotMatch(html, /Stall No\./);
+});
+
+test("every ticket status gets its color, the same as the Tickets table", () => {
+  const statuses = ["Pending", "Contested", "InProgress", "Paid", "Cleared", "Overdue", "Waived"];
+  const html = renderPage({
+    historyHook: { inspections: statuses.map((status, i) => row(i + 1, "Ticket", status)), total: 7, totalPages: 1 },
+  });
+  for (const [status, tone] of [
+    ["Pending", "warning"], ["Contested", "warning"], ["InProgress", "warning"],
+    ["Paid", "success"], ["Cleared", "success"], ["Overdue", "danger"], ["Waived", "violet"],
+  ])
+    assert.match(html, new RegExp(`class="badge ${tone}">${status}<`), status);
+});
 
 test("only admins get the Enforcer report button, and only for a real enforcer number", () => {
   assert.match(renderPage(), /Enforcer report/);

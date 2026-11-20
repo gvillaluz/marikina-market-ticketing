@@ -1,6 +1,7 @@
 import { FC, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FileText } from "lucide-react";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import PageHeader from "@/components/ui/PageHeader";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
@@ -45,27 +46,39 @@ const EnforcerPerformancePage: FC = () => {
     setPage(Math.min(Math.max(target, 1), totalPages));
   };
 
+  const enforcerName = profile
+    ? `${profile.lastName}, ${profile.firstName}`
+    : "Enforcer";
+
   const header = (
-    <PageHeader
-      title="Enforcer Performance Record"
-      subtitle="Performance summary and inspection log for this enforcer."
-      actions={
-        isAdmin &&
-        isEnforcerId && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            icon={<FileText size={14} aria-hidden="true" />}
-            onClick={() =>
-              navigate(ROUTES.enforcerActivityReport(String(enforcerId)))
-            }
-          >
-            Enforcer report
-          </Button>
-        )
-      }
-    />
+    <>
+      <Breadcrumb
+        items={[
+          { label: "Enforcers", to: ROUTES.enforcers },
+          { label: enforcerName },
+        ]}
+      />
+      <PageHeader
+        title="Enforcer Performance Record"
+        subtitle="Performance summary and inspection log for this enforcer."
+        actions={
+          isAdmin &&
+          isEnforcerId && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              icon={<FileText size={14} aria-hidden="true" />}
+              onClick={() =>
+                navigate(ROUTES.enforcerActivityReport(String(enforcerId)))
+              }
+            >
+              Enforcer report
+            </Button>
+          )
+        }
+      />
+    </>
   );
 
   if (!isEnforcerId) {
