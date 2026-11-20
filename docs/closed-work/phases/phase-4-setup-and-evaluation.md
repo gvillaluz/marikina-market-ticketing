@@ -56,7 +56,7 @@ The owner approved closing this line on 2026-11-20 with the limits below. The ow
 2. **Correctness with and without the app was not counted** (slice 3, step B's violation cards). Statements 4.4 and 9.2 are opinions.
 3. **Which way each respondent tried the system** (demo website, phone app or video) is not recorded.
 4. **Recovery needs commands.** The website's Restore button is switched off on purpose; restoring the system's own backups follows the recovery guide's commands (proven in the restore drill, 2026-11-17). Azure's own click-based database restore (7 days kept) is not in the guide and was not tested.
-5. **Two deployment steps not yet done as written:** pointing the server, and the daily job, at a new package label (marked "(not yet tried)" in the deployment guide).
+5. **Two deployment steps not yet done as written:** pointing the server, and the daily job, at a new package label (marked "(not yet tried)" in the deployment guide). **Update 2026-11-20:** the server step was done for the first time (version `48dbf48`); its command was corrected in the deployment guide. The daily job step is still untried.
 
 ## Observations (not acted on)
 

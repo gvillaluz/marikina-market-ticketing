@@ -5,7 +5,7 @@ This guide is for **putting a new version of the system on the demo** on Azure. 
 - For setting up a new computer to work on the project, see the [setup guide](environment-setup.md).
 - For getting data back from a backup, see the [recovery guide](recovery-guide.md).
 
-Written 2026-11-20 from the steps used and checked on 2026-11-16 to 2026-11-20. Two steps have not yet been done exactly as written; they are marked **(not yet tried)**. Check them carefully the first time.
+Written 2026-11-20 from the steps used and checked on 2026-11-16 to 2026-11-20. One step has not yet been done exactly as written: pointing the daily job at a new package (step 6). It is marked **(not yet tried)**; check it carefully the first time.
 
 ## The demo at a glance
 
@@ -94,16 +94,19 @@ The server's database changes are files in `marikina-market-api/MarikinaMarket.A
 
 ## 3. Server
 
-This builds a new server package from `main`, uploads it to the package store, and tells the server to use it. The label is the code version (for example `f146f76`), so you always know which version is running.
+This builds a new server package from `main`, uploads it to the package store, and tells the server to use it. The label is the code version (for example `48dbf48`), so you always know which version is running.
 
-1. **Build the package.** In the `marikina-market-api` folder (Docker Desktop must be running):
+**Do all four parts in the same PowerShell window**, starting in the main project folder: part 1 remembers the label in `$tag`, and the later parts use it.
+
+1. **Build the package** (Docker Desktop must be running). The server's recipe is in the `marikina-market-api` folder, so go there first:
 
    ```powershell
+   cd marikina-market-api
    $tag = git rev-parse --short HEAD
    docker build -t marikinamarketregistry.azurecr.io/marikina-market-api:$tag .
    ```
 
-   You should see it finish without errors (about 2 minutes the first time).
+   You should see it finish without errors (about 2 minutes the first time). "open Dockerfile: no such file or directory" means the window is not in the `marikina-market-api` folder.
 2. **Upload it** to the package store:
 
    ```powershell
@@ -111,13 +114,14 @@ This builds a new server package from `main`, uploads it to the package store, a
    docker push marikinamarketregistry.azurecr.io/marikina-market-api:$tag
    ```
 
-   You should see `Login Succeeded`, then the upload ends with a line containing `digest: sha256:`. If it says "no such host", wait a minute and try again.
-3. **Tell the server to use it** **(not yet tried)**. The server fetches the new package and restarts by itself:
+   You should see `Login Succeeded`, then the upload ends with a line containing `digest: sha256:`. If it says "no such host", wait a minute and try again. "tag does not exist" means part 1 did not finish.
+3. **Tell the server to use it.** Uploading alone changes nothing: the server keeps running the label it was given, and a restart would still run that old label. This switches it to the new label; the server fetches the package and **restarts by itself** (no separate restart):
 
    ```powershell
-   az webapp config set -g marikina-market-rg -n marikina-market-server --linux-fx-version "DOCKER|marikinamarketregistry.azurecr.io/marikina-market-api:$tag"
+   az webapp config container set -g marikina-market-rg -n marikina-market-server --container-image-name marikinamarketregistry.azurecr.io/marikina-market-api:$tag
    ```
 
+   It prints two settings; the second must end with `:$tag`, for example `DOCKER|marikinamarketregistry.azurecr.io/marikina-market-api:48dbf48`. Do not use `az webapp config set --linux-fx-version "DOCKER|..."` instead: on Windows the `|` breaks that command ("is not recognized as an internal or external command").
 4. **Check it**, after 1–2 minutes: open `https://marikina-market-server.azurewebsites.net/api/does-not-exist` in the browser. It must show `{"message":"The requested resource was not found."}`. That means the server is running. (A page that does not load means it is still starting; wait and refresh.)
 
 **The server's settings** (database connection, keys, email account and so on) stay on the server across updates. You only change them when a value itself changes: Azure portal → `marikina-market-server` → **Settings → Environment variables**. Their names, never their values:
@@ -132,6 +136,7 @@ This builds a new server package from `main`, uploads it to the package store, a
 | `Firebase__ServiceAccountJson` | The Firebase key, for phone notifications: the whole Firebase service-account file's content |
 | `Cors__AllowedOrigins__0` | The website's address, exactly `https://ashy-mud-0d9f37900.6.azurestaticapps.net` (no slash at the end). Only this address may use the server from a browser. If it is wrong, the website cannot sign in. |
 | `WEBSITES_PORT` | `8080`, the port the server package listens on |
+| `WEBSITES_ENABLE_APP_SERVICE_STORAGE` | `false`, set by step 3, part 3: Azure's shared file folder is not attached to the package (the server does not use it) |
 
 Keep the server's own **CORS** page in Azure **empty** (portal → `marikina-market-server` → type `CORS` in its left menu's search box). If addresses are listed there, the server's own rule above is ignored and the website signs users out on every refresh.
 
@@ -224,7 +229,7 @@ On a phone (if the phone app was updated): sign in, open the inspections list.
 | Part | How to go back |
 | --- | --- |
 | Data | Restore the backup from step 1: [recovery guide](recovery-guide.md) |
-| Server | Point it back at the previous label (step 3, part 3, with the old label). The labels in the store: `az acr repository show-tags -n marikinamarketregistry --repository marikina-market-api -o table`. Until it is deleted, the old server `marikina-market-api` also still runs the version from before 2026-11-19 |
+| Server | Point it back at the previous label: in a new window, set `$tag = '<old label>'`, then run step 3, part 3. The labels in the store: `az acr repository show-tags -n marikinamarketregistry --repository marikina-market-api -o table`. Until it is deleted, the old server `marikina-market-api` also still runs the version from before 2026-11-19 |
 | Website | On GitHub, revert the change that broke it (the pull request's **Revert** button), merge, and press **Deploy website** again |
 | Phone app | Install the previous APK you kept (uninstall first if Android refuses) |
 | Daily job | Point it back at the previous label (step 6, part 2), with the labels from `az acr repository show-tags -n marikinamarketregistry --repository marikina-market-model -o table` |
