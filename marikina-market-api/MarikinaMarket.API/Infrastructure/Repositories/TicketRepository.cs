@@ -957,11 +957,13 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
         }
 
         // One row per enforcer per Philippine calendar day. Settled = Paid, Cleared or Waived, as on the Reports page.
-        public async Task<List<EnforcerReportDay>> GetEnforcerReportDaysAsync(DateTime startUtc, DateTime endUtc)
+        // With an enforcer id, only that enforcer's rows.
+        public async Task<List<EnforcerReportDay>> GetEnforcerReportDaysAsync(DateTime startUtc, DateTime endUtc, int? enforcerId = null)
         {
             return await _context.Tickets
                 .AsNoTracking()
                 .Where(t => t.IssuedAt >= startUtc && t.IssuedAt < endUtc)
+                .Where(t => enforcerId == null || t.EnforcerId == enforcerId)
                 .Select(t => new
                 {
                     t.EnforcerId,
@@ -976,12 +978,32 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(g => new EnforcerReportDay
                 {
                     EnforcerId = g.Key.EnforcerId,
+                    Day = g.Key.Day,
                     Warnings = g.Count(t => t.Type == ViolationType.Warning),
                     Tickets = g.Count(t => t.Type == ViolationType.Ticket),
                     SettledTickets = g.Count(t => t.Settled),
                     FinesCharged = g.Sum(t => t.Fine),
                     FinesSettled = g.Sum(t => t.Settled ? t.Fine : 0m),
                     LastRecordAt = g.Max(t => t.IssuedAt)
+                })
+                .ToListAsync();
+        }
+
+        // One enforcer's records in the period, each with its street and its distinct violation types.
+        public async Task<List<EnforcerActivityRecord>> GetEnforcerActivityRecordsAsync(int enforcerId, DateTime startUtc, DateTime endUtc)
+        {
+            return await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.EnforcerId == enforcerId && t.IssuedAt >= startUtc && t.IssuedAt < endUtc)
+                .Select(t => new EnforcerActivityRecord
+                {
+                    Type = t.Type,
+                    Status = t.Status,
+                    PenaltyType = t.PenaltyType,
+                    Fine = t.TotalPaymentAmount,
+                    MarketSectionId = t.MarketSectionId,
+                    MarketSectionName = t.MarketSection!.Name,
+                    Categories = t.TicketViolations.Select(v => v.Ordinance!.Category).Distinct().ToList()
                 })
                 .ToListAsync();
         }

@@ -12,5 +12,6 @@ namespace MarikinaMarket.API.Application.Interfaces
         Task<PerformanceSummaryResponse> GetPerformanceSummaryAsync(int enforcerId);
         Task<PageResponse<InspectionResponse>> GetInspectionHistoryAsync(int enforcerId, int offset);
         Task<EnforcerReportResponse> GetReportAsync(string? from, string? to);
+        Task<EnforcerActivityReportResponse> GetActivityReportAsync(int enforcerId, string? from, string? to);
     }
 }

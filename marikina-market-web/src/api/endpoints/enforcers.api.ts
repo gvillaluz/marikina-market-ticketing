@@ -2,6 +2,7 @@ import { AccountStatus, PaginatedResponse } from "../types/common.types";
 import apiClient from "../client";
 import {
   EnforcerActivityData,
+  EnforcerActivityReport,
   EnforcerPerformanceData,
   EnforcerProfile,
   EnforcerReport,
@@ -34,6 +35,20 @@ export const enforcersApi = {
     return apiClient
       .get("/admin/enforcers/activities")
       .then((response) => response.data as EnforcerActivityData);
+  },
+
+  enforcerActivityReport(
+    enforcerId: number,
+    from: string,
+    to: string,
+    signal?: AbortSignal,
+  ): Promise<EnforcerActivityReport> {
+    return apiClient
+      .get(`/admin/enforcers/${enforcerId}/report`, {
+        params: { from, to },
+        signal,
+      })
+      .then((response) => response.data as EnforcerActivityReport);
   },
 
   enforcerReport(

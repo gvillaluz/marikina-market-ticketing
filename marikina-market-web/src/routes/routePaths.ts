@@ -9,6 +9,7 @@ export const ROUTES = {
   tickets: "/tickets",
   enforcers: "/enforcers",
   enforcerReport: "/enforcers/report",
+  enforcerActivityReport: (id: string) => `/enforcers/report/${id}`,
   adminVendors: "/admin/vendors",
   adminPersons: "/admin/persons",
   adminVendorInspections: (id: string) => `/admin/vendors/${id}/inspections`,

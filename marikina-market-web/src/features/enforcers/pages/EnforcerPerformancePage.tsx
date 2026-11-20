@@ -1,6 +1,10 @@
 import { FC, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { FileText } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
+import Button from "@/components/ui/Button";
+import { useAuth } from "@/context/AuthContext";
+import { ROUTES } from "@/routes/routePaths";
 import { RecordsFooter, RecordsState } from "@/components/ui/Records";
 import { formatNumber } from "@/utils/formatters";
 import EnforcerProfileCard from "../components/performance/EnforcerProfileCard";
@@ -17,6 +21,8 @@ import MonthlyInspectionsChartSkeleton from "../components/performance/MonthlyIn
 import { TicketModal } from "@/components/ui/TicketModal/TicketModal";
 
 const EnforcerPerformancePage: FC = () => {
+  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const { id } = useParams();
   const enforcerId = Number(id);
   const isEnforcerId = Number.isInteger(enforcerId) && enforcerId > 0;
@@ -43,6 +49,22 @@ const EnforcerPerformancePage: FC = () => {
     <PageHeader
       title="Enforcer Performance Record"
       subtitle="Performance summary and inspection log for this enforcer."
+      actions={
+        isAdmin &&
+        isEnforcerId && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            icon={<FileText size={14} aria-hidden="true" />}
+            onClick={() =>
+              navigate(ROUTES.enforcerActivityReport(String(enforcerId)))
+            }
+          >
+            Enforcer report
+          </Button>
+        )
+      }
     />
   );
 

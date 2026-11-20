@@ -7,6 +7,7 @@ import { ROUTES } from "@/routes/routePaths";
 import { useEnforcerReport } from "../hooks/useEnforcerReport";
 import EnforcerReportPeriod from "../components/report/EnforcerReportPeriod";
 import EnforcerReportPreview from "../components/report/EnforcerReportPreview";
+import EnforcerReportPaper from "../components/report/EnforcerReportPaper";
 import styles from "./EnforcerReportPage.module.css";
 
 const EnforcerReportPage: FC = () => {
@@ -31,7 +32,11 @@ const EnforcerReportPage: FC = () => {
         }
       />
       <EnforcerReportPeriod model={model} />
-      <EnforcerReportPreview model={model} />
+      <EnforcerReportPreview model={model}>
+        {model.report && (
+          <EnforcerReportPaper report={model.report} paperRef={model.paperRef} />
+        )}
+      </EnforcerReportPreview>
     </div>
   );
 };

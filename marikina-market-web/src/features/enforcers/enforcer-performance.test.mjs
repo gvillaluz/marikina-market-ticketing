@@ -88,6 +88,7 @@ function renderPage({
   profileHook = { profile, profileProcess: idle },
   performanceHook = { performance, performanceProcess: idle },
   historyHook = {},
+  isAdmin = true,
 } = {}) {
   const history = {
     inspections: tenRows, page: 1, setPage() {}, total: 25, totalPages: 3, pageSize: 10, historyProcess: idle,
@@ -95,6 +96,7 @@ function renderPage({
   };
   const { default: Page } = load("features/enforcers/pages/EnforcerPerformancePage.tsx", {
     "react-router-dom": { ...realRouter, useParams: () => ({ id }), useNavigate: () => () => {} },
+    "@/context/AuthContext": { useAuth: () => ({ isAdmin }) },
     "@/features/enforcers/hooks/useFetchProfile": { useFetchProfile: () => profileHook },
     "@/features/enforcers/hooks/useFetchPerformance": { useFetchPerformance: () => performanceHook },
     "@/features/enforcers/hooks/useFetchHistory": { useFetchHistory: () => history },
@@ -102,6 +104,12 @@ function renderPage({
   });
   return renderToStaticMarkup(React.createElement(Page));
 }
+
+test("only admins get the Enforcer report button, and only for a real enforcer number", () => {
+  assert.match(renderPage(), /Enforcer report/);
+  assert.doesNotMatch(renderPage({ isAdmin: false }), /Enforcer report/);
+  assert.doesNotMatch(renderPage({ id: "abc" }), /Enforcer report/);
+});
 
 test("a loaded page shows the profile, the numbers and the history", () => {
   const html = renderPage();

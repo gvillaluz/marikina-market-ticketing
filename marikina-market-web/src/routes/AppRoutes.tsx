@@ -21,6 +21,7 @@ import { InspectionsPage } from "../features/inspections/pages/InspectionsPage";
 import EnforcersPage from "@/features/enforcers/pages/EnforcersPage";
 import EnforcerPerformancePage from "@/features/enforcers/pages/EnforcerPerformancePage";
 import EnforcerReportPage from "@/features/enforcers/pages/EnforcerReportPage";
+import EnforcerActivityReportPage from "@/features/enforcers/pages/EnforcerActivityReportPage";
 import AdminVendorsPage from "@/features/vendors/pages/AdminVendorsPage";
 import AdminVendorInspectionPage from "@/features/vendors/pages/AdminVendorInspectionPage";
 import AdminAnalyticsPage from "@/features/analytics/pages/AdminAnalyticsPage";
@@ -121,6 +122,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={ADMIN_ROLES}>
               <EnforcerReportPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.enforcerActivityReport(":id")}
+          element={
+            <ProtectedRoute roles={ADMIN_ROLES}>
+              <EnforcerActivityReportPage />
             </ProtectedRoute>
           }
         />

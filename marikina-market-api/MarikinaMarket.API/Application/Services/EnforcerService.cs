@@ -226,6 +226,80 @@ namespace MarikinaMarket.API.Application.Services
             };
         }
 
+        // One enforcer's summary row plus penalty kinds, violation types, market streets and days.
+        public async Task<EnforcerActivityReportResponse> GetActivityReportAsync(int enforcerId, string? from, string? to)
+        {
+            var (fromDate, toDate, startUtc, endUtc) = ManilaDateRange(from, to);
+
+            var user = await _userRepository.GetUserAsync(enforcerId);
+            if (user is null || await _userRepository.GetRoleAsync(user) != Role.MarketEnforcer)
+                throw new RecordNotFoundException("Enforcer not found.");
+
+            var days = await _ticketRepository.GetEnforcerReportDaysAsync(startUtc, endUtc, enforcerId);
+            var records = await _ticketRepository.GetEnforcerActivityRecordsAsync(enforcerId, startUtc, endUtc);
+
+            return new EnforcerActivityReportResponse
+            {
+                DateRange = new ReportDateRangeResponse { From = fromDate, To = toDate },
+                Enforcer = ReportRow(user, days),
+                PenaltyKinds = PenaltyKinds(records),
+                ViolationTypes = records
+                    .SelectMany(r => r.Categories.Count == 0
+                        ? [(r.Type, Category: (ViolationCategory?)null)]
+                        : r.Categories.Select(c => (r.Type, Category: (ViolationCategory?)c)))
+                    .GroupBy(r => r.Category)
+                    .Select(g => WithCounts(new EnforcerViolationTypeResponse { Category = g.Key }, g.Select(r => r.Type)))
+                    .OrderBy(v => v.Category is null)
+                    .ThenByDescending(v => v.Total)
+                    .ThenBy(v => v.Category)
+                    .ToList(),
+                MarketStreets = records
+                    .GroupBy(r => (r.MarketSectionId, r.MarketSectionName))
+                    .Select(g => WithCounts(new EnforcerMarketStreetResponse
+                        { MarketSectionId = g.Key.MarketSectionId, MarketSectionName = g.Key.MarketSectionName }, g.Select(r => r.Type)))
+                    .OrderByDescending(s => s.Total)
+                    .ThenBy(s => s.MarketSectionName)
+                    .ToList(),
+                Days = days
+                    .OrderBy(d => d.Day)
+                    .Select(d => new EnforcerReportDateResponse
+                        { Date = DateOnly.FromDateTime(d.Day), Warnings = d.Warnings, Tickets = d.Tickets, Total = d.Warnings + d.Tickets })
+                    .ToList()
+            };
+        }
+
+        // Tickets by penalty kind, most first; a tie keeps the penalty order; "not recorded" last.
+        private static List<EnforcerPenaltyKindResponse> PenaltyKinds(List<EnforcerActivityRecord> records)
+        {
+            static bool Settled(EnforcerActivityRecord r) =>
+                r.Status is TicketStatus.Paid or TicketStatus.Cleared or TicketStatus.Waived;
+
+            return records
+                .Where(r => r.Type == ViolationType.Ticket)
+                .GroupBy(r => r.PenaltyType)
+                .Select(g => new EnforcerPenaltyKindResponse
+                {
+                    PenaltyType = g.Key,
+                    Tickets = g.Count(),
+                    SettledTickets = g.Count(Settled),
+                    OpenTickets = g.Count(r => !Settled(r)),
+                    FinesCharged = g.Sum(r => r.Fine ?? 0m)
+                })
+                .OrderBy(p => p.PenaltyType is null)
+                .ThenByDescending(p => p.Tickets)
+                .ThenBy(p => p.PenaltyType)
+                .ToList();
+        }
+
+        private static T WithCounts<T>(T response, IEnumerable<ViolationType> types) where T : EnforcerRecordCountResponse
+        {
+            var list = types.ToList();
+            response.Warnings = list.Count(t => t == ViolationType.Warning);
+            response.Tickets = list.Count - response.Warnings;
+            response.Total = list.Count;
+            return response;
+        }
+
         private static EnforcerReportRowResponse ReportRow(User enforcer, List<EnforcerReportDay> days)
         {
             var warnings = days.Sum(d => d.Warnings);

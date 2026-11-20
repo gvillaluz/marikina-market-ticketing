@@ -1,30 +1,23 @@
-.row th,
-.row td {
-  padding: var(--space-sm) var(--space-md);
-  border-bottom: 1px solid var(--border-default);
-  text-align: right;
-  white-space: nowrap;
-  vertical-align: top;
-  color: var(--text-heading);
-}
-.row:hover th,
-.row:hover td {
-  background: var(--button-primary-surface);
-}
-.row .name {
-  text-align: left;
-}
 .fullName {
   display: block;
   font-weight: 600;
-  color: var(--text-heading);
+  color: var(--button-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--backup-action-border);
+  text-underline-offset: 3px;
+}
+.fullName:hover {
+  text-decoration-color: var(--button-primary);
+}
+.fullName:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
 }
 .username {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   font-size: var(--font-size-xs);
-  font-weight: 400;
   color: var(--text-body);
 }
 .inactive {
@@ -34,12 +27,12 @@
   font-size: var(--font-size-xs);
   color: var(--text-body);
 }
-.row .zero {
+tr td.zero {
   color: var(--text-body);
 }
 @media print {
-  .row:hover th,
-  .row:hover td {
-    background: none;
+  .fullName {
+    color: var(--text-heading);
+    text-decoration: none;
   }
 }

@@ -99,6 +99,7 @@ const pageModules = [
   "features/enforcers/pages/EnforcersPage",
   "features/enforcers/pages/EnforcerPerformancePage",
   "features/enforcers/pages/EnforcerReportPage",
+  "features/enforcers/pages/EnforcerActivityReportPage",
   "features/vendors/pages/AdminVendorsPage",
   "features/vendors/pages/AdminVendorInspectionPage",
   "features/vendors/pages/AdminVendorRegistrationsPage",
@@ -182,6 +183,7 @@ test("the administrator pages that stay still open at their addresses", () => {
     "/admin/persons": "persons",
     "/tickets": "TicketsPage",
     "/enforcers/report": "EnforcerReportPage",
+    "/enforcers/report/8": "EnforcerActivityReportPage",
   };
   for (const [address, page] of Object.entries(expected))
     assert.match(
