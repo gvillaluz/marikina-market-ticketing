@@ -81,6 +81,17 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
+        public Task<List<PenaltyTierSummary>> GetPenaltyTiersAsync(List<int> ordinanceIds)
+            => _context.OrdinancePenaltyTiers
+                .Where(pt => ordinanceIds.Contains(pt.OrdinanceId))
+                .Select(pt => new PenaltyTierSummary
+                {
+                    OrdinanceId = pt.OrdinanceId, OffenseNumber = pt.OffenseNumber,
+                    FineKind = pt.FineKind, PenaltyAmount = pt.PenaltyAmount,
+                    MaximumFine = pt.MaximumFine, PenaltyTerms = pt.PenaltyTerms,
+                    AllowBloodDonation = pt.AllowBloodDonation, AllowCommunityService = pt.AllowCommunityService
+                }).ToListAsync();
+
         public async Task AddAsync(Ordinance ordinance)
         {
             await _context.Ordinances.AddAsync(ordinance);

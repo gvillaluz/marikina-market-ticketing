@@ -23,6 +23,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task<int> GetAdminTicketCountAsync(TicketSummaryFilters filters);
         Task<int> GetTotalTicketCountForPeriodAsync(DateTime start, DateTime end, ViolationType type);
         Task<Ticket?> GetTicketByIdAsync(int ticketId);
+        Task<Ticket?> GetTicketWithViolationsAsync(int ticketId);
         Task<Ticket?> GetVendorTicketByIdAsync(int ticketId, int userId);
         Task<List<VendorComplianceTicket>> GetVendorComplianceTicketsAsync(
             IReadOnlyCollection<int> vendorIds, DateTime windowStart, DateTime calculatedAt);

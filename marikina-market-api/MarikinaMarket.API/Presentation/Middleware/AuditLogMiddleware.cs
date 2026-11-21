@@ -48,8 +48,8 @@ namespace MarikinaMarket.API.Presentation.Middleware
                  action.ControllerName == "AdminUser" && action.ActionName == "CreateUser" ||
                  action.ControllerName == "AdminBusiness" && action.ActionName is "Create" or "Update" ||
                  action.ControllerName == "Vendor" && action.ActionName is "ApproveRegistration" or "DeclineRegistration" or "RequestMoreInformation" ||
-                 action.ControllerName == "EnforcerTicket" && action.ActionName is "SaveNewInspection" or "SubmitTicketReceiptProof" or "LogCommunityServiceHours" ||
-                 action.ControllerName == "AdminTicket" && action.ActionName == "UpdateTicketStatus" ||
+                 action.ControllerName == "EnforcerTicket" && action.ActionName is "SaveNewInspection" or "SubmitTicketReceiptProof" or "LogCommunityServiceHours" or "ChangePenalty" ||
+                 action.ControllerName == "AdminTicket" && action.ActionName is "UpdateTicketStatus" or "ChangePenalty" ||
                  action.ControllerName == "Auth" && action.ActionName is "Register" or "ChangePassword");
 
             await _next(context);
@@ -202,6 +202,7 @@ namespace MarikinaMarket.API.Presentation.Middleware
                 "EnforcerTicket.SubmitTicketReceiptProof" => "Ticket receipt submission",
                 "EnforcerTicket.LogCommunityServiceHours" => "Community-service hours recording",
                 "AdminTicket.UpdateTicketStatus" => "Ticket status update",
+                "AdminTicket.ChangePenalty" or "EnforcerTicket.ChangePenalty" => "Ticket penalty change",
                 "Ordinance.Create" => "Ordinance creation",
                 "Ordinance.Update" => "Ordinance update",
                 "MarketSection.Create" => "Market street creation",

@@ -402,7 +402,6 @@ namespace MarikinaMarket.API.Application.Services
                 var applicableTier = ordinance.PenaltyTiers
                     .FirstOrDefault(pt => pt.OffenseNumber == offenseNumber);
                 var fineKind = applicableTier?.FineKind ?? FineKind.Unconfirmed;
-                var configured = applicableTier is not null && fineKind != FineKind.Unconfirmed;
 
                 items.Add(new OrdinanceFineBreakdownItem
                 {
@@ -418,8 +417,8 @@ namespace MarikinaMarket.API.Application.Services
                     MaximumFine = applicableTier?.MaximumFine,
                     PenaltyTerms = applicableTier?.PenaltyTerms ?? (applicableTier is null
                         ? "No confirmed penalty rule is configured for this offense. Administrator confirmation is required." : null),
-                    AllowBloodDonation = configured && offenseNumber == 1 && applicableTier!.AllowBloodDonation,
-                    AllowCommunityService = configured && offenseNumber == 1 && applicableTier!.AllowCommunityService,
+                    AllowBloodDonation = IsAlternativePenaltyAllowed(applicableTier, offenseNumber, PenaltyType.BloodDonation),
+                    AllowCommunityService = IsAlternativePenaltyAllowed(applicableTier, offenseNumber, PenaltyType.CommunityService),
                     Category = ordinance.Category,
                     IsDuplicate = isDuplicate
                 });
@@ -1311,6 +1310,154 @@ namespace MarikinaMarket.API.Application.Services
             };
         }
 
+        public async Task<PenaltyOptionsResponse> GetPenaltyOptionsAsync(int ticketId, int? enforcerId)
+        {
+            if (ticketId <= 0)
+                throw new InvalidRequestException("Ticket identification is invalid.");
+
+            var ticket = await GetTicketForPenaltyChangeAsync(ticketId, enforcerId);
+            EnsurePenaltyChangeable(ticket);
+            var tiers = await GetPenaltyTiersAsync(ticket);
+
+            return new PenaltyOptionsResponse
+            {
+                TicketId = ticket.Id,
+                CurrentPenaltyType = ticket.PenaltyType,
+                AllowedPenaltyTypes = AllowedPenaltyTypes(ticket, tiers),
+                CashFineAmount = CashFineAmount(ticket),
+                CommunityServiceHours = ticket.PenaltyType == PenaltyType.CommunityService ? ticket.CommunityServiceHours : null,
+                Version = ticket.Version
+            };
+        }
+
+        public async Task<ChangePenaltyResponse> ChangePenaltyAsync(int ticketId, ChangePenaltyRequest request, int? enforcerId)
+        {
+            if (ticketId <= 0)
+                throw new InvalidRequestException("Ticket identification is invalid.");
+            Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+            var newPenalty = request.PenaltyType!.Value;
+
+            Ticket ticket;
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                ticket = await GetTicketForPenaltyChangeAsync(ticketId, enforcerId);
+                if (ticket.Version != request.Version)
+                    throw new ConcurrencyConflictException("This ticket was updated by another user. Please refresh and try again.");
+                EnsurePenaltyChangeable(ticket);
+                if (ticket.PenaltyType == newPenalty)
+                    throw new InvalidRequestException("The ticket already has this penalty.");
+                if (!AllowedPenaltyTypes(ticket, await GetPenaltyTiersAsync(ticket)).Contains(newPenalty))
+                    throw new InvalidRequestException("This penalty is not allowed for this ticket under the market code.");
+                if (newPenalty == PenaltyType.CommunityService && request.CommunityServiceHours is null or < 3)
+                    throw new InvalidRequestException("Community service requires a minimum of 3 hours.");
+
+                var previousPenalty = ticket.PenaltyType;
+                _ticketRepository.SetOriginalVersion(ticket, request.Version);
+                ticket.PenaltyType = newPenalty;
+                ticket.CommunityServiceHours = newPenalty == PenaltyType.CommunityService ? request.CommunityServiceHours : null;
+                ticket.TotalPaymentAmount = newPenalty == PenaltyType.CashFine ? CashFineAmount(ticket) : null;
+                ticket.UpdatedAt = DateTime.UtcNow;
+
+                // The calculation queries persisted tickets, so flush before refreshing within this transaction.
+                await _ticketRepository.SaveChangesAsync();
+                if (ticket.VendorId is { } vendorId)
+                    await _complianceScoreService.RefreshAsync(vendorId, DateTime.UtcNow);
+                if (_audit?.Entry is not null)
+                    _audit.Entry.Details = PenaltyChangeDetails(previousPenalty, ticket, request.Reason!.Value);
+                if (_auditService is not null) await _auditService.StageCurrentAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            return new ChangePenaltyResponse
+            {
+                TicketId = ticket.Id,
+                PenaltyType = newPenalty,
+                CommunityServiceHours = ticket.CommunityServiceHours,
+                TotalFineAmount = ticket.TotalPaymentAmount,
+                UpdatedAt = ticket.UpdatedAt,
+                Version = ticket.Version
+            };
+        }
+
+        private async Task<Ticket> GetTicketForPenaltyChangeAsync(int ticketId, int? enforcerId)
+        {
+            var ticket = await _ticketRepository.GetTicketWithViolationsAsync(ticketId)
+                ?? throw new RecordNotFoundException("Ticket not found.");
+            if (enforcerId is { } id && ticket.EnforcerId != id)
+                throw new UnauthorizedAccessException("You can only change the penalty on tickets you issued.");
+            return ticket;
+        }
+
+        private Task<List<PenaltyTierSummary>> GetPenaltyTiersAsync(Ticket ticket)
+            => _ordinanceRepository.GetPenaltyTiersAsync(
+                ticket.TicketViolations.Select(violation => violation.OrdinanceId).Distinct().ToList());
+
+        private static void EnsurePenaltyChangeable(Ticket ticket)
+        {
+            if (ticket.Type == ViolationType.Warning)
+                throw new InvalidRequestException("Warnings have no penalty to change.");
+            if (ticket.Status is not (TicketStatus.Pending or TicketStatus.Overdue))
+                throw new InvalidRequestException("The penalty can only be changed while the ticket is Pending or Overdue.");
+            if (ticket.ProofUrls?.Any(proof => !string.IsNullOrWhiteSpace(proof)) == true
+                || ticket.ReceiptSubmissionId is not null || ticket.CommunityServiceLogs.Count > 0)
+                throw new InvalidRequestException("The penalty can't be changed after settlement proof or community service hours are recorded.");
+        }
+
+        // The same choices the enforcer had when issuing, under the ordinances' current penalty rules.
+        private static List<PenaltyType> AllowedPenaltyTypes(Ticket ticket, List<PenaltyTierSummary> tiers)
+        {
+            List<PenaltyType> allowed = [];
+            if (CashFineAmount(ticket) is not null)
+                allowed.Add(PenaltyType.CashFine);
+            foreach (var penalty in new[] { PenaltyType.CommunityService, PenaltyType.BloodDonation })
+                if (ticket.TicketViolations.Count > 0 && ticket.TicketViolations.All(violation => IsAlternativePenaltyAllowed(
+                        tiers.FirstOrDefault(tier => tier.OrdinanceId == violation.OrdinanceId
+                            && tier.OffenseNumber == violation.OffenseCount),
+                        violation.OffenseCount, penalty)))
+                    allowed.Add(penalty);
+            return allowed;
+        }
+
+        private static decimal? CashFineAmount(Ticket ticket)
+            => ticket.TicketViolations.Count > 0 && ticket.TicketViolations.All(violation => violation.PenaltyAmount.HasValue)
+                ? ticket.TicketViolations.Sum(violation => violation.PenaltyAmount!.Value)
+                : null;
+
+        // Blood donation and community service replace the fine only for a first offense under a confirmed rule that allows them.
+        private static bool IsAlternativePenaltyAllowed(PenaltyTierSummary? tier, int offenseNumber, PenaltyType penalty)
+            => tier is not null && tier.FineKind != FineKind.Unconfirmed && offenseNumber == 1
+                && (penalty == PenaltyType.BloodDonation ? tier.AllowBloodDonation : tier.AllowCommunityService);
+
+        private static string PenaltyChangeDetails(PenaltyType? previousPenalty, Ticket ticket, PenaltyChangeReason reason)
+        {
+            var from = previousPenalty is { } previous ? PenaltyLabel(previous) : "no penalty";
+            var hours = ticket.PenaltyType == PenaltyType.CommunityService ? $" ({ticket.CommunityServiceHours} hours)" : "";
+            return $"{AuditLogService.PenaltyChangeDetailsPrefix}{from} to {PenaltyLabel(ticket.PenaltyType!.Value)}{hours}. "
+                + $"Reason: {ReasonLabel(reason)}.";
+        }
+
+        private static string PenaltyLabel(PenaltyType penalty) => penalty switch
+        {
+            PenaltyType.CashFine => "Cash fine",
+            PenaltyType.BloodDonation => "Blood donation",
+            PenaltyType.CommunityService => "Community service",
+            _ => throw new ArgumentOutOfRangeException(nameof(penalty))
+        };
+
+        private static string ReasonLabel(PenaltyChangeReason reason) => reason switch
+        {
+            PenaltyChangeReason.CannotPayCashFine => "Violator can't pay the cash fine",
+            PenaltyChangeReason.RequestedDifferentPenalty => "Violator asked for a different penalty",
+            PenaltyChangeReason.WrongPenaltyAtIssue => "Wrong penalty chosen when issuing",
+            _ => throw new ArgumentOutOfRangeException(nameof(reason))
+        };
+
         private static void ValidateTicketSettlement(Ticket ticket, TicketStatus newStatus)
         {
             if (newStatus is not (TicketStatus.Paid or TicketStatus.Cleared))
@@ -1590,13 +1737,9 @@ namespace MarikinaMarket.API.Application.Services
 
         private static string BuildPenaltyEmailRows(Ticket ticket)
         {
-            var penalty = ticket.PenaltyType switch
-            {
-                PenaltyType.CashFine => "Cash fine",
-                PenaltyType.BloodDonation => "Blood donation",
-                PenaltyType.CommunityService => "Community service",
-                _ => "Contact the market administration office"
-            };
+            var penalty = ticket.PenaltyType is { } type && Enum.IsDefined(type)
+                ? PenaltyLabel(type)
+                : "Contact the market administration office";
             var rows = $@"<tr><td style=""padding: 4px 0; color: #666;"">Penalty Type</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">{penalty}</td></tr>";
             if (ticket.PenaltyType == PenaltyType.CashFine)
                 rows += $@"<tr><td style=""padding: 4px 0; color: #666;"">Total Penalty</td><td style=""padding: 4px 0; font-weight: bold; text-align: right;"">PHP {ticket.TotalPaymentAmount:N2}</td></tr>";

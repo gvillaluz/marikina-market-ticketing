@@ -42,6 +42,9 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
         Task<PageResponse<InspectionSummaryResponse>> GetInspectionsByEnforcerIdAsync(int enforcerId, int offset, ViolationType? type, string search);
         Task<PageResponse<TicketSummaryResponse>> GetTicketsByEnforcerIdAsync(int enforcerId, int offset, TicketStatus? status, string search);
         Task<UpdateStatusResponse> UpdateTicketStatusAsync(int ticketId, UpdateStatusRequest request);
+        // enforcerId is null for an admin caller; an enforcer may only use tickets they issued.
+        Task<PenaltyOptionsResponse> GetPenaltyOptionsAsync(int ticketId, int? enforcerId);
+        Task<ChangePenaltyResponse> ChangePenaltyAsync(int ticketId, ChangePenaltyRequest request, int? enforcerId);
         Task<PageResponse<AdminInspectionSummaryResponse>> GetAdminInspectionAsync(int offset, InspectionSummaryFilters filters);
         Task<PageResponse<AdminTicketSummary>> GetAdminTicketAsync(int offset, TicketSummaryFilters filters);
         Task<TicketAnalyticsResponse> GetTicketAnalyticsAsync();

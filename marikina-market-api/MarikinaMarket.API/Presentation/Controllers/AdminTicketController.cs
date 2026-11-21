@@ -30,6 +30,14 @@ namespace MarikinaMarket.API.Presentation.Controllers
         public async Task<ActionResult<UpdateStatusResponse>> UpdateTicketStatus([FromRoute] int ticketId, [FromBody] UpdateStatusRequest request)
             => Ok(await _service.UpdateTicketStatusAsync(ticketId, request));
 
+        [HttpGet("{ticketId}/penalty-options")]
+        public async Task<ActionResult<PenaltyOptionsResponse>> GetPenaltyOptions([FromRoute] int ticketId)
+            => Ok(await _service.GetPenaltyOptionsAsync(ticketId, enforcerId: null));
+
+        [HttpPatch("{ticketId}/penalty")]
+        public async Task<ActionResult<ChangePenaltyResponse>> ChangePenalty([FromRoute] int ticketId, [FromBody] ChangePenaltyRequest request)
+            => Ok(await _service.ChangePenaltyAsync(ticketId, request, enforcerId: null));
+
         [HttpGet("inspections")]
         public async Task<ActionResult<PageResponse<AdminInspectionSummaryResponse>>> GetInspectionSummary(
             [FromQuery] InspectionSummaryFilters filters,

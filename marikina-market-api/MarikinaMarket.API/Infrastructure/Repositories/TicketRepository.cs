@@ -107,6 +107,12 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .FirstOrDefaultAsync(t => t.Id == ticketId);
         }
 
+        public Task<Ticket?> GetTicketWithViolationsAsync(int ticketId)
+            => _context.Tickets
+                .Include(t => t.TicketViolations)
+                .Include(t => t.CommunityServiceLogs)
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
+
         public Task<Ticket?> GetVendorTicketByIdAsync(int ticketId, int userId)
             => _context.Tickets.AsTracking()
                 .Include(ticket => ticket.CommunityServiceLogs)
