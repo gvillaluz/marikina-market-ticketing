@@ -32,7 +32,11 @@ import {
 import TicketDetailSkeleton from "../components/detail/TicketDetailSkeleton";
 import TicketDetailError from "../components/detail/TicketDetailError";
 import { useTicketDetails } from "../hooks/useTicketDetails";
-import { formatPenaltyType, getTicketTotalFineAmount } from "../tickets.utils";
+import {
+  canChangePenalty,
+  formatPenaltyType,
+  getTicketTotalFineAmount,
+} from "../tickets.utils";
 import EvidenceSection from "../components/detail/EvidenceSection";
 import TicketPhotoEvidenceSection from "@/components/ui/TicketModal/modal/TicketPhotoEvidenceSection";
 import { useUpdateStatus } from "../hooks/useUpdateStatus";
@@ -41,6 +45,11 @@ import { useTicketStatusSelection } from "../hooks/useTicketStatusSelection";
 import { useDisclosure } from "../hooks/useDisclosure";
 import { getApiErrorMessage } from "@/utils/apiErrors";
 import TicketChangeHistory from "../components/detail/TicketChangeHistory";
+import PenaltyChangeModal from "../components/detail/PenaltyChangeModal";
+import Button from "@/components/ui/Button/Button";
+import { usePenaltyOptions } from "../hooks/usePenaltyOptions";
+import { usePenaltyChangeSelection } from "../hooks/usePenaltyChangeSelection";
+import { useChangePenalty } from "../hooks/useChangePenalty";
 
 const TicketDetailPage: FC = () => {
   const { id } = useParams();
@@ -60,6 +69,11 @@ const TicketDetailPage: FC = () => {
 
   const recordModal = useDisclosure();
   const statusModal = useDisclosure();
+  const penaltyModal = useDisclosure();
+  const penaltyOptions = usePenaltyOptions(Number(id), penaltyModal.isOpen);
+  const penaltySelection = usePenaltyChangeSelection(penaltyOptions.options);
+  const { mutateAsync: changePenalty, isPending: isChangingPenalty } =
+    useChangePenalty(Number(id));
 
   const handleRetry = () => refetch();
 
@@ -73,6 +87,27 @@ const TicketDetailPage: FC = () => {
     try {
       await updateStatus({ newStatus: selectedStatus, version: ticket.version });
       statusModal.close();
+    } catch {
+      // stays open, error toast already shown via onError in the hook
+    }
+  };
+
+  const openPenaltyModal = () => {
+    penaltySelection.reset();
+    penaltyModal.open();
+  };
+
+  const closePenaltyModal = () => {
+    penaltyModal.close();
+    penaltySelection.reset();
+  };
+
+  const confirmPenaltyChange = async () => {
+    const request = penaltySelection.request();
+    if (!request) return;
+    try {
+      await changePenalty(request);
+      closePenaltyModal();
     } catch {
       // stays open, error toast already shown via onError in the hook
     }
@@ -221,6 +256,17 @@ const TicketDetailPage: FC = () => {
                   label="PENALTY TYPE"
                   value={formatPenaltyType(ticket?.penaltyType)}
                 />
+                {canChangePenalty(ticket) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={styles.changePenaltyButton}
+                    onClick={openPenaltyModal}
+                  >
+                    Change penalty
+                  </Button>
+                )}
                 {ticket.penaltyType === "CashFine" && (
                   <FineSummaryBox
                     amount={
@@ -300,6 +346,19 @@ const TicketDetailPage: FC = () => {
         onSelect={setSelectedStatus}
         onConfirm={() => void confirmStatusChange()}
         onClose={closeStatusModal}
+      />
+
+      <PenaltyChangeModal
+        open={penaltyModal.isOpen}
+        controlNumber={ticket.controlNumber}
+        options={penaltyOptions.options}
+        isLoading={penaltyOptions.isLoading}
+        error={penaltyOptions.error}
+        selection={penaltySelection}
+        isSaving={isChangingPenalty}
+        onRetry={penaltyOptions.retry}
+        onConfirm={() => void confirmPenaltyChange()}
+        onClose={closePenaltyModal}
       />
     </div>
   );

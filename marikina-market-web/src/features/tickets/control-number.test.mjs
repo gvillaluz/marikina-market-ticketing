@@ -24,6 +24,8 @@ const stubs = {
   '@/components/ui/TicketModal/modal/TicketPhotoEvidenceSection': 'export default () => null;',
   '../hooks/useTicketStatusSelection': 'export const useTicketStatusSelection = () => ({ selectedStatus: null, setSelectedStatus() {}, availableStatuses: [], canUpdateStatus: false, receiptUrls: [] });',
   '../hooks/useUpdateStatus': 'export const useUpdateStatus = () => ({ mutateAsync: async () => {}, isPending: false });',
+  '../hooks/usePenaltyOptions': 'export const usePenaltyOptions = () => ({ options: undefined, isLoading: false, error: null, retry: () => {} });',
+  '../hooks/useChangePenalty': 'export const useChangePenalty = () => ({ mutateAsync: async () => {}, isPending: false });',
   '../components/detail/TicketChangeHistory': 'export default () => null;',
   './CommunityServiceLogModal': 'export default () => null;',
 };
