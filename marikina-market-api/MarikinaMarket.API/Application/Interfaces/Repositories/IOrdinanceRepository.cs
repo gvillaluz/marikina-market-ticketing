@@ -8,6 +8,8 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         public Task<List<OrdinanceOffenseSummary>> GetByIdsAsync(List<int> ordinanceIds, int vendorId);
         Task<List<OrdinanceOffenseSummary>> GetByPersonIdsAsync(List<int> ordinanceIds, int personId);
         //public Task<List<OrdinancePenaltyTier>> GetPenaltyTiersAsync(List<int> ordinanceTiers);
+        // All tiers of these ordinances, including deactivated ones (for tickets already issued).
+        Task<List<PenaltyTierSummary>> GetPenaltyTiersAsync(List<int> ordinanceIds);
         public Task<List<Ordinance>> GetOrdinances();
         public Task<int> GetActiveCountAsync();
         public Task<Ordinance?> GetByIdAsync(int id);

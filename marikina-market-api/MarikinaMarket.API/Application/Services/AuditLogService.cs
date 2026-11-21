@@ -80,6 +80,7 @@ namespace MarikinaMarket.API.Application.Services
         }
 
         public const string StatusChangeDetailsPrefix = "Status changed from ";
+        public const string PenaltyChangeDetailsPrefix = "Penalty changed from ";
 
         public async Task<List<TicketHistoryEntryResponse>> GetTicketHistoryAsync(int ticketId,
             CancellationToken cancellationToken = default)
@@ -97,10 +98,12 @@ namespace MarikinaMarket.API.Application.Services
                     "UpdateTicketStatus" => "Status changed",
                     "SubmitTicketReceiptProof" => "Receipt proof submitted",
                     "LogCommunityServiceHours" => "Community service hours recorded",
+                    "ChangePenalty" => "Penalty changed",
                     _ => "Marked overdue"
                 },
                 // Status changes saved before this wording existed carry no old and new status.
-                Details = log.Details.StartsWith(StatusChangeDetailsPrefix, StringComparison.Ordinal) ? log.Details : null,
+                Details = log.Details.StartsWith(StatusChangeDetailsPrefix, StringComparison.Ordinal)
+                    || log.Details.StartsWith(PenaltyChangeDetailsPrefix, StringComparison.Ordinal) ? log.Details : null,
                 PerformedBy = !log.UserId.HasValue ? "System"
                     : names.TryGetValue(log.UserId.Value, out var user) ? $"{user.FirstName} {user.LastName}"
                     : "Unknown user",

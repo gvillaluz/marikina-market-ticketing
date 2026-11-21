@@ -67,6 +67,28 @@ namespace MarikinaMarket.API.Presentation.Controllers
             return Ok(await _service.GetCommunityServiceProgressAsync(id, enforcerId));
         }
 
+        [HttpGet("{id:int}/penalty-options")]
+        public async Task<ActionResult<PenaltyOptionsResponse>> GetPenaltyOptions([FromRoute] int id)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var enforcerId) || enforcerId <= 0)
+                return Unauthorized("Invalid token.");
+
+            return Ok(await _service.GetPenaltyOptionsAsync(id, enforcerId));
+        }
+
+        [HttpPatch("{id:int}/penalty")]
+        public async Task<ActionResult<ChangePenaltyResponse>> ChangePenalty(
+            [FromRoute] int id,
+            [FromBody] ChangePenaltyRequest request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var enforcerId) || enforcerId <= 0)
+                return Unauthorized("Invalid token.");
+
+            return Ok(await _service.ChangePenaltyAsync(id, request, enforcerId));
+        }
+
         [HttpPost("{id:int}/settlement/receipt")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<TicketReceiptProofResponse>> SubmitTicketReceiptProof(

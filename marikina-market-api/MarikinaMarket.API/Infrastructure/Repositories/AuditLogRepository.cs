@@ -76,7 +76,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .ToListAsync();
 
         private static readonly string[] TicketHistoryActions =
-            ["SaveNewInspection", "UpdateTicketStatus", "SubmitTicketReceiptProof", "LogCommunityServiceHours", "MarkTicketOverdue"];
+            ["SaveNewInspection", "UpdateTicketStatus", "SubmitTicketReceiptProof", "LogCommunityServiceHours", "MarkTicketOverdue",
+                "ChangePenalty"];
 
         public Task<List<AuditLog>> GetTicketHistoryAsync(int ticketId, CancellationToken cancellationToken = default)
         {

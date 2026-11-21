@@ -89,7 +89,7 @@ internal sealed class MemoryAuditRepository : IAuditLogRepository
         => Task.FromResult(Logs
             .Where(x => x.Module == Module.Tickets && x.TargetId == ticketId.ToString() && x.Result == LogResult.Success &&
                 x.Action is "SaveNewInspection" or "UpdateTicketStatus" or "SubmitTicketReceiptProof" or
-                    "LogCommunityServiceHours" or "MarkTicketOverdue")
+                    "LogCommunityServiceHours" or "MarkTicketOverdue" or "ChangePenalty")
             .OrderByDescending(x => x.Timestamp)
             .ThenByDescending(x => x.Id)
             .ToList());
