@@ -21,6 +21,8 @@ const stubs = {
   '../hooks/usePersonTicketHistory': 'export const usePersonTicketHistory = () => globalThis.personHistoryState;',
   '../hooks/useTicketDetails': 'export const useTicketDetails = () => globalThis.detailPageState;',
   '../hooks/useUpdateStatus': 'export const useUpdateStatus = () => ({ mutateAsync: async () => {}, isPending: false });',
+  '../hooks/usePenaltyOptions': 'export const usePenaltyOptions = () => ({ options: undefined, isLoading: false, error: null, retry: () => {} });',
+  '../hooks/useChangePenalty': 'export const useChangePenalty = () => ({ mutateAsync: async () => {}, isPending: false });',
   '../components/detail/TicketChangeHistory': 'export default () => null;',
   '../../../components/ui/TicketModal/TicketModal': 'export const TicketModal = () => null;',
 };

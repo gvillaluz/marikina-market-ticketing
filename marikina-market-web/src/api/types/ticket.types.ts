@@ -139,6 +139,36 @@ export interface TicketHistoryEntry {
 
 export type PenaltyType = "CashFine" | "BloodDonation" | "CommunityService";
 
+export type PenaltyChangeReason =
+  | "CannotPayCashFine"
+  | "RequestedDifferentPenalty"
+  | "WrongPenaltyAtIssue";
+
+export interface PenaltyOptions {
+  ticketId: number;
+  currentPenaltyType: PenaltyType | null;
+  allowedPenaltyTypes: PenaltyType[];
+  cashFineAmount: number | null;
+  communityServiceHours: number | null;
+  version: number;
+}
+
+export interface ChangePenaltyRequest {
+  penaltyType: PenaltyType;
+  communityServiceHours: number | null;
+  reason: PenaltyChangeReason;
+  version: number;
+}
+
+export interface ChangePenaltyResponse {
+  ticketId: number;
+  penaltyType: PenaltyType;
+  communityServiceHours: number | null;
+  totalFineAmount: number | null;
+  updatedAt: string;
+  version: number;
+}
+
 export interface TicketSummary {
   businessSnapshot?: BusinessSnapshot | null;
   paperReference?: string | null;

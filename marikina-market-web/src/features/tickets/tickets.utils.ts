@@ -1,4 +1,43 @@
-import type { TicketDetail } from "@/api/types/ticket.types";
+import type {
+  PenaltyChangeReason,
+  PenaltyType,
+  TicketDetail,
+} from "@/api/types/ticket.types";
+
+/** The penalty choices in issue-form order, with the names shown when changing a penalty. */
+export const PENALTY_CHOICES: { value: PenaltyType; label: string }[] = [
+  { value: "CashFine", label: "Cash fine" },
+  { value: "CommunityService", label: "Community service" },
+  { value: "BloodDonation", label: "Blood donation" },
+];
+
+export const penaltyLabel = (type: PenaltyType | null | undefined) =>
+  PENALTY_CHOICES.find((choice) => choice.value === type)?.label ?? "—";
+
+export const PENALTY_CHANGE_REASONS: {
+  value: PenaltyChangeReason;
+  label: string;
+}[] = [
+  { value: "CannotPayCashFine", label: "Violator can't pay the cash fine" },
+  {
+    value: "RequestedDifferentPenalty",
+    label: "Violator asked for a different penalty",
+  },
+  { value: "WrongPenaltyAtIssue", label: "Wrong penalty chosen when issuing" },
+];
+
+/** Open tickets with no receipt or service hours yet; the server makes the final check. */
+export function canChangePenalty(ticket: TicketDetail | undefined): boolean {
+  if (!ticket || ticket.type !== "Ticket") return false;
+  if (ticket.status !== "Pending" && ticket.status !== "Overdue") return false;
+  const proofs = Array.isArray(ticket.proofUrls)
+    ? ticket.proofUrls
+    : ticket.ticketReceipts;
+  const hasProof = (proofs ?? []).some(
+    (proof) => typeof proof === "string" && proof.trim() !== "",
+  );
+  return !hasProof && (ticket.communityServiceLogs ?? []).length === 0;
+}
 
 export function getTicketBusinessType(
   value: unknown,

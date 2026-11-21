@@ -1,0 +1,85 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-xl) 1.5rem;
+}
+
+.options {
+  composes: options from "./StatusChangeModal.module.css";
+}
+
+.loadError {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--form-error-surface);
+}
+
+.loadErrorText {
+  margin: 0;
+  font-size: var(--form-font-body);
+  line-height: 1.5;
+  color: var(--text-heading);
+}
+
+.hoursInput {
+  margin-top: var(--space-sm);
+}
+
+.fieldError {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--form-font-caption);
+  color: var(--danger);
+}
+
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.reasons legend {
+  margin-bottom: var(--space-xs);
+  padding: 0;
+}
+
+.reason {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 2rem;
+  font-size: var(--form-font-body);
+  color: var(--text-heading);
+  cursor: pointer;
+}
+
+.reasons:disabled .reason {
+  cursor: not-allowed;
+}
+
+.radio {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: inherit;
+}
+
+.radio:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.summary {
+  composes: summary from "./StatusChangeModal.module.css";
+}

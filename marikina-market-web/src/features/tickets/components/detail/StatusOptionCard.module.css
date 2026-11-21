@@ -11,8 +11,19 @@
   transition: border-color 0.2s ease, background 0.15s ease;
 }
 
-.card:hover {
+.card:hover:not(:disabled) {
   border-color: #002753;
+}
+
+.card:disabled {
+  cursor: not-allowed;
+  background: var(--bg-page);
+  border-color: var(--border-default);
+}
+
+.card:disabled .title,
+.card:disabled .description {
+  color: var(--text-body);
 }
 
 .selected {

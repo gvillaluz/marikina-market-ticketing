@@ -11,6 +11,9 @@ import type {
   InspectionSummary,
   TicketStatusUpdateResponse,
   PersonTicketHistoryItem,
+  PenaltyOptions,
+  ChangePenaltyRequest,
+  ChangePenaltyResponse,
 } from "../types/ticket.types";
 import { ApiRequestError } from "@/utils/apiErrors";
 
@@ -33,6 +36,12 @@ interface UpdateStatusParams {
   newStatus: RecordStatus;
   version: number;
 }
+
+interface ChangePenaltyParams extends ChangePenaltyRequest {
+  ticketId: number;
+}
+
+const isTicketId = (id: number) => Number.isSafeInteger(id) && id > 0;
 
 export function getTicketById(id: string): Promise<TicketRecord> {
   return apiClient.get(`/admin/tickets/inspections/${id}`).then((response) => {
@@ -117,6 +126,47 @@ export const ticketsApi = {
     return apiClient
       .patch(`/admin/tickets/${ticketId}/update-status`, { newStatus, version })
       .then((response) => response.data as TicketStatusUpdateResponse);
+  },
+
+  getPenaltyOptions(ticketId: number): Promise<PenaltyOptions> {
+    if (!isTicketId(ticketId)) {
+      return Promise.reject(new ApiRequestError("Invalid ticket ID.", 400));
+    }
+    return apiClient
+      .get(`/admin/tickets/${ticketId}/penalty-options`)
+      .then((response) => response.data as PenaltyOptions);
+  },
+
+  changePenalty({
+    ticketId,
+    penaltyType,
+    communityServiceHours,
+    reason,
+    version,
+  }: ChangePenaltyParams): Promise<ChangePenaltyResponse> {
+    const isCommunityService = penaltyType === "CommunityService";
+    if (
+      !isTicketId(ticketId) ||
+      !Number.isSafeInteger(version) ||
+      version < 0 ||
+      version > 0xffffffff ||
+      !["CashFine", "BloodDonation", "CommunityService"].includes(penaltyType) ||
+      !["CannotPayCashFine", "RequestedDifferentPenalty", "WrongPenaltyAtIssue"].includes(reason) ||
+      (isCommunityService &&
+        (!Number.isSafeInteger(communityServiceHours) || (communityServiceHours ?? 0) < 3))
+    ) {
+      return Promise.reject(
+        new ApiRequestError("Invalid penalty change.", 400),
+      );
+    }
+    return apiClient
+      .patch(`/admin/tickets/${ticketId}/penalty`, {
+        penaltyType,
+        communityServiceHours: isCommunityService ? communityServiceHours : null,
+        reason,
+        version,
+      })
+      .then((response) => response.data as ChangePenaltyResponse);
   },
 
   getHistory(ticketId: number): Promise<TicketHistoryEntry[]> {

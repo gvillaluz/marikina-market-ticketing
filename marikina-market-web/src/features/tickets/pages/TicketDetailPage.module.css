@@ -48,6 +48,10 @@
   gap: 14px;
 }
 
+.changePenaltyButton {
+  align-self: flex-start;
+}
+
 .fieldLabel {
   display: block;
   font-size: 0.7rem;
