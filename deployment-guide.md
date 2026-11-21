@@ -211,6 +211,14 @@ The daily job runs the recommendation model every day at 4:00 AM Manila: it read
 
 **Why the page can have no cards:** a card needs **at least 2 records with the same problem in the same street** within the last 30 days, and the model only finds a problem when the description clearly says what was seen.
 
+**Running it now, without updating anything** (for example, after adding test tickets): in the PowerShell window where you ran `az login`, run
+
+```powershell
+& 'C:\Users\Admin\Documents\Projects\marikina-market-ticketing\evidence\docker-d3-model\Start-JobOnce.ps1'
+```
+
+It starts the same run as the 4:00 AM one and prints its progress until it says `Finished: Succeeded` (about a minute). Then refresh the **Recommended Actions** page. The script is in the evidence folder, which is not in Git, so it is only on this computer. Anywhere else, use the two commands in part 3 above.
+
 The job's database password is kept as a secret in the job itself. If the database password changes: Azure portal → `marikina-market-recommendations` → **Settings → Secrets** → `pgpassword`.
 
 ## 7. Checks after updating
