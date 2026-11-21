@@ -5,6 +5,7 @@ import OrdinanceCard from "./OrdinanceCard";
 import styles from "./TicketViolationDetailsSection.module.css";
 import TicketInfoRow from "./TicketInfoRow";
 import { TicketDetail } from "@/api/types/ticket.types";
+import { violationCommittedLabels } from "@/utils/constants";
 import {
   formatCurrency,
   formatDateTime,
@@ -43,7 +44,7 @@ function TicketViolationDetailsSection({ detail }: { detail?: TicketDetail; }) {
         <TicketInfoRow label="MARKET STREET" value={(detail?.type === "Ticket" && detail.vendorId !== null ? detail.businessSnapshot?.marketSectionName : detail?.marketSectionName)} />
         <TicketInfoRow
           label="VIOLATION COMMITTED"
-          value={detail?.categories.join(", ")}
+          value={detail && violationCommittedLabels(detail).join(", ")}
         />
 
         <div className={styles.descriptionBlock}>

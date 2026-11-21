@@ -1,4 +1,4 @@
-import type { TicketType } from "@/api/types/ticket.types";
+import type { TicketCategories, TicketDetail, TicketType } from "@/api/types/ticket.types";
 import type { VendorCategory } from "@/api/types/vendor.types";
 import type { RecordStatus, Status } from "@/api/types/common.types";
 
@@ -69,6 +69,39 @@ export const RECORD_STATUS_LABELS: Record<RecordStatus, string> = {
 
 export function recordStatusLabel(status: string): string {
   return RECORD_STATUS_LABELS[status as RecordStatus] ?? status;
+}
+
+export const VIOLATION_CATEGORY_LABELS: Record<TicketCategories, string> = {
+  Traffic: "Traffic",
+  Obstruction: "Obstruction",
+  Sanitation: "Sanitation",
+  Licensing: "Licensing",
+  Noise: "Noise",
+  WeightMeasures: "Weights & Measures",
+  DressCode: "Dress Code",
+  IllegalVendor: "Illegal Vendor",
+  NonSmoking: "Non-Smoking",
+  Others: "Others",
+};
+
+export function violationCategoryLabel(category: string): string {
+  return VIOLATION_CATEGORY_LABELS[category as TicketCategories] ?? category;
+}
+
+/** Category names for a ticket. "Others" shows the specific category typed on its ordinances. */
+export function violationCommittedLabels(detail: TicketDetail): string[] {
+  const specificCategories = [
+    ...new Set(
+      detail.violations
+        .map((violation) => violation.specificCategory)
+        .filter((specific): specific is string => Boolean(specific)),
+    ),
+  ];
+  return detail.categories.flatMap((category) =>
+    category === "Others" && specificCategories.length > 0
+      ? specificCategories
+      : [violationCategoryLabel(category)],
+  );
 }
 
 export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
