@@ -93,11 +93,19 @@ test('tickets list has one control number column', async () => {
   assert.doesNotMatch(html, OLD_LABELS);
 });
 
-test('inspections list shows the control number for tickets and a dash for warnings', async () => {
+test('inspections list shows no control number: Type holds only Ticket or Warning', async () => {
   const html = render(await component('features/inspections/components/InspectionTable.tsx', 'InspectionTable'), {
-    rows: [ticket, warning, legacy], search: '', isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {} });
-  assert.deepEqual(cells(html, 'Control number'), ['000456', '—', LEGACY]);
+    rows: [ticket, warning, legacy, { ...legacy, ticketId: 4, controlNumber: '  ' }], search: '', isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {} });
+  assert.ok(!headers(html).includes('Control number'));
+  assert.deepEqual(cells(html, 'Type'), ['Ticket', 'Warning', 'Ticket', 'Ticket']);
+  assert.ok(!html.includes('000456') && !html.includes(LEGACY) && !html.includes('WRN-0011'));
   assert.doesNotMatch(html, OLD_LABELS);
+});
+
+test('inspections Export and Print keep the control number column', async () => {
+  const { INSPECTION_COLUMNS } = await import(await load(path.join(src, 'features/inspections/inspections.utils.ts')));
+  assert.equal(INSPECTION_COLUMNS[0].header, 'Control number');
+  assert.deepEqual([ticket, warning, legacy].map(row => INSPECTION_COLUMNS[0].value(row)), ['000456', '—', LEGACY]);
 });
 
 const detail = { ...ticket, violations: [], categories: [], description: 'Synthetic', issuePlace: 'Stall 12', lastName: 'Cruz', firstName: 'Nena',
@@ -167,9 +175,11 @@ test('compliance activity and pending settlements show the control number', asyn
   }
 });
 
-test('enforcer inspection list shows the control number for tickets and a dash for warnings', async () => {
-  const html = render(await component('features/enforcers/components/performance/EnforcerInspectionList.tsx'), { records: [ticket, warning, legacy], onView: () => {} });
-  assert.deepEqual(column(html, 'Control number'), ['000456', '—', LEGACY]);
+test('enforcer inspection list shows no control number: Type holds only Ticket or Warning', async () => {
+  const html = render(await component('features/enforcers/components/performance/EnforcerInspectionList.tsx'), { records: [ticket, warning, legacy, { ...legacy, ticketId: 4, controlNumber: '  ' }], onView: () => {} });
+  assert.ok(!headers(html).includes('Control number'));
+  assert.deepEqual(column(html, 'Type'), ['Ticket', 'Warning', 'Ticket', 'Ticket']);
+  assert.ok(!html.includes('000456') && !html.includes(LEGACY) && !html.includes('WRN-0011'));
   assert.doesNotMatch(html, OLD_LABELS);
 });
 
@@ -184,14 +194,16 @@ test('community service log shows the control number', async () => {
   assert.doesNotMatch(html, OLD_LABELS);
 });
 
-test('business inspection history shows the control number for tickets and a dash for warnings', async () => {
-  const rows = [ticket, warning, legacy].map(row => ({ ...row, ordinanceNumbers: [], ordinanceTitles: [], enforcerName: 'Santos' }));
+test('business inspection history shows no control number: Type holds only Ticket or Warning', async () => {
+  const rows = [ticket, warning, legacy, { ...legacy, ticketId: 4, controlNumber: '  ' }].map(row => ({ ...row, ordinanceNumbers: [], ordinanceTitles: [], enforcerName: 'Santos' }));
   const html = render(await component('features/vendors/components/AdminVendorInspectionHistory.tsx'), {
     search: '', onSearchChange: () => {}, type: 'all', onTypeChange: () => {}, sortDirection: 'desc', onSortDirectionChange: () => {},
     page: 1, totalPages: 1, onPageChange: () => {}, inspections: rows, total: 3, hasMore: false, isLoading: false, isFetching: false,
     isError: false, errorMessage: '', onRetry: () => {}, onExport: () => {}, onPrint: () => {}, onView: () => {} });
-  assert.deepEqual(column(html, 'CONTROL NUMBER').map(cell => cell.split('Historical')[0]), ['000456', '—', LEGACY]);
+  assert.ok(!headers(html).includes('CONTROL NUMBER'));
+  assert.deepEqual(column(html, 'TYPE'), ['Ticket', 'Warning', 'Ticket', 'Ticket']);
+  assert.ok(!html.includes('000456') && !html.includes(LEGACY) && !html.includes('WRN-0011'));
   const { BUSINESS_HISTORY_COLUMNS } = await import(await load(path.join(src, 'features/vendors/businessTableColumns.ts')));
-  assert.deepEqual(rows.map(row => BUSINESS_HISTORY_COLUMNS[0].value(row)), ['000456', '—', LEGACY]); // Export and Print
+  assert.deepEqual(rows.map(row => BUSINESS_HISTORY_COLUMNS[0].value(row)), ['000456', '—', LEGACY, LEGACY]); // Export and Print
   assert.doesNotMatch(html, /N\/A|CTRL #/);
 });

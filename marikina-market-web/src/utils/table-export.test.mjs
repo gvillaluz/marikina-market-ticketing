@@ -401,7 +401,7 @@ test("export form on Tickets has no record type choice and still exports", async
   assert.equal(h.files.length, 1);
 });
 
-test("ticket and inspection exports use exactly the on-screen columns, without Actions", () => {
+test("ticket and inspection exports keep name and owner apart, while the screen shows one Business column", () => {
   const reactRouter = { "react-router-dom": { useNavigate: () => () => {} } };
   const headers = (html) => [...html.matchAll(/<th(?: [^>]*)?>(.*?)<\/th>/g)].map((m) => m[1].replace(/<[^>]*>/g, ""));
   const { default: TicketList } = load("features/tickets/components/TicketList.tsx", reactRouter);
@@ -425,8 +425,14 @@ test("ticket and inspection exports use exactly the on-screen columns, without A
     "Control number", "Violator", "Enforcer", "Business name", "Registered owner",
     "Market street", "Type", "Issued at",
   ]);
-  assert.deepEqual(headers(ticketHtml), [...plain(TICKET_COLUMNS.map((c) => c.header)), "Actions"]);
-  assert.deepEqual(headers(inspectionHtml), [...plain(INSPECTION_COLUMNS.map((c) => c.header)), "Actions"]);
+  assert.deepEqual(headers(ticketHtml), [
+    "Control number", "Enforcer", "Business", "Violator",
+    "Market street", "Status", "Penalty", "Severity", "Issued at", "Actions",
+  ]);
+  assert.deepEqual(headers(inspectionHtml), [
+    "Violator", "Enforcer", "Business",
+    "Market street", "Type", "Issued at", "Actions",
+  ]);
   // The screen and the file show the same text for the same record.
   assert.ok(ticketHtml.includes(TICKET_COLUMNS[1].value(row)));
   assert.ok(inspectionHtml.includes(INSPECTION_COLUMNS[1].value(row)));

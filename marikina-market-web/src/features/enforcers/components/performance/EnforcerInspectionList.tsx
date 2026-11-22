@@ -1,9 +1,10 @@
 import { FC } from "react";
 import Table from "@/components/ui/Table";
+import BusinessCell from "@/components/ui/BusinessCell";
 import Button from "@/components/ui/Button";
 import { RecordBadge } from "@/components/ui/Records";
 import { Eye } from "lucide-react";
-import { formatControlNumber, formatDateTime } from "@/utils/formatters";
+import { formatDateTime } from "@/utils/formatters";
 import styles from "./EnforcerInspectionList.module.css";
 import { InspectionHistorySummary } from "@/api/types/enforcer.types";
 
@@ -30,14 +31,6 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
       emptyMessage="No inspection records found."
       columns={[
         {
-          key: "controlNumber",
-          header: "Control number",
-          render: (record) =>
-            record.type === "Warning"
-              ? "—"
-              : formatControlNumber(record.controlNumber),
-        },
-        {
           key: "issuedAt",
           header: "Date & Time",
           render: (record) => formatDateTime(record.issuedAt),
@@ -52,23 +45,22 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
         },
         {
           key: "businessName",
-          header: "Business name",
-          render: (record) =>
-            record.vendorId === null
-              ? "UNREGISTERED"
-              : record.type === "Ticket"
-                ? record.businessSnapshot?.businessName || UNAVAILABLE
-                : record.businessName || "—",
-        },
-        {
-          key: "registeredOwner",
-          header: "Registered owner",
-          render: (record) =>
-            record.vendorId === null
-              ? "—"
-              : record.type === "Ticket"
-                ? record.businessSnapshot?.registeredOwnerName || UNAVAILABLE
-                : record.registeredOwnerName || "—",
+          header: "Business",
+          render: (record) => (
+            <BusinessCell
+              vendorId={record.vendorId}
+              name={
+                record.type === "Ticket"
+                  ? record.businessSnapshot?.businessName || UNAVAILABLE
+                  : record.businessName || "—"
+              }
+              owner={
+                record.type === "Ticket"
+                  ? record.businessSnapshot?.registeredOwnerName || UNAVAILABLE
+                  : record.registeredOwnerName || "—"
+              }
+            />
+          ),
         },
         {
           key: "section",

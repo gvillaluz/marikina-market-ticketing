@@ -57,19 +57,18 @@ const ticket = { ...common, id: 41, controlNumber: '000041', paperReference: 'MP
 const legacyTicket = { ...common, id: 7, controlNumber: '000007', paperReference: null, businessSnapshot: null, paperViolatorName: null, registeredOwnerName: null, severity: 'Minor', penaltyType: 'CashFine' };
 const unavailable = 'Historical business details unavailable.';
 
-test('ticket list shows business name, registered owner and violator as separate columns', () => {
+test('ticket list shows the business with its owner in one column, and the violator in its own', () => {
   const html = renderToStaticMarkup(React.createElement(MemoryRouter, null,
     React.createElement(TicketList, { tickets: [ticket, legacyTicket], search: '', onView: () => {} })));
   const shown = headers(html);
-  for (const header of ['Business name', 'Registered owner', 'Violator']) assert.ok(shown.includes(header), header);
-  assert.ok(!shown.includes('Recorded violator'));
-  assert.deepEqual(cells(html, 'Business name'), ['Nena Fresh Fish', unavailable]);
-  assert.deepEqual(cells(html, 'Registered owner'), ['Nena Dela Cruz', unavailable]);
+  for (const header of ['Business', 'Violator']) assert.ok(shown.includes(header), header);
+  for (const header of ['Business name', 'Registered owner', 'Recorded violator']) assert.ok(!shown.includes(header), header);
+  assert.deepEqual(cells(html, 'Business'), ['Nena Fresh FishOwner: Nena Dela Cruz', unavailable]);
   assert.deepEqual(cells(html, 'Violator'), ['Jun Reyes', 'Unconfirmed (legacy record)']);
   assert.deepEqual(cells(html, 'Market street'), ['Fish Section', unavailable]);
 });
 
-test('inspection table shows business name, registered owner and violator for tickets and warnings', () => {
+test('inspection table shows the business with its owner in one column, for tickets and warnings', () => {
   const ticketRow = { ...ticket, ticketId: 41, type: 'Ticket', businessName: 'Current Registry Name' };
   const warningRow = { ...common, ticketId: 52, type: 'Warning', businessSnapshot: null, paperReference: null, personFullName: 'Ana Lopez', registeredOwnerName: 'Pedro Lopez', businessName: 'Lopez Vegetables', marketSectionName: 'Vegetable Section' };
   const legacyRow = { ...legacyTicket, ticketId: 7, type: 'Ticket', businessName: 'Current Registry Name' };
@@ -77,10 +76,9 @@ test('inspection table shows business name, registered owner and violator for ti
     rows: [ticketRow, warningRow, legacyRow], search: '', isLoading: false, isError: false, errorMessage: '', onRetry: () => {}, onView: () => {},
   }));
   const shown = headers(html);
-  for (const header of ['Business name', 'Registered owner', 'Violator']) assert.ok(shown.includes(header), header);
-  assert.ok(!shown.includes('Trade name') && !shown.includes('Person'));
-  assert.deepEqual(cells(html, 'Business name'), ['Nena Fresh Fish', 'Lopez Vegetables', unavailable]);
-  assert.deepEqual(cells(html, 'Registered owner'), ['Nena Dela Cruz', 'Pedro Lopez', unavailable]);
+  for (const header of ['Business', 'Violator']) assert.ok(shown.includes(header), header);
+  for (const header of ['Business name', 'Registered owner', 'Trade name', 'Person']) assert.ok(!shown.includes(header), header);
+  assert.deepEqual(cells(html, 'Business'), ['Nena Fresh FishOwner: Nena Dela Cruz', 'Lopez VegetablesOwner: Pedro Lopez', unavailable]);
   assert.deepEqual(cells(html, 'Violator'), ['Jun Reyes', 'Ana Lopez', 'Unconfirmed (legacy record)']);
 });
 
@@ -114,10 +112,11 @@ const renderInspections = search => renderToStaticMarkup(React.createElement(Ins
 }));
 
 test('ticket table highlights the search in the columns it searches, in any capital letters', () => {
-  assert.deepEqual(marked(renderTickets('CRUZ'), 'Registered owner'), [['Cruz'], []]);
+  assert.deepEqual(marked(renderTickets('CRUZ'), 'Business'), [['Cruz'], []]);
+  assert.deepEqual(marked(renderTickets('owner'), 'Business'), [[], []]); // the "Owner:" label is not a value
   assert.deepEqual(marked(renderTickets('reyes'), 'Violator'), [['Reyes'], []]);
   assert.deepEqual(marked(renderTickets('santos'), 'Enforcer'), [['Santos'], ['Santos']]);
-  assert.deepEqual(marked(renderTickets('fresh fish'), 'Business name'), [['Fresh Fish'], []]);
+  assert.deepEqual(marked(renderTickets('fresh fish'), 'Business'), [['Fresh Fish'], []]);
   assert.deepEqual(marked(renderTickets('41'), 'Control number'), [['41'], []]);
 });
 
@@ -131,11 +130,29 @@ test('ticket table does not highlight columns the search does not look at, and c
 test('inspection table highlights the search in the columns it searches, for tickets and warnings', () => {
   const html = renderInspections('lopez');
   assert.deepEqual(marked(html, 'Violator'), [[], ['Lopez']]);
-  assert.deepEqual(marked(html, 'Registered owner'), [[], ['Lopez']]);
-  assert.deepEqual(marked(html, 'Business name'), [[], ['Lopez']]);
+  assert.deepEqual(marked(html, 'Business'), [[], ['Lopez', 'Lopez']]); // the business name, then the owner
   assert.deepEqual(marked(renderInspections('SANTOS'), 'Enforcer'), [['Santos'], ['Santos']]);
+  assert.deepEqual(marked(renderInspections('ticket'), 'Type'), [[], []]); // the type word is not searched
   assert.deepEqual(marked(renderInspections('section'), 'Market street'), [[], []]); // not searched
   assert.ok(!renderInspections('').includes('<mark'));
+});
+
+test('a business named after its owner still shows the owner line', () => {
+  const same = { ...ticket, businessSnapshot: { ...snapshot, businessName: 'Nena Dela Cruz' } };
+  const html = renderToStaticMarkup(React.createElement(MemoryRouter, null,
+    React.createElement(TicketList, { tickets: [same], search: '', onView: () => {} })));
+  assert.deepEqual(cells(html, 'Business'), ['Nena Dela CruzOwner: Nena Dela Cruz']);
+});
+
+test('export and print keep the business and owner as two values, with the same text as before', () => {
+  const value = (columns, key, row) => columns.find(column => column.key === key).value(row);
+  const pair = (columns, row) => [value(columns, 'businessName', row), value(columns, 'registeredOwner', row)];
+  for (const columns of [TICKET_COLUMNS, INSPECTION_COLUMNS]) {
+    assert.deepEqual(pair(columns, { ...ticket, type: 'Ticket' }), ['Nena Fresh Fish', 'Nena Dela Cruz']);
+    assert.deepEqual(pair(columns, { ...legacyTicket, type: 'Ticket', vendorId: null }), ['UNREGISTERED', '—']);
+    assert.deepEqual(pair(columns, { ...legacyTicket, type: 'Ticket' }), [unavailable, unavailable]);
+  }
+  assert.deepEqual(pair(INSPECTION_COLUMNS, warningRow), ['Lopez Vegetables', 'Pedro Lopez']);
 });
 
 test('export and print columns stay plain text with no highlight', () => {
