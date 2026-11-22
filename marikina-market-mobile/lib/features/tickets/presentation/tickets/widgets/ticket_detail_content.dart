@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/ticket_notice.dart';
+import 'package:marikina_market_mobile/features/tickets/presentation/tickets/widgets/change_penalty_sheet.dart';
+import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/submit_community_service_log_params.dart';
@@ -38,6 +40,10 @@ class TicketDetailContent extends StatelessWidget {
     final ticket = data.ticket;
     final droppedOrdinances = data.droppedOrdinances;
     bool isTicket = ticket.violationType == ViolationType.ticket;
+    final canChangePenalty =
+        isTicket &&
+        (ticket.ticketStatus == TicketStatus.pending ||
+            ticket.ticketStatus == TicketStatus.overdue);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,6 +248,10 @@ class TicketDetailContent extends StatelessWidget {
                     totalFineAmount: ticket.totalFineAmount ?? 0.0,
                     dueDate: ticket.dueDate ?? DateTime.now(),
                     communityHrs: ticket.communityServiceHours,
+                    onChangePenalty: canChangePenalty
+                        ? () =>
+                              ChangePenaltySheet.show(context, ticket.ticketId)
+                        : null,
                   ),
                 ),
               ],

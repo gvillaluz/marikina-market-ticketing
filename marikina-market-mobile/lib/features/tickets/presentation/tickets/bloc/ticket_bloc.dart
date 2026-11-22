@@ -8,7 +8,9 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/submit_t
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_summary.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/enums/violation_type.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/change_penalty_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_community_service_progress_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_penalty_options_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_detail_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_list_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_receipt_proof_use_case.dart';
@@ -24,6 +26,8 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
   final LoadCommunityServiceProgressUseCase loadCommunityServiceProgressUseCase;
   final SubmitTicketReceiptProofUseCase submitTicketReceiptProofUseCase;
   final SubmitCommunityServiceLogUseCase submitCommunityServiceLogUseCase;
+  final LoadPenaltyOptionsUseCase loadPenaltyOptionsUseCase;
+  final ChangePenaltyUseCase changePenaltyUseCase;
 
   List<TicketSummary> _ticketList = [];
   List<TicketSummary> get getTicketList => _ticketList;
@@ -42,12 +46,16 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
     required this.loadCommunityServiceProgressUseCase,
     required this.submitTicketReceiptProofUseCase,
     required this.submitCommunityServiceLogUseCase,
+    required this.loadPenaltyOptionsUseCase,
+    required this.changePenaltyUseCase,
   }) : super(TicketInitial()) {
     on<LoadTicketSummary>(_onLoadTicketSummary);
     on<LoadTicketDetail>(_onLoadTicketDetail);
     on<LoadTicketSettlement>(_onLoadTicketSettlement);
     on<SubmitTicketReceiptProof>(_onSubmitTicketReceiptProof);
     on<SubmitCommunityServiceLog>(_onSubmitCommunityServiceLog);
+    on<LoadPenaltyOptions>(_onLoadPenaltyOptions);
+    on<ChangePenalty>(_onChangePenalty);
   }
 
   Future<void> refreshTickets({
@@ -149,20 +157,37 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
   Future<void> _onLoadTicketDetail(
     LoadTicketDetail event,
     Emitter<TicketState> emit,
-  ) async {
+  ) => _loadDetail(event.ticketId, emit);
+
+  /// [savedMessage] reports a change saved just before this load, so it is shown even if the load fails.
+  Future<void> _loadDetail(
+    int ticketId,
+    Emitter<TicketState> emit, {
+    String? savedMessage,
+  }) async {
     emit(TicketDetailLoading());
 
-    final result = await loadTicketDetailUseCase(event.ticketId);
+    final result = await loadTicketDetailUseCase(ticketId);
     if (emit.isDone) return;
 
     switch (result) {
       case ResultFailure<TicketDetail>(:final failure):
-        emit(TicketError(failure.message));
+        emit(
+          TicketError(
+            savedMessage == null
+                ? failure.message
+                : '$savedMessage ${failure.message}',
+          ),
+        );
 
       case Success<TicketDetail>(:final data):
         final shouldLoadSettlement = data.violationType == ViolationType.ticket;
         emit(
-          TicketDetailLoaded(data, isSettlementLoading: shouldLoadSettlement),
+          TicketDetailLoaded(
+            data,
+            isSettlementLoading: shouldLoadSettlement,
+            settlementMessage: savedMessage,
+          ),
         );
         if (shouldLoadSettlement) {
           add(
@@ -358,6 +383,90 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
           ),
         );
         add(LoadTicketDetail(event.params.ticketId));
+    }
+  }
+
+  Future<void> _onLoadPenaltyOptions(
+    LoadPenaltyOptions event,
+    Emitter<TicketState> emit,
+  ) async {
+    final current = state;
+    if (current is! TicketDetailLoaded ||
+        current.ticket.ticketId != event.ticketId ||
+        current.isPenaltyOptionsLoading) {
+      return;
+    }
+
+    emit(
+      current.copyWith(
+        isPenaltyOptionsLoading: true,
+        clearPenaltyOptions: true,
+        clearPenaltyChangeError: true,
+      ),
+    );
+    final result = await loadPenaltyOptionsUseCase(event.ticketId);
+
+    final latest = state;
+    if (emit.isDone ||
+        latest is! TicketDetailLoaded ||
+        latest.ticket.ticketId != event.ticketId) {
+      return;
+    }
+    switch (result) {
+      case ResultFailure(:final failure):
+        emit(
+          latest.copyWith(
+            isPenaltyOptionsLoading: false,
+            penaltyOptionsError: failure.message,
+          ),
+        );
+      case Success(:final data):
+        emit(
+          latest.copyWith(isPenaltyOptionsLoading: false, penaltyOptions: data),
+        );
+    }
+  }
+
+  Future<void> _onChangePenalty(
+    ChangePenalty event,
+    Emitter<TicketState> emit,
+  ) async {
+    final ticketId = event.params.ticketId;
+    final current = state;
+    if (current is! TicketDetailLoaded ||
+        current.ticket.ticketId != ticketId ||
+        current.isChangingPenalty) {
+      return;
+    }
+
+    emit(
+      current.copyWith(isChangingPenalty: true, clearPenaltyChangeError: true),
+    );
+    final result = await changePenaltyUseCase(event.params);
+
+    final latest = state;
+    if (emit.isDone ||
+        latest is! TicketDetailLoaded ||
+        latest.ticket.ticketId != ticketId) {
+      return;
+    }
+    switch (result) {
+      case ResultFailure(:final failure):
+        emit(
+          latest.copyWith(
+            isChangingPenalty: false,
+            penaltyChangeError: failure.message,
+          ),
+        );
+      case Success():
+        // Sentence case inside a sentence: "Community service", not "Community Service".
+        final label = event.params.penaltyType.label;
+        final name = '${label[0]}${label.substring(1).toLowerCase()}';
+        await _loadDetail(
+          ticketId,
+          emit,
+          savedMessage: 'Penalty changed to $name.',
+        );
     }
   }
 }

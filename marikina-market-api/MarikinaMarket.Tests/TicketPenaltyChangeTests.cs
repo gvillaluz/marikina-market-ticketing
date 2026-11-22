@@ -16,6 +16,7 @@ using MarikinaMarket.API.Infrastructure.Persistence;
 using MarikinaMarket.API.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Xunit;
 using Module = MarikinaMarket.API.Domain.Enums.Module;
 
@@ -30,6 +31,7 @@ public class TicketPenaltyChangeTests
     private const string StatusMessage = "The penalty can only be changed while the ticket is Pending or Overdue.";
     private const string ProofMessage = "The penalty can't be changed after settlement proof or community service hours are recorded.";
     private const string OwnershipMessage = "You can only change the penalty on tickets you issued.";
+    private const string RaceMessage = "The record was changed by another request. Refresh and try again.";
 
     // 1–6: allowed choices follow the market code.
 
@@ -425,6 +427,66 @@ public class TicketPenaltyChangeTests
         Assert.Empty(fixture.Calls);
     }
 
+    // Two saves at the same moment: the version check passes for both, so the database refuses the second one.
+
+    [Theory]
+    [InlineData("row changed")]
+    [InlineData("serialization failure")]
+    [InlineData("serialization failure, retry hint")]
+    public async Task Losing_a_simultaneous_save_is_a_conflict(string shape)
+    {
+        var fixture = new Fixture { SaveFailure = RaceFailure(shape) };
+
+        var error = await Assert.ThrowsAsync<ConcurrencyConflictException>(() =>
+            fixture.ChangeAsync(PenaltyType.CommunityService, 10));
+
+        Assert.Equal(RaceMessage, error.Message);
+        Assert.Contains("RollbackAsync", fixture.Calls);
+        Assert.DoesNotContain("CommitAsync", fixture.Calls);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task A_serialization_failure_while_reading_for_the_score_is_a_conflict(bool wrapped)
+    {
+        var postgres = new PostgresException("Concurrent write", "ERROR", "ERROR", PostgresErrorCodes.SerializationFailure);
+        var fixture = new Fixture
+        {
+            RefreshFailure = wrapped ? new InvalidOperationException("Likely transient failure", postgres) : postgres
+        };
+
+        var error = await Assert.ThrowsAsync<ConcurrencyConflictException>(() =>
+            fixture.ChangeAsync(PenaltyType.CommunityService, 10));
+
+        Assert.Equal(RaceMessage, error.Message);
+        Assert.Contains("RollbackAsync", fixture.Calls);
+        Assert.DoesNotContain("CommitAsync", fixture.Calls);
+    }
+
+    [Fact]
+    public async Task Other_database_failures_are_not_reported_as_conflicts()
+    {
+        var failure = new PostgresException("Unique violation", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation);
+        var fixture = new Fixture { RefreshFailure = failure };
+
+        Assert.Same(failure, await Assert.ThrowsAsync<PostgresException>(() =>
+            fixture.ChangeAsync(PenaltyType.CommunityService, 10)));
+        Assert.Contains("RollbackAsync", fixture.Calls);
+    }
+
+    [Fact]
+    public async Task Losing_a_simultaneous_save_answers_409_with_the_refresh_message()
+    {
+        var fixture = new Fixture { SaveFailure = RaceFailure("serialization failure") };
+        await using var host = await fixture.CreateHostAsync();
+
+        using var response = await host.SendAsync(HttpMethod.Patch, "/api/enforcer/tickets/1/penalty", "MarketEnforcer", ValidBody);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Contains(RaceMessage, await response.Content.ReadAsStringAsync());
+    }
+
     // 19: the change shows in the ticket's history; failed attempts do not.
 
     [Fact]
@@ -576,6 +638,23 @@ public class TicketPenaltyChangeTests
     private const string ValidBody =
         "{\"penalty_type\":\"CommunityService\",\"community_service_hours\":10,\"reason\":\"CannotPayCashFine\",\"version\":7}";
 
+    private static Exception RaceFailure(string shape)
+    {
+        var postgres = new PostgresException("Concurrent write", "ERROR", "ERROR", PostgresErrorCodes.SerializationFailure);
+        return shape switch
+        {
+            "row changed" => new DbUpdateConcurrencyException("Stale row"),
+            "serialization failure" => new DbUpdateException("Save failed", postgres),
+            _ => new InvalidOperationException("Likely transient failure", new DbUpdateException("Save failed", postgres))
+        };
+    }
+
+    // Only the database is faked, so the real repository and unit of work translate the failure.
+    private sealed class FailingSaveContext(Exception error) : AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options)
+    {
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => Task.FromException<int>(error);
+    }
+
     private static AuditLog Log(int id, string action, LogResult result, string details) => new()
     {
         Id = id, Action = action, Module = Module.Tickets, TargetId = "1", Result = result, UserId = 7,
@@ -596,6 +675,8 @@ public class TicketPenaltyChangeTests
             Entry = new AuditLog { Action = "ChangePenalty", Details = "Ticket penalty change completed successfully." }
         };
         public TicketService Service { get; }
+        public Exception? SaveFailure { get; init; }
+        public Exception? RefreshFailure { get; init; }
 
         public Fixture()
         {
@@ -681,7 +762,9 @@ public class TicketPenaltyChangeTests
                     nameof(ITicketRepository.GetTicketWithViolationsAsync) or nameof(ITicketRepository.GetTicketByIdAsync)
                         => Task.FromResult<Ticket?>((int)args![0]! == 1 ? Ticket : null),
                     nameof(ITicketRepository.SetOriginalVersion) => null,
-                    nameof(ITicketRepository.SaveChangesAsync) => SaveAsync(),
+                    nameof(ITicketRepository.SaveChangesAsync) => SaveFailure is null
+                        ? SaveAsync()
+                        : new TicketRepository(new FailingSaveContext(SaveFailure)).SaveChangesAsync(),
                     _ => throw new InvalidOperationException("Unexpected repository method: " + method.Name)
                 };
             });
@@ -698,6 +781,10 @@ public class TicketPenaltyChangeTests
             var unitOfWork = Proxy<IUnitOfWork>((method, _) =>
             {
                 Calls.Add(method.Name);
+                if (method.Name == nameof(IUnitOfWork.SaveChangesAsync))
+                    return SaveFailure is null
+                        ? SaveCountAsync()
+                        : new UnitOfWork(new FailingSaveContext(SaveFailure)).SaveChangesAsync();
                 if (method.Name == nameof(IUnitOfWork.CommitAsync) && audit.Staged) audit.Stored = true;
                 return Task.CompletedTask;
             });
@@ -711,6 +798,8 @@ public class TicketPenaltyChangeTests
             {
                 Calls.Add(method.Name);
                 RefreshedVendorIds.Add((int)args![0]!);
+                if (RefreshFailure is not null)
+                    return Task.FromException<VendorComplianceScoreResponse>(RefreshFailure);
                 return Task.FromResult(new VendorComplianceScoreResponse
                 {
                     Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low"
@@ -724,6 +813,12 @@ public class TicketPenaltyChangeTests
         {
             Ticket.Version = 8;
             return Task.CompletedTask;
+        }
+
+        private async Task<int> SaveCountAsync()
+        {
+            await SaveAsync();
+            return 1;
         }
     }
 

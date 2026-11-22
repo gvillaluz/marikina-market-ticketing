@@ -7,6 +7,9 @@ import 'package:marikina_market_mobile/features/tickets/domain/entities/submit_c
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/ticket_receipt_proof.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_summary.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/penalty_options.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/change_penalty_params.dart';
+import 'package:marikina_market_mobile/core/utils/unit.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 
 abstract class TicketRepository {
@@ -27,4 +30,6 @@ abstract class TicketRepository {
   Future<Result<CommunityServiceProgress>> submitCommunityServiceLog(
     SubmitCommunityServiceLogParams params,
   );
+  Future<Result<PenaltyOptions>> getPenaltyOptions(int ticketId);
+  Future<Result<Unit>> changePenalty(ChangePenaltyParams params);
 }

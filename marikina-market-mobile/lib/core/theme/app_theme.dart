@@ -52,6 +52,9 @@ class AppTheme {
   // hint text and box icons that read at least 4.5:1 on white.
   static const fieldOutlineColor = Color(0xFF7D8A9C);
   static const fieldHintColor = Color(0xFF5B6472);
+  static const hoursFieldWidth = 64.0;
+  // Lines the reason labels up with the penalty choices above them.
+  static const reasonRadioGap = 10.0;
   static const buttonPadding = EdgeInsets.symmetric(
     horizontal: 20,
     vertical: 16,
