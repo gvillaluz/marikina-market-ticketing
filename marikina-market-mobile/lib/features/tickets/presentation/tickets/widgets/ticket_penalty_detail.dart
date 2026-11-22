@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/severity.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/app_outlined_btn.dart';
 import 'package:marikina_market_mobile/core/utils/date_formatter_util.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 import 'package:marikina_market_mobile/features/tickets/presentation/widgets/ticket_paper_field.dart';
@@ -15,6 +16,7 @@ class TicketPenaltyDetail extends StatelessWidget {
   final DateTime dueDate;
   final double? totalFineAmount;
   final int? communityHrs;
+  final VoidCallback? onChangePenalty;
 
   const TicketPenaltyDetail({
     required this.severity,
@@ -22,6 +24,7 @@ class TicketPenaltyDetail extends StatelessWidget {
     required this.dueDate,
     this.totalFineAmount,
     this.communityHrs,
+    this.onChangePenalty,
     super.key,
   });
 
@@ -138,6 +141,17 @@ class TicketPenaltyDetail extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+
+        if (onChangePenalty != null) ...[
+          const SizedBox(height: AppTheme.ticketSmallGap),
+          AppOutlinedBtn(
+            label: 'Change penalty',
+            iconData: Icons.swap_horiz,
+            onPressed: onChangePenalty,
+            foregroundColor: AppColors.primary,
+            backgroundColor: Colors.white,
           ),
         ],
       ],

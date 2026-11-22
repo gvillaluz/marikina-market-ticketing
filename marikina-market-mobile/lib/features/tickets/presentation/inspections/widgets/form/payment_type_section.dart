@@ -5,7 +5,7 @@ import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dar
 
 class PaymentTypeSection extends StatefulWidget {
   final PenaltyType selectedPenaltyType;
-  final bool allowBloodDonation, allowCommunityService;
+  final bool allowCashFine, allowBloodDonation, allowCommunityService;
   final double? totalFineAmount;
   final ValueChanged<PenaltyType> onChangeType;
   final TextEditingController communityHrsController;
@@ -14,6 +14,8 @@ class PaymentTypeSection extends StatefulWidget {
   const PaymentTypeSection({
     super.key,
     required this.selectedPenaltyType,
+    // Cash is always a choice when issuing; only changing a penalty can rule it out.
+    this.allowCashFine = true,
     required this.allowBloodDonation,
     required this.allowCommunityService,
     required this.totalFineAmount,
@@ -66,7 +68,10 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
         const SizedBox(height: 5),
 
         Container(
-          decoration: BoxDecoration(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+          // Drawn over the rows, so a greyed row does not cover the rounded border.
+          foregroundDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.lightGrey, width: 0.8),
           ),
@@ -74,16 +79,18 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
             children: [
               _buildOptionTile(
                 value: PenaltyType.cashFine,
-                title: widget.totalFineAmount == null
+                title: !widget.allowCashFine
+                    ? 'Cash fine — not available for this ticket'
+                    : widget.totalFineAmount == null
                     ? 'Cash fine — assessment required'
                     : 'Pay ₱${widget.totalFineAmount!.toStringAsFixed(2)}',
+                disabled: !widget.allowCashFine,
               ),
               const Divider(height: 1, color: AppColors.lightGrey),
 
               _buildOptionTile(
                 value: PenaltyType.communityService,
                 title: 'Community service',
-                trailingText: '3 hrs',
                 disabled: !widget.allowCommunityService,
               ),
               const Divider(height: 1, color: AppColors.lightGrey),
@@ -103,11 +110,12 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
   Widget _buildOptionTile({
     required PenaltyType value,
     required String title,
-    String? trailingText,
     bool disabled = false,
   }) {
     final isSelected = _selectedType == value;
-    final textColor = disabled ? AppColors.mediumGrey : AppColors.primaryBlack;
+    final textColor = disabled
+        ? AppColors.paperLabelGrey
+        : AppColors.primaryBlack;
 
     return InkWell(
       onTap: disabled
@@ -118,8 +126,8 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
               });
               widget.onChangeType(value);
             },
-      child: Opacity(
-        opacity: disabled ? 0.55 : 1,
+      child: ColoredBox(
+        color: disabled ? AppTheme.ticketDetailBackground : Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
@@ -176,7 +184,7 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
                           fontSize: AppTheme.captionFontSize,
                           color: widget.communityHrsError != null
                               ? AppColors.primaryRed
-                              : AppColors.mediumGrey,
+                              : AppColors.paperLabelGrey,
                         ),
                       ),
                       if (widget.communityHrsError != null) ...[
@@ -197,10 +205,10 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
                   spacing: 10,
                   children: [
                     SizedBox(
-                      height: 35,
-                      width: 50,
+                      width: AppTheme.hoursFieldWidth,
                       child: TextField(
                         controller: widget.communityHrsController,
+                        keyboardType: TextInputType.number,
                         enabled: !disabled,
                         textAlignVertical: TextAlignVertical.center,
                         textAlign: TextAlign.center,
@@ -208,6 +216,9 @@ class _PaymentTypeSectionState extends State<PaymentTypeSection> {
                             FocusScope.of(context).unfocus(),
                         decoration: InputDecoration(
                           contentPadding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minHeight: kMinInteractiveDimension,
+                          ),
 
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(6),

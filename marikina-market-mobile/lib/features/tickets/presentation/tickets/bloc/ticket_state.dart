@@ -1,3 +1,4 @@
+import 'package:marikina_market_mobile/features/tickets/domain/entities/penalty_options.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_detail.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/community_service_progress.dart';
 import 'package:marikina_market_mobile/core/shared/domain/entities/ticket_receipt_proof.dart';
@@ -66,6 +67,11 @@ class TicketDetailLoaded extends TicketState {
   final bool isSubmittingSettlement;
   final bool isReceiptSubmitted;
   final String? settlementMessage;
+  final PenaltyOptions? penaltyOptions;
+  final bool isPenaltyOptionsLoading;
+  final String? penaltyOptionsError;
+  final bool isChangingPenalty;
+  final String? penaltyChangeError;
 
   TicketDetailLoaded(
     this.ticket, {
@@ -76,6 +82,11 @@ class TicketDetailLoaded extends TicketState {
     this.isSubmittingSettlement = false,
     this.isReceiptSubmitted = false,
     this.settlementMessage,
+    this.penaltyOptions,
+    this.isPenaltyOptionsLoading = false,
+    this.penaltyOptionsError,
+    this.isChangingPenalty = false,
+    this.penaltyChangeError,
   });
 
   TicketDetailLoaded copyWith({
@@ -87,6 +98,13 @@ class TicketDetailLoaded extends TicketState {
     bool? isReceiptSubmitted,
     String? settlementMessage,
     bool clearSettlementMessage = false,
+    PenaltyOptions? penaltyOptions,
+    bool? isPenaltyOptionsLoading,
+    String? penaltyOptionsError,
+    bool clearPenaltyOptions = false,
+    bool? isChangingPenalty,
+    String? penaltyChangeError,
+    bool clearPenaltyChangeError = false,
   }) {
     return TicketDetailLoaded(
       ticket,
@@ -101,6 +119,18 @@ class TicketDetailLoaded extends TicketState {
       settlementMessage: clearSettlementMessage
           ? null
           : settlementMessage ?? this.settlementMessage,
+      penaltyOptions: clearPenaltyOptions
+          ? null
+          : penaltyOptions ?? this.penaltyOptions,
+      isPenaltyOptionsLoading:
+          isPenaltyOptionsLoading ?? this.isPenaltyOptionsLoading,
+      penaltyOptionsError: clearPenaltyOptions
+          ? null
+          : penaltyOptionsError ?? this.penaltyOptionsError,
+      isChangingPenalty: isChangingPenalty ?? this.isChangingPenalty,
+      penaltyChangeError: clearPenaltyChangeError
+          ? null
+          : penaltyChangeError ?? this.penaltyChangeError,
     );
   }
 }

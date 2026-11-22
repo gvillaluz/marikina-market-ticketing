@@ -12,6 +12,9 @@ import 'package:marikina_market_mobile/core/shared/domain/entities/ticket_receip
 import 'package:marikina_market_mobile/features/tickets/domain/entities/ticket_summary.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/repositories/ticket_repository.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/penalty_options.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/change_penalty_params.dart';
+import 'package:marikina_market_mobile/core/utils/unit.dart';
 
 class TicketRepositoryImpl implements TicketRepository {
   final TicketRemoteDataSource remoteDataSource;
@@ -122,6 +125,34 @@ class TicketRepositoryImpl implements TicketRepository {
     try {
       final model = await remoteDataSource.submitCommunityServiceLog(params);
       return Result.success(model.toEntity());
+    } on Exception catch (error) {
+      return _failure(error);
+    }
+  }
+
+  @override
+  Future<Result<PenaltyOptions>> getPenaltyOptions(int ticketId) async {
+    try {
+      final model = await remoteDataSource.getPenaltyOptions(ticketId);
+      return Result.success(model.toEntity());
+    } on Object catch (error) {
+      if (error is TypeError || error is ArgumentError) {
+        return Result.failure(
+          const ServerFailure(
+            'Unable to read the penalty choices. Please try again.',
+          ),
+        );
+      }
+      if (error is Exception) return _failure(error);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Result<Unit>> changePenalty(ChangePenaltyParams params) async {
+    try {
+      await remoteDataSource.changePenalty(params);
+      return Result.success(unit);
     } on Exception catch (error) {
       return _failure(error);
     }

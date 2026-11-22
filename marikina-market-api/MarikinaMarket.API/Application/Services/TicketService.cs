@@ -1360,13 +1360,20 @@ namespace MarikinaMarket.API.Application.Services
                 ticket.UpdatedAt = DateTime.UtcNow;
 
                 // The calculation queries persisted tickets, so flush before refreshing within this transaction.
-                await _ticketRepository.SaveChangesAsync();
+                // Saved through the unit of work, which reports a lost race as a conflict.
+                await _unitOfWork.SaveChangesAsync();
                 if (ticket.VendorId is { } vendorId)
                     await _complianceScoreService.RefreshAsync(vendorId, DateTime.UtcNow);
                 if (_audit?.Entry is not null)
                     _audit.Entry.Details = PenaltyChangeDetails(previousPenalty, ticket, request.Reason!.Value);
                 if (_auditService is not null) await _auditService.StageCurrentAsync();
                 await _unitOfWork.CommitAsync();
+            }
+            // The database can also refuse a lost race on a read, which the unit of work never sees.
+            catch (Exception exception) when (exception.GetBaseException() is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure })
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new ConcurrencyConflictException("The record was changed by another request. Refresh and try again.");
             }
             catch
             {
