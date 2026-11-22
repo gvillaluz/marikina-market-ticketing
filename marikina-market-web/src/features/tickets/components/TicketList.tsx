@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import BusinessCell from "@/components/ui/BusinessCell";
 import SearchHighlight from "@/components/ui/SearchHighlight";
 import Table from "@/components/ui/Table";
 import {
@@ -18,9 +19,14 @@ const SEARCHED_COLUMNS = new Set([
   "controlNumber",
   "violator",
   "enforcer",
-  "businessName",
-  "registeredOwner",
 ]);
+// On screen the owner sits inside the Business column; Export and Print keep it separate.
+const TABLE_COLUMNS = TICKET_COLUMNS.filter(
+  (column) => column.key !== "registeredOwner",
+);
+const OWNER_COLUMN = TICKET_COLUMNS.find(
+  (column) => column.key === "registeredOwner",
+)!;
 
 interface TicketListProps {
   tickets: TicketSummary[];
@@ -44,14 +50,21 @@ export default function TicketList({
       keyExtractor={(ticket) => ticket.id.toString()}
       emptyMessage="No tickets match your search or filters."
       columns={[
-        ...TICKET_COLUMNS.map((column) => ({
+        ...TABLE_COLUMNS.map((column) => ({
           key: column.key,
-          header: column.header,
+          header: column.key === "businessName" ? "Business" : column.header,
           align: CENTERED_COLUMNS.has(column.key)
             ? ("center" as const)
             : ("left" as const),
           render: (ticket: TicketSummary) =>
-            BADGE_COLUMNS.has(column.key) ? (
+            column.key === "businessName" ? (
+              <BusinessCell
+                vendorId={ticket.vendorId}
+                name={column.value(ticket)}
+                owner={OWNER_COLUMN.value(ticket)}
+                search={search}
+              />
+            ) : BADGE_COLUMNS.has(column.key) ? (
               <RecordBadge value={column.value(ticket)} />
             ) : column.key === "issuedAt" ? (
               <RecordDateTime value={ticket.issuedAt} />

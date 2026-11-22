@@ -17,6 +17,7 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge/Badge";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
 import SearchHighlight from "@/components/ui/SearchHighlight";
+import StackedCell from "@/components/ui/StackedCell";
 import Table, { type Column } from "@/components/ui/Table";
 import {
   ALL_STREETS,
@@ -25,7 +26,6 @@ import {
 } from "@/hooks/useMarketSectionOptions";
 import type { TableExportAction } from "@/hooks/useTableExport";
 import { getTypeLabel } from "../businessTableColumns";
-import StackedCell from "./StackedCell";
 import styles from "./AdminVendorRegistry.module.css";
 
 const PAGE_SIZE = 10;

@@ -125,13 +125,6 @@
   animation-delay: 100ms;
 }
 
-.controlNumber {
-  color: #26384b;
-  font-size: 0.76rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .ordinanceTitle {
   display: block;
 }

@@ -540,12 +540,13 @@ const violatorRows = [
   },
 ];
 
-test("business history shows a Violator column after Type with the recorded violator", () => {
+test("business history starts with Type, then Violator, and leaves the ticket-day business name to View and Export", () => {
   const html = renderComponent("AdminVendorInspectionHistory", { ...historyProps, inspections: violatorRows });
   const headers = [...html.matchAll(/<th[^>]*>(.*?)<\/th>/g)].map((match) => match[1].replace(/<[^>]*>/g, ""));
-  assert.deepEqual(headers, ["CONTROL NUMBER", "TYPE", "VIOLATOR", "DATE &amp; TIME", "ORDINANCE(S)", "ENFORCER", "ACTION"]);
+  assert.deepEqual(headers, ["TYPE", "VIOLATOR", "DATE &amp; TIME", "ORDINANCE(S)", "ENFORCER", "ACTION"]);
   const violatorCells = [...html.matchAll(/<tr[^>]*>(.*?)<\/tr>/g)].slice(1)
-    .map((row) => [...row[1].matchAll(/<td[^>]*>(.*?)<\/td>/g)][2][1].replace(/<[^>]*>/g, ""));
+    .map((row) => [...row[1].matchAll(/<td[^>]*>(.*?)<\/td>/g)][1][1].replace(/<[^>]*>/g, ""));
+  assert.ok(!html.includes("Nena") && !html.includes("Historical"));
   assert.deepEqual(violatorCells, ["Jose Ramos", "Maria Santos", "Unconfirmed (legacy record)"]);
 });
 
@@ -562,6 +563,9 @@ test("business history Export and Print collect every matching record with Busin
   assert.equal(h.requests.at(-1)[1].params.ticketType, "Ticket");
   const lines = toCsv(options.columns, violatorRows).split("\r\n");
   assert.equal(lines[0], '"Control number","Business name","Type","Violator","Date & time","Ordinance(s)","Enforcer"');
+  assert.deepEqual(lines.slice(1).map((line) => line.slice(1).split('","').slice(0, 2)), [
+    ["000456", "Aling Nena's Store"], ["—", "—"], ["Unavailable (legacy record)", "Historical business details unavailable."],
+  ]);
   assert.deepEqual(lines.slice(1).map((line) => line.split('","')[3]), ["Jose Ramos", "Maria Santos", "Unconfirmed (legacy record)"]);
   assert.equal(h.render(70).exportFile, h.tableExports.at(-1).fetchPage);
 });
@@ -590,15 +594,16 @@ test("business list highlights the search in the business, account number and ow
   assert.ok(!render("").includes("<mark"));
 });
 
-test("business inspection history highlights the control number and ordinance search only", () => {
+test("business inspection history highlights nothing: the searched number and ordinance number are not shown", () => {
   const render = (search) =>
     renderComponent("AdminVendorInspectionHistory", { ...historyProps, inspections: [inspection], search });
-  // This table has no data-label on its cells; the control number is the first cell, ordinances the fifth.
+  // This table has no data-label on its cells; Type is the first cell, ordinances are the fourth.
   const marksIn = (html, index) =>
     [...(html.match(/<tbody>[\s\S]*?<\/tr>/)?.[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g) ?? [])]
       .map((m) => [...m[1].matchAll(/<mark[^>]*>([^<]*)<\/mark>/g)].map((x) => x[1]))[index];
-  assert.deepEqual(marksIn(render("41"), 0), ["41"]);
-  assert.deepEqual(marksIn(render("12"), 4), []); // the ordinance column shows titles, which are not highlighted
+  assert.deepEqual(marksIn(render("41"), 0), []); // the number is searched but not shown
+  assert.deepEqual(marksIn(render("ticket"), 0), []); // the type word is not searched
+  assert.deepEqual(marksIn(render("12"), 3), []); // the ordinance column shows titles, which are not highlighted
   assert.ok(render("stall").includes("Stall Hours") && render("stall").includes("Fish Handling"));
   for (const search of ["santos", "reyes", "sari"]) assert.ok(!render(search).includes("<mark"), search); // not searched
   assert.ok(!render("").includes("<mark"));

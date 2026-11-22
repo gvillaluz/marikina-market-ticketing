@@ -1,3 +1,4 @@
+import BusinessCell from "@/components/ui/BusinessCell";
 import SearchHighlight from "@/components/ui/SearchHighlight";
 import Table from "@/components/ui/Table";
 import {
@@ -11,13 +12,16 @@ import { INSPECTION_COLUMNS } from "../inspections.utils";
 import styles from "./InspectionTable.module.css";
 
 // The columns the inspection search looks at; the search text is highlighted in these.
-const SEARCHED_COLUMNS = new Set([
-  "controlNumber",
-  "violator",
-  "enforcer",
-  "businessName",
-  "registeredOwner",
-]);
+const SEARCHED_COLUMNS = new Set(["violator", "enforcer"]);
+// On screen the owner sits under the business and the control number is left out;
+// Export and Print keep both as their own columns.
+const TABLE_COLUMNS = INSPECTION_COLUMNS.filter(
+  (column) =>
+    column.key !== "registeredOwner" && column.key !== "controlNumber",
+);
+const OWNER_COLUMN = INSPECTION_COLUMNS.find(
+  (column) => column.key === "registeredOwner",
+)!;
 
 interface InspectionTableProps {
   rows: InspectionSummary[];
@@ -53,11 +57,19 @@ export function InspectionTable({
           loading={isLoading}
           emptyMessage="No inspection records match your search or filters."
           columns={[
-            ...INSPECTION_COLUMNS.map((column) => ({
+            ...TABLE_COLUMNS.map((column) => ({
               key: column.key,
-              header: column.header,
+              header:
+                column.key === "businessName" ? "Business" : column.header,
               render: (row: InspectionSummary) =>
-                column.key === "type" ? (
+                column.key === "businessName" ? (
+                  <BusinessCell
+                    vendorId={row.vendorId}
+                    name={column.value(row)}
+                    owner={OWNER_COLUMN.value(row)}
+                    search={search}
+                  />
+                ) : column.key === "type" ? (
                   <RecordBadge value={column.value(row)} />
                 ) : column.key === "issuedAt" ? (
                   <RecordDateTime value={row.issuedAt} />

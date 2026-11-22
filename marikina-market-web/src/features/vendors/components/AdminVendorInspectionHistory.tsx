@@ -3,10 +3,9 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
 import Pagination from "@/components/ui/Pagination";
-import SearchHighlight from "@/components/ui/SearchHighlight";
 import Table, { type Column } from "@/components/ui/Table";
 import type { AdminVendorInspection } from "@/api/types/admin-vendor.types";
-import { formatControlNumber, formatDateTime } from "@/utils/formatters";
+import { formatDateTime } from "@/utils/formatters";
 import type { TableExportAction } from "@/hooks/useTableExport";
 import { isWarning } from "../businessTableColumns";
 import { formatInspectionViolator } from "../inspectionViolator";
@@ -75,28 +74,9 @@ export default function AdminVendorInspectionHistory({
 
   const columns: Column<AdminVendorInspection>[] = [
     {
-      key: "controlNumber",
-      header: "CONTROL NUMBER",
-      width: "16%",
-      align: "left",
-      render: (inspection) => (
-        <strong className={styles.controlNumber}>
-          {isWarning(inspection) ? (
-            "—"
-          ) : (
-            <SearchHighlight
-              text={formatControlNumber(inspection.controlNumber)}
-              search={search}
-            />
-          )}
-          {!isWarning(inspection) && <><br />{inspection.businessSnapshot?.businessName || "Historical business details unavailable."}</>}
-        </strong>
-      ),
-    },
-    {
       key: "type",
       header: "TYPE",
-      width: "13%",
+      width: "15%",
       align: "center",
       render: (inspection) => (
         <span
@@ -110,21 +90,21 @@ export default function AdminVendorInspectionHistory({
     {
       key: "violator",
       header: "VIOLATOR",
-      width: "16%",
+      width: "20%",
       align: "left",
       render: formatInspectionViolator,
     },
     {
       key: "issuedAt",
       header: "DATE & TIME",
-      width: "15%",
+      width: "16%",
       align: "left",
       render: (inspection) => formatDateTime(inspection.issuedAt),
     },
     {
       key: "ordinanceTitles",
       header: "ORDINANCE(S)",
-      width: "15%",
+      width: "22%",
       align: "left",
       render: (inspection) =>
         inspection.ordinanceTitles.length ? (
@@ -140,7 +120,7 @@ export default function AdminVendorInspectionHistory({
     {
       key: "enforcerName",
       header: "ENFORCER",
-      width: "15%",
+      width: "17%",
       align: "center",
       render: (inspection) => inspection.enforcerName || "—",
     },

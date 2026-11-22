@@ -146,12 +146,12 @@ test("history rows show the violator, business, owner and street for each kind o
     row(4, "Ticket", "Pending"),
   ];
   const html = renderPage({ historyHook: { inspections: rows, total: 4, totalPages: 1 } });
-  const cells = tableRows(html).map((r) => [r[0], ...r.slice(2, 8)]);
+  const cells = tableRows(html).map((r) => r.slice(1, 6));
   assert.deepEqual(cells, [
-    ["000451", "JUAN D. CRUZ", "Aling Nena's Store (2025)", "Nena Reyes", "Shoe Avenue", "Ticket", "Overdue"],
-    ["000452", "PEDRO SANTOS", "UNREGISTERED", "—", "Dry Goods", "Ticket", "InProgress"],
-    ["—", "Maria Lopez", "Aling Nena's Store", "Nena Reyes", "Dry Goods", "Warning", "—"],
-    ["000454", "Unconfirmed (legacy record)", "UNREGISTERED", "—", "Dry Goods", "Ticket", "Pending"],
+    ["JUAN D. CRUZ", "Aling Nena's Store (2025) Owner: Nena Reyes", "Shoe Avenue", "Ticket", "Overdue"],
+    ["PEDRO SANTOS", "Unregistered", "Dry Goods", "Ticket", "InProgress"],
+    ["Maria Lopez", "Aling Nena's Store Owner: Nena Reyes", "Dry Goods", "Warning", "—"],
+    ["Unconfirmed (legacy record)", "Unregistered", "Dry Goods", "Ticket", "Pending"],
   ]);
   assert.doesNotMatch(html, /Stall No\./);
 });
