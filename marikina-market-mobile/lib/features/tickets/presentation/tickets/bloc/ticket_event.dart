@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/change_penalty_params.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/submit_community_service_log_params.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/penalty_type.dart';
 
@@ -41,4 +42,14 @@ class SubmitCommunityServiceLog extends TicketEvent {
   final SubmitCommunityServiceLogParams params;
 
   SubmitCommunityServiceLog(this.params);
+}
+
+class LoadPenaltyOptions extends TicketEvent {
+  final int ticketId;
+  LoadPenaltyOptions(this.ticketId);
+}
+
+class ChangePenalty extends TicketEvent {
+  final ChangePenaltyParams params;
+  ChangePenalty(this.params);
 }

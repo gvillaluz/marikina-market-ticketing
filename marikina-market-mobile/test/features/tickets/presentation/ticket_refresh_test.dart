@@ -10,7 +10,9 @@ import 'package:marikina_market_mobile/core/shared/presentation/widgets/skeleton
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/tickets/data/data_sources/ticket_remote_data_source.dart';
 import 'package:marikina_market_mobile/features/tickets/data/repositories/ticket_repository_impl.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/change_penalty_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_community_service_progress_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_penalty_options_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_detail_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_list_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_receipt_proof_use_case.dart';
@@ -59,6 +61,8 @@ TicketBloc refreshBloc(ApiClient client) {
     submitCommunityServiceLogUseCase: SubmitCommunityServiceLogUseCase(
       repository,
     ),
+    loadPenaltyOptionsUseCase: LoadPenaltyOptionsUseCase(repository),
+    changePenaltyUseCase: ChangePenaltyUseCase(repository),
   );
 }
 

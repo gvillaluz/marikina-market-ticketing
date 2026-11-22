@@ -8,9 +8,11 @@ import 'package:marikina_market_mobile/core/network/client.dart';
 import 'package:marikina_market_mobile/core/shared/data/models/page_result_model.dart';
 import 'package:marikina_market_mobile/core/shared/domain/enums/ticket_status.dart';
 import 'package:marikina_market_mobile/core/shared/data/models/community_service_progress_model.dart';
+import 'package:marikina_market_mobile/features/tickets/data/models/penalty_options_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ticket_detail_model.dart';
 import 'package:marikina_market_mobile/core/shared/data/models/ticket_receipt_proof_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/ticket_summary_model.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/entities/change_penalty_params.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/entities/submit_community_service_log_params.dart';
 
 abstract class TicketRemoteDataSource {
@@ -31,6 +33,8 @@ abstract class TicketRemoteDataSource {
   Future<CommunityServiceProgressModel> submitCommunityServiceLog(
     SubmitCommunityServiceLogParams params,
   );
+  Future<PenaltyOptionsModel> getPenaltyOptions(int ticketId);
+  Future<void> changePenalty(ChangePenaltyParams params);
 }
 
 class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
@@ -215,6 +219,37 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
       return model;
     } on DioException catch (error) {
       _throwRequestException(error, 'Unable to save community service entry.');
+    }
+  }
+
+  @override
+  Future<PenaltyOptionsModel> getPenaltyOptions(int ticketId) async {
+    try {
+      final response = await apiClient.get(
+        '/enforcer/tickets/$ticketId/penalty-options',
+      );
+      return PenaltyOptionsModel.fromJson(
+        response.data as Map<String, Object?>,
+      );
+    } on DioException catch (error) {
+      _throwRequestException(error, 'Unable to load penalty options.');
+    }
+  }
+
+  @override
+  Future<void> changePenalty(ChangePenaltyParams params) async {
+    try {
+      await apiClient.patch(
+        '/enforcer/tickets/${params.ticketId}/penalty',
+        data: <String, Object?>{
+          'penalty_type': params.penaltyType.value,
+          'community_service_hours': params.communityServiceHours,
+          'reason': params.reason.value,
+          'version': params.version,
+        },
+      );
+    } on DioException catch (error) {
+      _throwRequestException(error, 'Unable to change the penalty. Try again.');
     }
   }
 

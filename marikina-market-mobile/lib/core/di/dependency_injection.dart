@@ -69,6 +69,8 @@ import 'package:marikina_market_mobile/features/tickets/domain/use_cases/check_w
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_inspection_list_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_community_service_progress_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ordinances_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/change_penalty_use_case.dart';
+import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_penalty_options_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_detail_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_list_use_case.dart';
 import 'package:marikina_market_mobile/features/tickets/domain/use_cases/load_ticket_receipt_proof_use_case.dart';
@@ -228,6 +230,8 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
   sl.registerLazySingleton(() => LoadCommunityServiceProgressUseCase(sl()));
   sl.registerLazySingleton(() => SubmitTicketReceiptProofUseCase(sl()));
   sl.registerLazySingleton(() => SubmitCommunityServiceLogUseCase(sl()));
+  sl.registerLazySingleton(() => LoadPenaltyOptionsUseCase(sl()));
+  sl.registerLazySingleton(() => ChangePenaltyUseCase(sl()));
   sl.registerFactory(
     () => TicketBloc(
       loadTicketListUseCase: sl(),
@@ -236,6 +240,8 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
       loadCommunityServiceProgressUseCase: sl(),
       submitTicketReceiptProofUseCase: sl(),
       submitCommunityServiceLogUseCase: sl(),
+      loadPenaltyOptionsUseCase: sl(),
+      changePenaltyUseCase: sl(),
     ),
   );
 
