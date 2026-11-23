@@ -27,6 +27,14 @@ public class BusinessManagementTests
         Assert.True(response.CreatedAt > DateTime.UtcNow.AddMinutes(-1));
     }
 
+    [Fact]
+    public async Task New_business_starts_with_a_perfect_compliance_score()
+    {
+        var fixture = new Fixture();
+        await fixture.Service.SaveBusinessAsync(null, Request());
+        Assert.Equal(100, fixture.Saved!.ComplianceScore);
+    }
+
     [Theory]
     [InlineData(null)] [InlineData("")] [InlineData(" ")]
     public async Task Public_requires_stall_before_any_writes(string? stall)

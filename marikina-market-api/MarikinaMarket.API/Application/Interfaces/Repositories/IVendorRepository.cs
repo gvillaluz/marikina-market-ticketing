@@ -18,7 +18,9 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         public Task<int> GetActiveBusinessCountAsync();
         public Task<(List<VendorLookupResult> Items, int Total)> SearchActiveBusinessesAsync(string search, int limit);
         public Task<VendorProfileDetails?> GetVendorProfileDetailsAsync(int vendorId);
-        public Task<List<Business>> GetVendorProfilesForComplianceUpdateAsync();
+        public Task<List<(int Id, DateTime ScoreUpdatedAt)>> GetBusinessesDueForScoreUpdateAsync(DateTime dueBefore);
+        public Task<DateTime?> GetScoreUpdatedAtAsync(int vendorId);
+        public Task SaveScoreIfNotChangedAsync(int vendorId, DateTime lastUpdatedAt, int score, DateTime calculatedAt);
         public Task<Business?> GetVendorProfileForUpdateAsync(int vendorId);
         public Task<List<AdminVendorSummary>> GetAdminVendorSummariesAsync(
             int offset,

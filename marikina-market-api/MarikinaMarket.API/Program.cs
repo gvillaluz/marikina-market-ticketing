@@ -92,6 +92,7 @@ builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddHostedService<AutomaticBackupService>();
 builder.Services.AddHostedService<OverdueTicketCheckerService>();
 builder.Services.AddHostedService<TokenCleanupService>();
+builder.Services.AddHostedService<ComplianceScoreUpdateService>();
 
 builder.Services.AddAuthentication(options =>
 {
