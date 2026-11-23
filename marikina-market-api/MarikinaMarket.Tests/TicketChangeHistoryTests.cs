@@ -184,6 +184,7 @@ public class TicketChangeHistoryTests
         // Like the real unit of work, a commit marks the staged audit entry as stored.
         private static IUnitOfWork UnitOfWork(AuditLogContext audit) => Proxy<IUnitOfWork>((method, _) =>
         {
+            if (method.Name == nameof(IUnitOfWork.SaveChangesAsync)) return Task.FromResult(1);
             if (method.Name == nameof(IUnitOfWork.CommitAsync) && audit.Staged) audit.Stored = true;
             return Task.CompletedTask;
         });

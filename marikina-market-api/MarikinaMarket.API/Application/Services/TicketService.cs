@@ -1224,13 +1224,19 @@ namespace MarikinaMarket.API.Application.Services
                         ticket.Status ?? TicketStatus.Pending
                     );
                 // The calculation queries persisted tickets, so flush before refreshing within this transaction.
-                await _ticketRepository.SaveChangesAsync();
+                // Saved through the unit of work, which reports a lost race as a conflict.
+                await _unitOfWork.SaveChangesAsync();
                 if (ticket.VendorId is { } scoredVendorId && ticket.Type == ViolationType.Ticket)
                     await _complianceScoreService.RefreshAsync(scoredVendorId, DateTime.UtcNow);
                 if (_audit?.Entry is not null)
                     _audit.Entry.Details = $"{AuditLogService.StatusChangeDetailsPrefix}{previousStatus} to {ticket.Status}.";
                 if (_auditService is not null) await _auditService.StageCurrentAsync();
                 await _unitOfWork.CommitAsync();
+            }
+            catch (Exception exception) when (IsLostRaceOnRead(exception))
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new ConcurrencyConflictException(LostRaceMessage);
             }
             catch
             {
@@ -1369,11 +1375,10 @@ namespace MarikinaMarket.API.Application.Services
                 if (_auditService is not null) await _auditService.StageCurrentAsync();
                 await _unitOfWork.CommitAsync();
             }
-            // The database can also refuse a lost race on a read, which the unit of work never sees.
-            catch (Exception exception) when (exception.GetBaseException() is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure })
+            catch (Exception exception) when (IsLostRaceOnRead(exception))
             {
                 await _unitOfWork.RollbackAsync();
-                throw new ConcurrencyConflictException("The record was changed by another request. Refresh and try again.");
+                throw new ConcurrencyConflictException(LostRaceMessage);
             }
             catch
             {
@@ -1391,6 +1396,12 @@ namespace MarikinaMarket.API.Application.Services
                 Version = ticket.Version
             };
         }
+
+        private const string LostRaceMessage = "The record was changed by another request. Refresh and try again.";
+
+        // The database can also refuse a lost race on a read, which the unit of work never sees.
+        private static bool IsLostRaceOnRead(Exception exception)
+            => exception.GetBaseException() is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure };
 
         private async Task<Ticket> GetTicketForPenaltyChangeAsync(int ticketId, int? enforcerId)
         {

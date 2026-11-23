@@ -10,13 +10,120 @@ using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Application.Services;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
+using MarikinaMarket.API.Infrastructure.Persistence;
+using MarikinaMarket.API.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Xunit;
 
 namespace MarikinaMarket.Tests;
 
 public class TicketStatusSettlementTests
 {
+    private const string RaceMessage = "The record was changed by another request. Refresh and try again.";
+
+    // Two status changes at the same moment: the version check passes for both, so the database refuses the second one.
+
+    [Theory]
+    [InlineData("row changed")]
+    [InlineData("serialization failure")]
+    [InlineData("serialization failure, retry hint")]
+    public async Task Losing_a_simultaneous_status_save_is_a_conflict(string shape)
+    {
+        var fixture = new Fixture(PenaltyType.CashFine) { SaveFailure = RaceFailure(shape) };
+        fixture.Ticket.Vendor = VendorWithEmail();
+
+        var error = await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.UpdateAsync(TicketStatus.Contested));
+
+        Assert.Equal(RaceMessage, error.Message);
+        fixture.AssertLostRace();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task A_serialization_failure_while_reading_for_the_status_score_is_a_conflict(bool wrapped)
+    {
+        var postgres = new PostgresException("Concurrent write", "ERROR", "ERROR", PostgresErrorCodes.SerializationFailure);
+        var fixture = new Fixture(PenaltyType.CashFine)
+        {
+            RefreshFailure = wrapped ? new InvalidOperationException("Likely transient failure", postgres) : postgres
+        };
+        fixture.Ticket.Vendor = VendorWithEmail();
+
+        var error = await Assert.ThrowsAsync<ConcurrencyConflictException>(() => fixture.UpdateAsync(TicketStatus.Contested));
+
+        Assert.Equal(RaceMessage, error.Message);
+        fixture.AssertLostRace();
+    }
+
+    [Fact]
+    public async Task Other_database_failure_while_reading_for_the_status_score_is_not_a_conflict()
+    {
+        var failure = new PostgresException("Unique violation", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation);
+        var fixture = new Fixture(PenaltyType.CashFine) { RefreshFailure = failure };
+        fixture.Ticket.Vendor = VendorWithEmail();
+
+        Assert.Same(failure, await Assert.ThrowsAsync<PostgresException>(() => fixture.UpdateAsync(TicketStatus.Contested)));
+        fixture.AssertLostRace();
+    }
+
+    [Fact]
+    public async Task Losing_a_simultaneous_status_save_answers_409_with_the_refresh_message()
+    {
+        var fixture = new Fixture(PenaltyType.CashFine) { SaveFailure = RaceFailure("serialization failure") };
+        await using var host = await AuditHost.CreateAsync(services => services.AddSingleton<ITicketService>(fixture.Service));
+
+        using var response = await host.SendAsync(HttpMethod.Patch, "/api/admin/tickets/1/update-status",
+            body: "{\"new_status\":\"Contested\",\"version\":7}");
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        using var error = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(RaceMessage, error.RootElement.GetProperty("message").GetString());
+    }
+
+    [Fact]
+    public async Task Other_database_failure_on_a_status_save_stays_a_server_error()
+    {
+        var unique = new PostgresException("Unique violation", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation);
+        var fixture = new Fixture(PenaltyType.CashFine) { SaveFailure = new DbUpdateException("Save failed", unique) };
+        fixture.Ticket.Vendor = VendorWithEmail();
+        await using var host = await AuditHost.CreateAsync(services => services.AddSingleton<ITicketService>(fixture.Service));
+
+        using var response = await host.SendAsync(HttpMethod.Patch, "/api/admin/tickets/1/update-status",
+            body: "{\"new_status\":\"Contested\",\"version\":7}");
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        using var error = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("An unexpected server error occurred.", error.RootElement.GetProperty("message").GetString());
+        fixture.AssertLostRace();
+    }
+
+    private static Exception RaceFailure(string shape)
+    {
+        var postgres = new PostgresException("Concurrent write", "ERROR", "ERROR", PostgresErrorCodes.SerializationFailure);
+        return shape switch
+        {
+            "row changed" => new DbUpdateConcurrencyException("Stale row"),
+            "serialization failure" => new DbUpdateException("Save failed", postgres),
+            _ => new InvalidOperationException("Likely transient failure", new DbUpdateException("Save failed", postgres))
+        };
+    }
+
+    private static Business VendorWithEmail() => new()
+    {
+        BusinessAccountNumber = "business", BusinessName = "Stall", QrCodeValue = "qr",
+        OwnerFirstName = "Juan", OwnerLastName = "Reyes", Email = "vendor@example.invalid",
+        HouseNumber = "1", Street = "Street", Barangay = "Barangay", City = "Marikina"
+    };
+
+    // Only the database is faked, so the real repository and unit of work translate the failure.
+    private sealed class FailingSaveContext(Exception error) : AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options)
+    {
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => Task.FromException<int>(error);
+    }
+
     [Theory]
     [InlineData("2026-10-15T15:59:59Z", "2026-10-15", true)]
     [InlineData("2026-10-15T15:59:59Z", "2026-10-16", false)]
@@ -359,6 +466,8 @@ public class TicketStatusSettlementTests
         public List<string> EmailBodies { get; } = [];
         public List<string> EmailAccents { get; } = [];
         public List<string> EnforcerPushBodies { get; } = [];
+        public Exception? SaveFailure { get; init; }
+        public Exception? RefreshFailure { get; init; }
 
         public Fixture(PenaltyType? penalty, string? failedNotification = null)
         {
@@ -382,12 +491,22 @@ public class TicketStatusSettlementTests
                 }
                 if (method.Name == nameof(ITicketRepository.SaveChangesAsync))
                 {
+                    if (SaveFailure is not null)
+                        return new TicketRepository(new FailingSaveContext(SaveFailure)).SaveChangesAsync();
                     Ticket.Version = 8;
                     return Task.CompletedTask;
                 }
                 throw new InvalidOperationException("Unexpected repository method: " + method.Name);
             });
-            var unitOfWork = Proxy<IUnitOfWork>((method, _) => { Calls.Add(method.Name); return Task.CompletedTask; });
+            var unitOfWork = Proxy<IUnitOfWork>((method, _) =>
+            {
+                Calls.Add(method.Name);
+                if (method.Name != nameof(IUnitOfWork.SaveChangesAsync)) return Task.CompletedTask;
+                if (SaveFailure is not null)
+                    return new UnitOfWork(new FailingSaveContext(SaveFailure)).SaveChangesAsync();
+                Ticket.Version = 8;
+                return Task.FromResult(1);
+            });
             var notification = Proxy<INotificationService>((method, args) =>
             {
                 Calls.Add(method.Name);
@@ -406,6 +525,8 @@ public class TicketStatusSettlementTests
             var compliance = Proxy<IVendorComplianceScoreService>((method, _) =>
             {
                 Calls.Add(method.Name);
+                if (RefreshFailure is not null)
+                    return Task.FromException<VendorComplianceScoreResponse>(RefreshFailure);
                 return Task.FromResult(new VendorComplianceScoreResponse
                 {
                     Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low"
@@ -424,6 +545,15 @@ public class TicketStatusSettlementTests
             Assert.Null(Ticket.ResolvedAt);
             Assert.Equal(7u, Ticket.Version);
             Assert.Equal(["BeginTransactionAsync", "GetTicketByIdAsync", "RollbackAsync"], Calls);
+        }
+
+        public void AssertLostRace()
+        {
+            Assert.Contains("RollbackAsync", Calls);
+            Assert.DoesNotContain("CommitAsync", Calls);
+            Assert.DoesNotContain(nameof(INotificationService.SendEmailAsync), Calls);
+            Assert.DoesNotContain(nameof(INotificationService.SendPushNotificationAsync), Calls);
+            Assert.DoesNotContain(nameof(INotificationService.SendPushNotificationToVendorAsync), Calls);
         }
     }
 
