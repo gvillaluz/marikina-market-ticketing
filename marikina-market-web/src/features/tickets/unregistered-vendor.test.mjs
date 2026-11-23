@@ -145,8 +145,23 @@ test("ticket page does not show the person's citation history", async () => {
   const html = text(render(await component('features/tickets/pages/TicketDetailPage.tsx'), {}));
   assert.ok(!html.includes('Person citation history'));
   assert.ok(!html.includes('000300'));
-  assert.ok(html.includes('CONFIRMED PERSON'));
+  assert.ok(html.includes('VIOLATOR'));
   assert.ok(html.includes('Juan Cruz'));
+});
+
+test('status labels keep their words whole', async () => {
+  const css = await readFile(path.join(src, 'components/ui/Records/RecordBadge.module.css'), 'utf8');
+  const badge = css.match(/\.badge\s*\{([^}]*)\}/)[1];
+  assert.match(badge, /white-space:\s*nowrap/);
+  assert.doesNotMatch(badge, /overflow-wrap:\s*anywhere/);
+});
+
+test('enforcer inspection list labels every value for the phone card layout', async () => {
+  const record = { ticketId: 8, type: 'Ticket', status: 'Pending', issuedAt: '2026-11-08T02:00:00Z', paperViolatorName: 'Juan Cruz',
+    personFullName: null, vendorId: null, businessName: null, registeredOwnerName: null, businessSnapshot: null, marketSectionName: 'Meat and Poultry' };
+  const html = render(await component('features/enforcers/components/performance/EnforcerInspectionList.tsx'), { records: [record], onView: () => {} });
+  for (const label of ['Date &amp; Time', 'Violator', 'Business', 'Market street', 'Type', 'Status', 'Action'])
+    assert.ok(html.includes(`data-label="${label}"`), label);
 });
 
 test('person history names an unregistered vendor and still flags an old record', async () => {
@@ -175,7 +190,7 @@ test('community service log names an unregistered vendor and has no account numb
   const html = render(await component('features/vendors/components/AdminCommunityServiceLogs.tsx'), {
     logs, page: 1, setPage: () => {}, status: 'all', setStatus: () => {}, totalLabel: 1, offset: 0, totalPages: 1, hasMore: false,
     isLoading: false, isError: false, errorMessage: '', refetch: () => {}, getProgressStatus: () => 'pending' });
-  assert.deepEqual(column(html, 'Vendor Name'), [UNREGISTERED]);
+  assert.deepEqual(column(html, 'Registered owner'), [UNREGISTERED]);
   assert.deepEqual(column(html, 'Business Account Number'), [DASH]);
   assert.match(html, /Unregistered vendor community service hours completed/);
   assert.doesNotMatch(text(html), /null|undefined/);

@@ -45,6 +45,7 @@ export default function TicketList({
     <Table
       responsive
       className={styles.list}
+      tableClassName={styles.table}
       loading={loading}
       data={tickets}
       keyExtractor={(ticket) => ticket.id.toString()}

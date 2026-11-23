@@ -25,6 +25,7 @@ const EnforcerInspectionList: FC<EnforcerInspectionListProps> = ({
 }) => {
   return (
     <Table
+      responsive
       loading={loading}
       data={records}
       keyExtractor={(record) => record.ticketId.toString()}

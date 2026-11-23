@@ -597,7 +597,7 @@ test("business list highlights the search in the business, account number and ow
 test("business inspection history highlights nothing: the searched number and ordinance number are not shown", () => {
   const render = (search) =>
     renderComponent("AdminVendorInspectionHistory", { ...historyProps, inspections: [inspection], search });
-  // This table has no data-label on its cells; Type is the first cell, ordinances are the fourth.
+  // Type is the first cell, ordinances are the fourth.
   const marksIn = (html, index) =>
     [...(html.match(/<tbody>[\s\S]*?<\/tr>/)?.[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g) ?? [])]
       .map((m) => [...m[1].matchAll(/<mark[^>]*>([^<]*)<\/mark>/g)].map((x) => x[1]))[index];
@@ -607,4 +607,12 @@ test("business inspection history highlights nothing: the searched number and or
   assert.ok(render("stall").includes("Stall Hours") && render("stall").includes("Fish Handling"));
   for (const search of ["santos", "reyes", "sari"]) assert.ok(!render(search).includes("<mark"), search); // not searched
   assert.ok(!render("").includes("<mark"));
+});
+
+test("business inspection history labels every value for the phone card layout and keeps ordinances together", () => {
+  const html = renderComponent("AdminVendorInspectionHistory", { ...historyProps, inspections: [inspection] });
+  for (const label of ["TYPE", "VIOLATOR", "DATE &amp; TIME", "ORDINANCE(S)", "ENFORCER", "ACTION"])
+    assert.ok(html.includes(`data-label="${label}"`), label);
+  // Two titles must sit in one block, or the card would put the second one under the label.
+  assert.match(html, /data-label="ORDINANCE\(S\)"[^>]*><div[^>]*><span[^>]*>Stall Hours<\/span><span[^>]*>Fish Handling<\/span><\/div><\/td>/);
 });

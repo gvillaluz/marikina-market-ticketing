@@ -76,7 +76,6 @@
 
 .inspectionTable {
   table-layout: fixed;
-  min-width: 800px;
 }
 
 .inspectionTable :global(thead th) {
@@ -254,6 +253,18 @@
   color: var(--button-primary);
   font-size: inherit;
   font-weight: 700;
+}
+
+@media (min-width: 701px) {
+  .tableWrapper .inspectionTable {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 700px) {
+  .tableWrapper {
+    border: 0;
+  }
 }
 
 @media (max-width: 650px) {
