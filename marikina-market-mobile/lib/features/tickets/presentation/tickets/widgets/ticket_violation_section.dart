@@ -167,11 +167,9 @@ class TicketViolationSection extends StatelessWidget {
           fields: [
             TicketPaperField(
               label: 'DATE & TIME:',
-              value: isTicket
-                  ? DateTimeFormatter.getDateTime(DateTime.now())
-                  : (issuedAt == null
-                        ? 'Unavailable (legacy record)'
-                        : DateTimeFormatter.getDateTime(issuedAt!)),
+              value: issuedAt == null
+                  ? 'Unavailable (legacy record)'
+                  : DateTimeFormatter.getDateTime(issuedAt!),
             ),
             TicketPaperField(
               label: 'ISSUE PLACE:',

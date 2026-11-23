@@ -787,6 +787,7 @@ void main() {
         isTicket: true,
         penaltyType: PenaltyType.cashFine,
         issuePlace: 'Fish aisle near F-014',
+        issuedAt: ticket.issuedAt,
       ),
       'saved violation, warning': TicketViolationSection(
         violations: warning.violations,
