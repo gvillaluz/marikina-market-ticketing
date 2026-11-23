@@ -646,8 +646,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 (t.PaperViolatorName != null && Regex.IsMatch(t.PaperViolatorName, pattern, RegexOptions.IgnoreCase)) ||
                 Regex.IsMatch(t.Enforcer!.FirstName + " " + t.Enforcer.LastName, pattern, RegexOptions.IgnoreCase) ||
                 (t.SnapshotBusinessName != null && Regex.IsMatch(t.SnapshotBusinessName, pattern, RegexOptions.IgnoreCase)) ||
-                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerLastName, pattern, RegexOptions.IgnoreCase)) ||
-                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerFirstName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.SnapshotRegisteredOwnerName != null && Regex.IsMatch(t.SnapshotRegisteredOwnerName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName, pattern, RegexOptions.IgnoreCase)) ||
                 (t.Vendor != null && Regex.IsMatch(t.Vendor.BusinessName, pattern, RegexOptions.IgnoreCase)) ||
                 (t.Vendor != null && Regex.IsMatch(t.Vendor.BusinessAccountNumber, pattern, RegexOptions.IgnoreCase))
                 ? 0 : 1;
@@ -658,8 +658,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 Regex.IsMatch((t.Type == ViolationType.Ticket ? t.PaperViolatorName : t.Person != null ? t.Person.FullName : null) ?? "", pattern, RegexOptions.IgnoreCase) ||
                 Regex.IsMatch(t.Enforcer!.FirstName + " " + t.Enforcer.LastName, pattern, RegexOptions.IgnoreCase) ||
                 (t.SnapshotBusinessName != null && Regex.IsMatch(t.SnapshotBusinessName, pattern, RegexOptions.IgnoreCase)) ||
-                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerLastName, pattern, RegexOptions.IgnoreCase)) ||
-                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerFirstName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.SnapshotRegisteredOwnerName != null && Regex.IsMatch(t.SnapshotRegisteredOwnerName, pattern, RegexOptions.IgnoreCase)) ||
+                (t.Vendor != null && Regex.IsMatch(t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName, pattern, RegexOptions.IgnoreCase)) ||
                 (t.Vendor != null && Regex.IsMatch(t.Vendor.BusinessName, pattern, RegexOptions.IgnoreCase)) ||
                 (t.Vendor != null && Regex.IsMatch(t.Vendor.BusinessAccountNumber, pattern, RegexOptions.IgnoreCase))
                 ? 0 : 1;
@@ -688,8 +688,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     ((t.Type == ViolationType.Ticket ? t.PaperViolatorName : t.Person != null ? t.Person.FullName : null) ?? "").ToLower().Contains(search) ||
                     (t.Enforcer!.FirstName + " " + t.Enforcer.LastName).ToLower().Contains(search) ||
                     (t.SnapshotBusinessName != null && t.SnapshotBusinessName.ToLower().Contains(search)) ||
-                    (t.Vendor != null && t.Vendor.OwnerLastName.ToLower().Contains(search)) ||
-                    (t.Vendor != null && t.Vendor.OwnerFirstName.ToLower().Contains(search)) ||
+                    (t.SnapshotRegisteredOwnerName != null && t.SnapshotRegisteredOwnerName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && (t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName).ToLower().Contains(search)) ||
                     (t.Vendor != null && t.Vendor.BusinessName.ToLower().Contains(search)) ||
                     (t.Vendor != null && t.Vendor.BusinessAccountNumber.ToLower().Contains(search)));
             }
@@ -717,8 +717,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     (t.PaperViolatorName != null && t.PaperViolatorName.ToLower().Contains(search)) ||
                     (t.Enforcer!.FirstName + " " + t.Enforcer.LastName).ToLower().Contains(search) ||
                     (t.SnapshotBusinessName != null && t.SnapshotBusinessName.ToLower().Contains(search)) ||
-                    (t.Vendor != null && t.Vendor.OwnerLastName.ToLower().Contains(search)) ||
-                    (t.Vendor != null && t.Vendor.OwnerFirstName.ToLower().Contains(search)) ||
+                    (t.SnapshotRegisteredOwnerName != null && t.SnapshotRegisteredOwnerName.ToLower().Contains(search)) ||
+                    (t.Vendor != null && (t.Vendor.OwnerFirstName + " " + t.Vendor.OwnerLastName).ToLower().Contains(search)) ||
                     (t.Vendor != null && t.Vendor.BusinessName.ToLower().Contains(search)) ||
                     (t.Vendor != null && t.Vendor.BusinessAccountNumber.ToLower().Contains(search)));
             }
