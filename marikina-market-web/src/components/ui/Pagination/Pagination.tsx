@@ -26,6 +26,9 @@ const Pagination: FC<PaginationProps> = ({
 }) => {
   if (totalPages <= 1 && !showSinglePage) return null;
 
+  const previousDisabled = disabled || page <= 1;
+  const nextDisabled = disabled || (canGoNext ?? page >= totalPages);
+
   const getPages = () => {
     const pages: (number | "…")[] = [];
     if (visiblePages === 3) {
@@ -56,8 +59,10 @@ const Pagination: FC<PaginationProps> = ({
     >
       <button
         className={styles.btn}
-        onClick={() => onChange(page - 1)}
-        disabled={disabled || page <= 1}
+        onClick={() => {
+          if (!previousDisabled) onChange(page - 1);
+        }}
+        aria-disabled={previousDisabled}
         aria-label="Previous page"
       >
         {compact ? "‹" : "‹ Prev"}
@@ -82,8 +87,10 @@ const Pagination: FC<PaginationProps> = ({
       )}
       <button
         className={styles.btn}
-        onClick={() => onChange(page + 1)}
-        disabled={disabled || (canGoNext ?? page >= totalPages)}
+        onClick={() => {
+          if (!nextDisabled) onChange(page + 1);
+        }}
+        aria-disabled={nextDisabled}
         aria-label="Next page"
       >
         {compact ? "›" : "Next ›"}

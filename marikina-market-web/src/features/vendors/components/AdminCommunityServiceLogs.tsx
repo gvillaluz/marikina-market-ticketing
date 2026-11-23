@@ -236,7 +236,7 @@ export default function AdminCommunityServiceLogs({
               <Pagination
                 compact
                 showSinglePage
-                canGoNext={!isLoading && hasMore}
+                canGoNext={isLoading || !hasMore}
                 className={styles.pagination}
                 page={page}
                 totalPages={totalPages}

@@ -18,11 +18,11 @@
   transition: background-color 0.12s ease;
 }
 
-.btn:hover:not(:disabled) {
+.btn:hover:not([aria-disabled="true"]) {
   background: var(--neutral-50);
 }
 
-.btn:disabled {
+.btn[aria-disabled="true"] {
   opacity: 0.5;
   cursor: not-allowed;
 }

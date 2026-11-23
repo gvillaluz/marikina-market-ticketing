@@ -402,12 +402,12 @@ test("registry and history enable Next only when more rows exist and block contr
     let html = renderComponent(file, props);
     assert.doesNotMatch(
       html,
-      /<button[^>]*disabled=""[^>]*aria-label="Next page"/,
+      /<button[^>]*aria-disabled="true"[^>]*aria-label="Next page"/,
     );
     html = renderComponent(file, { ...props, hasMore: false });
-    assert.match(html, /<button[^>]*disabled=""[^>]*aria-label="Next page"/);
+    assert.match(html, /<button[^>]*aria-disabled="true"[^>]*aria-label="Next page"/);
     html = renderComponent(file, { ...props, isFetching: true });
-    assert.match(html, /<button[^>]*disabled=""[^>]*aria-label="Next page"/);
+    assert.match(html, /<button[^>]*aria-disabled="true"[^>]*aria-label="Next page"/);
     html = renderComponent(file, { ...props, isError: true, isFetching: true });
     assert.match(html, /role="alert"/);
     assert.match(html, /Connection unavailable/);
