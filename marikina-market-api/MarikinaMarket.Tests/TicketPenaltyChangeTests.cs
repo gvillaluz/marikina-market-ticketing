@@ -635,6 +635,26 @@ public class TicketPenaltyChangeTests
         Assert.Equal(PenaltyType.CashFine, fixture.Ticket.PenaltyType);
     }
 
+    [Theory]
+    [InlineData("PATCH", "/api/enforcer/tickets/1/penalty", ValidBody, "change")]
+    [InlineData("GET", "/api/enforcer/tickets/1/settlement/receipt", null, "view")]
+    public async Task Audit_log_does_not_blame_the_role_when_an_enforcer_is_refused_another_enforcers_ticket(
+        string method, string route, string? body, string verb)
+    {
+        var fixture = new Fixture();
+        fixture.Ticket.EnforcerId = 9;
+        await using var host = await fixture.CreateHostAsync();
+
+        using var response = await host.SendAsync(new HttpMethod(method), route, "MarketEnforcer", body);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var log = Assert.Single(host.Repository.Logs);
+        Assert.Equal("AuthorizationFailed", log.Action);
+        Assert.StartsWith($"This account's role can {verb} Tickets, but the server refused this particular request. Reference: ",
+            log.Details);
+        Assert.DoesNotContain("Allowed roles", log.Details);
+    }
+
     private const string ValidBody =
         "{\"penalty_type\":\"CommunityService\",\"community_service_hours\":10,\"reason\":\"CannotPayCashFine\",\"version\":7}";
 
