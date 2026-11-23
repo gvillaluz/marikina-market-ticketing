@@ -3,6 +3,11 @@
 }
 
 @media (min-width: 701px) {
+  .list .table > thead > tr > th,
+  .list .table > tbody > tr > td {
+    padding-inline: var(--space-sm);
+  }
+
   .list :global(td[data-label="Actions"] > div) {
     justify-content: center;
   }

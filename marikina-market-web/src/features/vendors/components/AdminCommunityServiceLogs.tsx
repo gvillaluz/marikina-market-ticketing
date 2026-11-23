@@ -90,7 +90,7 @@ export default function AdminCommunityServiceLogs({
     },
     {
       key: "vendorName",
-      header: "Vendor Name",
+      header: "Registered owner",
       width: "18%",
       render: (log) => (
         <strong className={styles.vendorName}>{log.vendorName ?? UNREGISTERED_VENDOR}</strong>

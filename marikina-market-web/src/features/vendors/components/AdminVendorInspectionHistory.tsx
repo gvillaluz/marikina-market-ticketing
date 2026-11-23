@@ -108,11 +108,13 @@ export default function AdminVendorInspectionHistory({
       align: "left",
       render: (inspection) =>
         inspection.ordinanceTitles.length ? (
-          inspection.ordinanceTitles.map((title, index) => (
-            <span key={index} className={styles.ordinanceTitle}>
-              {title}
-            </span>
-          ))
+          <div>
+            {inspection.ordinanceTitles.map((title, index) => (
+              <span key={index} className={styles.ordinanceTitle}>
+                {title}
+              </span>
+            ))}
+          </div>
         ) : (
           "—"
         ),
@@ -193,6 +195,7 @@ export default function AdminVendorInspectionHistory({
         ) : (
           <>
             <Table
+              responsive
               className={styles.tableWrapper}
               tableClassName={styles.inspectionTable}
               columns={columns}
