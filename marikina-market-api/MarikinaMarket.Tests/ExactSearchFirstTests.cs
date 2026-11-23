@@ -157,6 +157,63 @@ public class ExactSearchFirstTests
         Assert.Equal([1, 2, 3], page.Items.Select(i => i.TicketId));
     }
 
+    // ---- Owner full names, on both tables ----
+
+    // Ticket 1 (newest) has owner "Nena Reyesa", where the search is only part of a word; ticket 2 has "Nena Reyes".
+    private static Ticket[] OwnerNameTickets()
+    {
+        var partial = NewBusiness(10, "Sari Shop", "A-10");
+        partial.OwnerLastName = "Reyesa";
+        var whole = NewBusiness(11, "Fish Stall", "A-11");
+        whole.OwnerLastName = "Reyes";
+        return [NewTicket(1, ViolationType.Ticket, 1, business: partial), NewTicket(2, ViolationType.Ticket, 2, business: whole)];
+    }
+
+    // The same names, this time as the owner saved on each ticket.
+    private static Ticket[] SavedOwnerNameTickets()
+    {
+        var tickets = new[]
+        {
+            NewTicket(1, ViolationType.Ticket, 1, business: NewBusiness(10, "Sari Shop", "A-10")),
+            NewTicket(2, ViolationType.Ticket, 2, business: NewBusiness(11, "Fish Stall", "A-11")),
+        };
+        tickets[0].SnapshotRegisteredOwnerName = "Lito Ramosa";
+        tickets[1].SnapshotRegisteredOwnerName = "Lito Ramos";
+        return tickets;
+    }
+
+    [Fact]
+    public async Task A_whole_owner_name_comes_first_on_Tickets()
+    {
+        using var context = ContextWith(OwnerNameTickets());
+        var page = await Service(context).GetAdminTicketAsync(0, new TicketSummaryFilters { Search = "nena reyes" });
+        Assert.Equal([2, 1], page.Items.Select(i => i.Id));
+    }
+
+    [Fact]
+    public async Task A_whole_owner_name_comes_first_on_Inspections()
+    {
+        using var context = ContextWith(OwnerNameTickets());
+        var page = await Service(context).GetAdminInspectionAsync(0, new InspectionSummaryFilters { Search = "nena reyes" });
+        Assert.Equal([2, 1], page.Items.Select(i => i.TicketId));
+    }
+
+    [Fact]
+    public async Task A_whole_saved_owner_name_comes_first_on_Tickets()
+    {
+        using var context = ContextWith(SavedOwnerNameTickets());
+        var page = await Service(context).GetAdminTicketAsync(0, new TicketSummaryFilters { Search = "lito ramos" });
+        Assert.Equal([2, 1], page.Items.Select(i => i.Id));
+    }
+
+    [Fact]
+    public async Task A_whole_saved_owner_name_comes_first_on_Inspections()
+    {
+        using var context = ContextWith(SavedOwnerNameTickets());
+        var page = await Service(context).GetAdminInspectionAsync(0, new InspectionSummaryFilters { Search = "lito ramos" });
+        Assert.Equal([2, 1], page.Items.Select(i => i.TicketId));
+    }
+
     // ---- Persons (A to Z by full name) ----
 
     private static PersonRepository PersonsWith(params Person[] people)

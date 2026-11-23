@@ -11,8 +11,9 @@ namespace MarikinaMarket.Tests;
 
 // The Tickets and Inspections tables can be searched by the violator, enforcer and business name they show,
 // in any capital letters. Expected ids are worked out by hand from the records below (newest first):
-//   Ticket 1  (1 day ago):  business "Sari Shop" (saved on the ticket as "Old Bakery"), owner Nena Dizon,
-//                           account ACC-100, violator "Jun Reyes", enforcer Pedro Santos
+//   Ticket 1  (1 day ago):  business "Sari Shop" (saved on the ticket as "Old Bakery"), owner Nena Dizon
+//                           (saved on the ticket as Lito Ramos), account ACC-100, violator "Jun Reyes",
+//                           enforcer Pedro Santos
 //   Warning 2 (2 days ago): business "Sari Shop", person "Ana Villa", enforcer Maria Lopez
 //   Ticket 3  (3 days ago): unregistered, violator "Ben Torres", enforcer Maria Lopez
 public class AdminTableSearchTests
@@ -43,6 +44,7 @@ public class AdminTableSearchTests
             {
                 Id = 1, Type = ViolationType.Ticket, PaperReference = "000111", VendorId = 10, Vendor = business,
                 SnapshotBusinessAccountNumber = "ACC-100", SnapshotBusinessName = "Old Bakery",
+                SnapshotRegisteredOwnerName = "Lito Ramos",
                 PaperViolatorName = "Jun Reyes", EnforcerId = 50, Enforcer = pedro,
                 MarketSectionId = 1, MarketSection = section, Description = "Synthetic", Status = TicketStatus.Pending,
                 IssuedAt = DateTime.UtcNow.Date.AddDays(-1), UpdatedAt = DateTime.UtcNow.Date.AddDays(-1)
@@ -91,6 +93,37 @@ public class AdminTableSearchTests
     [InlineData("dizon", new[] { 1, 2 })]       // owner, any capital letters
     [InlineData("acc-100", new[] { 1, 2 })]     // account number, any capital letters
     public async Task Inspections_search_finds_violator_enforcer_and_business(string search, int[] expectedIds)
+    {
+        using var context = Context();
+        var page = await TicketService(context).GetAdminInspectionAsync(0, new InspectionSummaryFilters { Search = search });
+        Assert.Equal(expectedIds, page.Items.Select(i => i.TicketId));
+        Assert.Equal(expectedIds.Length, page.Total);
+    }
+
+    [Theory]
+    [InlineData("nena dizon", new[] { 1 })]    // today's owner as a full name
+    [InlineData("NENA DIZON", new[] { 1 })]    // any capital letters
+    [InlineData("nena", new[] { 1 })]          // first name alone still works
+    [InlineData("dizon", new[] { 1 })]         // last name alone still works
+    [InlineData("lito ramos", new[] { 1 })]    // owner saved on the ticket, full name
+    [InlineData("ramos", new[] { 1 })]         // owner saved on the ticket, one name
+    [InlineData("unregistered", new int[0])]   // the label is not searchable
+    public async Task Tickets_search_finds_todays_owner_and_the_saved_owner(string search, int[] expectedIds)
+    {
+        using var context = Context();
+        var page = await TicketService(context).GetAdminTicketAsync(0, new TicketSummaryFilters { Search = search });
+        Assert.Equal(expectedIds, page.Items.Select(i => i.Id));
+        Assert.Equal(expectedIds.Length, page.Total ?? 0); // the server sends no total when nothing is found
+    }
+
+    [Theory]
+    [InlineData("nena dizon", new[] { 1, 2 })] // today's owner: the ticket and the warning
+    [InlineData("NENA DIZON", new[] { 1, 2 })] // any capital letters
+    [InlineData("nena", new[] { 1, 2 })]       // first name alone still works
+    [InlineData("lito ramos", new[] { 1 })]    // saved on the ticket only; the warning has no saved owner
+    [InlineData("ramos", new[] { 1 })]         // saved owner, one name
+    [InlineData("unregistered", new int[0])]   // the label is not searchable
+    public async Task Inspections_search_finds_todays_owner_and_the_saved_owner(string search, int[] expectedIds)
     {
         using var context = Context();
         var page = await TicketService(context).GetAdminInspectionAsync(0, new InspectionSummaryFilters { Search = search });
