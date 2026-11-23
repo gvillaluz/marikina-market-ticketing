@@ -1,5 +1,9 @@
 import type { SectionRecommendation } from "@/api/types/recommendations.types";
 import { formatManilaDateTime, riskTone } from "../recommendations.format";
+import {
+  prominentViolationText,
+  recommendedActionText,
+} from "../recommendations.text";
 import HourlyBars from "./HourlyBars";
 import RecommendationTiles from "./RecommendationTiles";
 import ReviewActions from "./ReviewActions";
@@ -34,13 +38,14 @@ export default function RecommendationCard({
         <p className={styles.text}>
           <strong>
             {`${recommendation.categoryNameFilipino} (${recommendation.categoryNameEnglish})`}
-          </strong>
+          </strong>{" "}
+          {prominentViolationText(recommendation)}
         </p>
       </section>
 
       <section className={`${styles.part} ${styles.action}`}>
         <h3 className={styles.label}>Recommended action</h3>
-        <p className={styles.text}>{recommendation.recommendedAction}</p>
+        <p className={styles.text}>{recommendedActionText(recommendation)}</p>
       </section>
 
       <section className={styles.part}>
@@ -63,7 +68,7 @@ export default function RecommendationCard({
       </div>
 
       <footer className={styles.footer}>
-        {`Last flagged: ${formatManilaDateTime(recommendation.lastFlaggedAt)}`}
+        {`Last detected: ${formatManilaDateTime(recommendation.lastFlaggedAt)}`}
       </footer>
     </article>
   );

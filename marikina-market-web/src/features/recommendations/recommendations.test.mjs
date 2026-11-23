@@ -146,7 +146,106 @@ test("W1: the Fish and Seafood card shows its numbers as three tiles", () => {
   );
   assert.ok(words.includes("Check scales at the start of the morning rush."));
   assert.ok(words.includes("Moderate risk"), words);
-  assert.ok(words.includes("Last flagged: 8 Nov 2026, 2:05 PM"), words);
+  assert.ok(words.includes("Last detected: 8 Nov 2026, 2:05 PM"), words);
+  assert.doesNotMatch(words, /flagged/i);
+});
+
+// ---- Essay-style card text ---------------------------------------------------
+
+test("E1: the prominent violation reads as a paragraph built from the card's own numbers", () => {
+  const words = text(renderCard(fishAndSeafood));
+  assert.ok(
+    words.includes(
+      "Timbang at Sukat (Weights and Measures) is the leading concern on Fish and Seafood, " +
+        "appearing in 4 of the 6 warnings and tickets recorded in the last 30 days. " +
+        "The busiest period for detected violations was 08:00–11:00, and the latest was on 8 Nov 2026. " +
+        "Risk is rated Moderate. Confidence is Moderate because this pattern is based on 6 records.",
+    ),
+    words,
+  );
+  assert.doesNotMatch(words, /most common/i);
+});
+
+test("E1: the paragraph follows a different card's risk, confidence, hours and date", () => {
+  const words = text(
+    renderCard({
+      ...fishAndSeafood,
+      marketSectionName: "Meat",
+      categoryNameEnglish: "Sanitation",
+      categoryNameFilipino: "Kalinisan",
+      categoryRecordCount: 7,
+      sectionRecordCount: 9,
+      riskLevel: "High",
+      patternConfidence: "High",
+      peakStartHour: 22,
+      // 16:30 UTC on 13 Nov is 00:30 on 14 Nov in Manila.
+      lastFlaggedAt: "2026-11-13T16:30:00Z",
+    }),
+  );
+  assert.ok(
+    words.includes(
+      "Kalinisan (Sanitation) is the leading concern on Meat, " +
+        "appearing in 7 of the 9 warnings and tickets recorded in the last 30 days. " +
+        "The busiest period for detected violations was 22:00–01:00, and the latest was on 14 Nov 2026. " +
+        "Risk is rated High. Confidence is High because this pattern is based on 9 records.",
+    ),
+    words,
+  );
+});
+
+test("E2: the recommended action keeps the model's sentence first, then timing, what to record and follow-up", () => {
+  const words = text(
+    renderCard({
+      ...fishAndSeafood,
+      categoryCode: "Sanitation",
+      recommendedAction:
+        "Inspect the affected stall and require correction of food handling or waste and hygiene issues before follow-up.",
+    }),
+  );
+  assert.ok(
+    words.includes(
+      "Inspect the affected stall and require correction of food handling or waste and hygiene issues before follow-up. " +
+        "For any on-site check, go around 08:00–11:00, the busiest period for detected violations on this street. " +
+        "Record the specific hygiene or food-safety problem seen and the vendor responsible for it. " +
+        "Follow up afterward to confirm the problem has been corrected.",
+    ),
+    words,
+  );
+});
+
+test("E2: a category the website does not know leaves out only the what-to-record sentence", () => {
+  const words = text(
+    renderCard({ ...fishAndSeafood, categoryCode: "Not A Known Category" }),
+  );
+  assert.ok(
+    words.includes(
+      "Check scales at the start of the morning rush. " +
+        "For any on-site check, go around 08:00–11:00, the busiest period for detected violations on this street. " +
+        "Follow up afterward to confirm the problem has been corrected.",
+    ),
+    words,
+  );
+});
+
+test("E3: each of the model's 29 categories has its own what-to-record sentence", () => {
+  const { whatToRecord } = load(
+    "features/recommendations/recommendations.text.ts",
+  );
+  const codes = [
+    "Vendor Identification", "Permit & Licensing", "Sanitation", "WeightMeasures",
+    "Lighting & Energy", "Stall Occupancy", "Stall Management", "Stall Construction",
+    "Utilities", "Stall Rental", "Illegal Vendor", "Public Order", "Liquor",
+    "Market Conduct", "Obstruction", "DressCode", "Bladed Instruments", "Traffic",
+    "Porter Regulation", "Promotions", "Advertising", "Signage & Streamers",
+    "Entertainment Activities", "Lighting Facilities", "Market Rules",
+    "Price Monitoring", "Market Fees & Surcharges", "Resisting Authority",
+    "General Penalties",
+  ];
+  assert.equal(codes.length, 29);
+  const sentences = codes.map((code) => whatToRecord(code));
+  for (const [index, sentence] of sentences.entries())
+    assert.match(sentence ?? "", /^Record .+\.$/, codes[index]);
+  assert.equal(new Set(sentences).size, 29);
 });
 
 test("W1: a section with one record says record, not records", () => {
