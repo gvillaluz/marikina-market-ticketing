@@ -109,13 +109,19 @@ namespace MarikinaMarket.API.Presentation.Middleware
             {
                 var roleGroups = context.GetEndpoint()?.Metadata.GetOrderedMetadata<IAuthorizeData>()
                     .Where(data => !string.IsNullOrWhiteSpace(data.Roles))
-                    .Select(data => string.Join(" or ", data.Roles!.Split(',',
-                        StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(RoleLabel)))
+                    .Select(data => data.Roles!.Split(',',
+                        StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
                     .ToArray() ?? [];
-                sentence = $"This account's role is not allowed to {request}.";
-                if (roleGroups.Length > 0)
-                    sentence += " Allowed roles: " +
-                        string.Join(" and ", roleGroups.Select(group => roleGroups.Length > 1 ? $"({group})" : group)) + ".";
+                if (roleGroups.Length > 0 && roleGroups.All(group => group.Any(context.User.IsInRole)))
+                    sentence = $"This account's role can {request}, but the server refused this particular request.";
+                else
+                {
+                    var groupLabels = roleGroups.Select(group => string.Join(" or ", group.Select(RoleLabel))).ToArray();
+                    sentence = $"This account's role is not allowed to {request}.";
+                    if (groupLabels.Length > 0)
+                        sentence += " Allowed roles: " +
+                            string.Join(" and ", groupLabels.Select(group => groupLabels.Length > 1 ? $"({group})" : group)) + ".";
+                }
             }
             return LimitAuditMetadata($"{sentence} Reference: {LimitAuditMetadata(context.TraceIdentifier, 48)}.", 500);
         }
