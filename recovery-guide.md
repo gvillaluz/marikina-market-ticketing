@@ -85,13 +85,29 @@ In the commands below, replace `<host>` and `<user>` with your database server a
    Compare-Object (Get-Content "$work\source-counts.csv") (Get-Content "$work\restored-counts.csv")
    ```
 
-   Every line shown is a difference. One difference is normal: the `backups` table has **one more** row in the restored copy, because each backup contains itself as an unfinished backup. Anything else needs checking before you go on.
-8. **Clean up the unlocked copy:** delete `$work\restore.dump`. Keep the `.mmbak` file (see the warning below).
-9. **Switch the system to the restored database.** Change the server's `ConnectionStrings:DefaultConnection` (on Azure: `ConnectionStrings__DefaultConnection`) to point at `$restoreDb`, start the server, sign in and check records you know exist and that a ticket photo opens.
+   Every line shown is a difference. One difference is normal: the `backups` list has **one more** row in the restored copy. Each backup file carries a small note about itself ("this backup is still being made"), and that note shows up as an extra row. Anything else needs checking before you go on.
+8. **Clean up the unlocked copy:** delete `$work\restore.dump`. Keep the `.mmbak` file you downloaded. It is your own safe copy (see "The backup you restored from" below).
+9. **Protect the backup you restored from.** Do this **before** you start the system on the restored copy. It is one line, and it is safe to run every time, whether the backup is old or new:
 
-> **Warning (finding F1): starting the system on a restored copy deletes the stored copy of the backup it came from.** Each backup contains itself as an unfinished backup. When the server starts on the restored copy, it marks that backup failed and deletes its file from backup storage within seconds. This was seen on 2026-11-17. The `.mmbak` file you downloaded is **not** affected, so **keep it** until a new backup has been made and downloaded from the restored system.
+   ```powershell
+   & "$pg\psql.exe" -h <host> -U <user> -d $restoreDb -c "UPDATE backups SET storage_cleanup_pending = false WHERE is_finalized = false"
+   ```
 
-**Not tested:** restoring into an Azure database (the drill restored into local PostgreSQL 18.6 on Windows); typing the key with `Read-Host` as in step 4 (the drill read the key from the computer's saved secrets instead); switching an Azure server to the restored database (step 9; the drill started a separate local server on the restored copy).
+   Expect `UPDATE 1`. `UPDATE 0` is also fine; it means there was nothing to protect. Why this matters is explained below.
+10. **Switch the system to the restored database.** Change the server's `ConnectionStrings:DefaultConnection` (on Azure: `ConnectionStrings__DefaultConnection`) to point at `$restoreDb`, start the server, sign in and check records you know exist and that a ticket photo opens.
+
+### The backup you restored from
+
+**What used to happen (seen on 2026-11-17).** The note a backup carries about itself said "if this backup is cut short, delete its file". When the system started on restored data, it read that note, decided the backup had been cut short, and deleted the backup's stored file within seconds. The one copy you may need again was gone. The file you downloaded to your own computer was never touched.
+
+**What happens now.**
+- **Backups made after the system was updated with the fix** no longer carry that note, so the stored file stays. The fix is a change to the server, so it only helps once the server has been updated. It never helps backups made before the update.
+- **Backups made before the update** still carry the note. Step 9 switches it off, so the stored file stays for those too. If you forget step 9 with an older backup, the stored file is deleted as before.
+- Either way, keep the `.mmbak` file you downloaded until a new backup has been made and downloaded from the restored system.
+
+**What you will see afterwards.** On the **Backups** page, the backup you restored from is listed as **Failed**, with the message "Backup was interrupted before completion." That is expected: the restored system sees it as a backup that never finished. Its file is still in backup storage. Nothing removes it automatically, so when you no longer need it, delete it from the storage account by hand.
+
+**Not tested:** restoring into an Azure database (the drill restored into local PostgreSQL 18.6 on Windows); typing the key with `Read-Host` as in step 4 (the drill read the key from the computer's saved secrets instead); switching an Azure server to the restored database (step 10; the drill started a separate local server on the restored copy); the step 9 command and the server fix on real storage (the fix is covered by an automatic test only; no real backup has been restored since the change).
 
 ## 3. When a service is down
 
@@ -114,9 +130,9 @@ Not tested: the whole internet off at once; the phone's sign-in-code message whe
 | Keep the key safe; do not replace it casually | [setup guide](environment-setup.md), section 6, "Database dump and encryption" |
 | Restore steps 1–8 | Restore drill of 2026-11-17: `docs/closed-work/phases/phase-4-restore-drill.md` and its runbook (steps 1–7, 10) |
 | One extra `backups` row is normal | Same note, "Row counts, 30 tables" |
+| Step 9 and "The backup you restored from" | Same note, "Finding F1" (what used to happen). The step 9 command and the server fix come from reading the code (`BackupService.cs`) and an automatic test (`BackupRestoreSafetyTests.cs`); the command was **not** run on a database and the fix was **not** run against real storage |
 | Tool refuses wrong key / changed file / wrong version / short file | `tools/recovery/decrypt-mmbak.test.mjs` (9 tests) and the drill's failure-path step |
 | Step 4, typing the key with `Read-Host` | New in this guide; not tested live |
-| Step 9, switching to the restored database | Drill: restored copy opened in the app (a separate local server); Azure switch not tested |
-| Warning F1 | Same note, "Finding F1" |
+| Step 10, switching to the restored database | Drill: restored copy opened in the app (a separate local server); Azure switch not tested |
 | Email, storage, push rows | `docs/closed-work/phases/phase-4-outage-and-restart-stories.md`, slice 2 (2b, 2a and 2d, 2c) |
 | Database and server rows | Same note, slice 3 (3b, 3a) |

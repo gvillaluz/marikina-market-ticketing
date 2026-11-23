@@ -160,9 +160,7 @@ namespace MarikinaMarket.API.Application.Services
                     DateTime = now,
                     Type = type,
                     Status = BackupStatus.Failed,
-                    B2Key = $"backups/{now:yyyy/MM/dd}/{Guid.NewGuid():N}.mmbak",
-                    // Persist before upload so interrupted/ambiguous uploads can be removed on restart.
-                    StorageCleanupPending = true
+                    B2Key = $"backups/{now:yyyy/MM/dd}/{Guid.NewGuid():N}.mmbak"
                 };
                 await _unitOfWork.BeginTransactionAsync();
                 try
@@ -212,6 +210,11 @@ namespace MarikinaMarket.API.Application.Services
                 // A failure to remove plaintext prevents upload.
                 File.Delete(dumpPath);
                 stage = "storage upload";
+                // Persist before upload so interrupted/ambiguous uploads can be removed on restart.
+                // This is set only after the dump is taken: the dump must not contain this flag,
+                // or a system restored from this backup would delete the backup file it came from.
+                backup.StorageCleanupPending = true;
+                await _repository.SaveChangesAsync(timeout.Token);
                 await using (var encrypted = File.OpenRead(encryptedPath))
                     await _storage.UploadStreamAsync(B2BucketType.Backups, encrypted, backup.B2Key, timeout.Token);
 
