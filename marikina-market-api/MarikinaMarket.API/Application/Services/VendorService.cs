@@ -16,6 +16,7 @@ namespace MarikinaMarket.API.Application.Services
     public class VendorService : IVendorService
     {
         private const int BUSINESS_SEARCH_LIMIT = 20;
+        private const int StartingComplianceScore = 100;
         private readonly IVendorRepository _vendorRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMarketSectionRepository _marketSectionRepository;
@@ -125,22 +126,8 @@ namespace MarikinaMarket.API.Application.Services
             AdminVendorSummaryFilter filters)
         {
             const int pageSize = 10;
-            List<AdminVendorSummary> vendors;
-            int total;
-            await _unitOfWork.BeginTransactionAsync();
-            try
-            {
-                await _complianceScoreService.RefreshAllAsync(DateTime.UtcNow);
-                vendors = await _vendorRepository.GetAdminVendorSummariesAsync(offset, pageSize, filters);
-                total = await _vendorRepository.GetAdminVendorSummaryCountAsync(filters);
-                if (_auditService is not null) await _auditService.StageCurrentAsync();
-                await _unitOfWork.CommitAsync();
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
+            var vendors = await _vendorRepository.GetAdminVendorSummariesAsync(offset, pageSize, filters);
+            var total = await _vendorRepository.GetAdminVendorSummaryCountAsync(filters);
 
             return new PageResponse<AdminVendorSummaryResponse>
             {
@@ -215,22 +202,8 @@ namespace MarikinaMarket.API.Application.Services
             };
         }
 
-        public async Task<VendorComplianceScoreResponse> GetVendorComplianceScoreAsync(int vendorId)
-        {
-            await _unitOfWork.BeginTransactionAsync();
-            try
-            {
-                var response = await _complianceScoreService.RefreshAsync(vendorId, DateTime.UtcNow);
-                if (_auditService is not null) await _auditService.StageCurrentAsync();
-                await _unitOfWork.CommitAsync();
-                return response;
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
+        public Task<VendorComplianceScoreResponse> GetVendorComplianceScoreAsync(int vendorId)
+            => _complianceScoreService.GetSavedAsync(vendorId);
 
         public async Task<PageResponse<AdminPendingTicketSettlementResponse>> GetPendingTicketSettlementsAsync(int offset)
         {
@@ -302,7 +275,7 @@ namespace MarikinaMarket.API.Application.Services
                     ?? throw new RecordNotFoundException("Business not found.")
                 : new Business { BusinessAccountNumber = "", BusinessName = "", CreatedAt = DateTime.UtcNow,
                     Status = VendorStatus.Active, QrCodeValue = Guid.NewGuid().ToString("N"),
-                    ScoreUpdatedAt = DateTime.UtcNow };
+                    ComplianceScore = StartingComplianceScore, ScoreUpdatedAt = DateTime.UtcNow };
             if (await _vendorRepository.BusinessAccountNumberExistsAsync(request.BusinessAccountNumber, id))
                 throw new InvalidRequestException("Business account number is already in use.");
 

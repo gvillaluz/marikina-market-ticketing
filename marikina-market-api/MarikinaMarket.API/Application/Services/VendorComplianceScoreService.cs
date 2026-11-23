@@ -37,18 +37,36 @@ namespace MarikinaMarket.API.Application.Services
             return response;
         }
 
-        public async Task RefreshAllAsync(DateTime calculatedAt)
+        public async Task RefreshDueAsync(DateTime calculatedAt)
         {
-            var vendors = await _vendorRepository.GetVendorProfilesForComplianceUpdateAsync();
-            if (vendors.Count == 0) return;
+            // Read each last update time before the tickets, so a ticket change during this run is detected.
+            var due = await _vendorRepository.GetBusinessesDueForScoreUpdateAsync(StartOfManilaDay(calculatedAt));
+            if (due.Count == 0) return;
 
-            // One ticket query for all vendors, before score filters or pagination are applied.
             var tickets = await _ticketRepository.GetVendorComplianceTicketsAsync(
-                vendors.Select(v => v.Id).ToArray(), calculatedAt.AddDays(-WindowDays), calculatedAt);
+                due.Select(v => v.Id).ToArray(), calculatedAt.AddDays(-WindowDays), calculatedAt);
             var ticketsByVendor = tickets.ToLookup(t => t.VendorId);
-            foreach (var vendor in vendors)
-                UpdateScore(vendor, Calculate(ticketsByVendor[vendor.Id].ToList(), calculatedAt));
-            await _unitOfWork.SaveChangesAsync();
+            foreach (var (id, lastUpdatedAt) in due)
+            {
+                var score = Calculate(ticketsByVendor[id].ToList(), calculatedAt).ComplianceScore;
+                await _vendorRepository.SaveScoreIfNotChangedAsync(id, lastUpdatedAt, score, calculatedAt);
+            }
+        }
+
+        public async Task<VendorComplianceScoreResponse> GetSavedAsync(int vendorId)
+        {
+            var calculatedAt = await _vendorRepository.GetScoreUpdatedAtAsync(vendorId)
+                ?? throw new RecordNotFoundException("Vendor not found.");
+            var tickets = await _ticketRepository.GetVendorComplianceTicketsAsync(
+                [vendorId], calculatedAt.AddDays(-WindowDays), calculatedAt);
+            return Calculate(tickets, calculatedAt);
+        }
+
+        private static DateTime StartOfManilaDay(DateTime utc)
+        {
+            var manila = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            var today = DateTime.SpecifyKind(TimeZoneInfo.ConvertTimeFromUtc(utc, manila).Date, DateTimeKind.Unspecified);
+            return TimeZoneInfo.ConvertTimeToUtc(today, manila);
         }
 
         private static void UpdateScore(Business vendor, VendorComplianceScoreResponse response)

@@ -132,8 +132,31 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<Business>> GetVendorProfilesForComplianceUpdateAsync()
-            => await _context.Businesses.OrderBy(v => v.Id).ToListAsync();
+        public async Task<List<(int Id, DateTime ScoreUpdatedAt)>> GetBusinessesDueForScoreUpdateAsync(DateTime dueBefore)
+        {
+            var due = await _context.Businesses
+                .AsNoTracking()
+                .Where(v => v.ScoreUpdatedAt < dueBefore)
+                .OrderBy(v => v.Id)
+                .Select(v => new { v.Id, v.ScoreUpdatedAt })
+                .ToListAsync();
+            return due.Select(v => (v.Id, v.ScoreUpdatedAt)).ToList();
+        }
+
+        public Task<DateTime?> GetScoreUpdatedAtAsync(int vendorId)
+            => _context.Businesses
+                .AsNoTracking()
+                .Where(v => v.Id == vendorId)
+                .Select(v => (DateTime?)v.ScoreUpdatedAt)
+                .FirstOrDefaultAsync();
+
+        // Matching the last update time leaves a score alone if a ticket change saved a newer one meanwhile.
+        public Task SaveScoreIfNotChangedAsync(int vendorId, DateTime lastUpdatedAt, int score, DateTime calculatedAt)
+            => _context.Businesses
+                .Where(v => v.Id == vendorId && v.ScoreUpdatedAt == lastUpdatedAt)
+                .ExecuteUpdateAsync(update => update
+                    .SetProperty(v => v.ComplianceScore, score)
+                    .SetProperty(v => v.ScoreUpdatedAt, calculatedAt));
 
         public async Task<Business?> GetVendorProfileForUpdateAsync(int vendorId)
         {
