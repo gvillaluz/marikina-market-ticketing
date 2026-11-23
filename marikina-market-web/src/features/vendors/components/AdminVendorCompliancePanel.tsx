@@ -119,18 +119,18 @@ export default function AdminVendorCompliancePanel({
                   : "No pending settlements."}
               </p>
             )}
-            {(settlementHasMore || settlementPage > 1) && (
-              <Pagination
-                compact
-                showSinglePage
-                canGoNext={!settlementIsLoading && settlementHasMore}
-                className={styles.settlementPagination}
-                page={settlementPage}
-                totalPages={totalSettlementPages}
-                onChange={setSettlementPage}
-              />
-            )}
           </>
+        )}
+        {!settlementIsError && (settlementHasMore || settlementPage > 1) && (
+          <Pagination
+            compact
+            showSinglePage
+            canGoNext={settlementIsLoading || !settlementHasMore}
+            className={styles.settlementPagination}
+            page={settlementPage}
+            totalPages={totalSettlementPages}
+            onChange={setSettlementPage}
+          />
         )}
       </section>
     </Card>
