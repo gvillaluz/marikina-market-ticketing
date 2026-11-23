@@ -103,6 +103,18 @@ public class AuditHttpTests
     }
 
     [Fact]
+    public async Task Authorization_details_do_not_blame_the_role_when_every_declared_role_requirement_is_met()
+    {
+        await using var host = await AuditHost.CreateAsync();
+        using var response = await host.SendAsync(HttpMethod.Get, "/api/audit-probe/role-groups-refused", "HeadAdmin");
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var log = Assert.Single(host.Repository.Logs);
+        Assert.StartsWith("This account's role can view Reports, but the server refused this particular request. Reference: ",
+            log.Details);
+        Assert.DoesNotContain("Allowed roles", log.Details);
+    }
+
+    [Fact]
     public async Task Authorization_details_use_route_templates_bound_metadata_and_preserve_verified_actor()
     {
         await using var host = await AuditHost.CreateAsync();
@@ -118,8 +130,8 @@ public class AuditHttpTests
         Assert.Equal(7, log.UserId);
         Assert.Equal(Role.HeadAdmin, log.Role);
         Assert.Null(log.TargetId);
-        Assert.Equal("This account's role is not allowed to change Reports. " +
-            "Allowed roles: Head Admin or Admin Officer. Reference: " + new string('x', 47) + "….", log.Details);
+        Assert.Equal("This account's role can change Reports, but the server refused this particular request. " +
+            "Reference: " + new string('x', 47) + "….", log.Details);
         Assert.InRange(log.Details.Length, 1, 500);
         Assert.DoesNotContain("private-", JsonSerializer.Serialize(log));
         Assert.DoesNotContain(new string('x', 49), log.Details);

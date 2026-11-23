@@ -224,6 +224,9 @@ public class AuditProbeController : ControllerBase
     [HttpGet("role-groups")]
     [Authorize(Roles = "HeadAdmin,MarketEnforcer")]
     public IActionResult RoleGroups() => Ok();
+    [HttpGet("role-groups-refused")]
+    [Authorize(Roles = "HeadAdmin,MarketEnforcer")]
+    public IActionResult RoleGroupsRefused() => Forbid();
     [HttpPost("read-only")]
     public IActionResult GetTicketFineSummary() => Ok(new { Id = 42 });
     [HttpPost("validation-exception")]
