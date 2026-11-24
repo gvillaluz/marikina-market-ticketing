@@ -35,6 +35,10 @@
   white-space: nowrap;
 }
 
+.table tbody tr {
+  transition: background-color 160ms ease;
+}
+
 .table tbody tr:hover {
   background: #f8fbff;
 }

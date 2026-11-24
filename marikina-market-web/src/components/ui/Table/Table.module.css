@@ -37,6 +37,10 @@
   border-bottom: none;
 }
 
+.wrapper .table > tbody > tr {
+  transition: background-color 160ms ease;
+}
+
 .wrapper .table > tbody > tr:hover {
   background-color: var(--records-hover-surface);
 }

@@ -43,6 +43,7 @@
 .table tbody th,
 .table tbody td {
   border-bottom: 1px solid var(--border-default);
+  transition: background-color 160ms ease;
 }
 .table tbody th {
   font-weight: 400;

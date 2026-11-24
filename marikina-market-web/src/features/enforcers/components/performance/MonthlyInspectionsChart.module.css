@@ -33,11 +33,20 @@
   justify-content: flex-end;
   height: 100%;
   gap: 4px;
+  --sweep-step: 25ms;
+  --sweep-delay: calc(var(--position) * var(--sweep-step));
 }
 
+/* The bars rise in a short sweep from January to December, then the current month lands last. */
 .count {
   font-size: 0.6rem;
   color: var(--neutral-500);
+  animation: count-in 300ms ease-out backwards;
+  animation-delay: calc(var(--sweep-delay) + 250ms);
+}
+
+.current .count {
+  animation-delay: calc(11 * var(--sweep-step) + 370ms);
 }
 
 .barTrack {
@@ -53,13 +62,48 @@
   width: 100%;
   background: #b9c8de;
   border-radius: 7px 7px 0 0;
+  transform-origin: bottom;
+  animation: bar-rise 450ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: var(--sweep-delay);
+  transition: filter 200ms ease;
 }
 
-.barHighlight {
+.current .bar {
   background: #002753;
+  animation-delay: calc(11 * var(--sweep-step) + 120ms);
+}
+
+.barColumn:hover .bar {
+  filter: brightness(0.88);
 }
 
 .month {
   font-size: 0.6rem;
   color: var(--neutral-500);
+}
+
+@keyframes bar-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes count-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .count {
+    animation: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .bars {
+    flex: none;
+    height: 11rem;
+  }
 }
