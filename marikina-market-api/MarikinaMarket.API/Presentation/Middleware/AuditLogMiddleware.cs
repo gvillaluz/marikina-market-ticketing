@@ -57,7 +57,8 @@ namespace MarikinaMarket.API.Presentation.Middleware
             if (status is StatusCodes.Status401Unauthorized or StatusCodes.Status403Forbidden)
             {
                 var details = await AuthorizationDetailsAsync(context, module);
-                // The apps renew an expired sign-in on their own, so it is not recorded.
+                // Expired sign-ins are renewed by the apps, and ended ones (password changed, account removed)
+                // send the user back to log in, so neither is recorded.
                 if (details is null) return;
                 CaptureActor(context, audit);
                 audit.Entry.Action = "AuthorizationFailed";
@@ -95,7 +96,8 @@ namespace MarikinaMarket.API.Presentation.Middleware
             if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
             {
                 var authentication = await context.AuthenticateAsync();
-                if (authentication.Failure is SecurityTokenExpiredException) return null;
+                // AuthenticationFailureException comes only from the session checks in Program.cs OnTokenValidated.
+                if (authentication.Failure is SecurityTokenExpiredException or AuthenticationFailureException) return null;
                 sentence = authentication.Failure switch
                 {
                     SecurityTokenException => $"A request to {request} was refused because its sign-in could not be trusted.",
