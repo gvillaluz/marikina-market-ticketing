@@ -29,6 +29,10 @@ import 'features/auth/login_test_network_info.dart';
 import 'features/auth/data/login_mobile_contract_test.dart'
     show profileResponse, otpResponse, tokenResponse, reply, contractClient;
 import 'dashboard_ui_test.dart' show summaryResponse;
+import 'package:marikina_market_mobile/core/errors/result.dart';
+import 'package:marikina_market_mobile/features/notification/domain/repositories/notification_repository.dart';
+import 'package:marikina_market_mobile/features/notification/domain/use_cases/load_unread_count_use_case.dart';
+import 'package:marikina_market_mobile/features/notification/presentation/bloc/unread_count_bloc.dart';
 
 Future<void> authenticate(
   AuthBloc bloc,
@@ -55,7 +59,18 @@ Future<void> authenticate(
   await finished.timeout(const Duration(seconds: 5));
 }
 
+void registerUnreadCount() {
+  sl.registerFactory<UnreadCountBloc>(
+    () => UnreadCountBloc(
+      loadUnreadCountUseCase: LoadUnreadCountUseCase(_NoUnread()),
+      notificationArrivals: const Stream.empty(),
+    ),
+  );
+  addTearDown(() => sl.unregister<UnreadCountBloc>());
+}
+
 void registerEnforcerDashboard() {
+  registerUnreadCount();
   final client = contractClient(
     (options) async => reply(options, summaryResponse),
   );
@@ -205,6 +220,7 @@ void main() {
     );
     sl.registerFactory<DashboardBloc>(() => enforcerDashboard);
     addTearDown(() => sl.unregister<DashboardBloc>());
+    registerUnreadCount();
     Future<void> updateAccount(String role, {int userId = 1}) async {
       final changed = authenticate(auth, role, userId: userId);
       await tester.pump();
@@ -499,4 +515,9 @@ void main() {
       await tester.runAsync(auth.close);
     },
   );
+}
+
+class _NoUnread extends Fake implements NotificationRepository {
+  @override
+  Future<Result<int>> loadUnreadCount() async => const Success(0);
 }

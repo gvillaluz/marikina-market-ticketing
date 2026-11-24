@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:marikina_market_mobile/core/errors/result.dart';
 import 'package:marikina_market_mobile/core/router/app_routes.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/layout/presentation/pages/root_screen.dart';
+import 'package:marikina_market_mobile/features/notification/domain/repositories/notification_repository.dart';
+import 'package:marikina_market_mobile/features/notification/domain/use_cases/load_unread_count_use_case.dart';
+import 'package:marikina_market_mobile/features/notification/presentation/bloc/unread_count_bloc.dart';
 
 GoRouter navigationRouter() => GoRouter(
   initialLocation: '/branch0',
   routes: [
     StatefulShellRoute(
-      builder: (context, state, shell) => RootScreen(navigationShell: shell),
+      builder: (context, state, shell) => BlocProvider(
+        create: (_) => UnreadCountBloc(
+          loadUnreadCountUseCase: LoadUnreadCountUseCase(_NoUnread()),
+          notificationArrivals: const Stream.empty(),
+        ),
+        child: RootScreen(navigationShell: shell),
+      ),
       navigatorContainerBuilder: appRoutes
           .whereType<StatefulShellRoute>()
           .first
@@ -202,4 +213,9 @@ void main() {
       expect(page!.reverseTransitionDuration, greaterThan(Duration.zero));
     },
   );
+}
+
+class _NoUnread extends Fake implements NotificationRepository {
+  @override
+  Future<Result<int>> loadUnreadCount() async => const Success(0);
 }

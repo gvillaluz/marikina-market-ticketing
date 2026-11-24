@@ -20,6 +20,8 @@ import 'package:marikina_market_mobile/features/layout/presentation/pages/root_s
 import 'package:marikina_market_mobile/features/layout/presentation/pages/mobile_access_unavailable_page.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_event.dart';
+import 'package:marikina_market_mobile/features/notification/presentation/bloc/unread_count_bloc.dart';
+import 'package:marikina_market_mobile/features/notification/presentation/bloc/unread_count_event.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/pages/notification_page.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/bloc/password_recovery_bloc.dart';
 import 'package:marikina_market_mobile/features/password_recovery/presentation/pages/code_validation_page.dart';
@@ -264,8 +266,10 @@ List<RouteBase> buildAppRoutes({String? sessionKey}) => [
     },
   ),
   StatefulShellRoute(
-    builder: (context, state, navigationShell) =>
-        RootScreen(navigationShell: navigationShell),
+    builder: (context, state, navigationShell) => BlocProvider(
+      create: (_) => sl<UnreadCountBloc>()..add(LoadUnreadCount()),
+      child: RootScreen(navigationShell: navigationShell),
+    ),
 
     navigatorContainerBuilder: (context, navigationShell, children) =>
         RootBranchContainer(
