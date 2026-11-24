@@ -13,3 +13,8 @@ export function formatDashboardTimestamp(value: string): string {
 export function formatDashboardUpdatedAt(value: string): string {
   return formatDashboardTimestamp(value);
 }
+
+export function formatDaysOverdue(days: number): string {
+  if (days === 0) return "Overdue since today";
+  return days === 1 ? "1 day overdue" : `${days} days overdue`;
+}

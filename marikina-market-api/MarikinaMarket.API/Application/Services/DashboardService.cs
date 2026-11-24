@@ -10,6 +10,8 @@ namespace MarikinaMarket.API.Application.Services
     public class DashboardService : IDashboardService
     {
         private const int RECENT_ACTIVITY_LIMIT = 5;
+        private const int OVERDUE_TICKET_LIMIT = 5;
+        private const int OVERDUE_AFTER_DAYS = 5;
         private readonly ITicketRepository _ticketRepository;
         private readonly IVendorRepository _vendorRepository;
         private readonly IAuditLogRepository _auditLogRepository;
@@ -40,6 +42,7 @@ namespace MarikinaMarket.API.Application.Services
             var ticketCounts = await _ticketRepository.GetDashboardTicketCountsAsync(startUtc, endUtc);
             var activeBusinesses = await _vendorRepository.GetActiveBusinessCountAsync();
             var activities = await _auditLogRepository.GetRecentDashboardActivitiesAsync(RECENT_ACTIVITY_LIMIT);
+            var overdueTickets = await _ticketRepository.GetDashboardOverdueTicketsAsync(OVERDUE_TICKET_LIMIT);
 
             var actorIds = activities
                 .Where(activity => activity.UserId.HasValue)
@@ -61,8 +64,29 @@ namespace MarikinaMarket.API.Application.Services
                     ActiveBusinesses = activeBusinesses
                 },
                 RecentActivity = activities.Select(activity => MapActivity(activity, actorNames)).ToList(),
-                AttentionItems = BuildAttentionItems(ticketCounts.OpenTickets)
+                OverdueTickets = new DashboardOverdueTicketsResponse
+                {
+                    Total = overdueTickets.Total,
+                    Items = overdueTickets.Items.Select(ticket => new DashboardOverdueTicketResponse
+                    {
+                        Id = ticket.Id,
+                        ControlNumber = ticket.ControlNumber,
+                        VendorId = ticket.VendorId,
+                        BusinessName = ticket.BusinessName,
+                        DaysOverdue = CountDaysOverdue(ticket.IssuedAt, asOf)
+                    }).ToList()
+                }
             };
+        }
+
+        // Whole Manila days since the due date (5 days after issue). A ticket set to Overdue by hand
+        // before its due date counts as 0.
+        public static int CountDaysOverdue(DateTime issuedAtUtc, DateTime asOfUtc)
+        {
+            var manila = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            var dueDate = TimeZoneInfo.ConvertTimeFromUtc(issuedAtUtc.AddDays(OVERDUE_AFTER_DAYS), manila).Date;
+            var today = TimeZoneInfo.ConvertTimeFromUtc(asOfUtc, manila).Date;
+            return Math.Max(0, (today - dueDate).Days);
         }
 
         private static DashboardActivityResponse MapActivity(
@@ -93,22 +117,6 @@ namespace MarikinaMarket.API.Application.Services
                 Description = activity.Details,
                 ActorName = actorName
             };
-        }
-
-        private static List<DashboardAttentionItemResponse> BuildAttentionItems(int openTickets)
-        {
-            var items = new List<DashboardAttentionItemResponse>();
-            if (openTickets > 0)
-            {
-                items.Add(new DashboardAttentionItemResponse
-                {
-                    Id = "open-tickets",
-                    Type = "OpenTickets",
-                    Title = "Open tickets",
-                    Count = openTickets
-                });
-            }
-            return items;
         }
 
         private static string Humanize(string action)

@@ -1,0 +1,72 @@
+.item {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-xs);
+  border-bottom: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-heading);
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
+.item:hover {
+  background: var(--records-hover-surface);
+}
+
+.item:hover .business {
+  color: var(--button-primary);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+
+.text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  justify-items: start;
+  gap: var(--space-xs);
+}
+
+.business,
+.controlNumber {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.business {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.controlNumber {
+  color: var(--text-body);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.days {
+  flex: 0 0 auto;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--market-radius-pill);
+  background: var(--records-danger-surface);
+  color: var(--records-danger-text);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.arrow {
+  flex: 0 0 auto;
+  color: var(--text-body);
+}

@@ -10,6 +10,7 @@ interface DashboardEmptyPanelProps {
   icon: LucideIcon;
   iconLabel: string;
   children?: ReactNode;
+  footer?: ReactNode;
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -22,6 +23,7 @@ export default function DashboardEmptyPanel({
   icon: Icon,
   iconLabel,
   children,
+  footer,
   isLoading = false,
   error = null,
   onRetry,
@@ -67,6 +69,7 @@ export default function DashboardEmptyPanel({
           <span>{description}</span>
         </div>
       )}
+      {!isLoading && !error && footer}
     </article>
   );
 }

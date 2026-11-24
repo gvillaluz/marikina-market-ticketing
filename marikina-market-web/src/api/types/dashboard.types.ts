@@ -1,7 +1,5 @@
 export type DashboardActivityCategory = string;
 
-export type DashboardAttentionType = "OpenTickets";
-
 export interface DashboardMetrics {
   warningsToday: number;
   ticketsToday: number;
@@ -18,16 +16,22 @@ export interface DashboardActivity {
   actorName: string | null;
 }
 
-export interface DashboardAttentionItem {
-  id: string;
-  type: DashboardAttentionType;
-  title: string;
-  count: number;
+export interface DashboardOverdueTicket {
+  id: number;
+  controlNumber: string | null;
+  vendorId: number | null;
+  businessName: string | null;
+  daysOverdue: number;
+}
+
+export interface DashboardOverdueTickets {
+  total: number;
+  items: DashboardOverdueTicket[];
 }
 
 export interface DashboardSummary {
   asOf: string;
   metrics: DashboardMetrics;
   recentActivity: DashboardActivity[];
-  attentionItems: DashboardAttentionItem[];
+  overdueTickets: DashboardOverdueTickets;
 }

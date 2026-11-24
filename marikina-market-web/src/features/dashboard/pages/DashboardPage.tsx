@@ -22,9 +22,10 @@ import PageHeader from "@/components/ui/PageHeader/PageHeader";
 import { useAuth } from "@/context/AuthContext";
 import { ROUTES } from "@/routes/routePaths";
 import DashboardActivityItem from "../components/DashboardActivityItem";
-import DashboardAttentionItem from "../components/DashboardAttentionItem";
 import DashboardEmptyPanel from "../components/DashboardEmptyPanel";
 import DashboardMetricCard from "../components/DashboardMetricCard";
+import DashboardOverdueFooter from "../components/DashboardOverdueFooter";
+import DashboardOverdueItem from "../components/DashboardOverdueItem";
 import DashboardQuickLink from "../components/DashboardQuickLink";
 import { formatDashboardUpdatedAt } from "../dashboard.utils";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
@@ -124,6 +125,7 @@ const METRICS = [
 export function DashboardPage() {
   const { user } = useAuth();
   const { summary, isLoading, error, retry } = useDashboardSummary();
+  const overdueTickets = summary?.overdueTickets.items ?? [];
   const firstName = user?.firstName?.trim();
   const quickLinks = QUICK_LINKS.filter((link) =>
     user?.role ? link.roles.includes(user.role) : false,
@@ -203,16 +205,24 @@ export function DashboardPage() {
         <div className={styles.attentionPanel}>
           <DashboardEmptyPanel
             title="Needs attention"
-            description="There are no open queues that need review."
-            icon={ShieldCheck}
-            iconLabel="You're all caught up"
-            tone={summary?.attentionItems.length ? "warning" : "success"}
+            description="Every open ticket is still within its 5-day settlement period."
+            icon={overdueTickets.length ? FileClock : ShieldCheck}
+            iconLabel="No overdue tickets"
+            tone={overdueTickets.length ? "warning" : "success"}
             isLoading={isLoading}
             error={error}
             onRetry={retry}
+            footer={
+              summary && (
+                <DashboardOverdueFooter
+                  shown={overdueTickets.length}
+                  total={summary.overdueTickets.total}
+                />
+              )
+            }
           >
-            {summary?.attentionItems.map((item) => (
-              <DashboardAttentionItem key={item.id} item={item} />
+            {overdueTickets.map((ticket) => (
+              <DashboardOverdueItem key={ticket.id} ticket={ticket} />
             ))}
           </DashboardEmptyPanel>
         </div>
