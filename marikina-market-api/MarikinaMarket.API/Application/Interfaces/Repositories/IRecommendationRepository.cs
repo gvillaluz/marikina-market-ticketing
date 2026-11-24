@@ -16,6 +16,9 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         // Runs finished after the given time, oldest first, each with its section recommendations.
         Task<List<RecommendationRun>> GetRunsFinishedAfterAsync(DateTime finishedAt);
 
+        // Every category detected in one run.
+        Task<List<RecommendationFinding>> GetFindingsAsync(int runId);
+
         Task AddReviewAsync(RecommendationReview review);
     }
 }

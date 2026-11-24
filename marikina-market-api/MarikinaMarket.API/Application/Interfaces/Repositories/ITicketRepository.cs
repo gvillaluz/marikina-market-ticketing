@@ -98,6 +98,8 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
             int limit,
             TicketStatus? status);
         Task<int> GetCommunityServiceLogCountAsync(TicketStatus? status);
+        // The given warnings and tickets, newest first. Returns up to limit rows.
+        Task<List<DetectedTicketSummary>> GetDetectedTicketsAsync(List<int> ticketIds, int offset, int limit);
         void SetOriginalVersion(Ticket ticket, uint version);
         Task SaveChangesAsync();
     }

@@ -883,3 +883,226 @@ test("W5: a saved review is put on its own card and nothing else changes", () =>
   assert.deepEqual(after.sectionsWithoutRecommendation, ["Meat"]);
   assert.equal(before.recommendations[1].review, null);
 });
+
+// ---- Detected violations list --------------------------------------------------
+
+// 16:30 UTC on 13 Nov is 00:30 on 14 Nov in Manila.
+const detectedTicket = {
+  ticketId: 31,
+  controlNumber: "P-31",
+  type: "Ticket",
+  marketSectionName: "Sample Street",
+  description: "Madumi ang puwesto at nakaharang ang mga kahon sa daanan.",
+  issuedAt: "2026-11-13T16:30:00Z",
+  categoryCodes: ["Obstruction", "Sanitation"],
+};
+
+function renderDetected(queryResult) {
+  const cache = new Map();
+  const errors = load("utils/apiErrors.ts", {}, cache);
+  const overrides = {
+    "@tanstack/react-query": {
+      keepPreviousData: undefined,
+      useQuery: () => ({
+        data: undefined,
+        error: null,
+        isLoading: false,
+        isFetching: false,
+        isError: false,
+        refetch() {},
+        ...queryResult(errors),
+      }),
+    },
+    "@/api/endpoints/recommendations.api": {
+      recommendationsApi: { getDetectedViolations: async () => undefined },
+    },
+  };
+  const { default: DetectedViolations } = load(
+    "features/recommendations/components/DetectedViolations.tsx",
+    overrides,
+    cache,
+  );
+  return renderToStaticMarkup(
+    React.createElement(
+      StaticRouter,
+      { location: "/recommendations" },
+      React.createElement(DetectedViolations),
+    ),
+  );
+}
+
+const detectedPage = (items, total = items.length) => () => ({
+  data: { items, hasMore: total > items.length, total },
+});
+
+test("D1: a row shows the number, type, date, street, every violation and the description, and opens the record", () => {
+  const html = renderDetected(detectedPage([detectedTicket]));
+  const words = text(html);
+  assert.ok(words.includes("Detected violations (1)"), words);
+  for (const part of [
+    "P-31",
+    "Ticket",
+    "14 Nov 2026",
+    "Sample Street",
+    "Sagabal sa Daanan (Obstruction), Kalinisan (Sanitation)",
+    "Madumi ang puwesto at nakaharang ang mga kahon sa daanan.",
+  ])
+    assert.ok(words.includes(part), part);
+  assert.match(html, /<a [^>]*href="\/tickets\/31"/);
+});
+
+test("D1: rows stay in the server's newest-first order", () => {
+  const html = renderDetected(
+    detectedPage([
+      detectedTicket,
+      { ...detectedTicket, ticketId: 12, controlNumber: "W-12", type: "Warning" },
+    ]),
+  );
+  assert.deepEqual(
+    [...html.matchAll(/href="\/tickets\/(\d+)"/g)].map((match) => match[1]),
+    ["31", "12"],
+  );
+});
+
+test("D2: a record with no number says so, and an unknown violation shows its saved name", () => {
+  const words = text(
+    renderDetected(
+      detectedPage([
+        { ...detectedTicket, controlNumber: null, categoryCodes: ["Not Known"] },
+      ]),
+    ),
+  );
+  assert.ok(words.includes("No control number"), words);
+  assert.ok(words.includes("Sample Street · Not Known"), words);
+});
+
+test("D2: a description containing markup is shown as plain text", () => {
+  const html = renderDetected(
+    detectedPage([{ ...detectedTicket, description: "<b>Madumi</b>" }]),
+  );
+  assert.doesNotMatch(html, /<b>Madumi/);
+  assert.match(html, /&lt;b&gt;Madumi/);
+});
+
+test("D3: no detected records shows a plain message and no page buttons", () => {
+  const html = renderDetected(detectedPage([]));
+  const words = text(html);
+  assert.ok(words.includes("Detected violations (0)"), words);
+  assert.ok(words.includes("No violations were detected in the latest check."), words);
+  assert.doesNotMatch(html, /aria-label="Pagination"/);
+});
+
+test("D3: loading shows a loading state", () => {
+  const html = renderDetected(() => ({ isLoading: true, isFetching: true }));
+  assert.match(html, /role="status"[^>]*aria-label="Loading detected violations"/);
+  assert.doesNotMatch(text(html), /No violations were detected/);
+});
+
+test("D3: an error shows the server's message, or the written fallback, with Try again", () => {
+  const withMessage = text(
+    renderDetected((errors) => ({
+      isError: true,
+      error: new errors.ApiRequestError("The list is unavailable.", 500),
+    })),
+  );
+  assert.ok(withMessage.includes("The list is unavailable."), withMessage);
+  assert.ok(withMessage.includes("Try again"), withMessage);
+  const fallback = text(
+    renderDetected((errors) => ({
+      isError: true,
+      error: new errors.ApiRequestError(undefined, 500),
+    })),
+  );
+  assert.ok(fallback.includes("Couldn't load detected violations."), fallback);
+  assert.doesNotMatch(fallback, /No violations were detected/);
+});
+
+test("D4: 23 records at 10 per page show 3 pages", () => {
+  const html = renderDetected(detectedPage([detectedTicket], 23));
+  assert.ok(text(html).includes("Detected violations (23)"));
+  assert.match(html, /aria-label="Go to page 3"/);
+  assert.doesNotMatch(html, /aria-label="Go to page 4"/);
+});
+
+test("D5: the list asks the agreed route for its page", async () => {
+  const calls = [];
+  const client = {
+    default: {
+      get: async (url, config) => {
+        calls.push([url, config]);
+        return { data: { items: [], hasMore: false, total: 0 } };
+      },
+      post: async () => ({ data: undefined }),
+    },
+  };
+  const { recommendationsApi } = load("api/endpoints/recommendations.api.ts", {
+    "@/api/client": client,
+  });
+  await recommendationsApi.getDetectedViolations(20);
+  assert.equal(calls[0][0], "/admin/recommendations/findings");
+  assert.equal(calls[0][1].params.offset, 20);
+});
+
+test("D6: the page shows the list below the no-recommendation line, even with no cards", () => {
+  const words = renderPage(() => ({
+    data: {
+      run,
+      recommendations: [],
+      sectionsWithoutRecommendation: ["Meat"],
+    },
+  }));
+  assert.ok(
+    words.indexOf("No recommendation for: Meat.") <
+      words.indexOf("Detected violations"),
+    words,
+  );
+  assert.ok(words.indexOf("Detected violations") >= 0, words);
+});
+
+test("D6: the list is hidden before the first daily run", () => {
+  const words = renderPage(() => ({
+    data: { run: null, recommendations: [], sectionsWithoutRecommendation: [] },
+  }));
+  assert.doesNotMatch(words, /Detected violations/);
+});
+
+test("D7: each of the model's 29 categories has its Filipino and English name", () => {
+  const { violationName } = load(
+    "features/recommendations/recommendations.text.ts",
+  );
+  const expected = {
+    "Vendor Identification": "Pagkakakilanlan ng Tindero (Vendor Identification)",
+    "Permit & Licensing": "Permit at Lisensya (Permit & Licensing)",
+    Sanitation: "Kalinisan (Sanitation)",
+    WeightMeasures: "Timbang at Sukat (Weights and Measures)",
+    "Lighting & Energy": "Ilaw at Paggamit ng Kuryente (Lighting & Energy)",
+    "Stall Occupancy": "Pag-okupa sa Puwesto (Stall Occupancy)",
+    "Stall Management": "Pamamahala ng Puwesto (Stall Management)",
+    "Stall Construction": "Konstruksiyon ng Puwesto (Stall Construction)",
+    Utilities: "Tubig at Iba Pang Serbisyo ng Pamilihan (Utilities)",
+    "Stall Rental": "Upa sa Puwesto (Stall Rental)",
+    "Illegal Vendor": "Di-awtorisadong Pagtitinda (Illegal Vendor)",
+    "Public Order": "Kaayusan sa Publiko (Public Order)",
+    Liquor: "Alak (Liquor)",
+    "Market Conduct": "Asal sa Pamilihan (Market Conduct)",
+    Obstruction: "Sagabal sa Daanan (Obstruction)",
+    DressCode: "Kasuotan sa Pamilihan (Dress Code)",
+    "Bladed Instruments": "Mga Matalim na Kagamitan (Bladed Instruments)",
+    Traffic: "Trapiko sa Pamilihan (Traffic)",
+    "Porter Regulation": "Regulasyon sa Kargador (Porter Regulation)",
+    Promotions: "Mga Promosyon (Promotions)",
+    Advertising: "Paanunsiyo (Advertising)",
+    "Signage & Streamers": "Mga Karatula at Banderola (Signage & Streamers)",
+    "Entertainment Activities": "Mga Gawaing Pangkaaliwan (Entertainment Activities)",
+    "Lighting Facilities": "Mga Pasilidad ng Ilaw (Lighting Facilities)",
+    "Market Rules": "Mga Tuntunin sa Pamilihan (Market Rules)",
+    "Price Monitoring": "Pagsubaybay sa Presyo (Price Monitoring)",
+    "Market Fees & Surcharges": "Mga Bayarin at Dagdag-Singil sa Pamilihan (Market Fees & Surcharges)",
+    "Resisting Authority": "Pagsalungat sa Awtoridad (Resisting Authority)",
+    "General Penalties": "Pangkalahatang Parusa (General Penalties)",
+  };
+  assert.equal(Object.keys(expected).length, 29);
+  for (const [code, name] of Object.entries(expected))
+    assert.equal(violationName(code), name);
+  assert.equal(violationName("Not Known"), "Not Known");
+});

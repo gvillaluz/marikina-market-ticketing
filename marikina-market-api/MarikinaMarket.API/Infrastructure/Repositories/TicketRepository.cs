@@ -1069,6 +1069,26 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public Task<List<DetectedTicketSummary>> GetDetectedTicketsAsync(List<int> ticketIds, int offset, int limit)
+        {
+            return _context.Tickets.AsNoTracking()
+                .Where(ticket => ticketIds.Contains(ticket.Id))
+                .OrderByDescending(ticket => ticket.IssuedAt).ThenByDescending(ticket => ticket.Id)
+                .Skip(offset)
+                .Take(limit)
+                .Select(ticket => new DetectedTicketSummary
+                {
+                    Id = ticket.Id,
+                    ControlNumber = ticket.ControlNumber,
+                    PaperReference = ticket.PaperReference,
+                    Type = ticket.Type,
+                    MarketSectionName = ticket.MarketSection!.Name,
+                    Description = ticket.Description,
+                    IssuedAt = ticket.IssuedAt
+                })
+                .ToListAsync();
+        }
+
         public async Task<List<InspectionSummary>> GetEnforcerInspectionHistory(int enforcerId, int offset, int limit)
         {
             return await _context.Tickets

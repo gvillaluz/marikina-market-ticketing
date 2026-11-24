@@ -67,6 +67,44 @@ const WHAT_TO_RECORD: Record<string, string> = {
     "Record the suspension or closure order still in force and how the vendor continued the prohibited activity.",
 };
 
+const VIOLATION_NAMES: Record<string, string> = {
+  "Vendor Identification": "Pagkakakilanlan ng Tindero (Vendor Identification)",
+  "Permit & Licensing": "Permit at Lisensya (Permit & Licensing)",
+  Sanitation: "Kalinisan (Sanitation)",
+  WeightMeasures: "Timbang at Sukat (Weights and Measures)",
+  "Lighting & Energy": "Ilaw at Paggamit ng Kuryente (Lighting & Energy)",
+  "Stall Occupancy": "Pag-okupa sa Puwesto (Stall Occupancy)",
+  "Stall Management": "Pamamahala ng Puwesto (Stall Management)",
+  "Stall Construction": "Konstruksiyon ng Puwesto (Stall Construction)",
+  Utilities: "Tubig at Iba Pang Serbisyo ng Pamilihan (Utilities)",
+  "Stall Rental": "Upa sa Puwesto (Stall Rental)",
+  "Illegal Vendor": "Di-awtorisadong Pagtitinda (Illegal Vendor)",
+  "Public Order": "Kaayusan sa Publiko (Public Order)",
+  Liquor: "Alak (Liquor)",
+  "Market Conduct": "Asal sa Pamilihan (Market Conduct)",
+  Obstruction: "Sagabal sa Daanan (Obstruction)",
+  DressCode: "Kasuotan sa Pamilihan (Dress Code)",
+  "Bladed Instruments": "Mga Matalim na Kagamitan (Bladed Instruments)",
+  Traffic: "Trapiko sa Pamilihan (Traffic)",
+  "Porter Regulation": "Regulasyon sa Kargador (Porter Regulation)",
+  Promotions: "Mga Promosyon (Promotions)",
+  Advertising: "Paanunsiyo (Advertising)",
+  "Signage & Streamers": "Mga Karatula at Banderola (Signage & Streamers)",
+  "Entertainment Activities":
+    "Mga Gawaing Pangkaaliwan (Entertainment Activities)",
+  "Lighting Facilities": "Mga Pasilidad ng Ilaw (Lighting Facilities)",
+  "Market Rules": "Mga Tuntunin sa Pamilihan (Market Rules)",
+  "Price Monitoring": "Pagsubaybay sa Presyo (Price Monitoring)",
+  "Market Fees & Surcharges":
+    "Mga Bayarin at Dagdag-Singil sa Pamilihan (Market Fees & Surcharges)",
+  "Resisting Authority": "Pagsalungat sa Awtoridad (Resisting Authority)",
+  "General Penalties": "Pangkalahatang Parusa (General Penalties)",
+};
+
+export function violationName(categoryCode: string): string {
+  return VIOLATION_NAMES[categoryCode] ?? categoryCode;
+}
+
 export function whatToRecord(categoryCode: string): string | undefined {
   return WHAT_TO_RECORD[categoryCode];
 }

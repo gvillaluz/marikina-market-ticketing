@@ -1,4 +1,5 @@
 using MarikinaMarket.API.Application.DTOs.Recommendations.Response;
+using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Domain.Entities;
@@ -9,21 +10,58 @@ namespace MarikinaMarket.API.Application.Services
 {
     public class RecommendationService : IRecommendationService
     {
+        private const int PAGE_SIZE = 10;
+
         private readonly IRecommendationRepository _recommendationRepository;
         private readonly IMarketSectionRepository _marketSectionRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ITicketRepository _ticketRepository;
         private readonly IUnitOfWork _unitOfWork;
 
         public RecommendationService(
             IRecommendationRepository recommendationRepository,
             IMarketSectionRepository marketSectionRepository,
             IUserRepository userRepository,
+            ITicketRepository ticketRepository,
             IUnitOfWork unitOfWork)
         {
             _recommendationRepository = recommendationRepository;
             _marketSectionRepository = marketSectionRepository;
             _userRepository = userRepository;
+            _ticketRepository = ticketRepository;
             _unitOfWork = unitOfWork;
+        }
+
+        public async Task<PageResponse<DetectedViolationResponse>> GetDetectedViolationsAsync(int offset)
+        {
+            if (offset < 0) throw new ValidationException("Offset must be zero or greater.");
+
+            var run = await _recommendationRepository.GetLatestRunAsync();
+            if (run is null)
+                return new PageResponse<DetectedViolationResponse> { Total = 0 };
+
+            var categories = (await _recommendationRepository.GetFindingsAsync(run.Id))
+                .GroupBy(finding => finding.TicketId)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Select(finding => finding.CategoryCode).Order(StringComparer.Ordinal).ToList());
+            var tickets = await _ticketRepository.GetDetectedTicketsAsync([.. categories.Keys], offset, PAGE_SIZE + 1);
+
+            return new PageResponse<DetectedViolationResponse>
+            {
+                Items = tickets.Take(PAGE_SIZE).Select(ticket => new DetectedViolationResponse
+                {
+                    TicketId = ticket.Id,
+                    ControlNumber = ticket.Type == ViolationType.Warning ? ticket.ControlNumber : ticket.PaperReference,
+                    Type = ticket.Type,
+                    MarketSectionName = ticket.MarketSectionName,
+                    Description = ticket.Description,
+                    IssuedAt = ticket.IssuedAt,
+                    CategoryCodes = categories[ticket.Id]
+                }).ToList(),
+                HasMore = tickets.Count > PAGE_SIZE,
+                Total = categories.Count
+            };
         }
 
         public async Task<RecommendationsResponse> GetLatestAsync()

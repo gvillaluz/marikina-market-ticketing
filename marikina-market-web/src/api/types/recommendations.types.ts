@@ -36,6 +36,16 @@ export interface SectionRecommendation {
   review: RecommendationReview | null;
 }
 
+export interface DetectedViolation {
+  ticketId: number;
+  controlNumber: string | null;
+  type: "Warning" | "Ticket";
+  marketSectionName: string;
+  description: string;
+  issuedAt: string;
+  categoryCodes: string[];
+}
+
 export interface RecommendationsResponse {
   run: RecommendationRun | null;
   recommendations: SectionRecommendation[];

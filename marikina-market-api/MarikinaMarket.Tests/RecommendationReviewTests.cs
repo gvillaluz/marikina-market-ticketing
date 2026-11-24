@@ -573,6 +573,7 @@ public class RecommendationReviewTests
     {
         services.AddSingleton<IRecommendationRepository>(store);
         services.AddSingleton(Sections());
+        services.AddSingleton(NoTickets());
         services.AddSingleton(FakeUnitOfWork([]));
         services.AddScoped<IRecommendationService, RecommendationService>();
     });
@@ -589,7 +590,10 @@ public class RecommendationReviewTests
     private static AppDbContext EmptyContext() => new(new DbContextOptionsBuilder<AppDbContext>().Options);
 
     private static RecommendationService ServiceFor(InMemoryRecommendationStore store, List<string>? unitOfWorkCalls = null)
-        => new(store, Sections(), Users(), FakeUnitOfWork(unitOfWorkCalls ?? []));
+        => new(store, Sections(), Users(), NoTickets(), FakeUnitOfWork(unitOfWorkCalls ?? []));
+
+    private static ITicketRepository NoTickets()
+        => ReviewBoundaryProxy.Create<ITicketRepository>((method, _) => throw new InvalidOperationException(method.Name));
 
     private static IMarketSectionRepository Sections()
     {
@@ -701,6 +705,9 @@ public class RecommendationReviewTests
 
         public Task<List<RecommendationRun>> GetRunsFinishedAfterAsync(DateTime finishedAt)
             => Task.FromResult(Runs.Where(run => run.FinishedAt > finishedAt).OrderBy(run => run.FinishedAt).ToList());
+
+        public Task<List<RecommendationFinding>> GetFindingsAsync(int runId)
+            => throw new InvalidOperationException(nameof(GetFindingsAsync));
 
         public Task AddReviewAsync(RecommendationReview review)
         {

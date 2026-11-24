@@ -48,6 +48,14 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public Task<List<RecommendationFinding>> GetFindingsAsync(int runId)
+        {
+            return _context.RecommendationFindings
+                .AsNoTracking()
+                .Where(finding => finding.RecommendationRunId == runId)
+                .ToListAsync();
+        }
+
         public async Task AddReviewAsync(RecommendationReview review)
         {
             await _context.RecommendationReviews.AddAsync(review);

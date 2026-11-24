@@ -27,7 +27,7 @@ public class RecommendationsTests
             Section(1, "A"), Section(2, "B"), Section(3, "C"), Section(4, "Zeta"), Section(5, "Meat")
         };
         var run = Run(Card(2, 3.0m), Card(3, 14.5m), Card(1, 3.0m));
-        var service = new RecommendationService(Recommendations(run), Sections(sections), NoUsers(), NoUnitOfWork());
+        var service = new RecommendationService(Recommendations(run), Sections(sections), NoUsers(), NoTickets(), NoUnitOfWork());
 
         var result = await service.GetLatestAsync();
 
@@ -66,7 +66,7 @@ public class RecommendationsTests
             Section(1, "A"), Section(2, "B"), Section(3, "C", isActive: false), Section(4, "D", isActive: false)
         };
         var run = Run(Card(1, 5.0m), Card(4, 2.0m));
-        var service = new RecommendationService(Recommendations(run), Sections(sections), NoUsers(), NoUnitOfWork());
+        var service = new RecommendationService(Recommendations(run), Sections(sections), NoUsers(), NoTickets(), NoUnitOfWork());
 
         var result = await service.GetLatestAsync();
 
@@ -79,7 +79,7 @@ public class RecommendationsTests
     public async Task S3_no_run_gives_null_run_and_empty_lists()
     {
         var sections = new List<MarketSection> { Section(1, "A") };
-        var service = new RecommendationService(Recommendations(null), Sections(sections), NoUsers(), NoUnitOfWork());
+        var service = new RecommendationService(Recommendations(null), Sections(sections), NoUsers(), NoTickets(), NoUnitOfWork());
 
         var result = await service.GetLatestAsync();
 
@@ -148,6 +148,9 @@ public class RecommendationsTests
     // The cards-only tests above never look up a person or write; any such call fails the test.
     private static IUserRepository NoUsers()
         => ReviewBoundaryProxy.Create<IUserRepository>((method, _) => throw new InvalidOperationException(method.Name));
+
+    private static ITicketRepository NoTickets()
+        => ReviewBoundaryProxy.Create<ITicketRepository>((method, _) => throw new InvalidOperationException(method.Name));
 
     private static IUnitOfWork NoUnitOfWork()
         => ReviewBoundaryProxy.Create<IUnitOfWork>((method, _) => throw new InvalidOperationException(method.Name));
