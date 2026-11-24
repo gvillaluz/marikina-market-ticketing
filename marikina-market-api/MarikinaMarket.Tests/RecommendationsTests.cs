@@ -40,6 +40,7 @@ public class RecommendationsTests
         Assert.Equal(new DateTime(2026, 10, 12, 5, 11, 17, DateTimeKind.Utc), result.Run.WindowStart);
         Assert.Equal(new DateTime(2026, 11, 11, 5, 11, 17, DateTimeKind.Utc), result.Run.WindowEnd);
         Assert.Equal(21, result.Run.RecordCount);
+        Assert.Equal(7, result.Run.DetectedRecordCount);
 
         var top = result.Recommendations[0];
         Assert.Equal(3, top.MarketSectionId);
@@ -142,6 +143,7 @@ public class RecommendationsTests
         {
             nameof(IRecommendationRepository.GetLatestRunAsync) => Task.FromResult(run),
             nameof(IRecommendationRepository.GetReviewsAsync) => Task.FromResult(new List<RecommendationReview>()),
+            nameof(IRecommendationRepository.CountDetectedRecordsAsync) => Task.FromResult(7),
             _ => throw new InvalidOperationException(method.Name)
         });
 

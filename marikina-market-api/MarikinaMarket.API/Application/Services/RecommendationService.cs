@@ -1,4 +1,5 @@
 using MarikinaMarket.API.Application.DTOs.Recommendations.Response;
+using MarikinaMarket.API.Application.DTOs.Tickets.Request;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Application.Interfaces.Services;
@@ -32,7 +33,7 @@ namespace MarikinaMarket.API.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<PageResponse<DetectedViolationResponse>> GetDetectedViolationsAsync(int offset)
+        public async Task<PageResponse<DetectedViolationResponse>> GetDetectedViolationsAsync(int offset, DetectedViolationFilters filters)
         {
             if (offset < 0) throw new ValidationException("Offset must be zero or greater.");
 
@@ -45,11 +46,15 @@ namespace MarikinaMarket.API.Application.Services
                 .ToDictionary(
                     group => group.Key,
                     group => group.Select(finding => finding.CategoryCode).Order(StringComparer.Ordinal).ToList());
-            var tickets = await _ticketRepository.GetDetectedTicketsAsync([.. categories.Keys], offset, PAGE_SIZE + 1);
+            var ticketIds = categories
+                .Where(entry => string.IsNullOrWhiteSpace(filters.CategoryCode) || entry.Value.Contains(filters.CategoryCode))
+                .Select(entry => entry.Key)
+                .ToList();
+            var (tickets, total) = await _ticketRepository.GetDetectedTicketsAsync(ticketIds, filters, offset, PAGE_SIZE);
 
             return new PageResponse<DetectedViolationResponse>
             {
-                Items = tickets.Take(PAGE_SIZE).Select(ticket => new DetectedViolationResponse
+                Items = tickets.Select(ticket => new DetectedViolationResponse
                 {
                     TicketId = ticket.Id,
                     ControlNumber = ticket.Type == ViolationType.Warning ? ticket.ControlNumber : ticket.PaperReference,
@@ -59,8 +64,8 @@ namespace MarikinaMarket.API.Application.Services
                     IssuedAt = ticket.IssuedAt,
                     CategoryCodes = categories[ticket.Id]
                 }).ToList(),
-                HasMore = tickets.Count > PAGE_SIZE,
-                Total = categories.Count
+                HasMore = offset + tickets.Count < total,
+                Total = total
             };
         }
 
@@ -76,6 +81,7 @@ namespace MarikinaMarket.API.Application.Services
                 .Select(card => card.MarketSectionId)
                 .ToHashSet();
             var reviews = await EffectiveReviewsAsync(run.SectionRecommendations);
+            var detectedRecordCount = await _recommendationRepository.CountDetectedRecordsAsync(run.Id);
 
             return new RecommendationsResponse
             {
@@ -84,7 +90,8 @@ namespace MarikinaMarket.API.Application.Services
                     FinishedAt = run.FinishedAt,
                     WindowStart = run.WindowStart,
                     WindowEnd = run.WindowEnd,
-                    RecordCount = run.RecordCount
+                    RecordCount = run.RecordCount,
+                    DetectedRecordCount = detectedRecordCount
                 },
                 Recommendations = run.SectionRecommendations
                     .Select(card => ToResponse(card, sectionNames[card.MarketSectionId], reviews.GetValueOrDefault(Identity(card))))

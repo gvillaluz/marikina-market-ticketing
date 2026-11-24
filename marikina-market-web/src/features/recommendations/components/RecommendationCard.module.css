@@ -79,7 +79,7 @@
   }
 }
 
-@container (min-width: 42rem) {
+@container (min-width: 45rem) {
   .essays {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

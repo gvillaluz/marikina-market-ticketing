@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import type { RecommendationRun } from "@/api/types/recommendations.types";
+import { ROUTES } from "@/routes/routePaths";
 import {
   formatManilaDate,
   formatManilaDateTime,
@@ -23,6 +25,14 @@ export default function RunSummary({ run }: RunSummaryProps) {
       </div>
       <div className={styles.item}>
         <dt>Records read:</dt> <dd>{run.recordCount}</dd>
+      </div>
+      <div className={`${styles.item} ${styles.detected}`}>
+        <dt>Detected violations:</dt> <dd>{run.detectedRecordCount}</dd>
+        <dd>
+          <Link className={styles.viewList} to={ROUTES.detectedViolations}>
+            View list
+          </Link>
+        </dd>
       </div>
     </dl>
   );

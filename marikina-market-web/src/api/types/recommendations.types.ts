@@ -15,6 +15,7 @@ export interface RecommendationRun {
   windowStart: string;
   windowEnd: string;
   recordCount: number;
+  detectedRecordCount: number;
 }
 
 export interface SectionRecommendation {
@@ -44,6 +45,14 @@ export interface DetectedViolation {
   description: string;
   issuedAt: string;
   categoryCodes: string[];
+}
+
+export interface DetectedViolationParams {
+  offset: number;
+  search?: string;
+  type?: "Warning" | "Ticket";
+  marketSectionId?: number;
+  categoryCode?: string;
 }
 
 export interface RecommendationsResponse {

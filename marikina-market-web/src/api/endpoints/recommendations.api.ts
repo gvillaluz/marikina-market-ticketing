@@ -2,6 +2,7 @@ import client from "@/api/client";
 import type { PaginatedResponse } from "@/api/types/common.types";
 import type {
   DetectedViolation,
+  DetectedViolationParams,
   RecommendationReview,
   RecommendationsResponse,
 } from "@/api/types/recommendations.types";
@@ -15,11 +16,11 @@ export const recommendationsApi = {
   },
 
   async getDetectedViolations(
-    offset: number,
+    params: DetectedViolationParams,
   ): Promise<PaginatedResponse<DetectedViolation>> {
     const { data } = await client.get<PaginatedResponse<DetectedViolation>>(
       "/admin/recommendations/findings",
-      { params: { offset } },
+      { params },
     );
     return data;
   },

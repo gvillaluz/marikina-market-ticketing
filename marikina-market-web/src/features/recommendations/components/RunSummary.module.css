@@ -26,10 +26,53 @@
   color: var(--text-heading);
 }
 
+.detected {
+  align-items: center;
+  gap: var(--space-xs) var(--space-sm);
+}
+
+.viewList {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--button-primary);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  color: var(--button-primary);
+  text-decoration: none;
+  background: var(--bg-surface);
+  transition: background-color 150ms ease;
+}
+
+.viewList:hover {
+  background: var(--records-info-surface);
+}
+
+.viewList:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
+
 @media (min-width: 640px) {
   .summary {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: var(--space-xl);
+    align-items: center;
+    gap: var(--space-sm) var(--space-xl);
+  }
+
+  .detected {
+    margin-inline-start: auto;
+  }
+
+  .viewList {
+    min-height: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewList {
+    transition: none;
   }
 }

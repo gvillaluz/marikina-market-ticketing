@@ -2,7 +2,6 @@ import { AlertTriangle } from "lucide-react";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import SkeletonBlock from "@/components/ui/Skeleton/SkeletonBlock";
-import DetectedViolations from "../components/DetectedViolations";
 import DismissConfirm from "../components/DismissConfirm";
 import RecommendationCard from "../components/RecommendationCard";
 import RunSummary from "../components/RunSummary";
@@ -91,7 +90,6 @@ export default function RecommendationsPage() {
           <SectionsWithoutRecommendation
             sectionNames={data.sectionsWithoutRecommendation}
           />
-          <DetectedViolations />
         </>
       )}
 

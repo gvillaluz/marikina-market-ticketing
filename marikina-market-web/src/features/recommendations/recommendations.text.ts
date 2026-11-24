@@ -101,6 +101,15 @@ const VIOLATION_NAMES: Record<string, string> = {
   "General Penalties": "Pangkalahatang Parusa (General Penalties)",
 };
 
+export const ALL_VIOLATIONS = "all";
+
+export const VIOLATION_OPTIONS = [
+  { value: ALL_VIOLATIONS, label: "All violations" },
+  ...Object.entries(VIOLATION_NAMES)
+    .map(([value, label]) => ({ value, label }))
+    .sort((a, b) => a.label.localeCompare(b.label)),
+];
+
 export function violationName(categoryCode: string): string {
   return VIOLATION_NAMES[categoryCode] ?? categoryCode;
 }

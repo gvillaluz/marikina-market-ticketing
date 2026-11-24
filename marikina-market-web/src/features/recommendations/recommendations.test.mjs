@@ -169,7 +169,7 @@ test("C1: the card fills its column and puts the two essays side by side when it
   assert.match(card.match(/\.card \{[^}]*\}/)[0], /container-type: inline-size/);
   assert.match(
     card,
-    /@container \(min-width: 42rem\) \{\s*\.essays \{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
+    /@container \(min-width: 45rem\) \{\s*\.essays \{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
   );
   assert.match(
     css("RecommendationTiles.module.css"),
@@ -449,7 +449,13 @@ function renderPage(queryResult, mutationResult = () => ({}), raw = false) {
     overrides,
     cache,
   );
-  const html = renderToStaticMarkup(React.createElement(RecommendationsPage));
+  const html = renderToStaticMarkup(
+    React.createElement(
+      StaticRouter,
+      { location: "/recommendations" },
+      React.createElement(RecommendationsPage),
+    ),
+  );
   return raw ? html : text(html);
 }
 
@@ -460,6 +466,7 @@ const run = {
   windowStart: "2026-10-12T05:11:17Z",
   windowEnd: "2026-11-11T05:11:17Z",
   recordCount: 21,
+  detectedRecordCount: 3,
 };
 
 test("W3: loading shows the loading state and no message", () => {
@@ -955,7 +962,7 @@ test("W5: a saved review is put on its own card and nothing else changes", () =>
   assert.equal(before.recommendations[1].review, null);
 });
 
-// ---- Detected violations list --------------------------------------------------
+// ---- Detected violations page ---------------------------------------------------
 
 // 16:30 UTC on 13 Nov is 00:30 on 14 Nov in Manila.
 const detectedTicket = {
@@ -974,30 +981,42 @@ function renderDetected(queryResult) {
   const overrides = {
     "@tanstack/react-query": {
       keepPreviousData: undefined,
-      useQuery: () => ({
-        data: undefined,
-        error: null,
-        isLoading: false,
-        isFetching: false,
-        isError: false,
-        refetch() {},
-        ...queryResult(errors),
-      }),
+      useQuery: ({ queryKey }) =>
+        queryKey[0] === "market_sections"
+          ? {
+              data: [{ id: 1, name: "Sample Street", isActive: true }],
+              isPending: false,
+              isError: false,
+            }
+          : {
+              data: undefined,
+              error: null,
+              isPending: false,
+              isPlaceholderData: false,
+              isFetching: false,
+              isError: false,
+              refetch() {},
+              ...queryResult(errors),
+            },
     },
     "@/api/endpoints/recommendations.api": {
       recommendationsApi: { getDetectedViolations: async () => undefined },
     },
+    "@/api/endpoints/marketSection.api": {
+      marketSectionApi: { getAll: async () => [] },
+    },
+    "@/components/ui/TicketModal/TicketModal": { TicketModal: () => null },
   };
-  const { default: DetectedViolations } = load(
-    "features/recommendations/components/DetectedViolations.tsx",
+  const { default: DetectedViolationsPage } = load(
+    "features/recommendations/pages/DetectedViolationsPage.tsx",
     overrides,
     cache,
   );
   return renderToStaticMarkup(
     React.createElement(
       StaticRouter,
-      { location: "/recommendations" },
-      React.createElement(DetectedViolations),
+      { location: "/recommendations/detected" },
+      React.createElement(DetectedViolationsPage),
     ),
   );
 }
@@ -1006,10 +1025,11 @@ const detectedPage = (items, total = items.length) => () => ({
   data: { items, hasMore: total > items.length, total },
 });
 
-test("D1: a row shows the number, type, date, street, every violation and the description, and opens the record", () => {
+test("D1: a row shows the number, type, date, street, every violation and description, with a View button", () => {
   const html = renderDetected(detectedPage([detectedTicket]));
   const words = text(html);
-  assert.ok(words.includes("Detected violations (1)"), words);
+  assert.ok(words.includes("Detected violations"), words);
+  assert.ok(words.includes("1 records"), words);
   for (const part of [
     "P-31",
     "Ticket",
@@ -1019,20 +1039,20 @@ test("D1: a row shows the number, type, date, street, every violation and the de
     "Madumi ang puwesto at nakaharang ang mga kahon sa daanan.",
   ])
     assert.ok(words.includes(part), part);
-  assert.match(html, /<a [^>]*href="\/tickets\/31"/);
+  assert.match(html, /aria-label="View ticket P-31"/);
+  assert.match(html, /<tr class="clickable"/);
 });
 
-test("D1: rows stay in the server's newest-first order", () => {
-  const html = renderDetected(
-    detectedPage([
-      detectedTicket,
-      { ...detectedTicket, ticketId: 12, controlNumber: "W-12", type: "Warning" },
-    ]),
+test("D1: rows stay in the server's order", () => {
+  const words = text(
+    renderDetected(
+      detectedPage([
+        detectedTicket,
+        { ...detectedTicket, ticketId: 12, controlNumber: "W-12", type: "Warning" },
+      ]),
+    ),
   );
-  assert.deepEqual(
-    [...html.matchAll(/href="\/tickets\/(\d+)"/g)].map((match) => match[1]),
-    ["31", "12"],
-  );
+  assert.ok(words.indexOf("P-31") < words.indexOf("W-12"), words);
 });
 
 test("D2: a record with no number says so, and an unknown violation shows its saved name", () => {
@@ -1044,7 +1064,7 @@ test("D2: a record with no number says so, and an unknown violation shows its sa
     ),
   );
   assert.ok(words.includes("No control number"), words);
-  assert.ok(words.includes("Sample Street · Not Known"), words);
+  assert.ok(words.includes("Not Known"), words);
 });
 
 test("D2: a description containing markup is shown as plain text", () => {
@@ -1055,18 +1075,15 @@ test("D2: a description containing markup is shown as plain text", () => {
   assert.match(html, /&lt;b&gt;Madumi/);
 });
 
-test("D3: no detected records shows a plain message and no page buttons", () => {
-  const html = renderDetected(detectedPage([]));
-  const words = text(html);
-  assert.ok(words.includes("Detected violations (0)"), words);
+test("D3: no detected records shows a plain message", () => {
+  const words = text(renderDetected(detectedPage([])));
   assert.ok(words.includes("No violations were detected in the latest check."), words);
-  assert.doesNotMatch(html, /aria-label="Pagination"/);
 });
 
-test("D3: loading shows a loading state", () => {
-  const html = renderDetected(() => ({ isLoading: true, isFetching: true }));
-  assert.match(html, /role="status"[^>]*aria-label="Loading detected violations"/);
-  assert.doesNotMatch(text(html), /No violations were detected/);
+test("D3: loading shows the table's loading state and no empty message", () => {
+  const words = text(renderDetected(() => ({ isPending: true, isFetching: true })));
+  assert.ok(words.includes("Loading"), words);
+  assert.doesNotMatch(words, /No violations were detected/);
 });
 
 test("D3: an error shows the server's message, or the written fallback, with Try again", () => {
@@ -1088,14 +1105,25 @@ test("D3: an error shows the server's message, or the written fallback, with Try
   assert.doesNotMatch(fallback, /No violations were detected/);
 });
 
-test("D4: 23 records at 10 per page show 3 pages", () => {
+test("D4: 23 records at 10 per page show 3 pages and the range", () => {
   const html = renderDetected(detectedPage([detectedTicket], 23));
-  assert.ok(text(html).includes("Detected violations (23)"));
+  const words = text(html);
+  assert.ok(words.includes("23 records"), words);
+  assert.ok(words.includes("Showing 1–1 of 23 records"), words);
   assert.match(html, /aria-label="Go to page 3"/);
   assert.doesNotMatch(html, /aria-label="Go to page 4"/);
 });
 
-test("D5: the list asks the agreed route for its page", async () => {
+test("D4: the page has search and street, type and violation filters", () => {
+  const html = renderDetected(detectedPage([detectedTicket]));
+  assert.match(html, /aria-label="Search detected violations"/);
+  assert.match(html, /placeholder="Search control number or description"/);
+  const words = text(html);
+  for (const label of ["All types", "All Streets", "All violations"])
+    assert.ok(words.includes(label), label);
+});
+
+test("D5: the list asks the agreed route with its page and filters", async () => {
   const calls = [];
   const client = {
     default: {
@@ -1109,32 +1137,64 @@ test("D5: the list asks the agreed route for its page", async () => {
   const { recommendationsApi } = load("api/endpoints/recommendations.api.ts", {
     "@/api/client": client,
   });
-  await recommendationsApi.getDetectedViolations(20);
+  const params = {
+    offset: 20,
+    search: "basura",
+    type: "Warning",
+    marketSectionId: 2,
+    categoryCode: "Sanitation",
+  };
+  await recommendationsApi.getDetectedViolations(params);
   assert.equal(calls[0][0], "/admin/recommendations/findings");
-  assert.equal(calls[0][1].params.offset, 20);
+  assert.deepEqual({ ...calls[0][1].params }, params);
 });
 
-test("D6: the page shows the list below the no-recommendation line, even with no cards", () => {
-  const words = renderPage(() => ({
-    data: {
-      run,
-      recommendations: [],
-      sectionsWithoutRecommendation: ["Meat"],
-    },
-  }));
-  assert.ok(
-    words.indexOf("No recommendation for: Meat.") <
-      words.indexOf("Detected violations"),
-    words,
+test("D6: Recommended Actions shows only the count and a link, even with no cards", () => {
+  const html = renderPage(
+    () => ({
+      data: {
+        run,
+        recommendations: [],
+        sectionsWithoutRecommendation: ["Meat"],
+      },
+    }),
+    undefined,
+    true,
   );
-  assert.ok(words.indexOf("Detected violations") >= 0, words);
+  assert.ok(text(html).includes("Detected violations: 3"), text(html));
+  assert.match(html, /<a [^>]*href="\/recommendations\/detected"[^>]*>View list<\/a>/);
+  assert.doesNotMatch(html, /Search detected violations/);
 });
 
-test("D6: the list is hidden before the first daily run", () => {
+test("D6: the count is hidden before the first daily run", () => {
   const words = renderPage(() => ({
     data: { run: null, recommendations: [], sectionsWithoutRecommendation: [] },
   }));
   assert.doesNotMatch(words, /Detected violations/);
+});
+
+test("D6: the page has an admin-only route", () => {
+  const routes = fs.readFileSync(path.resolve(root, "routes/AppRoutes.tsx"), "utf8");
+  assert.match(
+    routes,
+    /path=\{ROUTES\.detectedViolations\}\s*element=\{\s*<ProtectedRoute roles=\{ADMIN_ROLES\}>\s*<DetectedViolationsPage \/>/,
+  );
+  const { ROUTES } = load("routes/routePaths.ts");
+  assert.equal(ROUTES.detectedViolations, "/recommendations/detected");
+});
+
+test("D7: the violation filter offers all 29 violations after All violations, A to Z", () => {
+  const { VIOLATION_OPTIONS } = load(
+    "features/recommendations/recommendations.text.ts",
+  );
+  assert.equal(VIOLATION_OPTIONS.length, 30);
+  assert.equal(VIOLATION_OPTIONS[0].label, "All violations");
+  const labels = Array.from(VIOLATION_OPTIONS.slice(1), (option) => option.label);
+  assert.deepEqual(labels, [...labels].sort((a, b) => a.localeCompare(b)));
+  assert.equal(
+    VIOLATION_OPTIONS.find((option) => option.value === "WeightMeasures").label,
+    "Timbang at Sukat (Weights and Measures)",
+  );
 });
 
 test("D7: each of the model's 29 categories has its Filipino and English name", () => {

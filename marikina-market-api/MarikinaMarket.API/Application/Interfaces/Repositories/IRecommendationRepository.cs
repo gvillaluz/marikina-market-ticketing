@@ -19,6 +19,9 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         // Every category detected in one run.
         Task<List<RecommendationFinding>> GetFindingsAsync(int runId);
 
+        // How many warnings and tickets have at least one detected category in one run.
+        Task<int> CountDetectedRecordsAsync(int runId);
+
         Task AddReviewAsync(RecommendationReview review);
     }
 }

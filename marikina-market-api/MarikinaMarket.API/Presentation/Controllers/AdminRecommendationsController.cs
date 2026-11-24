@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MarikinaMarket.API.Application.DTOs.Recommendations.Response;
+using MarikinaMarket.API.Application.DTOs.Tickets.Request;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Domain.Enums;
@@ -22,8 +23,10 @@ namespace MarikinaMarket.API.Presentation.Controllers
             => Ok(await _service.GetLatestAsync());
 
         [HttpGet("findings")]
-        public async Task<ActionResult<PageResponse<DetectedViolationResponse>>> GetDetectedViolations([FromQuery] int offset = 0)
-            => Ok(await _service.GetDetectedViolationsAsync(offset));
+        public async Task<ActionResult<PageResponse<DetectedViolationResponse>>> GetDetectedViolations(
+            [FromQuery] DetectedViolationFilters filters,
+            [FromQuery] int offset = 0)
+            => Ok(await _service.GetDetectedViolationsAsync(offset, filters));
 
         [HttpPost("{id}/review")]
         public async Task<ActionResult<RecommendationReviewResponse>> MarkReviewed([FromRoute] int id)

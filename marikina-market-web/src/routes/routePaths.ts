@@ -16,6 +16,7 @@ export const ROUTES = {
   enforcerPerformancePage: (id: string) => `/enforcer/performance/${id}`,
   analytics: "/analytics",
   recommendations: "/recommendations",
+  detectedViolations: "/recommendations/detected",
   ticketDetail: (id: string) => `/tickets/${id}`,
   vendors: "/vendors",
   vendorDetail: (id: string) => `/vendors/${id}`,

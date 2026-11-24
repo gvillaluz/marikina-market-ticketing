@@ -709,6 +709,8 @@ public class RecommendationReviewTests
         public Task<List<RecommendationFinding>> GetFindingsAsync(int runId)
             => throw new InvalidOperationException(nameof(GetFindingsAsync));
 
+        public Task<int> CountDetectedRecordsAsync(int runId) => Task.FromResult(0);
+
         public Task AddReviewAsync(RecommendationReview review)
         {
             review.Id = Reviews.Count + 1;
