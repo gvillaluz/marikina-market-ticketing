@@ -19,18 +19,6 @@
   padding-bottom: var(--space-lg);
   border-bottom: var(--reports-paper-rule-width) solid var(--button-primary);
 }
-.mark {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: var(--reports-paper-mark-size);
-  height: var(--reports-paper-mark-size);
-  border: var(--reports-paper-rule-width) solid var(--button-primary);
-  border-radius: 50%;
-  font-size: var(--reports-paper-font);
-  font-weight: 600;
-  color: var(--button-primary);
-}
 .heading {
   flex: 1;
   min-width: 0;

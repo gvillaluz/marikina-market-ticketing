@@ -514,6 +514,7 @@ class AppTheme {
   static const authLogoutBarrierColor = Colors.black54;
   static const authLogoutMaxWidth = 280.0;
   static const authLogoutIndicatorSize = 32.0;
+  static const authAccessSealSize = 96.0;
   static const authBodyStyle = bodyTextStyle;
   // Grey line under a login heading.
   static const authSubtitleStyle = TextStyle(
