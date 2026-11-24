@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marikina_market_mobile/core/constants/app_colors.dart';
-import 'package:marikina_market_mobile/core/router/routes.dart';
+import 'package:marikina_market_mobile/features/notification/presentation/widgets/notification_bell_button.dart';
 import 'package:marikina_market_mobile/features/layout/presentation/widgets/root_navigation_bar.dart';
 
 class RootScreen extends StatelessWidget {
@@ -51,19 +51,7 @@ class RootScreen extends StatelessWidget {
         ),
       ),
 
-      actions: [
-        IconButton(
-          tooltip: 'Notifications',
-          onPressed: () => context.pushNamed(Routes.notificationsName),
-          style: IconButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            backgroundColor: AppColors.primary.withValues(alpha: .08),
-            shape: const CircleBorder(),
-          ),
-          icon: const Icon(Icons.notifications_outlined, size: 24),
-        ),
-        const SizedBox(width: 16),
-      ],
+      actions: [const NotificationBellButton(), const SizedBox(width: 16)],
     );
   }
 }

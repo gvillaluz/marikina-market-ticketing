@@ -16,6 +16,10 @@ class NotificationListenerService {
   StreamSubscription<RemoteMessage>? _messageSubscription;
   StreamSubscription<RemoteMessage>? _openedSubscription;
   StreamSubscription<String>? _tokenSubscription;
+  final _arrivals = StreamController<void>.broadcast();
+
+  /// Fires when a notification arrives while the app is open.
+  Stream<void> get arrivals => _arrivals.stream;
 
   NotificationListenerService(
     this.router,
@@ -68,6 +72,7 @@ class NotificationListenerService {
         MobileRouteAccess.notificationLocation(state, null) == null) {
       return;
     }
+    _arrivals.add(null);
     final overlayState =
         router.routerDelegate.navigatorKey.currentState?.overlay;
     if (overlayState == null) return;
