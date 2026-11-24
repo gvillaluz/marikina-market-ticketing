@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { CSSProperties, FC } from "react";
 import styles from "./MonthlyInspectionsChart.module.css";
 import { MonthlyInspection } from "@/api/types/enforcer.types";
 
@@ -31,12 +31,16 @@ const MonthlyInspectionsChart: FC<MonthlyInspectionsChartProps> = ({
     <div className={styles.card}>
       <span className={styles.title}>MONTHLY INSPECTIONS</span>
       <div className={styles.bars}>
-        {inspections.map((d) => (
-          <div key={d.month} className={styles.barColumn}>
+        {inspections.map((d, index) => (
+          <div
+            key={d.month}
+            className={`${styles.barColumn} ${currentMonthNumber === d.month ? styles.current : ""}`}
+            style={{ "--position": index } as CSSProperties}
+          >
             <span className={styles.count}>{d.totalIssuedTickets}</span>
             <div className={styles.barTrack}>
               <div
-                className={`${styles.bar} ${currentMonthNumber === d.month ? styles.barHighlight : ""}`}
+                className={styles.bar}
                 style={{
                   height: `${Math.max((d.totalIssuedTickets / max) * 100, 3)}%`,
                 }}

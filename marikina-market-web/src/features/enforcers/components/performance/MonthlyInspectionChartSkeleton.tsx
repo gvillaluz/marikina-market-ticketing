@@ -7,7 +7,7 @@ const BAR_HEIGHTS = [45, 65, 50, 80, 90, 60, 40, 75, 55, 85, 70, 48];
 const MonthlyInspectionsChartSkeleton: FC = () => {
   return (
     <div className={styles.card}>
-      <SkeletonBlock width="150px" height="11px" />
+      <SkeletonBlock width="150px" height="1.05rem" />
 
       <div className={styles.bars}>
         {BAR_HEIGHTS.map((height, i) => (
