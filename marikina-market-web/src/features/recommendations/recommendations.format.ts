@@ -28,13 +28,17 @@ export function formatManilaDate(iso: string): string {
   return `${part("day")} ${part("month")} ${part("year")}`;
 }
 
-export function formatManilaDateTime(iso: string): string {
+export function formatManilaTime(iso: string): string {
   const part = manilaParts(iso, {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   });
-  return `${formatManilaDate(iso)}, ${part("hour")}:${part("minute")} ${part("dayPeriod")}`;
+  return `${part("hour")}:${part("minute")} ${part("dayPeriod")}`;
+}
+
+export function formatManilaDateTime(iso: string): string {
+  return `${formatManilaDate(iso)}, ${formatManilaTime(iso)}`;
 }
 
 export function recordWord(count: number): string {

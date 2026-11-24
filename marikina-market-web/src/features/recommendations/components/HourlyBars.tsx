@@ -27,7 +27,7 @@ export default function HourlyBars({
         {counts.map((count, hour) => (
           <span
             key={hour}
-            className={`${styles.bar} ${peak.includes(hour) ? styles.peak : ""}`}
+            className={`${styles.bar} ${count > 0 ? styles.filled : ""} ${peak.includes(hour) ? styles.peak : ""}`}
             style={{ height: `${(count / highest) * 100}%` }}
           />
         ))}

@@ -1,7 +1,6 @@
 .card {
   display: flex;
   min-width: 0;
-  max-width: 48rem;
   flex-direction: column;
   gap: var(--space-lg);
   padding: var(--space-lg);
@@ -9,6 +8,14 @@
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
   box-shadow: var(--shadow-sm);
+  container-type: inline-size;
+}
+
+.essays {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--space-lg);
 }
 
 .header {
@@ -66,15 +73,14 @@
   gap: var(--space-sm) var(--space-md);
 }
 
-.footer {
-  padding-top: var(--space-sm);
-  border-top: 1px solid var(--border-default);
-  font-size: var(--market-font-size-small);
-  color: var(--text-body);
-}
-
 @media (min-width: 640px) {
   .card {
     padding: var(--space-xl);
+  }
+}
+
+@container (min-width: 42rem) {
+  .essays {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
