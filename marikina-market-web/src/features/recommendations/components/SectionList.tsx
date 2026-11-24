@@ -1,4 +1,5 @@
 import type { SectionRecommendation } from "@/api/types/recommendations.types";
+import { RecordsPanel } from "@/components/ui/Records";
 import { statusSummary } from "../recommendations.format";
 import SectionListItem from "./SectionListItem";
 import styles from "./SectionList.module.css";
@@ -15,13 +16,11 @@ export default function SectionList({
   onSelect,
 }: SectionListProps) {
   return (
-    <section className={styles.list} aria-labelledby="recommendation-sections">
-      <header className={styles.header}>
-        <h2 id="recommendation-sections" className={styles.heading}>
-          Streets
-        </h2>
-        <p className={styles.summary}>{statusSummary(sections)}</p>
-      </header>
+    <RecordsPanel
+      title="Streets"
+      description={statusSummary(sections)}
+      countLabel="streets"
+    >
       <ul className={styles.rows}>
         {sections.map((recommendation) => (
           <li key={recommendation.id}>
@@ -33,6 +32,6 @@ export default function SectionList({
           </li>
         ))}
       </ul>
-    </section>
+    </RecordsPanel>
   );
 }

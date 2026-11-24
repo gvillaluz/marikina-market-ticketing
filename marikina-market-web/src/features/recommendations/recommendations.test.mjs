@@ -130,7 +130,7 @@ function renderCard(recommendation, props = {}) {
   );
 }
 
-test("W1: the Fish and Seafood card shows its numbers as three tiles", () => {
+test("W1: the Fish and Seafood card shows its numbers as four tiles", () => {
   const html = renderCard(fishAndSeafood);
   const words = text(html);
   assert.ok(words.includes("Fish and Seafood"));
@@ -139,6 +139,7 @@ test("W1: the Fish and Seafood card shows its numbers as three tiles", () => {
     ["Found in", "4 of 6", "records, last 30 days"],
     ["Peak time", "08:00–11:00", "busiest 3 hours"],
     ["Confidence", "Moderate", "based on 6 records"],
+    ["Last detected", "8 Nov 2026", "2:05 PM"],
   ]);
   assert.match(
     html,
@@ -146,7 +147,176 @@ test("W1: the Fish and Seafood card shows its numbers as three tiles", () => {
   );
   assert.ok(words.includes("Check scales at the start of the morning rush."));
   assert.ok(words.includes("Moderate risk"), words);
-  assert.ok(words.includes("Last flagged: 8 Nov 2026, 2:05 PM"), words);
+  assert.doesNotMatch(html, /<footer/);
+  assert.doesNotMatch(words, /flagged/i);
+});
+
+test("C1: the card fills its column and puts the two essays side by side when it is wide enough", () => {
+  const html = renderCard(fishAndSeafood);
+  const essays = html.split('<div class="essays">')[1];
+  assert.ok(essays, "the two essays share one wrapper");
+  assert.ok(
+    essays.indexOf("Prominent violation") < essays.indexOf("Recommended action"),
+  );
+  assert.ok(essays.indexOf("Recommended action") < essays.indexOf("Records by hour"));
+  const css = (file) =>
+    fs.readFileSync(
+      path.resolve(root, "features/recommendations/components", file),
+      "utf8",
+    );
+  const card = css("RecommendationCard.module.css");
+  assert.doesNotMatch(card.match(/\.card \{[^}]*\}/)[0], /max-width/);
+  assert.match(card.match(/\.card \{[^}]*\}/)[0], /container-type: inline-size/);
+  assert.match(
+    card,
+    /@container \(min-width: 45rem\) \{\s*\.essays \{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
+  );
+  assert.match(
+    css("RecommendationTiles.module.css"),
+    /@container \(min-width: 34rem\) \{\s*\.tiles \{\s*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\);/,
+  );
+});
+
+test("C2: every hour with records takes the risk color, the peak strongest, and empty hours stay gray", () => {
+  const { default: HourlyBars } = load(
+    "features/recommendations/components/HourlyBars.tsx",
+  );
+  const counts = Array(24).fill(0);
+  counts[8] = 3;
+  counts[9] = 2;
+  counts[15] = 1;
+  const html = renderToStaticMarkup(
+    React.createElement(HourlyBars, {
+      hourlyCounts: counts,
+      peakStartHour: 8,
+      tone: "moderate",
+    }),
+  );
+  const bars = [...html.matchAll(/<span class="([^"]*)"/g)]
+    .map((match) => match[1].split(" ").filter(Boolean))
+    .filter((classes) => classes.includes("bar"));
+  const hoursWith = (name) =>
+    bars.flatMap((classes, hour) => (classes.includes(name) ? [hour] : []));
+  assert.deepEqual(hoursWith("filled"), [8, 9, 15]);
+  assert.deepEqual(hoursWith("peak"), [8, 9, 10]);
+  const rules = fs.readFileSync(
+    path.resolve(root, "features/recommendations/components/HourlyBars.module.css"),
+    "utf8",
+  );
+  for (const [tone, color] of [
+    ["high", "--danger"],
+    ["moderate", "--warning"],
+    ["neutral", "--text-muted"],
+  ]) {
+    assert.match(
+      rules,
+      new RegExp(`^\\.${tone} \\.filled \\{\\s*background: color-mix\\(in srgb, var\\(${color}\\)`, "m"),
+      `${tone} tint`,
+    );
+    assert.match(
+      rules,
+      new RegExp(`^\\.${tone} \\.peak\\.filled \\{\\s*background: var\\(${color}\\);`, "m"),
+      `${tone} peak`,
+    );
+  }
+});
+
+// ---- Essay-style card text ---------------------------------------------------
+
+test("E1: the prominent violation reads as a paragraph built from the card's own numbers", () => {
+  const words = text(renderCard(fishAndSeafood));
+  assert.ok(
+    words.includes(
+      "Timbang at Sukat (Weights and Measures) is the leading concern on Fish and Seafood, " +
+        "appearing in 4 of the 6 warnings and tickets recorded in the last 30 days. " +
+        "The busiest period for detected violations was 08:00–11:00, and the latest was on 8 Nov 2026. " +
+        "Risk is rated Moderate. Confidence is Moderate because this pattern is based on 6 records.",
+    ),
+    words,
+  );
+  assert.doesNotMatch(words, /most common/i);
+});
+
+test("E1: the paragraph follows a different card's risk, confidence, hours and date", () => {
+  const words = text(
+    renderCard({
+      ...fishAndSeafood,
+      marketSectionName: "Meat",
+      categoryNameEnglish: "Sanitation",
+      categoryNameFilipino: "Kalinisan",
+      categoryRecordCount: 7,
+      sectionRecordCount: 9,
+      riskLevel: "High",
+      patternConfidence: "High",
+      peakStartHour: 22,
+      // 16:30 UTC on 13 Nov is 00:30 on 14 Nov in Manila.
+      lastFlaggedAt: "2026-11-13T16:30:00Z",
+    }),
+  );
+  assert.ok(
+    words.includes(
+      "Kalinisan (Sanitation) is the leading concern on Meat, " +
+        "appearing in 7 of the 9 warnings and tickets recorded in the last 30 days. " +
+        "The busiest period for detected violations was 22:00–01:00, and the latest was on 14 Nov 2026. " +
+        "Risk is rated High. Confidence is High because this pattern is based on 9 records.",
+    ),
+    words,
+  );
+});
+
+test("E2: the recommended action keeps the model's sentence first, then timing, what to record and follow-up", () => {
+  const words = text(
+    renderCard({
+      ...fishAndSeafood,
+      categoryCode: "Sanitation",
+      recommendedAction:
+        "Inspect the affected stall and require correction of food handling or waste and hygiene issues before follow-up.",
+    }),
+  );
+  assert.ok(
+    words.includes(
+      "Inspect the affected stall and require correction of food handling or waste and hygiene issues before follow-up. " +
+        "For any on-site check, go around 08:00–11:00, the busiest period for detected violations on this street. " +
+        "Record the specific hygiene or food-safety problem seen and the vendor responsible for it. " +
+        "Follow up afterward to confirm the problem has been corrected.",
+    ),
+    words,
+  );
+});
+
+test("E2: a category the website does not know leaves out only the what-to-record sentence", () => {
+  const words = text(
+    renderCard({ ...fishAndSeafood, categoryCode: "Not A Known Category" }),
+  );
+  assert.ok(
+    words.includes(
+      "Check scales at the start of the morning rush. " +
+        "For any on-site check, go around 08:00–11:00, the busiest period for detected violations on this street. " +
+        "Follow up afterward to confirm the problem has been corrected.",
+    ),
+    words,
+  );
+});
+
+test("E3: each of the model's 29 categories has its own what-to-record sentence", () => {
+  const { whatToRecord } = load(
+    "features/recommendations/recommendations.text.ts",
+  );
+  const codes = [
+    "Vendor Identification", "Permit & Licensing", "Sanitation", "WeightMeasures",
+    "Lighting & Energy", "Stall Occupancy", "Stall Management", "Stall Construction",
+    "Utilities", "Stall Rental", "Illegal Vendor", "Public Order", "Liquor",
+    "Market Conduct", "Obstruction", "DressCode", "Bladed Instruments", "Traffic",
+    "Porter Regulation", "Promotions", "Advertising", "Signage & Streamers",
+    "Entertainment Activities", "Lighting Facilities", "Market Rules",
+    "Price Monitoring", "Market Fees & Surcharges", "Resisting Authority",
+    "General Penalties",
+  ];
+  assert.equal(codes.length, 29);
+  const sentences = codes.map((code) => whatToRecord(code));
+  for (const [index, sentence] of sentences.entries())
+    assert.match(sentence ?? "", /^Record .+\.$/, codes[index]);
+  assert.equal(new Set(sentences).size, 29);
 });
 
 test("W1: a section with one record says record, not records", () => {
@@ -159,7 +329,7 @@ test("W1: a section with one record says record, not records", () => {
   assert.deepEqual(tiles(html)[2], ["Confidence", "Moderate", "based on 1 record"]);
 });
 
-test("W1: the risk badge has an icon and the amber style for Moderate, red for High, neutral for Low and unknown", () => {
+test("W1: the risk badge uses the shared badge: amber for Moderate, red for High, neutral for Low and unknown", () => {
   const { default: RiskBadge } = load(
     "features/recommendations/components/RiskBadge.tsx",
   );
@@ -167,11 +337,10 @@ test("W1: the risk badge has an icon and the amber style for Moderate, red for H
     renderToStaticMarkup(React.createElement(RiskBadge, { riskLevel }));
   const badgeClass = (riskLevel) =>
     badge(riskLevel).match(/^<span class="([^"]*)"/)[1].split(" ");
-  assert.deepEqual(badgeClass("Moderate"), ["badge", "moderate"]);
-  assert.deepEqual(badgeClass("High"), ["badge", "high"]);
+  assert.deepEqual(badgeClass("Moderate"), ["badge", "warning"]);
+  assert.deepEqual(badgeClass("High"), ["badge", "danger"]);
   assert.deepEqual(badgeClass("Low"), ["badge", "neutral"]);
   assert.deepEqual(badgeClass("Unexpected"), ["badge", "neutral"]);
-  assert.match(badge("High"), /<svg[^>]*aria-hidden="true"/);
   assert.equal(text(badge("High")), "High risk");
   const tilesClass = (riskLevel) =>
     renderCard({ ...fishAndSeafood, riskLevel }).match(/<dl class="([^"]*)"/)[1];
@@ -185,17 +354,15 @@ test("W1: every risk style the card and bars use exists in their CSS files", () 
       path.resolve(root, "features/recommendations/components", file),
       "utf8",
     );
-  const badge = rulesIn("RiskBadge.module.css");
   const tileRules = rulesIn("RecommendationTiles.module.css");
   const bars = rulesIn("HourlyBars.module.css");
   for (const tone of ["high", "moderate", "neutral"]) {
-    assert.match(badge, new RegExp(`^\\.${tone} \\{`, "m"), `badge .${tone}`);
     assert.match(
       tileRules,
       new RegExp(`^\\.${tone} \\.found \\{`, "m"),
       `tiles .${tone}`,
     );
-    assert.match(bars, new RegExp(`^\\.${tone} \\.peak \\{`, "m"), `bars .${tone}`);
+    assert.match(bars, new RegExp(`^\\.${tone} \\.peak\\.filled \\{`, "m"), `bars .${tone}`);
   }
 });
 
@@ -279,7 +446,13 @@ function renderPage(queryResult, mutationResult = () => ({}), raw = false) {
     overrides,
     cache,
   );
-  const html = renderToStaticMarkup(React.createElement(RecommendationsPage));
+  const html = renderToStaticMarkup(
+    React.createElement(
+      StaticRouter,
+      { location: "/recommendations" },
+      React.createElement(RecommendationsPage),
+    ),
+  );
   return raw ? html : text(html);
 }
 
@@ -290,6 +463,7 @@ const run = {
   windowStart: "2026-10-12T05:11:17Z",
   windowEnd: "2026-11-11T05:11:17Z",
   recordCount: 21,
+  detectedRecordCount: 3,
 };
 
 test("W3: loading shows the loading state and no message", () => {
@@ -325,10 +499,9 @@ test("W3: no run yet shows the first-run message", () => {
     data: { run: null, recommendations: [], sectionsWithoutRecommendation: [] },
   }));
   assert.ok(words.includes("Recommended Actions"));
+  assert.ok(words.includes("No recommendations yet"), words);
   assert.ok(
-    words.includes(
-      "No recommendations yet. They appear after the model's first daily run.",
-    ),
+    words.includes("They appear after the model's first daily run."),
     words,
   );
   assert.doesNotMatch(words, /Last updated|No recommendation for/);
@@ -527,13 +700,14 @@ function listRows(html) {
     .slice(1)
     .map((row) => ({
       open: /aria-current="true"/.test(row),
-      words: ["name", "meta", "badge", "tag"].map((part) =>
-        text(
-          row.match(
-            new RegExp(`<span class="${part}[^"]*">(.*?)</span>`),
-          )[1],
+      words: [
+        ...["name", "meta"].map((part) =>
+          text(row.match(new RegExp(`<span class="${part}[^"]*">(.*?)</span>`))[1]),
         ),
-      ),
+        ...[...row.matchAll(/<span class="badge[^"]*">(.*?)<\/span>/g)]
+          .slice(0, 2)
+          .map(([, inner]) => text(inner)),
+      ],
     }));
 }
 
@@ -568,28 +742,21 @@ test("L1: the list shows every section with its records, risk and status, dismis
   );
 });
 
-test("L1: every status tag has an icon as well as its words", () => {
+test("L1: every status uses the shared badge with its words and color", () => {
   const { default: StatusTag } = load(
     "features/recommendations/components/StatusTag.tsx",
   );
   const tag = (review) =>
     renderToStaticMarkup(React.createElement(StatusTag, { review }));
-  for (const [review, words, style] of [
-    [null, "Needs review", "needsReview"],
-    [reviewedByJuan, "Reviewed", "reviewed"],
-    [dismissedByMaria, "Dismissed", "dismissed"],
+  for (const [review, words, tone] of [
+    [null, "Needs review", "info"],
+    [reviewedByJuan, "Reviewed", "success"],
+    [dismissedByMaria, "Dismissed", "neutral"],
   ]) {
     const html = tag(review);
     assert.equal(text(html), words);
-    assert.match(html, new RegExp(`^<span class="tag ${style}"`));
-    assert.match(html, /<svg[^>]*aria-hidden="true"/);
+    assert.match(html, new RegExp(`^<span class="badge ${tone}"`));
   }
-  const rules = fs.readFileSync(
-    path.resolve(root, "features/recommendations/components/StatusTag.module.css"),
-    "utf8",
-  );
-  for (const style of ["needsReview", "reviewed", "dismissed"])
-    assert.match(rules, new RegExp(`^\\.${style} \\{`, "m"), style);
 });
 
 test("L2: the page opens on the first section that still needs review", () => {
@@ -783,4 +950,445 @@ test("W5: a saved review is put on its own card and nothing else changes", () =>
   assert.equal(after.run, run);
   assert.deepEqual(after.sectionsWithoutRecommendation, ["Meat"]);
   assert.equal(before.recommendations[1].review, null);
+});
+
+// ---- Detected violations page ---------------------------------------------------
+
+// 16:30 UTC on 13 Nov is 00:30 on 14 Nov in Manila.
+const detectedTicket = {
+  ticketId: 31,
+  controlNumber: "P-31",
+  type: "Ticket",
+  marketSectionName: "Sample Street",
+  description: "Madumi ang puwesto at nakaharang ang mga kahon sa daanan.",
+  issuedAt: "2026-11-13T16:30:00Z",
+  categoryCodes: ["Obstruction", "Sanitation"],
+};
+
+function renderDetected(queryResult) {
+  const cache = new Map();
+  const errors = load("utils/apiErrors.ts", {}, cache);
+  const overrides = {
+    "@tanstack/react-query": {
+      keepPreviousData: undefined,
+      useQuery: ({ queryKey }) =>
+        queryKey[0] === "market_sections"
+          ? {
+              data: [{ id: 1, name: "Sample Street", isActive: true }],
+              isPending: false,
+              isError: false,
+            }
+          : {
+              data: undefined,
+              error: null,
+              isPending: false,
+              isPlaceholderData: false,
+              isFetching: false,
+              isError: false,
+              refetch() {},
+              ...queryResult(errors),
+            },
+    },
+    "@/api/endpoints/recommendations.api": {
+      recommendationsApi: { getDetectedViolations: async () => undefined },
+    },
+    "@/api/endpoints/marketSection.api": {
+      marketSectionApi: { getAll: async () => [] },
+    },
+    "@/components/ui/TicketModal/TicketModal": { TicketModal: () => null },
+  };
+  const { default: DetectedViolationsPage } = load(
+    "features/recommendations/pages/DetectedViolationsPage.tsx",
+    overrides,
+    cache,
+  );
+  return renderToStaticMarkup(
+    React.createElement(
+      StaticRouter,
+      { location: "/recommendations/detected" },
+      React.createElement(DetectedViolationsPage),
+    ),
+  );
+}
+
+const detectedPage = (items, total = items.length) => () => ({
+  data: { items, hasMore: total > items.length, total },
+});
+
+test("D1: a row shows the number, type, date, street, every violation and description, with a View button", () => {
+  const html = renderDetected(detectedPage([detectedTicket]));
+  const words = text(html);
+  assert.ok(words.includes("Detected violations"), words);
+  assert.ok(words.includes("1 records"), words);
+  for (const part of [
+    "P-31",
+    "Ticket",
+    "14 Nov 2026",
+    "Sample Street",
+    "Sagabal sa Daanan (Obstruction), Kalinisan (Sanitation)",
+    "Madumi ang puwesto at nakaharang ang mga kahon sa daanan.",
+  ])
+    assert.ok(words.includes(part), part);
+  assert.match(html, /aria-label="View ticket P-31"/);
+  assert.match(html, /<tr class="clickable"/);
+});
+
+test("D1: rows stay in the server's order", () => {
+  const words = text(
+    renderDetected(
+      detectedPage([
+        detectedTicket,
+        { ...detectedTicket, ticketId: 12, controlNumber: "W-12", type: "Warning" },
+      ]),
+    ),
+  );
+  assert.ok(words.indexOf("P-31") < words.indexOf("W-12"), words);
+});
+
+test("D2: a record with no number says so, and an unknown violation shows its saved name", () => {
+  const words = text(
+    renderDetected(
+      detectedPage([
+        { ...detectedTicket, controlNumber: null, categoryCodes: ["Not Known"] },
+      ]),
+    ),
+  );
+  assert.ok(words.includes("No control number"), words);
+  assert.ok(words.includes("Not Known"), words);
+});
+
+test("D2: a description containing markup is shown as plain text", () => {
+  const html = renderDetected(
+    detectedPage([{ ...detectedTicket, description: "<b>Madumi</b>" }]),
+  );
+  assert.doesNotMatch(html, /<b>Madumi/);
+  assert.match(html, /&lt;b&gt;Madumi/);
+});
+
+test("D3: no detected records shows a plain message", () => {
+  const words = text(renderDetected(detectedPage([])));
+  assert.ok(words.includes("No violations were detected in the latest check."), words);
+});
+
+test("D3: loading shows the table's loading state and no empty message", () => {
+  const words = text(renderDetected(() => ({ isPending: true, isFetching: true })));
+  assert.ok(words.includes("Loading"), words);
+  assert.doesNotMatch(words, /No violations were detected/);
+});
+
+test("D3: an error shows the server's message, or the written fallback, with Try again", () => {
+  const withMessage = text(
+    renderDetected((errors) => ({
+      isError: true,
+      error: new errors.ApiRequestError("The list is unavailable.", 500),
+    })),
+  );
+  assert.ok(withMessage.includes("The list is unavailable."), withMessage);
+  assert.ok(withMessage.includes("Try again"), withMessage);
+  const fallback = text(
+    renderDetected((errors) => ({
+      isError: true,
+      error: new errors.ApiRequestError(undefined, 500),
+    })),
+  );
+  assert.ok(fallback.includes("Couldn't load detected violations."), fallback);
+  assert.doesNotMatch(fallback, /No violations were detected/);
+});
+
+test("D4: 23 records at 10 per page show 3 pages and the range", () => {
+  const html = renderDetected(detectedPage([detectedTicket], 23));
+  const words = text(html);
+  assert.ok(words.includes("23 records"), words);
+  assert.ok(words.includes("Showing 1–1 of 23 records"), words);
+  assert.match(html, /aria-label="Go to page 3"/);
+  assert.doesNotMatch(html, /aria-label="Go to page 4"/);
+});
+
+test("D4: the page has search and street, type and violation filters", () => {
+  const html = renderDetected(detectedPage([detectedTicket]));
+  assert.match(html, /aria-label="Search detected violations"/);
+  assert.match(html, /placeholder="Search control number or description"/);
+  const words = text(html);
+  for (const label of ["All types", "All Streets", "All violations"])
+    assert.ok(words.includes(label), label);
+});
+
+test("D5: the list asks the agreed route with its page and filters", async () => {
+  const calls = [];
+  const client = {
+    default: {
+      get: async (url, config) => {
+        calls.push([url, config]);
+        return { data: { items: [], hasMore: false, total: 0 } };
+      },
+      post: async () => ({ data: undefined }),
+    },
+  };
+  const { recommendationsApi } = load("api/endpoints/recommendations.api.ts", {
+    "@/api/client": client,
+  });
+  const params = {
+    offset: 20,
+    search: "basura",
+    type: "Warning",
+    marketSectionId: 2,
+    categoryCode: "Sanitation",
+  };
+  await recommendationsApi.getDetectedViolations(params);
+  assert.equal(calls[0][0], "/admin/recommendations/findings");
+  assert.deepEqual({ ...calls[0][1].params }, params);
+});
+
+test("D6: Recommended Actions shows only the count and the shared View list button, even with no cards", () => {
+  const html = renderPage(
+    () => ({
+      data: {
+        run,
+        recommendations: [],
+        sectionsWithoutRecommendation: ["Meat"],
+      },
+    }),
+    undefined,
+    true,
+  );
+  assert.ok(text(html).includes("Detected violations: 3"), text(html));
+  assert.match(html, /<button class="button outline sm"[^>]*><span>View list<\/span><\/button>/);
+  assert.doesNotMatch(html, /Search detected violations/);
+});
+
+// ---- Matching the rest of the system ----------------------------------------------
+
+const cssFile = (relative) =>
+  fs.readFileSync(path.resolve(root, relative), "utf8");
+const cssRule = (css, selector) => {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return css.match(new RegExp(`(?:^|\\n)${escaped} \\{([^}]*)\\}`))?.[1] ?? "";
+};
+
+test("A1: the selected street uses a full border, with no side stripe", () => {
+  const selected = cssRule(
+    cssFile("features/recommendations/components/SectionListItem.module.css"),
+    ".selected",
+  );
+  assert.match(selected, /background: var\(--bg-surface\)/);
+  assert.match(selected, /box-shadow: inset 0 0 0 1px var\(--button-primary\)/);
+  assert.doesNotMatch(selected, /inset 4px/);
+  // Badges keep their own status colors on the selected street.
+  const css = cssFile("features/recommendations/components/SectionListItem.module.css");
+  assert.doesNotMatch(css, /\.selected \.labels/);
+});
+
+test("A2: the summary and card use the same panel shape as the record pages", () => {
+  for (const [file, selector] of [
+    ["RunSummary.module.css", ".summary"],
+    ["RecommendationCard.module.css", ".card"],
+  ]) {
+    const rule = cssRule(cssFile(`features/recommendations/components/${file}`), selector);
+    assert.match(rule, /border-radius: var\(--radius-lg\)/, file);
+    assert.doesNotMatch(rule, /box-shadow/, file);
+  }
+});
+
+test("A3: the street list sits in the shared records panel", () => {
+  const html = renderPage(() => openData(fishAndSeafood, dryGoodsCard), undefined, true);
+  assert.match(html, /<section class="panel" aria-label="Streets"/);
+  assert.ok(text(html).includes("2 need review · 0 reviewed · 0 dismissed"), text(html));
+});
+
+test("A4: error and empty messages use the shared records message", () => {
+  const noRun = renderPage(
+    () => ({ data: { run: null, recommendations: [], sectionsWithoutRecommendation: [] } }),
+    undefined,
+    true,
+  );
+  assert.match(noRun, /<div class="state "[^>]*role="status"/);
+  const noCards = renderPage(
+    () => ({ data: { run, recommendations: [], sectionsWithoutRecommendation: [] } }),
+    undefined,
+    true,
+  );
+  assert.match(noCards, /<div class="state "[^>]*role="status"/);
+  const failed = renderPage(
+    (errors) => ({ isError: true, error: new errors.ApiRequestError("Unavailable.", 500) }),
+    undefined,
+    true,
+  );
+  assert.match(failed, /<div class="state error"[^>]*role="alert"/);
+  assert.ok(text(failed).includes("Unable to load recommended actions"), text(failed));
+});
+
+test("A5: Detected violations uses the shared breadcrumb and a short subtitle", () => {
+  const html = renderDetected(detectedPage([detectedTicket]));
+  assert.match(html, /<nav[^>]*aria-label="Breadcrumb"/);
+  assert.match(html, /<a [^>]*href="\/recommendations"[^>]*>Recommended Actions<\/a>/);
+  const words = text(html);
+  assert.ok(words.includes("Records the model matched to a violation in its latest daily check."), words);
+  assert.ok(words.includes("A record that is not listed may still have a violation."), words);
+  assert.doesNotMatch(words, /Back to Recommended Actions/);
+});
+
+test("A6: shared buttons have steady heights, are 44 pixels on phones, and show their spinner on any color", () => {
+  const css = cssFile("components/ui/Button/Button.module.css");
+  assert.match(cssRule(css, ".sm"), /min-height: var\(--records-compact-control-size\)/);
+  assert.match(cssRule(css, ".md"), /min-height: var\(--button-height-md\)/);
+  assert.match(cssRule(css, ".lg"), /min-height: var\(--form-control-height\)/);
+  assert.match(
+    css,
+    /@media \(max-width: 700px\) \{\s*(?:\/\*[^*]*\*\/\s*)?\.button\.button\.button \{\s*min-height: var\(--form-control-height\);/,
+  );
+  const spinner = cssRule(css, ".spinner");
+  assert.match(spinner, /border-top-color: currentColor/);
+  assert.doesNotMatch(spinner, /#fff|255, 255, 255/);
+  assert.match(cssFile("styles/globals.css"), /--button-height-md: 2\.25rem;/);
+});
+
+test("A7: shared badges keep their natural size on phone tables", () => {
+  const css = cssFile("components/ui/Records/RecordBadge.module.css");
+  assert.match(cssRule(css, ".badge"), /justify-self: start/);
+  assert.match(cssRule(css, ".info"), /color: var\(--records-info-text\)/);
+});
+
+test("H1: the bar graph is taller, rises on arrival and moves smoothly between streets", () => {
+  const css = cssFile("features/recommendations/components/HourlyBars.module.css");
+  const bars = cssRule(css, ".bars");
+  assert.match(bars, /height: 5rem/);
+  assert.match(bars, /contain: layout/);
+  const bar = cssRule(css, ".bar");
+  assert.match(bar, /transform-origin: bottom/);
+  assert.match(bar, /animation: bar-rise 520ms cubic-bezier\(0\.16, 1, 0\.3, 1\) backwards/);
+  assert.match(bar, /height 280ms cubic-bezier\(0\.16, 1, 0\.3, 1\)/);
+  assert.match(bar, /background-color 200ms ease/);
+  assert.match(css, /@keyframes bar-rise \{\s*from \{\s*transform: scaleY\(0\);/);
+  // Six groups of four hours sweep from morning to night, 30ms apart, 150ms at most.
+  for (const [start, delay] of [[5, 30], [9, 60], [13, 90], [17, 120], [21, 150]])
+    assert.match(cssRule(css, `.bar:nth-child(n + ${start})`), new RegExp(`animation-delay: ${delay}ms`));
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\) \{\s*\.bar \{\s*animation: none;\s*transition: none;/,
+  );
+});
+
+test("A7: Paid uses the same blue everywhere a status badge shows it", () => {
+  const { RecordBadge } = load("components/ui/Records/RecordBadge.tsx");
+  const paid = renderToStaticMarkup(React.createElement(RecordBadge, { value: "Paid" }));
+  assert.match(paid, /^<span class="badge paid"/);
+  const globals = cssFile("styles/globals.css");
+  assert.match(globals, /--status-paid-text: #3b82f6;/);
+  assert.match(globals, /--status-paid-surface: #dbeafe;/);
+  for (const file of [
+    "components/ui/Records/RecordBadge.module.css",
+    "components/ui/StatusBadge/StatusBadge.module.css",
+  ]) {
+    const rule = cssRule(cssFile(file), ".paid");
+    assert.match(rule, /color: var\(--status-paid-text\)/, file);
+    assert.match(rule, /background(?:-color)?: var\(--status-paid-surface\)/, file);
+  }
+  const detail = cssFile("features/tickets/components/detail/StatusPill.module.css");
+  assert.match(detail, /\.paid \{ color: #3B82F6; background-color: #DBEAFE;/);
+  for (const [value, tone] of [
+    ["Pending", "warning"],
+    ["Cleared", "success"],
+    ["Overdue", "danger"],
+    ["Waived", "violet"],
+  ]) {
+    const html = renderToStaticMarkup(React.createElement(RecordBadge, { value }));
+    assert.match(html, new RegExp(`^<span class="badge ${tone}"`), value);
+  }
+});
+
+test("A8: the sidebar keeps the parent page highlighted on its inner pages", () => {
+  const { isNavItemActive } = load("components/layout/Sidebar/navActive.ts");
+  assert.equal(isNavItemActive("/recommendations", "/recommendations"), true);
+  assert.equal(isNavItemActive("/recommendations/detected", "/recommendations"), true);
+  assert.equal(isNavItemActive("/tickets/41", "/tickets"), true);
+  assert.equal(isNavItemActive("/admin/vendors/3/inspections", "/admin/vendors"), true);
+  assert.equal(isNavItemActive("/enforcer/performance/4", "/enforcers", ["/enforcer"]), true);
+  assert.equal(isNavItemActive("/system/ordinance", "/system/configuration", ["/system", "/configuration"]), true);
+  assert.equal(isNavItemActive("/configuration/backups", "/system/configuration", ["/system", "/configuration"]), true);
+  assert.equal(isNavItemActive("/enforcers", "/enforcer"), false);
+  assert.equal(isNavItemActive("/recommendations-old", "/recommendations"), false);
+  assert.equal(isNavItemActive("/admin/reports", "/admin/vendors"), false);
+  const sidebar = fs.readFileSync(path.resolve(root, "components/layout/Sidebar/Sidebar.tsx"), "utf8");
+  assert.match(sidebar, /to: "\/enforcers",[\s\S]{0,120}innerPaths: \["\/enforcer"\]/);
+  assert.match(sidebar, /to: "\/system\/configuration",[\s\S]{0,140}innerPaths: \["\/system", "\/configuration"\]/);
+  assert.match(sidebar, /isNavItemActive\(\s*location\.pathname,\s*item\.to,\s*item\.innerPaths,?\s*\)/);
+});
+
+test("A9: the sidebar profile text is readable and its initials have enough contrast", () => {
+  const css = cssFile("components/layout/Sidebar/Sidebar.module.css");
+  assert.match(css, /\.userRole \{\s*overflow: hidden;[\s\S]*?font-size: var\(--market-font-size-small\);/);
+  assert.doesNotMatch(css, /font-size: 0\.68rem/);
+  assert.match(cssRule(css, ".userAvatar"), /background-color: var\(--records-warning-text\)/);
+});
+
+test("D6: the count is hidden before the first daily run", () => {
+  const words = renderPage(() => ({
+    data: { run: null, recommendations: [], sectionsWithoutRecommendation: [] },
+  }));
+  assert.doesNotMatch(words, /Detected violations/);
+});
+
+test("D6: the page has an admin-only route", () => {
+  const routes = fs.readFileSync(path.resolve(root, "routes/AppRoutes.tsx"), "utf8");
+  assert.match(
+    routes,
+    /path=\{ROUTES\.detectedViolations\}\s*element=\{\s*<ProtectedRoute roles=\{ADMIN_ROLES\}>\s*<DetectedViolationsPage \/>/,
+  );
+  const { ROUTES } = load("routes/routePaths.ts");
+  assert.equal(ROUTES.detectedViolations, "/recommendations/detected");
+});
+
+test("D7: the violation filter offers all 29 violations after All violations, A to Z", () => {
+  const { VIOLATION_OPTIONS } = load(
+    "features/recommendations/recommendations.text.ts",
+  );
+  assert.equal(VIOLATION_OPTIONS.length, 30);
+  assert.equal(VIOLATION_OPTIONS[0].label, "All violations");
+  const labels = Array.from(VIOLATION_OPTIONS.slice(1), (option) => option.label);
+  assert.deepEqual(labels, [...labels].sort((a, b) => a.localeCompare(b)));
+  assert.equal(
+    VIOLATION_OPTIONS.find((option) => option.value === "WeightMeasures").label,
+    "Timbang at Sukat (Weights and Measures)",
+  );
+});
+
+test("D7: each of the model's 29 categories has its Filipino and English name", () => {
+  const { violationName } = load(
+    "features/recommendations/recommendations.text.ts",
+  );
+  const expected = {
+    "Vendor Identification": "Pagkakakilanlan ng Tindero (Vendor Identification)",
+    "Permit & Licensing": "Permit at Lisensya (Permit & Licensing)",
+    Sanitation: "Kalinisan (Sanitation)",
+    WeightMeasures: "Timbang at Sukat (Weights and Measures)",
+    "Lighting & Energy": "Ilaw at Paggamit ng Kuryente (Lighting & Energy)",
+    "Stall Occupancy": "Pag-okupa sa Puwesto (Stall Occupancy)",
+    "Stall Management": "Pamamahala ng Puwesto (Stall Management)",
+    "Stall Construction": "Konstruksiyon ng Puwesto (Stall Construction)",
+    Utilities: "Tubig at Iba Pang Serbisyo ng Pamilihan (Utilities)",
+    "Stall Rental": "Upa sa Puwesto (Stall Rental)",
+    "Illegal Vendor": "Di-awtorisadong Pagtitinda (Illegal Vendor)",
+    "Public Order": "Kaayusan sa Publiko (Public Order)",
+    Liquor: "Alak (Liquor)",
+    "Market Conduct": "Asal sa Pamilihan (Market Conduct)",
+    Obstruction: "Sagabal sa Daanan (Obstruction)",
+    DressCode: "Kasuotan sa Pamilihan (Dress Code)",
+    "Bladed Instruments": "Mga Matalim na Kagamitan (Bladed Instruments)",
+    Traffic: "Trapiko sa Pamilihan (Traffic)",
+    "Porter Regulation": "Regulasyon sa Kargador (Porter Regulation)",
+    Promotions: "Mga Promosyon (Promotions)",
+    Advertising: "Paanunsiyo (Advertising)",
+    "Signage & Streamers": "Mga Karatula at Banderola (Signage & Streamers)",
+    "Entertainment Activities": "Mga Gawaing Pangkaaliwan (Entertainment Activities)",
+    "Lighting Facilities": "Mga Pasilidad ng Ilaw (Lighting Facilities)",
+    "Market Rules": "Mga Tuntunin sa Pamilihan (Market Rules)",
+    "Price Monitoring": "Pagsubaybay sa Presyo (Price Monitoring)",
+    "Market Fees & Surcharges": "Mga Bayarin at Dagdag-Singil sa Pamilihan (Market Fees & Surcharges)",
+    "Resisting Authority": "Pagsalungat sa Awtoridad (Resisting Authority)",
+    "General Penalties": "Pangkalahatang Parusa (General Penalties)",
+  };
+  assert.equal(Object.keys(expected).length, 29);
+  for (const [code, name] of Object.entries(expected))
+    assert.equal(violationName(code), name);
+  assert.equal(violationName("Not Known"), "Not Known");
 });

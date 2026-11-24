@@ -90,15 +90,18 @@
 
 /* Sizes */
 .sm {
+  min-height: var(--records-compact-control-size);
   padding: 0.375rem 0.75rem;
   font-size: 0.8125rem;
 }
 
 .md {
+  min-height: var(--button-height-md);
   padding: 0.5rem 1rem;
 }
 
 .lg {
+  min-height: var(--form-control-height);
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
 }
@@ -115,8 +118,8 @@
 .spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #fff;
+  border: 2px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-top-color: currentColor;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -130,4 +133,11 @@
 .icon {
   display: inline-flex;
   align-items: center;
+}
+
+@media (max-width: 700px) {
+  /* Stronger than page styles that set their own button height, so every phone tap target stays 44px. */
+  .button.button.button {
+    min-height: var(--form-control-height);
+  }
 }

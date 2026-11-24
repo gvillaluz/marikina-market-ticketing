@@ -6,7 +6,7 @@ const TONES: Record<string, string> = {
   inprogress: "warning",
   warning: "warning",
   moderate: "warning",
-  paid: "success",
+  paid: "paid",
   cleared: "success",
   active: "success",
   minor: "success",
@@ -16,6 +16,8 @@ const TONES: Record<string, string> = {
   rejected: "danger",
   waived: "violet",
   inactive: "neutral",
+  "needs review": "info",
+  reviewed: "success",
 };
 
 export function RecordBadge({ value, label }: { value: string; label?: string }) {

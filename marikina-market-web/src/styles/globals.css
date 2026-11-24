@@ -34,6 +34,8 @@
   --records-info-surface: #eaf2ff;
   --records-success-text: #17613b;
   --records-success-surface: #edf7f0;
+  --status-paid-text: #3b82f6;
+  --status-paid-surface: #dbeafe;
   --records-warning-text: #875113;
   --records-warning-surface: #fff4df;
   --records-danger-text: #a12b35;
@@ -103,6 +105,7 @@
   --breadcrumb-font-size: 0.75rem;
   --button-primary: #005aaa;
   --button-primary-hover: #004b8f;
+  --button-height-md: 2.25rem;
   --button-primary-surface: color-mix(
     in srgb,
     var(--button-primary) 7%,

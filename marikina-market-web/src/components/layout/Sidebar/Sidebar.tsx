@@ -8,6 +8,7 @@ import {
 import { FC, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { isNavItemActive } from "./navActive";
 import citySeal from "@/assets/icons/Marikina_City_Seal.svg (1).webp";
 import styles from "./Sidebar.module.css";
 import { History, Lightbulb, Settings, UsersRound } from "lucide-react";
@@ -15,6 +16,7 @@ import UrlImage from "@/components/ui/UrlImage";
 
 interface NavItem {
   to: string;
+  innerPaths?: readonly string[];
   label: string;
   icon: JSX.Element;
   allowedRoles: readonly UserRole[];
@@ -158,6 +160,7 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         to: "/enforcers",
+        innerPaths: ["/enforcer"],
         label: "Enforcers",
         icon: EnforcerIcon,
         allowedRoles: STAFF_ROLES,
@@ -227,6 +230,7 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         to: "/system/configuration",
+        innerPaths: ["/system", "/configuration"],
         label: "Configurations",
         icon: SettingsIcon,
         allowedRoles: ADMIN_ROLES,
@@ -297,7 +301,11 @@ const Sidebar: FC<SidebarProps> = ({ open, collapsed, onClose }) => {
                     </span>
                   )}
                   {group.items.map((item) => {
-                    const isActive = location.pathname === item.to;
+                    const isActive = isNavItemActive(
+                      location.pathname,
+                      item.to,
+                      item.innerPaths,
+                    );
                     return (
                       <NavLink
                         key={item.to}

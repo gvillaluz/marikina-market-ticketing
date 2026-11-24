@@ -294,6 +294,15 @@ test("table columns, analytics titles and the Recommended Actions heading say st
   assert.doesNotMatch(list, /section/i);
 });
 
+test("the analytics risk ranking says Business, not Vendor", () => {
+  const panel = { data: [], isLoading: false, isError: false, errorMessage: "", onRetry() { } };
+  const ranking = visible(renderToStaticMarkup(React.createElement(
+    load("features/analytics/components/VendorRiskRankingTable.tsx").default, panel)));
+  assert.match(ranking, /Business Risk Ranking/);
+  assert.match(ranking, /No business risk records available\./);
+  assert.doesNotMatch(ranking, /vendor/i);
+});
+
 test("the ticket pop-up says market street but an ordinance still says Section 69", () => {
   const Details = load("components/ui/TicketModal/modal/TicketViolationDetailsSection.tsx").default;
   const warning = {

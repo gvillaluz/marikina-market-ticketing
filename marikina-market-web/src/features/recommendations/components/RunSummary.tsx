@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
 import type { RecommendationRun } from "@/api/types/recommendations.types";
+import Button from "@/components/ui/Button";
+import { ROUTES } from "@/routes/routePaths";
 import {
   formatManilaDate,
   formatManilaDateTime,
@@ -10,6 +13,8 @@ interface RunSummaryProps {
 }
 
 export default function RunSummary({ run }: RunSummaryProps) {
+  const navigate = useNavigate();
+
   return (
     <dl className={styles.summary}>
       <div className={styles.item}>
@@ -23,6 +28,19 @@ export default function RunSummary({ run }: RunSummaryProps) {
       </div>
       <div className={styles.item}>
         <dt>Records read:</dt> <dd>{run.recordCount}</dd>
+      </div>
+      <div className={`${styles.item} ${styles.detected}`}>
+        <dt>Detected violations:</dt> <dd>{run.detectedRecordCount}</dd>
+        <dd>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(ROUTES.detectedViolations)}
+          >
+            View list
+          </Button>
+        </dd>
       </div>
     </dl>
   );

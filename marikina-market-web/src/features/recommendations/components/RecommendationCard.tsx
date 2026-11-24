@@ -1,5 +1,9 @@
 import type { SectionRecommendation } from "@/api/types/recommendations.types";
-import { formatManilaDateTime, riskTone } from "../recommendations.format";
+import { riskTone } from "../recommendations.format";
+import {
+  prominentViolationText,
+  recommendedActionText,
+} from "../recommendations.text";
 import HourlyBars from "./HourlyBars";
 import RecommendationTiles from "./RecommendationTiles";
 import ReviewActions from "./ReviewActions";
@@ -29,19 +33,22 @@ export default function RecommendationCard({
 
       <RecommendationTiles recommendation={recommendation} />
 
-      <section className={styles.part}>
-        <h3 className={styles.label}>Prominent violation</h3>
-        <p className={styles.text}>
-          <strong>
-            {`${recommendation.categoryNameFilipino} (${recommendation.categoryNameEnglish})`}
-          </strong>
-        </p>
-      </section>
+      <div className={styles.essays}>
+        <section className={styles.part}>
+          <h3 className={styles.label}>Prominent violation</h3>
+          <p className={styles.text}>
+            <strong>
+              {`${recommendation.categoryNameFilipino} (${recommendation.categoryNameEnglish})`}
+            </strong>{" "}
+            {prominentViolationText(recommendation)}
+          </p>
+        </section>
 
-      <section className={`${styles.part} ${styles.action}`}>
-        <h3 className={styles.label}>Recommended action</h3>
-        <p className={styles.text}>{recommendation.recommendedAction}</p>
-      </section>
+        <section className={`${styles.part} ${styles.action}`}>
+          <h3 className={styles.label}>Recommended action</h3>
+          <p className={styles.text}>{recommendedActionText(recommendation)}</p>
+        </section>
+      </div>
 
       <section className={styles.part}>
         <h3 className={styles.label}>Records by hour</h3>
@@ -61,10 +68,6 @@ export default function RecommendationCard({
           onDismiss={() => onDismiss(recommendation)}
         />
       </div>
-
-      <footer className={styles.footer}>
-        {`Last flagged: ${formatManilaDateTime(recommendation.lastFlaggedAt)}`}
-      </footer>
     </article>
   );
 }

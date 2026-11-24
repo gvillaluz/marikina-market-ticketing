@@ -15,6 +15,7 @@ namespace MarikinaMarket.API.Application.DTOs.Recommendations.Response
         public DateTime WindowStart { get; set; }
         public DateTime WindowEnd { get; set; }
         public int RecordCount { get; set; }
+        public int DetectedRecordCount { get; set; }
     }
 
     public class SectionRecommendationResponse

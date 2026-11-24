@@ -39,8 +39,8 @@
 }
 
 .paid {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: var(--status-paid-surface);
+  color: var(--status-paid-text);
 }
 
 .rejected {

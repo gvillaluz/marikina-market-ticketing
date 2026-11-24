@@ -1069,6 +1069,57 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<(List<DetectedTicketSummary> Items, int Total)> GetDetectedTicketsAsync(
+            List<int> ticketIds, DetectedViolationFilters filters, int offset, int limit)
+        {
+            var query = _context.Tickets.AsNoTracking().Where(ticket => ticketIds.Contains(ticket.Id));
+
+            if (filters.Type.HasValue)
+                query = query.Where(ticket => ticket.Type == filters.Type.Value);
+
+            if (filters.MarketSectionId.HasValue)
+                query = query.Where(ticket => ticket.MarketSectionId == filters.MarketSectionId.Value);
+
+            var hasSearch = !string.IsNullOrWhiteSpace(filters.Search);
+            if (hasSearch)
+            {
+                var search = filters.Search!.Trim().ToLower();
+                query = query.Where(ticket =>
+                    ((ticket.Type == ViolationType.Warning ? ticket.ControlNumber : ticket.PaperReference) ?? "").ToLower().Contains(search) ||
+                    ticket.Description.ToLower().Contains(search));
+            }
+
+            var total = await query.CountAsync();
+            var ordered = hasSearch
+                ? query.OrderBy(DetectedTicketWholeWordRank(WholeWordSearch.Pattern(filters.Search!)))
+                    .ThenByDescending(ticket => ticket.IssuedAt)
+                    .ThenByDescending(ticket => ticket.Id)
+                : query.OrderByDescending(ticket => ticket.IssuedAt).ThenByDescending(ticket => ticket.Id);
+
+            var items = await ordered
+                .Skip(offset)
+                .Take(limit)
+                .Select(ticket => new DetectedTicketSummary
+                {
+                    Id = ticket.Id,
+                    ControlNumber = ticket.ControlNumber,
+                    PaperReference = ticket.PaperReference,
+                    Type = ticket.Type,
+                    MarketSectionName = ticket.MarketSection!.Name,
+                    Description = ticket.Description,
+                    IssuedAt = ticket.IssuedAt
+                })
+                .ToListAsync();
+
+            return (items, total);
+        }
+
+        // 0 when the search is a whole word in the number people see or the description, otherwise 1.
+        private static Expression<Func<Ticket, int>> DetectedTicketWholeWordRank(string pattern) =>
+            ticket => Regex.IsMatch((ticket.Type == ViolationType.Warning ? ticket.ControlNumber : ticket.PaperReference) ?? "", pattern, RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(ticket.Description, pattern, RegexOptions.IgnoreCase)
+                ? 0 : 1;
+
         public async Task<List<InspectionSummary>> GetEnforcerInspectionHistory(int enforcerId, int offset, int limit)
         {
             return await _context.Tickets
