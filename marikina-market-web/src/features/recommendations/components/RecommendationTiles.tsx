@@ -1,5 +1,7 @@
 import type { SectionRecommendation } from "@/api/types/recommendations.types";
 import {
+  formatManilaDate,
+  formatManilaTime,
   formatPeakWindow,
   recordCountText,
   recordWord,
@@ -39,6 +41,15 @@ export default function RecommendationTiles({
         <dd className={styles.value}>{recommendation.patternConfidence}</dd>
         <dd className={styles.caption}>
           {`based on ${recordCountText(sectionRecordCount)}`}
+        </dd>
+      </div>
+      <div className={styles.tile}>
+        <dt className={styles.label}>Last detected</dt>
+        <dd className={styles.value}>
+          {formatManilaDate(recommendation.lastFlaggedAt)}
+        </dd>
+        <dd className={styles.caption}>
+          {formatManilaTime(recommendation.lastFlaggedAt)}
         </dd>
       </div>
     </dl>

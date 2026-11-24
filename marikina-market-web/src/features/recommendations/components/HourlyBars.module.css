@@ -26,14 +26,27 @@
   color: var(--text-body);
 }
 
-.high .peak {
+/* Hours with records take the card's risk color, strongest in the busiest 3 hours. Empty hours stay gray. */
+.high .filled {
+  background: color-mix(in srgb, var(--danger) 38%, var(--bg-surface));
+}
+
+.high .peak.filled {
   background: var(--danger);
 }
 
-.moderate .peak {
+.moderate .filled {
+  background: color-mix(in srgb, var(--warning) 38%, var(--bg-surface));
+}
+
+.moderate .peak.filled {
   background: var(--warning);
 }
 
-.neutral .peak {
+.neutral .filled {
+  background: color-mix(in srgb, var(--text-muted) 45%, var(--bg-surface));
+}
+
+.neutral .peak.filled {
   background: var(--text-muted);
 }

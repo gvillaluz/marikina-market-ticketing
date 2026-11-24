@@ -130,7 +130,7 @@ function renderCard(recommendation, props = {}) {
   );
 }
 
-test("W1: the Fish and Seafood card shows its numbers as three tiles", () => {
+test("W1: the Fish and Seafood card shows its numbers as four tiles", () => {
   const html = renderCard(fishAndSeafood);
   const words = text(html);
   assert.ok(words.includes("Fish and Seafood"));
@@ -139,6 +139,7 @@ test("W1: the Fish and Seafood card shows its numbers as three tiles", () => {
     ["Found in", "4 of 6", "records, last 30 days"],
     ["Peak time", "08:00–11:00", "busiest 3 hours"],
     ["Confidence", "Moderate", "based on 6 records"],
+    ["Last detected", "8 Nov 2026", "2:05 PM"],
   ]);
   assert.match(
     html,
@@ -146,8 +147,78 @@ test("W1: the Fish and Seafood card shows its numbers as three tiles", () => {
   );
   assert.ok(words.includes("Check scales at the start of the morning rush."));
   assert.ok(words.includes("Moderate risk"), words);
-  assert.ok(words.includes("Last detected: 8 Nov 2026, 2:05 PM"), words);
+  assert.doesNotMatch(html, /<footer/);
   assert.doesNotMatch(words, /flagged/i);
+});
+
+test("C1: the card fills its column and puts the two essays side by side when it is wide enough", () => {
+  const html = renderCard(fishAndSeafood);
+  const essays = html.split('<div class="essays">')[1];
+  assert.ok(essays, "the two essays share one wrapper");
+  assert.ok(
+    essays.indexOf("Prominent violation") < essays.indexOf("Recommended action"),
+  );
+  assert.ok(essays.indexOf("Recommended action") < essays.indexOf("Records by hour"));
+  const css = (file) =>
+    fs.readFileSync(
+      path.resolve(root, "features/recommendations/components", file),
+      "utf8",
+    );
+  const card = css("RecommendationCard.module.css");
+  assert.doesNotMatch(card.match(/\.card \{[^}]*\}/)[0], /max-width/);
+  assert.match(card.match(/\.card \{[^}]*\}/)[0], /container-type: inline-size/);
+  assert.match(
+    card,
+    /@container \(min-width: 42rem\) \{\s*\.essays \{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
+  );
+  assert.match(
+    css("RecommendationTiles.module.css"),
+    /@container \(min-width: 34rem\) \{\s*\.tiles \{\s*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\);/,
+  );
+});
+
+test("C2: every hour with records takes the risk color, the peak strongest, and empty hours stay gray", () => {
+  const { default: HourlyBars } = load(
+    "features/recommendations/components/HourlyBars.tsx",
+  );
+  const counts = Array(24).fill(0);
+  counts[8] = 3;
+  counts[9] = 2;
+  counts[15] = 1;
+  const html = renderToStaticMarkup(
+    React.createElement(HourlyBars, {
+      hourlyCounts: counts,
+      peakStartHour: 8,
+      tone: "moderate",
+    }),
+  );
+  const bars = [...html.matchAll(/<span class="([^"]*)"/g)]
+    .map((match) => match[1].split(" ").filter(Boolean))
+    .filter((classes) => classes.includes("bar"));
+  const hoursWith = (name) =>
+    bars.flatMap((classes, hour) => (classes.includes(name) ? [hour] : []));
+  assert.deepEqual(hoursWith("filled"), [8, 9, 15]);
+  assert.deepEqual(hoursWith("peak"), [8, 9, 10]);
+  const rules = fs.readFileSync(
+    path.resolve(root, "features/recommendations/components/HourlyBars.module.css"),
+    "utf8",
+  );
+  for (const [tone, color] of [
+    ["high", "--danger"],
+    ["moderate", "--warning"],
+    ["neutral", "--text-muted"],
+  ]) {
+    assert.match(
+      rules,
+      new RegExp(`^\\.${tone} \\.filled \\{\\s*background: color-mix\\(in srgb, var\\(${color}\\)`, "m"),
+      `${tone} tint`,
+    );
+    assert.match(
+      rules,
+      new RegExp(`^\\.${tone} \\.peak\\.filled \\{\\s*background: var\\(${color}\\);`, "m"),
+      `${tone} peak`,
+    );
+  }
 });
 
 // ---- Essay-style card text ---------------------------------------------------
@@ -294,7 +365,7 @@ test("W1: every risk style the card and bars use exists in their CSS files", () 
       new RegExp(`^\\.${tone} \\.found \\{`, "m"),
       `tiles .${tone}`,
     );
-    assert.match(bars, new RegExp(`^\\.${tone} \\.peak \\{`, "m"), `bars .${tone}`);
+    assert.match(bars, new RegExp(`^\\.${tone} \\.peak\\.filled \\{`, "m"), `bars .${tone}`);
   }
 });
 

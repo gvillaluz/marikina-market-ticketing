@@ -14,11 +14,6 @@
   background: var(--bg-page);
 }
 
-/* On a narrow card the first tile takes the full width, so no tile is left alone in a row. */
-.found {
-  grid-column: 1 / -1;
-}
-
 .label,
 .caption {
   font-size: var(--market-font-size-small);
@@ -57,12 +52,9 @@
   background: var(--bg-card);
 }
 
-@media (min-width: 600px) {
+/* Follows the card's own width, set in RecommendationCard.module.css. */
+@container (min-width: 34rem) {
   .tiles {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .found {
-    grid-column: auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
