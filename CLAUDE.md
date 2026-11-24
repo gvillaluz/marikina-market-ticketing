@@ -125,4 +125,4 @@ When I correct you or reject your approach:
 
 6. [ACCURACY] Always check the code before describing a risk or giving an example of something going wrong, because an unchecked example can push the user toward a decision built on a problem that does not exist.
 
-7. [DESIGN] Always use the installed design skills (ui-ux-pro-max first) when planning, building or reviewing any change to how a screen looks or works, because matching the existing screens is not enough on its own and the user expects design best practice checked.
+7. [DESIGN] Always use both installed design skills when planning, building or reviewing any change to how a screen looks or works — ui-ux-pro-max for usability, readability and accessibility, and impeccable for visual quality and removing generic AI-looking design — because matching the existing screens is not enough on its own and the user expects design best practice checked.

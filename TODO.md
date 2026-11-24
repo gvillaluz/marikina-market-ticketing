@@ -1,0 +1,2 @@
+- put logo to the parts where logo needed.
+- dashboard needs attention: list atleast 5 overdue tickets summary and put the navigation button or "Open Tickets" button below the list and change its label into "Go to Tickets".
