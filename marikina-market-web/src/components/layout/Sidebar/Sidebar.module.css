@@ -216,7 +216,7 @@
   height: 34px;
   flex: 0 0 34px;
   border-radius: 9999px;
-  background-color: var(--accent);
+  background-color: var(--records-warning-text);
   color: var(--text-on-primary);
   display: flex;
   align-items: center;
@@ -246,7 +246,7 @@
 .userRole {
   overflow: hidden;
   color: rgba(255, 255, 255, 0.68);
-  font-size: 0.68rem;
+  font-size: var(--market-font-size-small);
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;

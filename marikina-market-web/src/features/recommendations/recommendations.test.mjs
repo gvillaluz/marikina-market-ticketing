@@ -329,7 +329,7 @@ test("W1: a section with one record says record, not records", () => {
   assert.deepEqual(tiles(html)[2], ["Confidence", "Moderate", "based on 1 record"]);
 });
 
-test("W1: the risk badge has an icon and the amber style for Moderate, red for High, neutral for Low and unknown", () => {
+test("W1: the risk badge uses the shared badge: amber for Moderate, red for High, neutral for Low and unknown", () => {
   const { default: RiskBadge } = load(
     "features/recommendations/components/RiskBadge.tsx",
   );
@@ -337,11 +337,10 @@ test("W1: the risk badge has an icon and the amber style for Moderate, red for H
     renderToStaticMarkup(React.createElement(RiskBadge, { riskLevel }));
   const badgeClass = (riskLevel) =>
     badge(riskLevel).match(/^<span class="([^"]*)"/)[1].split(" ");
-  assert.deepEqual(badgeClass("Moderate"), ["badge", "moderate"]);
-  assert.deepEqual(badgeClass("High"), ["badge", "high"]);
+  assert.deepEqual(badgeClass("Moderate"), ["badge", "warning"]);
+  assert.deepEqual(badgeClass("High"), ["badge", "danger"]);
   assert.deepEqual(badgeClass("Low"), ["badge", "neutral"]);
   assert.deepEqual(badgeClass("Unexpected"), ["badge", "neutral"]);
-  assert.match(badge("High"), /<svg[^>]*aria-hidden="true"/);
   assert.equal(text(badge("High")), "High risk");
   const tilesClass = (riskLevel) =>
     renderCard({ ...fishAndSeafood, riskLevel }).match(/<dl class="([^"]*)"/)[1];
@@ -355,11 +354,9 @@ test("W1: every risk style the card and bars use exists in their CSS files", () 
       path.resolve(root, "features/recommendations/components", file),
       "utf8",
     );
-  const badge = rulesIn("RiskBadge.module.css");
   const tileRules = rulesIn("RecommendationTiles.module.css");
   const bars = rulesIn("HourlyBars.module.css");
   for (const tone of ["high", "moderate", "neutral"]) {
-    assert.match(badge, new RegExp(`^\\.${tone} \\{`, "m"), `badge .${tone}`);
     assert.match(
       tileRules,
       new RegExp(`^\\.${tone} \\.found \\{`, "m"),
@@ -502,10 +499,9 @@ test("W3: no run yet shows the first-run message", () => {
     data: { run: null, recommendations: [], sectionsWithoutRecommendation: [] },
   }));
   assert.ok(words.includes("Recommended Actions"));
+  assert.ok(words.includes("No recommendations yet"), words);
   assert.ok(
-    words.includes(
-      "No recommendations yet. They appear after the model's first daily run.",
-    ),
+    words.includes("They appear after the model's first daily run."),
     words,
   );
   assert.doesNotMatch(words, /Last updated|No recommendation for/);
@@ -704,13 +700,14 @@ function listRows(html) {
     .slice(1)
     .map((row) => ({
       open: /aria-current="true"/.test(row),
-      words: ["name", "meta", "badge", "tag"].map((part) =>
-        text(
-          row.match(
-            new RegExp(`<span class="${part}[^"]*">(.*?)</span>`),
-          )[1],
+      words: [
+        ...["name", "meta"].map((part) =>
+          text(row.match(new RegExp(`<span class="${part}[^"]*">(.*?)</span>`))[1]),
         ),
-      ),
+        ...[...row.matchAll(/<span class="badge[^"]*">(.*?)<\/span>/g)]
+          .slice(0, 2)
+          .map(([, inner]) => text(inner)),
+      ],
     }));
 }
 
@@ -745,28 +742,21 @@ test("L1: the list shows every section with its records, risk and status, dismis
   );
 });
 
-test("L1: every status tag has an icon as well as its words", () => {
+test("L1: every status uses the shared badge with its words and color", () => {
   const { default: StatusTag } = load(
     "features/recommendations/components/StatusTag.tsx",
   );
   const tag = (review) =>
     renderToStaticMarkup(React.createElement(StatusTag, { review }));
-  for (const [review, words, style] of [
-    [null, "Needs review", "needsReview"],
-    [reviewedByJuan, "Reviewed", "reviewed"],
-    [dismissedByMaria, "Dismissed", "dismissed"],
+  for (const [review, words, tone] of [
+    [null, "Needs review", "info"],
+    [reviewedByJuan, "Reviewed", "success"],
+    [dismissedByMaria, "Dismissed", "neutral"],
   ]) {
     const html = tag(review);
     assert.equal(text(html), words);
-    assert.match(html, new RegExp(`^<span class="tag ${style}"`));
-    assert.match(html, /<svg[^>]*aria-hidden="true"/);
+    assert.match(html, new RegExp(`^<span class="badge ${tone}"`));
   }
-  const rules = fs.readFileSync(
-    path.resolve(root, "features/recommendations/components/StatusTag.module.css"),
-    "utf8",
-  );
-  for (const style of ["needsReview", "reviewed", "dismissed"])
-    assert.match(rules, new RegExp(`^\\.${style} \\{`, "m"), style);
 });
 
 test("L2: the page opens on the first section that still needs review", () => {
@@ -1149,7 +1139,7 @@ test("D5: the list asks the agreed route with its page and filters", async () =>
   assert.deepEqual({ ...calls[0][1].params }, params);
 });
 
-test("D6: Recommended Actions shows only the count and a link, even with no cards", () => {
+test("D6: Recommended Actions shows only the count and the shared View list button, even with no cards", () => {
   const html = renderPage(
     () => ({
       data: {
@@ -1162,8 +1152,153 @@ test("D6: Recommended Actions shows only the count and a link, even with no card
     true,
   );
   assert.ok(text(html).includes("Detected violations: 3"), text(html));
-  assert.match(html, /<a [^>]*href="\/recommendations\/detected"[^>]*>View list<\/a>/);
+  assert.match(html, /<button class="button outline sm"[^>]*><span>View list<\/span><\/button>/);
   assert.doesNotMatch(html, /Search detected violations/);
+});
+
+// ---- Matching the rest of the system ----------------------------------------------
+
+const cssFile = (relative) =>
+  fs.readFileSync(path.resolve(root, relative), "utf8");
+const cssRule = (css, selector) => {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return css.match(new RegExp(`(?:^|\\n)${escaped} \\{([^}]*)\\}`))?.[1] ?? "";
+};
+
+test("A1: the selected street uses a full border, with no side stripe", () => {
+  const selected = cssRule(
+    cssFile("features/recommendations/components/SectionListItem.module.css"),
+    ".selected",
+  );
+  assert.match(selected, /background: var\(--bg-surface\)/);
+  assert.match(selected, /box-shadow: inset 0 0 0 1px var\(--button-primary\)/);
+  assert.doesNotMatch(selected, /inset 4px/);
+  // Badges keep their own status colors on the selected street.
+  const css = cssFile("features/recommendations/components/SectionListItem.module.css");
+  assert.doesNotMatch(css, /\.selected \.labels/);
+});
+
+test("A2: the summary and card use the same panel shape as the record pages", () => {
+  for (const [file, selector] of [
+    ["RunSummary.module.css", ".summary"],
+    ["RecommendationCard.module.css", ".card"],
+  ]) {
+    const rule = cssRule(cssFile(`features/recommendations/components/${file}`), selector);
+    assert.match(rule, /border-radius: var\(--radius-lg\)/, file);
+    assert.doesNotMatch(rule, /box-shadow/, file);
+  }
+});
+
+test("A3: the street list sits in the shared records panel", () => {
+  const html = renderPage(() => openData(fishAndSeafood, dryGoodsCard), undefined, true);
+  assert.match(html, /<section class="panel" aria-label="Streets"/);
+  assert.ok(text(html).includes("2 need review · 0 reviewed · 0 dismissed"), text(html));
+});
+
+test("A4: error and empty messages use the shared records message", () => {
+  const noRun = renderPage(
+    () => ({ data: { run: null, recommendations: [], sectionsWithoutRecommendation: [] } }),
+    undefined,
+    true,
+  );
+  assert.match(noRun, /<div class="state "[^>]*role="status"/);
+  const noCards = renderPage(
+    () => ({ data: { run, recommendations: [], sectionsWithoutRecommendation: [] } }),
+    undefined,
+    true,
+  );
+  assert.match(noCards, /<div class="state "[^>]*role="status"/);
+  const failed = renderPage(
+    (errors) => ({ isError: true, error: new errors.ApiRequestError("Unavailable.", 500) }),
+    undefined,
+    true,
+  );
+  assert.match(failed, /<div class="state error"[^>]*role="alert"/);
+  assert.ok(text(failed).includes("Unable to load recommended actions"), text(failed));
+});
+
+test("A5: Detected violations uses the shared breadcrumb and a short subtitle", () => {
+  const html = renderDetected(detectedPage([detectedTicket]));
+  assert.match(html, /<nav[^>]*aria-label="Breadcrumb"/);
+  assert.match(html, /<a [^>]*href="\/recommendations"[^>]*>Recommended Actions<\/a>/);
+  const words = text(html);
+  assert.ok(words.includes("Records the model matched to a violation in its latest daily check."), words);
+  assert.ok(words.includes("A record that is not listed may still have a violation."), words);
+  assert.doesNotMatch(words, /Back to Recommended Actions/);
+});
+
+test("A6: shared buttons have steady heights, are 44 pixels on phones, and show their spinner on any color", () => {
+  const css = cssFile("components/ui/Button/Button.module.css");
+  assert.match(cssRule(css, ".sm"), /min-height: var\(--records-compact-control-size\)/);
+  assert.match(cssRule(css, ".md"), /min-height: var\(--button-height-md\)/);
+  assert.match(cssRule(css, ".lg"), /min-height: var\(--form-control-height\)/);
+  assert.match(
+    css,
+    /@media \(max-width: 700px\) \{\s*(?:\/\*[^*]*\*\/\s*)?\.button\.button\.button \{\s*min-height: var\(--form-control-height\);/,
+  );
+  const spinner = cssRule(css, ".spinner");
+  assert.match(spinner, /border-top-color: currentColor/);
+  assert.doesNotMatch(spinner, /#fff|255, 255, 255/);
+  assert.match(cssFile("styles/globals.css"), /--button-height-md: 2\.25rem;/);
+});
+
+test("A7: shared badges keep their natural size on phone tables", () => {
+  const css = cssFile("components/ui/Records/RecordBadge.module.css");
+  assert.match(cssRule(css, ".badge"), /justify-self: start/);
+  assert.match(cssRule(css, ".info"), /color: var\(--records-info-text\)/);
+});
+
+test("A7: Paid uses the same blue everywhere a status badge shows it", () => {
+  const { RecordBadge } = load("components/ui/Records/RecordBadge.tsx");
+  const paid = renderToStaticMarkup(React.createElement(RecordBadge, { value: "Paid" }));
+  assert.match(paid, /^<span class="badge paid"/);
+  const globals = cssFile("styles/globals.css");
+  assert.match(globals, /--status-paid-text: #3b82f6;/);
+  assert.match(globals, /--status-paid-surface: #dbeafe;/);
+  for (const file of [
+    "components/ui/Records/RecordBadge.module.css",
+    "components/ui/StatusBadge/StatusBadge.module.css",
+  ]) {
+    const rule = cssRule(cssFile(file), ".paid");
+    assert.match(rule, /color: var\(--status-paid-text\)/, file);
+    assert.match(rule, /background(?:-color)?: var\(--status-paid-surface\)/, file);
+  }
+  const detail = cssFile("features/tickets/components/detail/StatusPill.module.css");
+  assert.match(detail, /\.paid \{ color: #3B82F6; background-color: #DBEAFE;/);
+  for (const [value, tone] of [
+    ["Pending", "warning"],
+    ["Cleared", "success"],
+    ["Overdue", "danger"],
+    ["Waived", "violet"],
+  ]) {
+    const html = renderToStaticMarkup(React.createElement(RecordBadge, { value }));
+    assert.match(html, new RegExp(`^<span class="badge ${tone}"`), value);
+  }
+});
+
+test("A8: the sidebar keeps the parent page highlighted on its inner pages", () => {
+  const { isNavItemActive } = load("components/layout/Sidebar/navActive.ts");
+  assert.equal(isNavItemActive("/recommendations", "/recommendations"), true);
+  assert.equal(isNavItemActive("/recommendations/detected", "/recommendations"), true);
+  assert.equal(isNavItemActive("/tickets/41", "/tickets"), true);
+  assert.equal(isNavItemActive("/admin/vendors/3/inspections", "/admin/vendors"), true);
+  assert.equal(isNavItemActive("/enforcer/performance/4", "/enforcers", ["/enforcer"]), true);
+  assert.equal(isNavItemActive("/system/ordinance", "/system/configuration", ["/system", "/configuration"]), true);
+  assert.equal(isNavItemActive("/configuration/backups", "/system/configuration", ["/system", "/configuration"]), true);
+  assert.equal(isNavItemActive("/enforcers", "/enforcer"), false);
+  assert.equal(isNavItemActive("/recommendations-old", "/recommendations"), false);
+  assert.equal(isNavItemActive("/admin/reports", "/admin/vendors"), false);
+  const sidebar = fs.readFileSync(path.resolve(root, "components/layout/Sidebar/Sidebar.tsx"), "utf8");
+  assert.match(sidebar, /to: "\/enforcers",[\s\S]{0,120}innerPaths: \["\/enforcer"\]/);
+  assert.match(sidebar, /to: "\/system\/configuration",[\s\S]{0,140}innerPaths: \["\/system", "\/configuration"\]/);
+  assert.match(sidebar, /isNavItemActive\(\s*location\.pathname,\s*item\.to,\s*item\.innerPaths,?\s*\)/);
+});
+
+test("A9: the sidebar profile text is readable and its initials have enough contrast", () => {
+  const css = cssFile("components/layout/Sidebar/Sidebar.module.css");
+  assert.match(css, /\.userRole \{\s*overflow: hidden;[\s\S]*?font-size: var\(--market-font-size-small\);/);
+  assert.doesNotMatch(css, /font-size: 0\.68rem/);
+  assert.match(cssRule(css, ".userAvatar"), /background-color: var\(--records-warning-text\)/);
 });
 
 test("D6: the count is hidden before the first daily run", () => {

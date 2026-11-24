@@ -163,7 +163,7 @@ test("every ticket status gets its color, the same as the Tickets table", () => 
   });
   for (const [status, tone] of [
     ["Pending", "warning"], ["Contested", "warning"], ["InProgress", "warning"],
-    ["Paid", "success"], ["Cleared", "success"], ["Overdue", "danger"], ["Waived", "violet"],
+    ["Paid", "paid"], ["Cleared", "success"], ["Overdue", "danger"], ["Waived", "violet"],
   ])
     assert.match(html, new RegExp(`class="badge ${tone}">${status}<`), status);
 });

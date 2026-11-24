@@ -1,6 +1,5 @@
-import { AlertTriangle } from "lucide-react";
-import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
+import { RecordsState } from "@/components/ui/Records";
 import SkeletonBlock from "@/components/ui/Skeleton/SkeletonBlock";
 import DismissConfirm from "../components/DismissConfirm";
 import RecommendationCard from "../components/RecommendationCard";
@@ -36,22 +35,24 @@ export default function RecommendationsPage() {
           role="status"
           aria-label="Loading recommended actions"
         >
-          <SkeletonBlock height="220px" radius="6px" />
-          <SkeletonBlock height="420px" radius="6px" />
+          <SkeletonBlock height="220px" radius="16px" />
+          <SkeletonBlock height="420px" radius="16px" />
         </div>
       ) : isError ? (
-        <div className={styles.error} role="alert">
-          <AlertTriangle size={24} aria-hidden="true" />
-          <p>{errorMessage}</p>
-          <Button variant="primary" onClick={retry}>
-            Try again
-          </Button>
+        <div className={styles.statePanel}>
+          <RecordsState
+            title="Unable to load recommended actions"
+            message={errorMessage}
+            onRetry={retry}
+          />
         </div>
       ) : !data?.run ? (
-        <p className={styles.message}>
-          No recommendations yet. They appear after the model's first daily
-          run.
-        </p>
+        <div className={styles.statePanel}>
+          <RecordsState
+            title="No recommendations yet"
+            message="They appear after the model's first daily run."
+          />
+        </div>
       ) : (
         <>
           <RunSummary run={data.run} />
@@ -83,9 +84,12 @@ export default function RecommendationsPage() {
               </div>
             </div>
           ) : (
-            <p className={styles.message}>
-              No street has a recommendation for this period.
-            </p>
+            <div className={styles.statePanel}>
+              <RecordsState
+                title="No recommendations"
+                message="No street has a recommendation for this period."
+              />
+            </div>
           )}
           <SectionsWithoutRecommendation
             sectionNames={data.sectionsWithoutRecommendation}

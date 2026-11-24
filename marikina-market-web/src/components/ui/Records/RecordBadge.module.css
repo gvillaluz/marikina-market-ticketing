@@ -1,6 +1,7 @@
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-self: start;
   padding: var(--space-xs) var(--space-sm);
   max-width: 100%;
   border-radius: var(--market-radius-pill);
@@ -27,6 +28,14 @@
 .violet {
   color: var(--records-violet-text);
   background: var(--records-violet-surface);
+}
+.paid {
+  color: var(--status-paid-text);
+  background: var(--status-paid-surface);
+}
+.info {
+  color: var(--records-info-text);
+  background: var(--records-info-surface);
 }
 .neutral {
   color: var(--text-body);

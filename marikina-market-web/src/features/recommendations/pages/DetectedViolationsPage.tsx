@@ -1,6 +1,4 @@
-import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import Button from "@/components/ui/Button";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import { Dropdown } from "@/components/ui/Dropdown";
 import PageHeader from "@/components/ui/PageHeader";
 import {
@@ -26,7 +24,6 @@ const TYPE_OPTIONS: { value: DetectedTypeFilter; label: string }[] = [
 ];
 
 export default function DetectedViolationsPage() {
-  const navigate = useNavigate();
   const page = useDetectedViolationsPage();
   const streets = useMarketSectionOptions();
   const violationLabel = VIOLATION_OPTIONS.find(
@@ -35,24 +32,19 @@ export default function DetectedViolationsPage() {
 
   return (
     <div className={styles.page}>
+      <Breadcrumb
+        items={[
+          { label: "Recommended Actions", to: ROUTES.recommendations },
+          { label: "Detected violations" },
+        ]}
+      />
       <PageHeader
         title="Detected violations"
-        subtitle="Warnings and tickets whose written description the model matched to a violation in its latest daily check. A record that is not listed may still have a violation."
-        actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            icon={<ArrowLeft size={14} aria-hidden="true" />}
-            onClick={() => navigate(ROUTES.recommendations)}
-          >
-            Back to Recommended Actions
-          </Button>
-        }
+        subtitle="Records the model matched to a violation in its latest daily check."
       />
       <RecordsPanel
         title="Latest daily check"
-        description="Search and filter detected records"
+        description="A record that is not listed may still have a violation."
         count={page.isLoading || page.isError ? undefined : page.total}
         countLabel="records"
         updating={page.isFetching && !page.isLoading}

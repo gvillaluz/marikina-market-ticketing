@@ -5,9 +5,8 @@
   gap: var(--space-lg);
   padding: var(--space-lg);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
   background: var(--bg-surface);
-  box-shadow: var(--shadow-sm);
   container-type: inline-size;
 }
 
@@ -42,7 +41,7 @@
 
 .action {
   padding: var(--space-md);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--bg-page);
 }
 
@@ -59,6 +58,7 @@
   font-size: var(--font-size-body);
   line-height: 1.6;
   color: var(--text-body);
+  text-wrap: pretty;
 }
 
 .text strong {
@@ -73,7 +73,7 @@
   gap: var(--space-sm) var(--space-md);
 }
 
-@media (min-width: 640px) {
+@media (min-width: 700px) {
   .card {
     padding: var(--space-xl);
   }
