@@ -1,12 +1,13 @@
 import type {
   DashboardActivity,
-  DashboardAttentionItem,
   DashboardMetrics,
+  DashboardOverdueTicket,
+  DashboardOverdueTickets,
   DashboardSummary,
 } from "@/api/types/dashboard.types";
 import { ApiRequestError } from "@/utils/apiErrors";
 
-const ATTENTION_TYPES = ["OpenTickets"] as const;
+const OVERDUE_TICKET_LIMIT = 5;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -50,18 +51,31 @@ function isActivity(value: unknown): value is DashboardActivity {
   );
 }
 
-function isAttentionItem(value: unknown): value is DashboardAttentionItem {
+function isRecordId(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+}
+
+function isOverdueTicket(value: unknown): value is DashboardOverdueTicket {
   return (
     isRecord(value) &&
-    typeof value.id === "string" &&
-    value.id.trim().length > 0 &&
-    typeof value.type === "string" &&
-    ATTENTION_TYPES.includes(value.type as (typeof ATTENTION_TYPES)[number]) &&
-    typeof value.title === "string" &&
-    value.title.trim().length > 0 &&
-    typeof value.count === "number" &&
-    Number.isSafeInteger(value.count) &&
-    value.count > 0
+    isRecordId(value.id) &&
+    (value.controlNumber === null || typeof value.controlNumber === "string") &&
+    (value.vendorId === null || isRecordId(value.vendorId)) &&
+    (value.businessName === null || typeof value.businessName === "string") &&
+    isNonnegativeCount(value.daysOverdue)
+  );
+}
+
+function validateOverdueTickets(
+  value: unknown,
+): value is DashboardOverdueTickets {
+  return (
+    isRecord(value) &&
+    isNonnegativeCount(value.total) &&
+    Array.isArray(value.items) &&
+    value.items.length <= OVERDUE_TICKET_LIMIT &&
+    value.items.length <= value.total &&
+    value.items.every(isOverdueTicket)
   );
 }
 
@@ -75,8 +89,7 @@ export function validateDashboardSummary(
     !Array.isArray(value.recentActivity) ||
     value.recentActivity.length > 5 ||
     !value.recentActivity.every(isActivity) ||
-    !Array.isArray(value.attentionItems) ||
-    !value.attentionItems.every(isAttentionItem)
+    !validateOverdueTickets(value.overdueTickets)
   ) {
     throw new ApiRequestError();
   }

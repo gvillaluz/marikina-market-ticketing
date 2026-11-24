@@ -252,6 +252,7 @@ function filterHook(file, name) {
       },
     },
     "@/hooks/useDebounce": { default: (value) => value },
+    "react-router-dom": { useSearchParams: () => [new URLSearchParams()] },
   });
   return () => { cursor = 0; return hooks[name](); };
 }

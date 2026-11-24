@@ -100,6 +100,32 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .FirstOrDefaultAsync() ?? new DashboardTicketCounts();
         }
 
+        public async Task<DashboardOverdueTickets> GetDashboardOverdueTicketsAsync(int limit)
+        {
+            var overdue = _context.Tickets
+                .AsNoTracking()
+                .Where(ticket => ticket.Type == ViolationType.Ticket && ticket.Status == TicketStatus.Overdue);
+
+            return new DashboardOverdueTickets
+            {
+                Total = await overdue.CountAsync(),
+                // Longest overdue first; the control number and business name match the Tickets table.
+                Items = await overdue
+                    .OrderBy(ticket => ticket.IssuedAt)
+                    .ThenBy(ticket => ticket.Id)
+                    .Take(limit)
+                    .Select(ticket => new DashboardOverdueTicket
+                    {
+                        Id = ticket.Id,
+                        ControlNumber = ticket.PaperReference,
+                        VendorId = ticket.VendorId,
+                        BusinessName = ticket.SnapshotBusinessAccountNumber == null ? null : ticket.SnapshotBusinessName,
+                        IssuedAt = ticket.IssuedAt
+                    })
+                    .ToListAsync()
+            };
+        }
+
         public async Task<Ticket?> GetTicketByIdAsync(int ticketId)
         {
             return await _context.Tickets
