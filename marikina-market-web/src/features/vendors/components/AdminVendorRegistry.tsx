@@ -45,10 +45,6 @@ function getScoreTone(score: number): BadgeTone {
   return "ticket";
 }
 
-function formatCount(count: number): string {
-  return count === 0 ? "—" : String(count);
-}
-
 interface AdminVendorRegistryProps {
   onCreateBusiness: () => void;
   onEditBusiness: (vendor: AdminVendorSummary) => void;
@@ -164,14 +160,14 @@ export default function AdminVendorRegistry({
       header: "Warnings",
       align: "center",
       width: "10%",
-      render: (vendor) => formatCount(vendor.warningCount),
+      render: (vendor) => vendor.warningCount,
     },
     {
       key: "ticketCount",
       header: "Tickets",
       align: "center",
       width: "9%",
-      render: (vendor) => formatCount(vendor.ticketCount),
+      render: (vendor) => vendor.ticketCount,
     },
     {
       key: "action",
