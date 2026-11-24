@@ -48,7 +48,7 @@ export default function VendorRiskRankingTable({
 }: VendorRiskRankingTableProps) {
   return (
     <AnalyticsPanel
-      title="Vendor Risk Ranking"
+      title="Business Risk Ranking"
       subtitle="Offenses and severity are for the selected year. Risk scores and ranking use current compliance."
       skeletonVariant="table"
       isLoading={isLoading}
@@ -95,7 +95,7 @@ export default function VendorRiskRankingTable({
             {!isLoading && data.length === 0 && (
               <tr>
                 <td className={styles.empty} colSpan={6}>
-                  No vendor risk records available.
+                  No business risk records available.
                 </td>
               </tr>
             )}

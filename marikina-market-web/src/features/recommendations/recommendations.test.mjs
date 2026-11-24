@@ -1248,6 +1248,26 @@ test("A7: shared badges keep their natural size on phone tables", () => {
   assert.match(cssRule(css, ".info"), /color: var\(--records-info-text\)/);
 });
 
+test("H1: the bar graph is taller, rises on arrival and moves smoothly between streets", () => {
+  const css = cssFile("features/recommendations/components/HourlyBars.module.css");
+  const bars = cssRule(css, ".bars");
+  assert.match(bars, /height: 5rem/);
+  assert.match(bars, /contain: layout/);
+  const bar = cssRule(css, ".bar");
+  assert.match(bar, /transform-origin: bottom/);
+  assert.match(bar, /animation: bar-rise 520ms cubic-bezier\(0\.16, 1, 0\.3, 1\) backwards/);
+  assert.match(bar, /height 280ms cubic-bezier\(0\.16, 1, 0\.3, 1\)/);
+  assert.match(bar, /background-color 200ms ease/);
+  assert.match(css, /@keyframes bar-rise \{\s*from \{\s*transform: scaleY\(0\);/);
+  // Six groups of four hours sweep from morning to night, 30ms apart, 150ms at most.
+  for (const [start, delay] of [[5, 30], [9, 60], [13, 90], [17, 120], [21, 150]])
+    assert.match(cssRule(css, `.bar:nth-child(n + ${start})`), new RegExp(`animation-delay: ${delay}ms`));
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\) \{\s*\.bar \{\s*animation: none;\s*transition: none;/,
+  );
+});
+
 test("A7: Paid uses the same blue everywhere a status badge shows it", () => {
   const { RecordBadge } = load("components/ui/Records/RecordBadge.tsx");
   const paid = renderToStaticMarkup(React.createElement(RecordBadge, { value: "Paid" }));
