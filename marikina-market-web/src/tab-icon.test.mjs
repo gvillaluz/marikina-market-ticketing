@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
-// The icon in the browser tab: the page must point at a picture file that really exists.
+// The browser tab: its title, and an icon that points at a picture file that really exists.
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -23,4 +23,9 @@ test("the browser tab icon points at a picture file that exists in the public fo
     "89504e470d0a1a0a",
     "the icon file is a real PNG picture",
   );
+});
+
+test("the browser tab title is Market Inspection System", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.equal(html.match(/<title>([^<]*)<\/title>/)?.[1], "Market Inspection System");
 });

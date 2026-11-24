@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import PageHeader from "@/components/ui/PageHeader";
 import Button from "@/components/ui/Button";
 import { ROUTES } from "@/routes/routePaths";
@@ -16,6 +17,12 @@ const EnforcerReportPage: FC = () => {
 
   return (
     <div className={styles.page}>
+      <Breadcrumb
+        items={[
+          { label: "Enforcers", to: ROUTES.enforcers },
+          { label: "Enforcer report" },
+        ]}
+      />
       <PageHeader
         title="Enforcer report"
         subtitle="Warnings, tickets and fines for every enforcer over a chosen period."

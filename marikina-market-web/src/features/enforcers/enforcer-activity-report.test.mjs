@@ -212,7 +212,10 @@ function renderPage(model = {}, id = "8") {
       useEnforcerActivityReport: () => ({ ...idleModel, ...model }),
     },
   });
-  return renderToStaticMarkup(React.createElement(Page));
+  // The breadcrumb's links need a router around the page.
+  return renderToStaticMarkup(
+    React.createElement(realRouter.MemoryRouter, null, React.createElement(Page)),
+  );
 }
 const text = (html) => html.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
 
@@ -287,6 +290,29 @@ test("a link that is not an enforcer number says so without asking the server", 
     assert.match(html, /Enforcer not found/, id);
     assert.doesNotMatch(html, /Dela Cruz/, id);
   }
+});
+
+test("a breadcrumb leads to the Enforcers list and to this enforcer's performance record", () => {
+  const html = renderPage();
+  assert.match(html, /<nav[^>]*aria-label="Breadcrumb"/);
+  assert.match(html, /<a [^>]*href="\/enforcers"[^>]*>Enforcers<\/a>/);
+  assert.match(html, /<a [^>]*href="\/enforcer\/performance\/8"[^>]*>Dela Cruz, Juan<\/a>/);
+  assert.match(html, /aria-current="page"[^>]*>Enforcer report</);
+  // The button stays next to the trail.
+  assert.match(html, /Back to performance record/);
+  // While the report loads or after it fails, the trail still leads back.
+  for (const model of [{ report: undefined, loading: true }, { report: undefined, error: "Enforcer not found." }]) {
+    const waiting = renderPage(model);
+    assert.match(waiting, /href="\/enforcers"/);
+    assert.match(waiting, /<a [^>]*href="\/enforcer\/performance\/8"[^>]*>Enforcer<\/a>/);
+  }
+});
+
+test("a link that is not an enforcer number still leads back to the Enforcers list", () => {
+  const html = renderPage({}, "abc");
+  assert.match(html, /<a [^>]*href="\/enforcers"[^>]*>Enforcers<\/a>/);
+  assert.match(html, /aria-current="page"[^>]*>Enforcer report</);
+  assert.doesNotMatch(html, /\/enforcer\/performance\//);
 });
 
 test("the report's address carries the enforcer number", () => {

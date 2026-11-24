@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import PageHeader from "@/components/ui/PageHeader";
 import Button from "@/components/ui/Button";
 import { RecordsState } from "@/components/ui/Records";
@@ -19,28 +20,48 @@ const EnforcerActivityReportPage: FC = () => {
   const model = useEnforcerActivityReport(enforcerId);
   const enforcer = isEnforcerId ? model.report?.enforcer : undefined;
 
+  const enforcerName = enforcer
+    ? `${enforcer.lastName}, ${enforcer.firstName}`
+    : "Enforcer";
+
   const header = (
-    <PageHeader
-      title="Enforcer report"
-      subtitle={
-        enforcer
-          ? `${enforcer.lastName}, ${enforcer.firstName} · warnings, tickets and fines over a chosen period.`
-          : "Warnings, tickets and fines for one enforcer over a chosen period."
-      }
-      actions={
-        isEnforcerId && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            icon={<ArrowLeft size={14} aria-hidden="true" />}
-            onClick={() => navigate(ROUTES.enforcerPerformancePage(String(enforcerId)))}
-          >
-            Back to performance record
-          </Button>
-        )
-      }
-    />
+    <>
+      <Breadcrumb
+        items={[
+          { label: "Enforcers", to: ROUTES.enforcers },
+          ...(isEnforcerId
+            ? [
+                {
+                  label: enforcerName,
+                  to: ROUTES.enforcerPerformancePage(String(enforcerId)),
+                },
+              ]
+            : []),
+          { label: "Enforcer report" },
+        ]}
+      />
+      <PageHeader
+        title="Enforcer report"
+        subtitle={
+          enforcer
+            ? `${enforcerName} · warnings, tickets and fines over a chosen period.`
+            : "Warnings, tickets and fines for one enforcer over a chosen period."
+        }
+        actions={
+          isEnforcerId && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              icon={<ArrowLeft size={14} aria-hidden="true" />}
+              onClick={() => navigate(ROUTES.enforcerPerformancePage(String(enforcerId)))}
+            >
+              Back to performance record
+            </Button>
+          )
+        }
+      />
+    </>
   );
 
   if (!isEnforcerId) {

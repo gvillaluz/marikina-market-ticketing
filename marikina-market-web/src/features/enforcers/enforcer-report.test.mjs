@@ -175,6 +175,14 @@ function renderReportPage(model = {}) {
   );
 }
 
+test("a breadcrumb leads back to the Enforcers list, next to the Back to Enforcers button", () => {
+  const html = renderReportPage();
+  assert.match(html, /<nav[^>]*aria-label="Breadcrumb"/);
+  assert.match(html, /<a [^>]*href="\/enforcers"[^>]*>Enforcers<\/a>/);
+  assert.match(html, /aria-current="page"[^>]*>Enforcer report</);
+  assert.match(html, /Back to Enforcers/);
+});
+
 test("each enforcer's name opens that enforcer's own report", () => {
   const html = renderReportPage();
   assert.match(html, /<a [^>]*href="\/enforcers\/report\/8"[^>]*>Dela Cruz, Juan<\/a>/);
