@@ -169,7 +169,7 @@ test("C1: the card fills its column and puts the two essays side by side when it
   assert.match(card.match(/\.card \{[^}]*\}/)[0], /container-type: inline-size/);
   assert.match(
     card,
-    /@container \(min-width: 42rem\) \{\s*\.essays \{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
+    /@container \(min-width: 45rem\) \{\s*\.essays \{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
   );
   assert.match(
     css("RecommendationTiles.module.css"),
