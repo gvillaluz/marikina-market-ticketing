@@ -5,7 +5,7 @@ namespace MarikinaMarket.API.Application.DTOs.Analytics.Response
         public DateTime AsOf { get; set; }
         public required DashboardMetricsResponse Metrics { get; set; }
         public List<DashboardActivityResponse> RecentActivity { get; set; } = [];
-        public List<DashboardAttentionItemResponse> AttentionItems { get; set; } = [];
+        public DashboardOverdueTicketsResponse OverdueTickets { get; set; } = new();
     }
 
     public class DashboardMetricsResponse
@@ -26,11 +26,18 @@ namespace MarikinaMarket.API.Application.DTOs.Analytics.Response
         public string? ActorName { get; set; }
     }
 
-    public class DashboardAttentionItemResponse
+    public class DashboardOverdueTicketsResponse
     {
-        public required string Id { get; set; }
-        public required string Type { get; set; }
-        public required string Title { get; set; }
-        public int Count { get; set; }
+        public int Total { get; set; }
+        public List<DashboardOverdueTicketResponse> Items { get; set; } = [];
+    }
+
+    public class DashboardOverdueTicketResponse
+    {
+        public int Id { get; set; }
+        public string? ControlNumber { get; set; }
+        public int? VendorId { get; set; }
+        public string? BusinessName { get; set; }
+        public int DaysOverdue { get; set; }
     }
 }

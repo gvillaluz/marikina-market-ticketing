@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
 import type { ReportDocument } from "@/api/types/reports.types";
+import PaperSeal from "@/components/ui/PaperSeal/PaperSeal";
 import {
   formatReportRange,
   formatReportDate,
@@ -25,9 +26,7 @@ export default function ReportPaper({
       }
     >
       <header className={styles.header}>
-        <span className={styles.mark} aria-hidden="true">
-          MM
-        </span>
+        <PaperSeal />
         <div className={styles.heading}>
           <p>Official inspection report</p>
           <h3>Marikina Public Market Administration</h3>

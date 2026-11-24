@@ -34,6 +34,19 @@ public class DashboardSummaryTests
             TicketsToday = 7,
             OpenTickets = 8
         };
+        // Issued exactly 8 days ago, so due 3 days ago: 3 days overdue whatever the time of day.
+        ((DashboardTicketRepositoryStub)(object)tickets).Overdue = new DashboardOverdueTickets
+        {
+            Total = 6,
+            Items =
+            [
+                new DashboardOverdueTicket
+                {
+                    Id = 41, ControlNumber = "2026-000418", VendorId = 3,
+                    BusinessName = "Synthetic Meat Shop", IssuedAt = DateTime.UtcNow.AddDays(-8)
+                }
+            ]
+        };
         var vendors = DashboardVendorRepositoryStub.Create();
         ((DashboardVendorRepositoryStub)(object)vendors).ActiveBusinesses = 247;
         var auditLogs = DashboardAuditRepositoryStub.Create();
@@ -60,8 +73,14 @@ public class DashboardSummaryTests
         Assert.Equal(8, result.Metrics.OpenTickets);
         Assert.Equal(247, result.Metrics.ActiveBusinesses);
         Assert.Equal(DateTimeKind.Utc, result.AsOf.Kind);
-        var attention = Assert.Single(result.AttentionItems);
-        Assert.Equal("open-tickets", attention.Id);
+        Assert.Equal(6, result.OverdueTickets.Total);
+        var overdue = Assert.Single(result.OverdueTickets.Items);
+        Assert.Equal(41, overdue.Id);
+        Assert.Equal("2026-000418", overdue.ControlNumber);
+        Assert.Equal(3, overdue.VendorId);
+        Assert.Equal("Synthetic Meat Shop", overdue.BusinessName);
+        Assert.Equal(3, overdue.DaysOverdue);
+        Assert.Equal(5, ((DashboardTicketRepositoryStub)(object)tickets).OverdueLimit);
         var activity = Assert.Single(result.RecentActivity);
         Assert.Equal("Inspection", activity.Category);
         Assert.Equal("Inspection completed", activity.Title);
@@ -143,6 +162,88 @@ public class DashboardSummaryTests
         Assert.Equal(2, counts.OpenTickets); // the two waiting tickets, one of each kind.
     }
 
+    [Fact]
+    public async Task Dashboard_overdue_list_matches_the_hand_worked_example()
+    {
+        // Seven overdue tickets (one for an unregistered vendor) and records that must stay out:
+        // a waiting, a paid and a contested ticket, and a warning (warnings have no status).
+        var unregistered = Overdue(2, Utc(2026, 11, 9, 1), "2026-000402", null, null);
+        unregistered.PersonId = 1;
+        unregistered.PaperViolatorName = "Synthetic Vendor";
+        using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options)
+        {
+            Tickets = new AccountDatabaseSet<Ticket>(
+            [
+                Overdue(6, Utc(2026, 11, 18, 1), "2026-000431", 6, "Synthetic Carinderia"),
+                Overdue(1, Utc(2026, 11, 5, 1), "2026-000391", 1, "Synthetic Fruit Stand"),
+                Overdue(3, Utc(2026, 11, 12, 1), "2026-000410", 3, "Synthetic Dry Goods"),
+                Overdue(7, Utc(2026, 11, 18, 23), "2026-000436", 7, "Synthetic Vegetables"),
+                Overdue(5, Utc(2026, 11, 16, 1), "2026-000425", 5, "Synthetic Rice Center"),
+                unregistered,
+                Overdue(4, Utc(2026, 11, 14, 1), "2026-000418", 4, "Synthetic Meat Shop"),
+                Record(8, Utc(2026, 11, 1, 1), ViolationType.Ticket, TicketStatus.Pending),
+                Record(9, Utc(2026, 11, 1, 1), ViolationType.Ticket, TicketStatus.Paid),
+                Record(10, Utc(2026, 11, 2, 1), ViolationType.Ticket, TicketStatus.Contested),
+                Record(11, Utc(2026, 11, 1, 1), ViolationType.Warning, null)
+            ])
+        };
+
+        var overdue = await new TicketRepository(context).GetDashboardOverdueTicketsAsync(5);
+
+        Assert.Equal(7, overdue.Total);
+        Assert.Equal([1, 2, 3, 4, 5], overdue.Items.Select(ticket => ticket.Id).ToArray());
+        Assert.Equal(
+            ["2026-000391", "2026-000402", "2026-000410", "2026-000418", "2026-000425"],
+            overdue.Items.Select(ticket => ticket.ControlNumber!).ToArray());
+        Assert.Null(overdue.Items[1].VendorId);
+        Assert.Null(overdue.Items[1].BusinessName);
+        Assert.Equal(1, overdue.Items[0].VendorId);
+        Assert.Equal("Synthetic Fruit Stand", overdue.Items[0].BusinessName);
+        Assert.Equal(Utc(2026, 11, 5, 1), overdue.Items[0].IssuedAt);
+    }
+
+    [Fact]
+    public async Task Dashboard_overdue_list_breaks_equal_issue_times_by_ticket_number()
+    {
+        var sameTime = Utc(2026, 11, 10, 2);
+        using var context = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().Options)
+        {
+            Tickets = new AccountDatabaseSet<Ticket>(
+            [
+                Overdue(12, sameTime, "2026-000512", 1, "Synthetic shop 1"),
+                Overdue(11, sameTime, "2026-000511", 1, "Synthetic shop 1")
+            ])
+        };
+
+        var overdue = await new TicketRepository(context).GetDashboardOverdueTicketsAsync(5);
+
+        Assert.Equal([11, 12], overdue.Items.Select(ticket => ticket.Id).ToArray());
+    }
+
+    // "Now" is 24 Nov 2026, 2:00 pm in Manila (06:00 UTC). A ticket is due 5 days after it was issued.
+    [Theory]
+    [InlineData(2026, 11, 5, 1, 14)]   // issued 5 Nov 9:00 am, due 10 Nov
+    [InlineData(2026, 11, 9, 1, 10)]   // due 14 Nov
+    [InlineData(2026, 11, 12, 1, 7)]   // due 17 Nov
+    [InlineData(2026, 11, 14, 1, 5)]   // due 19 Nov
+    [InlineData(2026, 11, 16, 1, 3)]   // due 21 Nov
+    [InlineData(2026, 11, 18, 1, 1)]   // due 23 Nov
+    [InlineData(2026, 11, 18, 23, 0)]  // issued 19 Nov 7:00 am Manila, due today; counted in UTC it would be 1
+    [InlineData(2026, 11, 22, 1, 0)]   // set to Overdue by hand before its due date (27 Nov): never below 0
+    public void Days_overdue_are_counted_on_Manila_dates(int year, int month, int day, int hour, int expected)
+        => Assert.Equal(expected, DashboardService.CountDaysOverdue(Utc(year, month, day, hour), Utc(2026, 11, 24, 6)));
+
+    private static Ticket Overdue(int id, DateTime issuedAt, string controlNumber, int? vendorId, string? businessName)
+    {
+        var ticket = Record(id, issuedAt, ViolationType.Ticket, TicketStatus.Overdue);
+        ticket.PaperReference = controlNumber;
+        ticket.ControlNumber = $"hidden-{id}";
+        ticket.VendorId = vendorId;
+        ticket.SnapshotBusinessAccountNumber = businessName is null ? null : $"BA-{vendorId:0000}";
+        ticket.SnapshotBusinessName = businessName;
+        return ticket;
+    }
+
     private static DateTime Utc(int year, int month, int day, int hour, int minute = 0)
         => new(year, month, day, hour, minute, 0, DateTimeKind.Utc);
 
@@ -159,7 +260,7 @@ public class DashboardSummaryTests
     };
 
     [Fact]
-    public async Task GetSummaryAsync_ReturnsEmptyAttentionAndActivityForZeroCounts()
+    public async Task GetSummaryAsync_ReturnsNoOverdueTicketsAndNoActivityForZeroCounts()
     {
         var tickets = DashboardTicketRepositoryStub.Create();
         var vendors = DashboardVendorRepositoryStub.Create();
@@ -169,7 +270,8 @@ public class DashboardSummaryTests
 
         var result = await service.GetSummaryAsync();
 
-        Assert.Empty(result.AttentionItems);
+        Assert.Equal(0, result.OverdueTickets.Total);
+        Assert.Empty(result.OverdueTickets.Items);
         Assert.Empty(result.RecentActivity);
         Assert.Equal(0, result.Metrics.WarningsToday);
         Assert.Equal(0, result.Metrics.TicketsToday);
@@ -213,7 +315,11 @@ public class DashboardSummaryTests
                 ["warnings_today", "tickets_today", "open_tickets", "active_businesses"],
                 metrics.EnumerateObject().Select(property => property.Name).ToArray());
             Assert.True(json.RootElement.TryGetProperty("recent_activity", out _));
-            Assert.True(json.RootElement.TryGetProperty("attention_items", out _));
+            var overdue = json.RootElement.GetProperty("overdue_tickets");
+            Assert.Equal(
+                ["total", "items"],
+                overdue.EnumerateObject().Select(property => property.Name).ToArray());
+            Assert.False(json.RootElement.TryGetProperty("attention_items", out _));
         }
     }
 
@@ -242,6 +348,8 @@ public sealed class DashboardServiceStub : IDashboardService
 public class DashboardTicketRepositoryStub : DispatchProxy
 {
     public DashboardTicketCounts Counts { get; set; } = new();
+    public DashboardOverdueTickets Overdue { get; set; } = new();
+    public int OverdueLimit { get; private set; }
     public DateTime StartUtc { get; private set; }
     public DateTime EndUtc { get; private set; }
 
@@ -255,6 +363,11 @@ public class DashboardTicketRepositoryStub : DispatchProxy
             StartUtc = (DateTime)args![0]!;
             EndUtc = (DateTime)args[1]!;
             return Task.FromResult(Counts);
+        }
+        if (targetMethod?.Name == nameof(ITicketRepository.GetDashboardOverdueTicketsAsync))
+        {
+            OverdueLimit = (int)args![0]!;
+            return Task.FromResult(Overdue);
         }
         throw new InvalidOperationException($"Unexpected ticket repository call: {targetMethod?.Name}");
     }

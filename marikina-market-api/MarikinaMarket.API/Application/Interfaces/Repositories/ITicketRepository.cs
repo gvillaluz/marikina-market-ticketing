@@ -63,6 +63,7 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task<List<AdminInspectionSummary>> GetAdminInspectionAsync(int offset, int limit, InspectionSummaryFilters filters);
         Task<int> GetAdminInspectionCountAsync(InspectionSummaryFilters filters);
         Task<DashboardTicketCounts> GetDashboardTicketCountsAsync(DateTime startUtc, DateTime endUtc);
+        Task<DashboardOverdueTickets> GetDashboardOverdueTicketsAsync(int limit);
         Task<List<AdminTicketSummary>> GetAdminTicketAsync(int offset, int limit, TicketSummaryFilters filters);
         Task<TicketAnalyticsRaw> GetTicketAnalyticsAsync(DateTime startOfThisMonth, DateTime startOfLastMonth);
         Task<AdminTicketDetailResponse?> GetAdminTicketDetailAsync(int ticketId);

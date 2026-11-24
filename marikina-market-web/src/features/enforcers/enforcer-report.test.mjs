@@ -165,6 +165,7 @@ const idleModel = {
 
 function renderReportPage(model = {}) {
   const { default: Page } = load("features/enforcers/pages/EnforcerReportPage.tsx", {
+    "@/assets/icons/Marikina_City_Seal.svg (1).webp": { default: "seal.webp" },
     "react-router-dom": { ...realRouter, useNavigate: () => () => {} },
     "@/features/enforcers/hooks/useEnforcerReport": { useEnforcerReport: () => ({ ...idleModel, ...model }) },
   });

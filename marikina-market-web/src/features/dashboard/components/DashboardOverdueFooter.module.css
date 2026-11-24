@@ -1,0 +1,42 @@
+.footer {
+  display: grid;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-default);
+}
+
+.more {
+  margin: 0;
+  color: var(--text-body);
+  font-size: var(--font-size-xs);
+}
+
+/* Same look as the outlined Button, as a link because it opens a page. */
+.button {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-lg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--button-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.button:hover {
+  border-color: var(--button-primary);
+  background: var(--records-hover-surface);
+  color: var(--button-primary-hover);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--button-primary);
+  outline-offset: 2px;
+}
