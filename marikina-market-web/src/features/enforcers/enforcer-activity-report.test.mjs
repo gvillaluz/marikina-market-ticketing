@@ -206,6 +206,7 @@ const idleModel = {
 
 function renderPage(model = {}, id = "8") {
   const { default: Page } = load("features/enforcers/pages/EnforcerActivityReportPage.tsx", {
+    "@/assets/icons/Marikina_City_Seal.svg (1).webp": { default: "seal.webp" },
     "react-router-dom": { ...realRouter, useParams: () => ({ id }), useNavigate: () => () => {} },
     "@/features/enforcers/hooks/useEnforcerActivityReport": {
       useEnforcerActivityReport: () => ({ ...idleModel, ...model }),

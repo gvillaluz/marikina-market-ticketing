@@ -1,4 +1,5 @@
 import type { ReactNode, RefObject } from "react";
+import PaperSeal from "@/components/ui/PaperSeal/PaperSeal";
 import styles from "./EnforcerReportPaperFrame.module.css";
 
 interface MetaItem {
@@ -21,9 +22,7 @@ export default function EnforcerReportPaperFrame({
   return (
     <article ref={paperRef} className={styles.paper} aria-label={title}>
       <header className={styles.header}>
-        <span className={styles.mark} aria-hidden="true">
-          MM
-        </span>
+        <PaperSeal />
         <div>
           <h3>Marikina Public Market Administration</h3>
           <p>{title}</p>

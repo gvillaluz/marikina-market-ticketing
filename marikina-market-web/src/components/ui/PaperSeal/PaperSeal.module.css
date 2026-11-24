@@ -1,0 +1,6 @@
+.seal {
+  flex-shrink: 0;
+  width: var(--reports-paper-seal-size);
+  height: var(--reports-paper-seal-size);
+  object-fit: contain;
+}

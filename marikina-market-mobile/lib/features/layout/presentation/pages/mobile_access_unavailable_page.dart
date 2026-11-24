@@ -15,10 +15,23 @@ class MobileAccessUnavailablePage extends StatelessWidget {
       child: Center(
         child: SingleChildScrollView(
           padding: AppTheme.authPagePadding,
-          child: Text(
-            'This account does not have mobile access. Log out and sign in with an enforcer account.',
-            style: AppTheme.authBodyStyle,
-            textAlign: TextAlign.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/logo/org_logo.png',
+                width: AppTheme.authAccessSealSize,
+                height: AppTheme.authAccessSealSize,
+                fit: BoxFit.contain,
+                semanticLabel: 'Marikina City seal',
+              ),
+              const SizedBox(height: AppTheme.authGap),
+              Text(
+                'This account does not have mobile access. Log out and sign in with an enforcer account.',
+                style: AppTheme.authBodyStyle,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
