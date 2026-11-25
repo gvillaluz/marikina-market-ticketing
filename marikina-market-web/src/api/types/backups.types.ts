@@ -7,7 +7,7 @@ export type BackupWeekday =
   | "Thursday"
   | "Friday"
   | "Saturday";
-export type BackupType = "Automatic" | "Manual";
+export type BackupType = "Automatic" | "Manual" | "BeforeRestore";
 export type BackupStatus = "Completed" | "Failed";
 
 export interface BackupResponse {
@@ -56,4 +56,32 @@ export interface BackupHealthResponse {
   nextScheduledAt: string | null;
   timeZone: string;
   timeZoneDisplay: string;
+}
+
+export interface RestoreBackupRequest {
+  confirmation: string;
+  password: string;
+}
+
+export type RestoreState = "Running" | "Finished" | "Failed";
+export type RestoreStep =
+  | "CheckBackup"
+  | "SafetyBackup"
+  | "LoadBackup"
+  | "SignEveryoneOut"
+  | "CountRecords";
+export type RestoreStepState = "Waiting" | "Running" | "Done" | "Failed";
+export type RestoreCount = "Tickets" | "Businesses" | "People" | "Accounts";
+
+export interface BackupRestoreResponse {
+  restoreId: string;
+  backupId: number;
+  backupDateTime: string;
+  state: RestoreState;
+  steps: { step: RestoreStep; state: RestoreStepState }[];
+  counts: { records: RestoreCount; before: number; after: number | null }[];
+  safetyBackupId: number | null;
+  message: string | null;
+  startedAt: string;
+  finishedAt: string | null;
 }

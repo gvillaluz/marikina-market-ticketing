@@ -5,7 +5,9 @@ import type {
   BackupHealthResponse,
   BackupPageResponse,
   BackupResponse,
+  BackupRestoreResponse,
   BackupScheduleResponse,
+  RestoreBackupRequest,
   UpdateBackupScheduleRequest,
 } from "../types/backups.types";
 
@@ -64,6 +66,29 @@ export const backupsApi = {
   },
   async createManual(): Promise<BackupResponse> {
     const response = await apiClient.post<BackupResponse>(path);
+    return response.data;
+  },
+  async startRestore(
+    id: number,
+    request: RestoreBackupRequest,
+  ): Promise<BackupRestoreResponse> {
+    if (!Number.isSafeInteger(id) || id <= 0) throw new ApiRequestError();
+    const response = await apiClient.post<BackupRestoreResponse>(
+      `${path}/${id}/restore`,
+      request,
+    );
+    return response.data;
+  },
+  // Needs no sign-in on the server: it keeps answering while the accounts are replaced.
+  async getRestoreProgress(
+    restoreId: string,
+    signal?: AbortSignal,
+  ): Promise<BackupRestoreResponse> {
+    if (!/^[0-9a-f]{32}$/.test(restoreId)) throw new ApiRequestError();
+    const response = await apiClient.get<BackupRestoreResponse>(
+      `${path}/restores/${restoreId}`,
+      { signal },
+    );
     return response.data;
   },
   async download(id: number): Promise<BackupDownloadResponse> {

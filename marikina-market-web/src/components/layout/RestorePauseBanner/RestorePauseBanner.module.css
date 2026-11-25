@@ -1,0 +1,28 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--warning) 35%, var(--bg-surface));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-heading);
+  background: color-mix(in srgb, var(--warning) 10%, var(--bg-surface));
+}
+
+.banner p {
+  margin: 0;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--warning);
+}
+
+@media (max-width: 768px) {
+  .banner {
+    padding: var(--space-md) var(--space-lg);
+  }
+}

@@ -30,3 +30,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       mustChangePassword: false,
     }),
 }));
+
+// Set when the server answers that a backup restore has paused the system; cleared by its next normal answer.
+interface RestorePauseState {
+  paused: boolean;
+  setPaused: (paused: boolean) => void;
+}
+
+export const useRestorePauseStore = create<RestorePauseState>((set) => ({
+  paused: false,
+  setPaused: (paused) => set({ paused }),
+}));
