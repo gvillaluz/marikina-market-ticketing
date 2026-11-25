@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,23 +65,34 @@ const recentHeader = 'My recent';
 const mostViolatedHeader = 'Most violated (last 30 days)';
 const allHeader = 'All ordinances';
 
+// Completes once the fake server has handled the shortcuts request, so a test
+// never looks before the sheet has asked for them.
+Completer<void> shortcutsHandled = Completer<void>();
+
 Future<InspectionBloc> shortcutsBloc(
   WidgetTester tester,
   List<RequestOptions> requests, {
   Map<String, Object?>? shortcuts,
-}) async => (await tester.runAsync(
-  () => listBloc((options) async {
-    requests.add(options);
-    if (options.path == '/ordinance') return reply(options, ordinances);
-    if (shortcuts == null) {
-      throw DioException(
-        requestOptions: options,
-        type: DioExceptionType.connectionError,
-      );
-    }
-    return reply(options, shortcuts);
-  }),
-))!;
+}) async {
+  shortcutsHandled = Completer<void>();
+  return (await tester.runAsync(
+    () => listBloc((options) async {
+      requests.add(options);
+      if (options.path == '/ordinance') return reply(options, ordinances);
+      try {
+        if (shortcuts == null) {
+          throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.connectionError,
+          );
+        }
+        return reply(options, shortcuts);
+      } finally {
+        if (!shortcutsHandled.isCompleted) shortcutsHandled.complete();
+      }
+    }),
+  ))!;
+}
 
 Future<void> showSheet(
   WidgetTester tester,
@@ -114,7 +127,27 @@ Future<void> showSheet(
       ),
     ),
   );
+  await waitForShortcuts(tester, bloc);
   await flush(tester);
+}
+
+// The sheet's load only moves when the fake clock is pumped, so pump and wait
+// in real time by turns: first until the fake server has answered the
+// shortcuts request, then until the sheet has received the answer.
+Future<void> waitForShortcuts(WidgetTester tester, InspectionBloc bloc) async {
+  Future<void> turn() async {
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+  }
+
+  for (var i = 0; i < 500 && !shortcutsHandled.isCompleted; i++) {
+    await turn();
+  }
+  for (var i = 0; i < 10 && bloc.ordinanceShortcuts == null; i++) {
+    await turn();
+  }
 }
 
 double top(WidgetTester tester, String text) =>

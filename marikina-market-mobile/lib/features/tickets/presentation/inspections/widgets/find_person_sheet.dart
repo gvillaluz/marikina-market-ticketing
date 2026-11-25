@@ -215,7 +215,7 @@ class _FindPersonSheetState extends State<FindPersonSheet> {
         description: 'Tap a person to choose.',
         slivers: [
           SliverPadding(
-            padding: AppTheme.selectionSheetPadding,
+            padding: AppTheme.selectionSheetSidePadding,
             sliver: SliverToBoxAdapter(
               child: TextField(
                 controller: _searchController,
@@ -238,7 +238,9 @@ class _FindPersonSheetState extends State<FindPersonSheet> {
             SliverFillRemaining(hasScrollBody: false, child: message)
           else ...[
             SliverPadding(
-              padding: AppTheme.selectionSheetPadding.copyWith(top: 0),
+              padding: AppTheme.selectionSheetSidePadding.copyWith(
+                top: AppTheme.inspectionSmallGap,
+              ),
               sliver: SliverList.builder(
                 itemCount: shown.length,
                 itemBuilder: (context, index) {
@@ -264,7 +266,7 @@ class _FindPersonSheetState extends State<FindPersonSheet> {
               )
             else if (_canSearch && _hasMore)
               SliverPadding(
-                padding: AppTheme.selectionSheetPadding.copyWith(top: 0),
+                padding: AppTheme.selectionSheetSidePadding,
                 sliver: SliverToBoxAdapter(
                   child: TextButton(
                     onPressed: _loadingMore

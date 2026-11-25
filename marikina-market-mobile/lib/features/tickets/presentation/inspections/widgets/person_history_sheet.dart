@@ -77,9 +77,11 @@ class _PersonHistorySheetState extends State<PersonHistorySheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            // No top padding: the drag handle already leaves air above the title.
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: AppTheme.ticketTinyGap,
               children: [
                 Text(
                   'Person citation history',
