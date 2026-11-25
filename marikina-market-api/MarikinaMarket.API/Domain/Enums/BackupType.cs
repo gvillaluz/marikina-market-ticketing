@@ -1,4 +1,5 @@
 namespace MarikinaMarket.API.Domain.Enums
 {
-    public enum BackupType { Automatic, Manual }
+    // BeforeRestore: the safety backup of today's data made just before a restore replaces it.
+    public enum BackupType { Automatic, Manual, BeforeRestore }
 }

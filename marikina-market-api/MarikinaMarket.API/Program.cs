@@ -89,6 +89,7 @@ builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
+builder.Services.AddSingleton<BackupRestoreState>();
 builder.Services.AddHostedService<AutomaticBackupService>();
 builder.Services.AddHostedService<OverdueTicketCheckerService>();
 builder.Services.AddHostedService<TokenCleanupService>();
@@ -127,6 +128,9 @@ builder.Services.AddAuthentication(options =>
                 .GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>();
             if (action?.ControllerTypeInfo.AsType() == typeof(MarikinaMarket.API.Presentation.Controllers.AuthController)
                 && action.ActionName == nameof(MarikinaMarket.API.Presentation.Controllers.AuthController.Logout))
+                context.NoResult();
+            // Restore progress needs no sign-in, and checking one would wait for the accounts being replaced.
+            if (RestorePauseMiddleware.IsRestoreProgress(context.HttpContext))
                 context.NoResult();
             return Task.CompletedTask;
         },
@@ -172,6 +176,8 @@ var app = builder.Build();
 
 app.UseRouting();
 app.UseCors(WebsiteCors.PolicyName);
+// Before sign-in checks and the audit log: while a restore runs, other requests stop here.
+app.UseMiddleware<RestorePauseMiddleware>();
 app.UseMiddleware<AuditLogMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();

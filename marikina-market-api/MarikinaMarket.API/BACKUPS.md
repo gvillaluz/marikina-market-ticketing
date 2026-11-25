@@ -83,8 +83,9 @@ offline tool must validate magic/version/length and decrypt using the original
 32-byte key, nonce, tag, and header. Any authentication failure must reject the
 file without restoring it. Write decrypted output only after authentication
 succeeds, then use `pg_restore` against a disposable PostgreSQL database. Remove
-the decrypted dump afterward. No restore endpoint or frontend encryption settings
-are included in this feature.
+the decrypted dump afterward. This feature had no restore endpoint; the server
+restore added on 2026-11-25 is described in "Restore from the Backups page" below.
+No frontend encryption settings exist.
 
 ## Scheduling and health display
 
@@ -275,3 +276,69 @@ Errors: 400 invalid fields/IDs/offset or failed/expired/unfinished downloads; 40
 unauthenticated; 403 non-admin; 404 missing record/object; 409 execution gate busy;
 500 sanitized backup/configuration/storage/persistence failure. Request cancellation
 may end the HTTP connection while the server records failure and cleans up.
+
+## Restore from the Backups page (2026-11-25, step 1: server)
+
+A Head Admin restores a listed backup in place. The website and phone parts are later
+steps; until then only these routes exist.
+
+What a restore does, in order:
+
+1. **Check the backup** (nothing paused yet): download it, unlock it with
+   `Backups:EncryptionKey`, and compare its `__EFMigrationsHistory` with today's.
+   Any difference refuses the backup ("from a different version of the system").
+2. **Pause**: every other request gets HTTP 503 (below). Requests already running
+   get up to 30 seconds to finish; otherwise the restore stops and nothing changes.
+   Record counts are taken (tickets, businesses, people, accounts).
+3. **Safety backup** of today's data, type `BeforeRestore`, kept like any backup.
+   If it fails, nothing is restored.
+4. **Load and sign everyone out, in one transaction**: `pg_restore --clean --if-exists
+   --no-owner --no-privileges` turns the backup into a script that leaves out
+   `audit_logs`, `backups` and `backup_schedules` (with their indexes and sequences),
+   followed by deleting `refresh_tokens` and `user_device_tokens` and giving every
+   account a new security stamp. `psql --single-transaction` runs it with
+   `ON_ERROR_STOP`. Any error rolls everything back: today's data stays as it was.
+5. **Count again**, write a `RestoreBackup` audit entry, unpause.
+
+Requirements:
+
+- `pg_restore` and `psql` must be next to `pg_dump` (`Backups:PgDumpPath`), or on PATH
+  when that setting is not used. The server package installs `postgresql-client-18`,
+  which has all three.
+- The server's database login must own the tables, because the restore drops and
+  recreates them. The local test used a superuser; **the demo's login has not been
+  checked**. Check before deploying: `SELECT tablename, tableowner FROM pg_tables
+  WHERE schemaname = 'public';` must show the login in `ConnectionStrings:DefaultConnection`.
+- One server instance only (the pause and the progress are held in memory, like the
+  scheduler's single-instance rule). A restart during a restore rolls the load back;
+  the progress is then lost and the safety backup row is closed as interrupted.
+- No schema change: `BeforeRestore` fits the existing `backups.type` varchar(16).
+
+| Method / route | Request | Response |
+|---|---|---|
+| POST `/api/admin/backups/{id}/restore` | `{ "confirmation": "RESTORE", "password": "<own password>" }`; Head Admin only | 202, restore progress (below) |
+| GET `/api/admin/backups/restores/{restoreId}` | No sign-in; `restoreId` from the 202 answer | 200, restore progress |
+
+Restore progress: `restore_id` (32 hex characters, random), `backup_id`,
+`backup_date_time`, `state` (`Running`, `Finished`, `Failed`), `steps` (in order:
+`CheckBackup`, `SafetyBackup`, `LoadBackup`, `SignEveryoneOut`, `CountRecords`, each
+with `state` `Waiting`, `Running`, `Done` or `Failed`), `counts` (`records` =
+`Tickets`, `Businesses`, `People`, `Accounts`, with `before` and `after`; empty until
+the pause), `safety_backup_id`, `message` (plain words for the Head Admin),
+`started_at`, `finished_at`. Only the latest restore is kept, in memory.
+
+The progress route has no sign-in because it must keep answering while the accounts
+are replaced and after everyone is signed out. It skips sign-in checks entirely, like
+`auth/logout`. It holds only progress and record counts, and the ID is unguessable.
+
+Errors, POST: 400 confirmation not exactly `RESTORE` ("Type RESTORE to confirm."),
+missing password, wrong password ("Password is incorrect."; counts toward lockout),
+or a backup that cannot be downloaded ("This backup cannot be restored."); 401 not
+signed in; 403 not Head Admin; 404 backup not found; 409 a backup or restore already
+running; 423 account locked; 503 another restore is pausing the system. GET: 404
+unknown restore ID. Failures after the 202 are reported in `state` and `message`, not
+as HTTP errors.
+
+While paused, every route except the progress route answers 503 with
+`Retry-After: 60` and `{ "title": "System restore in progress", "message": "The system
+is being restored. Try again in a few minutes." }`.

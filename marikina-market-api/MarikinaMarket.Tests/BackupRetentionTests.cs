@@ -140,7 +140,9 @@ internal sealed class BackupRetentionFixture
         });
         Service = new BackupService(repository, new ReportUnitOfWork(), storage, new ConfigurationBuilder().Build(),
             BackupTestBoundary.Create<IHostApplicationLifetime>((_, _) => CancellationToken.None), NullLogger<BackupService>.Instance,
-            BackupTestBoundary.Create<IAuditLogService>((name, _) => name == "RecordAsync" ? Task.CompletedTask : throw new InvalidOperationException(name)), new AuditLogContext());
+            BackupTestBoundary.Create<IAuditLogService>((name, _) => name == "RecordAsync" ? Task.CompletedTask : throw new InvalidOperationException(name)), new AuditLogContext(),
+            BackupTestBoundary.Create<IUserRepository>((name, _) => throw new InvalidOperationException(name)), new BackupRestoreState(),
+            BackupTestBoundary.Create<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>((name, _) => throw new InvalidOperationException(name)));
     }
     private Task SetRetention(int days) { RetentionUpdated = days; return Task.CompletedTask; }
     public static Backup Record(int id, DateTime? expires = null, BackupStatus status = BackupStatus.Completed, bool finalized = true, bool deleted = false) => new() {

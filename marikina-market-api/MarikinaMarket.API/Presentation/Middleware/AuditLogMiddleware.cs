@@ -219,6 +219,7 @@ namespace MarikinaMarket.API.Presentation.Middleware
                 "Notification.MarkAsRead" => "Notification marked as read",
                 "AdminBackup.Create" => "Manual backup creation",
                 "AdminBackup.UpdateSchedule" => "Backup schedule update",
+                "AdminBackup.Restore" => "Backup restore start",
                 "AdminAuditLog.GetSummaries" or "AdminAuditLog.GetDetails" or "AdminAuditLog.GetCounts" => "Audit log access",
                 _ => "The requested operation"
             };
