@@ -20,7 +20,7 @@ export default function RestoreView({
     <section className={styles.card} aria-labelledby="restore-view-title">
       <header className={styles.header}>
         <h2 id="restore-view-title">{view.title}</h2>
-        <p>Backup from {view.dateLabel} (Philippine Time)</p>
+        <p>{view.sourceLabel}</p>
       </header>
       <div className={styles.body}>
         <div className={styles.live} role="status">

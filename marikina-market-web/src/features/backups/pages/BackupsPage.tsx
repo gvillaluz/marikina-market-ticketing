@@ -58,7 +58,11 @@ export default function BackupsPage() {
             <BackupScheduler schedule={backups.schedule} />
             <BackupHealth health={backups.health} />
           </div>
-          <BackupHistory history={backups.history} onRestore={restore.open} />
+          <BackupHistory
+            history={backups.history}
+            onRestore={restore.open}
+            onRestoreFile={restore.openFile}
+          />
           <RestoreConfirmModal restore={restore} />
         </>
       )}

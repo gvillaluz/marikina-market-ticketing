@@ -11,6 +11,7 @@ import ts from "typescript";
 
 // Restore from the Backups page (step 2): the Restore button, the confirm window,
 // the restore view, and the banner other staff see while the system is paused.
+// Step 3b (R16-R23): restoring from a backup file.
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(
@@ -38,6 +39,8 @@ function load(relative, overrides = {}, cache = new Map()) {
       exports: module.exports,
       Date,
       Intl,
+      FormData,
+      File,
       require(id) {
         if (id in overrides) return { __esModule: true, ...overrides[id] };
         if (id.endsWith(".css"))
@@ -435,4 +438,236 @@ test("R15: the pause flag is set by the pause answer and cleared again", () => {
   assert.equal(useRestorePauseStore.getState().paused, true);
   useRestorePauseStore.getState().setPaused(false);
   assert.equal(useRestorePauseStore.getState().paused, false);
+});
+
+// Restore from a backup file (step 3b): the file is chosen in the confirm window, checked before
+// it is sent, sent with progress, and named on the restore view instead of a backup date.
+
+// The largest file the server accepts: 256 MB of backup data plus 33 bytes of lock information.
+const LARGEST_BACKUP = 256 * 1024 * 1024 + 33; // 268,435,489 bytes
+
+test("R16: a chosen file is checked for type, emptiness and size before anything is sent", () => {
+  const { checkRestoreFile } = utils();
+  assert.equal(checkRestoreFile(null), "");
+  assert.equal(checkRestoreFile({ name: "backup-14.mmbak", size: 52311 }), "");
+  assert.equal(checkRestoreFile({ name: "BACKUP-14.MMBAK", size: 52311 }), "");
+  assert.equal(
+    checkRestoreFile({ name: "backup-14.mmbak", size: LARGEST_BACKUP }),
+    "",
+  );
+  assert.equal(
+    checkRestoreFile({ name: "notes.txt", size: 52311 }),
+    "Choose a .mmbak backup file.",
+  );
+  assert.equal(
+    checkRestoreFile({ name: "backup-14.mmbak.zip", size: 52311 }),
+    "Choose a .mmbak backup file.",
+  );
+  assert.equal(
+    checkRestoreFile({ name: "backup-14.mmbak", size: 0 }),
+    "This file is empty, so it cannot be a backup.",
+  );
+  assert.equal(
+    checkRestoreFile({ name: "backup-14.mmbak", size: LARGEST_BACKUP + 1 }),
+    "This file is too large to be a backup.",
+  );
+});
+
+test("R17: until a file is chosen, the hint asks for the file first", () => {
+  const { restoreConfirmHint } = utils();
+  assert.equal(restoreConfirmHint("", "", true), "Choose a backup file.");
+  assert.equal(
+    restoreConfirmHint("RESTORE", "secret-1", true),
+    "Choose a backup file.",
+  );
+  assert.equal(
+    restoreConfirmHint("", "", false),
+    "Type RESTORE in capital letters, then enter your password.",
+  );
+});
+
+test("R18: the confirm window and the restore view name the file instead of a backup date", () => {
+  const { restoreWindowText } = utils();
+  assert.deepEqual(
+    plain(
+      restoreWindowText({
+        kind: "backup",
+        id: 7,
+        dateLabel: "Nov 24, 2026, 12:00 AM",
+      }),
+    ),
+    {
+      title: "Restore this backup?",
+      source: "Backup from Nov 24, 2026, 12:00 AM (Philippine Time)",
+      confirm: "Restore backup",
+      pending: "Starting…",
+    },
+  );
+  assert.deepEqual(
+    plain(
+      restoreWindowText(
+        { kind: "file" },
+        { name: "marikina-market-14.mmbak", size: 5 * 1024 * 1024 },
+      ),
+    ),
+    {
+      title: "Restore from a backup file?",
+      source: "Backup file marikina-market-14.mmbak (5.0 MB)",
+      confirm: "Restore from file",
+      pending: "Sending…",
+    },
+  );
+  assert.equal(
+    restoreWindowText({ kind: "file" }, null).source,
+    "The file is used once and is not added to the backup list.",
+  );
+});
+
+test("R19: the Backup file field is labelled, accepts .mmbak files and shows its problem under it", () => {
+  const { default: RestoreFileField } = load(
+    "features/backups/components/RestoreFileField.tsx",
+  );
+  const render = (error) =>
+    renderToStaticMarkup(
+      React.createElement(RestoreFileField, {
+        id: "restore-file",
+        error,
+        disabled: false,
+        onChange() {},
+      }),
+    );
+  const html = render("");
+  assert.match(html, /<label[^>]*for="restore-file"[^>]*>Backup file<\/label>/);
+  const input = html.match(/<input[^>]*>/)?.[0];
+  assert.ok(input, html);
+  assert.match(input, /type="file"/);
+  assert.match(input, /accept="\.mmbak"/);
+  assert.match(input, /aria-describedby="restore-file-help"/);
+  assert.ok(
+    text(html).includes(
+      "A .mmbak file downloaded from this page, up to 256 MB.",
+    ),
+    html,
+  );
+  assert.doesNotMatch(html, /role="alert"/);
+
+  const wrong = render("Choose a .mmbak backup file.");
+  assert.match(
+    wrong.match(/<input[^>]*>/)[0],
+    /aria-describedby="restore-file-help restore-file-error"/,
+  );
+  assert.match(wrong, /aria-invalid="true"/);
+  assert.match(
+    wrong,
+    /<p[^>]*id="restore-file-error"[^>]*role="alert"[^>]*>Choose a \.mmbak backup file\.<\/p>/,
+  );
+});
+
+test("R20: while the file is sent, the window shows how much has been sent", () => {
+  const { default: RestoreUploadProgress } = load(
+    "features/backups/components/RestoreUploadProgress.tsx",
+  );
+  const html = renderToStaticMarkup(
+    React.createElement(RestoreUploadProgress, { percent: 45 }),
+  );
+  assert.ok(text(html).includes("Sending the file… 45%"), html);
+  assert.match(
+    html,
+    /<progress[^>]*max="100"[^>]*value="45"|<progress[^>]*value="45"[^>]*max="100"/,
+  );
+});
+
+test("R21: the file is sent as a form with RESTORE and the password, with progress and a long time limit", async () => {
+  const calls = [];
+  const { backupsApi } = load("api/endpoints/backups.api.ts", {
+    "../client": {
+      default: {
+        async post(url, body, config) {
+          calls.push({ url, body, config });
+          config.onUploadProgress({ loaded: 50, total: 200 });
+          config.onUploadProgress({ loaded: 200, total: 200 });
+          return { data: { restoreId: "b".repeat(32) } };
+        },
+      },
+    },
+  });
+  const file = new File(["backup bytes"], "backup-14.mmbak");
+  const percents = [];
+  const response = await backupsApi.startUploadRestore(
+    file,
+    { confirmation: "RESTORE", password: "secret-1" },
+    (percent) => percents.push(percent),
+  );
+  assert.equal(response.restoreId, "b".repeat(32));
+  assert.equal(calls.length, 1);
+  const [{ url, body, config }] = calls;
+  assert.equal(url, "/admin/backups/restore-upload");
+  assert.equal(body.get("file").name, "backup-14.mmbak");
+  assert.equal(body.get("confirmation"), "RESTORE");
+  assert.equal(body.get("password"), "secret-1");
+  // The browser sets the form's own content type; the client's JSON default must not apply.
+  assert.equal(config.headers["Content-Type"], undefined);
+  assert.ok("Content-Type" in config.headers);
+  // The usual 15-second limit would cut off a large backup on a slow connection.
+  assert.ok(config.timeout >= 10 * 60 * 1000, String(config.timeout));
+  assert.deepEqual(percents, [25, 100]);
+});
+
+test("R22: the restore view of an uploaded file is headed with the file, not a date", () => {
+  const { default: RestoreView } = load(
+    "features/backups/components/RestoreView.tsx",
+  );
+  const { getRestoreView } = utils();
+  const view = getRestoreView(
+    progress("Running", {
+      backupId: null,
+      backupDateTime: null,
+      fileName: "marikina-market-14.mmbak",
+    }),
+    "Backup file marikina-market-14.mmbak (5.0 MB)",
+    "ok",
+  );
+  const words = text(
+    renderToStaticMarkup(
+      React.createElement(RestoreView, { view, onSignIn() {}, onBack() {} }),
+    ),
+  );
+  assert.ok(
+    words.includes("Backup file marikina-market-14.mmbak (5.0 MB)"),
+    words,
+  );
+  assert.doesNotMatch(words, /Philippine Time/);
+});
+
+test("R23: the Recent Backups card has a Restore from file button", () => {
+  const { default: BackupHistory } = load(
+    "features/backups/components/BackupHistory.tsx",
+  );
+  const html = renderToStaticMarkup(
+    React.createElement(BackupHistory, {
+      history: {
+        isFetching: false,
+        isError: false,
+        error: "",
+        retry() {},
+        downloadError: "",
+        isLoading: false,
+        hasData: true,
+        rows: [],
+        page: 1,
+        totalPages: 1,
+        canNext: false,
+        rangeLabel: "Showing 0 backups",
+        changePage() {},
+        download() {},
+      },
+      onRestore() {},
+      onRestoreFile() {},
+    }),
+  );
+  const button = html.match(
+    /<button[^>]*>(?:(?!<\/button>).)*Restore from file(?:(?!<\/button>).)*<\/button>/s,
+  )?.[0];
+  assert.ok(button, html);
+  assert.doesNotMatch(button.match(/<button[^>]*>/)[0], /disabled/);
 });

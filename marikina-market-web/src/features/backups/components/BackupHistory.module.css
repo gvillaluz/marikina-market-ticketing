@@ -6,7 +6,15 @@
   background: var(--bg-surface);
 }
 .header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--backup-space-md);
   padding: var(--backup-space-lg) var(--backup-space-xl);
+}
+.heading {
+  min-width: 0;
 }
 .header h2 {
   font-size: var(--backup-font-heading);

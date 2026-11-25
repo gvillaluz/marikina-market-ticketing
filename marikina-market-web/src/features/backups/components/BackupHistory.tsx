@@ -1,3 +1,5 @@
+import { Upload } from "lucide-react";
+import Button from "@/components/ui/Button";
 import Pagination from "@/components/ui/Pagination";
 import RegistryTable from "@/components/ui/RegistryTable";
 import type {
@@ -11,11 +13,13 @@ import styles from "./BackupHistory.module.css";
 interface BackupHistoryProps {
   history: BackupHistoryModel;
   onRestore: (backup: BackupHistoryRowModel) => void;
+  onRestoreFile: () => void;
 }
 
 export default function BackupHistory({
   history,
   onRestore,
+  onRestoreFile,
 }: BackupHistoryProps) {
   return (
     <section
@@ -24,8 +28,19 @@ export default function BackupHistory({
       aria-busy={history.isFetching}
     >
       <header className={styles.header}>
-        <h2 id="backup-history-title">Recent Backups</h2>
-        <p>Restore points retained by the system.</p>
+        <div className={styles.heading}>
+          <h2 id="backup-history-title">Recent Backups</h2>
+          <p>Restore points retained by the system.</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          icon={<Upload size={14} aria-hidden="true" />}
+          title="Restore a .mmbak file downloaded earlier, for example one no longer in this list"
+          onClick={onRestoreFile}
+        >
+          Restore from file
+        </Button>
       </header>
       {history.isError && (
         <BackupMessage

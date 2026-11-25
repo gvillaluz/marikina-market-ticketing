@@ -12,6 +12,8 @@ import type {
 } from "../types/backups.types";
 
 const path = "/admin/backups";
+// A backup file can be large; the client's usual 15-second limit would cut it off on a slow connection.
+const UPLOAD_TIMEOUT = 20 * 60 * 1000;
 
 function getDownloadFileName(value: unknown, id: number): string {
   if (typeof value !== "string") return `backup-${id}.enc`;
@@ -76,6 +78,29 @@ export const backupsApi = {
     const response = await apiClient.post<BackupRestoreResponse>(
       `${path}/${id}/restore`,
       request,
+    );
+    return response.data;
+  },
+  async startUploadRestore(
+    file: File,
+    request: RestoreBackupRequest,
+    onProgress: (percent: number) => void,
+  ): Promise<BackupRestoreResponse> {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("confirmation", request.confirmation);
+    form.append("password", request.password);
+    const response = await apiClient.post<BackupRestoreResponse>(
+      `${path}/restore-upload`,
+      form,
+      {
+        headers: { "Content-Type": undefined },
+        timeout: UPLOAD_TIMEOUT,
+        onUploadProgress: (event) => {
+          if (event.total)
+            onProgress(Math.round((event.loaded / event.total) * 100));
+        },
+      },
     );
     return response.data;
   },

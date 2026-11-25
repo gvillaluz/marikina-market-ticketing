@@ -1,0 +1,47 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.input {
+  padding-block: var(--space-sm);
+  padding-inline-start: var(--space-sm);
+  cursor: pointer;
+}
+
+.input::file-selector-button {
+  margin-right: var(--space-md);
+  padding: var(--space-xs) var(--space-md);
+  min-height: calc(var(--form-control-height) - var(--space-lg));
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 500;
+  color: var(--text-heading);
+  background: var(--bg-page);
+  cursor: pointer;
+}
+
+.input:hover:not(:disabled)::file-selector-button {
+  border-color: var(--text-muted);
+}
+
+.input:disabled,
+.input:disabled::file-selector-button {
+  cursor: not-allowed;
+}
+
+.help {
+  margin: 0;
+  font-size: var(--form-font-caption);
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+.error {
+  margin: 0;
+  font-size: var(--form-font-caption);
+  line-height: 1.5;
+  color: var(--danger);
+}
