@@ -25,6 +25,16 @@ public class WebsiteCorsTests
         Assert.Equal("true", Header(response, "Access-Control-Allow-Credentials"));
     }
 
+    // The browser hides a download's file name from the website unless the server allows it. Without this the
+    // website saved backups as backup-<id>.enc, which restore-from-file turns away.
+    [Fact]
+    public async Task The_website_address_may_read_the_file_name_of_a_download()
+    {
+        await using var host = await CorsHost.CreateAsync(Website);
+        var response = await host.SendAsync("POST", Website);
+        Assert.Equal("Content-Disposition", Header(response, "Access-Control-Expose-Headers"));
+    }
+
     [Theory]
     [InlineData("OPTIONS", OtherSite, Website)]
     [InlineData("POST", OtherSite, Website)]

@@ -13,7 +13,9 @@ namespace MarikinaMarket.API.Presentation
                 policy.WithOrigins(allowedOrigins)
                     .AllowAnyHeader()
                     .AllowAnyMethod()
-                    .AllowCredentials()));
+                    .AllowCredentials()
+                    // Lets the website read the backup file name the server sends with a download.
+                    .WithExposedHeaders("Content-Disposition")));
         }
     }
 }
