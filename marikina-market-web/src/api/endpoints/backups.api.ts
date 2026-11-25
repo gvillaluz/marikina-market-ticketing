@@ -16,7 +16,7 @@ const path = "/admin/backups";
 const UPLOAD_TIMEOUT = 20 * 60 * 1000;
 
 function getDownloadFileName(value: unknown, id: number): string {
-  if (typeof value !== "string") return `backup-${id}.enc`;
+  if (typeof value !== "string") return `backup-${id}.mmbak`;
   const encodedName = value.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
   let name = value.match(/filename="?([^";]+)"?/i)?.[1];
   if (encodedName) {
@@ -28,7 +28,7 @@ function getDownloadFileName(value: unknown, id: number): string {
   }
   return (
     name?.replace(/[\\/:*?"<>|\x00-\x1f\x7f]/g, "_").trim() ||
-    `backup-${id}.enc`
+    `backup-${id}.mmbak`
   );
 }
 

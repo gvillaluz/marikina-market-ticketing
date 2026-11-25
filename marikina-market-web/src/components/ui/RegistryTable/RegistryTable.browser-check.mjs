@@ -161,7 +161,7 @@ test(
                 contentType: "application/octet-stream",
                 body: "test backup",
                 headers: {
-                  "Content-Disposition": 'attachment; filename="backup-1.enc"',
+                  "Content-Disposition": 'attachment; filename="backup-1.mmbak"',
                 },
               });
             if (url.pathname.endsWith("/schedule"))
@@ -378,7 +378,7 @@ test(
                   .click();
                 assert.equal(
                   (await download).suggestedFilename(),
-                  "backup-1.enc",
+                  "backup-1.mmbak",
                 );
               }
             }
