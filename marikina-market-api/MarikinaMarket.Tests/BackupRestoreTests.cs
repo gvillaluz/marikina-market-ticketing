@@ -13,7 +13,9 @@ using MarikinaMarket.API.Presentation.Controllers;
 using MarikinaMarket.API.Presentation.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Identity;
+using RequestFormLimitsAttribute = Microsoft.AspNetCore.Mvc.RequestFormLimitsAttribute;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -259,6 +261,107 @@ public class BackupRestoreTests
             "5100; 2606 19500 FK CONSTRAINT public tickets fk_tickets_businesses_business_id postgres"
         ], result);
     }
+
+    [Fact]
+    public void OnlyHeadAdminMayRestoreAnUploadedFile()
+    {
+        var method = typeof(AdminBackupController).GetMethod(nameof(AdminBackupController.RestoreUpload))!;
+        var roles = method.GetCustomAttributes<AuthorizeAttribute>().Select(a => a.Roles).ToList();
+        Assert.Equal([nameof(Role.HeadAdmin)], roles);
+    }
+
+    // The server normally refuses anything over about 28 MB. A backup file may hold up to 256 MB of data
+    // (268,435,456 bytes) plus 33 bytes of lock information, so the upload route must accept at least that.
+    [Fact]
+    public void TheUploadRouteAcceptsAFileAsLargeAsTheLargestBackup()
+    {
+        var method = typeof(AdminBackupController).GetMethod(nameof(AdminBackupController.RestoreUpload))!;
+        var request = method.GetCustomAttributes().OfType<IRequestSizeLimitMetadata>().Single().MaxRequestBodySize;
+        var form = method.GetCustomAttribute<RequestFormLimitsAttribute>()!.MultipartBodyLengthLimit;
+        Assert.NotNull(request);
+        Assert.InRange(request!.Value, 268_435_489L, 300_000_000L);
+        Assert.InRange(form, 268_435_489L, 300_000_000L);
+    }
+
+    [Fact]
+    public async Task WithoutTypingRestoreAnUploadIsRefusedBeforeThePasswordIsChecked()
+    {
+        var state = new BackupRestoreState();
+        var service = Service(state, Users(_ => throw new InvalidOperationException("The password must not be checked.")),
+            Repository(_ => throw new InvalidOperationException("No backup may be looked up.")));
+
+        var error = await Assert.ThrowsAsync<ValidationException>(() => service.StartUploadRestoreAsync(
+            Upload("restore", "backup.mmbak", 40), 1, default));
+
+        Assert.Equal("Type RESTORE to confirm.", error.Message);
+        Assert.False(state.IsPaused);
+    }
+
+    [Fact]
+    public async Task AWrongPasswordRefusesAnUpload()
+    {
+        var service = Service(new BackupRestoreState(), Users(_ => SignInResult.Failed),
+            Repository(_ => throw new InvalidOperationException("No backup may be looked up.")));
+
+        var error = await Assert.ThrowsAsync<InvalidCredentialsException>(() => service.StartUploadRestoreAsync(
+            Upload("RESTORE", "backup.mmbak", 40, password: "wrong"), 1, default));
+
+        Assert.Equal("Password is incorrect.", error.Message);
+    }
+
+    [Theory]
+    [InlineData(null, 0L, "Choose a backup file to restore.")]
+    [InlineData("backup.mmbak", 0L, "Choose a backup file to restore.")]
+    [InlineData("backup.zip", 40L, "Choose a .mmbak backup file.")]
+    [InlineData("backup.mmbak", 268_435_490L, "This file is too large to be a backup.")]
+    public async Task AnUploadThatCannotBeABackupIsRefusedAndNothingStarts(string? fileName, long length, string message)
+    {
+        var state = new BackupRestoreState();
+        var service = Service(state, Users(_ => SignInResult.Success),
+            Repository(_ => throw new InvalidOperationException("No backup may be looked up.")),
+            run: _ => throw new InvalidOperationException("No restore may start."));
+
+        var error = await Assert.ThrowsAsync<ValidationException>(() => service.StartUploadRestoreAsync(
+            Upload("RESTORE", fileName, length), 1, default));
+
+        Assert.Equal(message, error.Message);
+        Assert.False(state.IsPaused);
+    }
+
+    [Fact]
+    public async Task AnUploadedFileIsKeptOnlyForItsRestoreAndNeedsNoListedBackup()
+    {
+        var state = new BackupRestoreState();
+        var ran = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        // The repository and the cloud storage are not used: the file comes with the request.
+        var service = Service(state, Users(_ => SignInResult.Success),
+            Repository(_ => throw new InvalidOperationException("No backup may be looked up.")),
+            run: id => { ran.TrySetResult(id); return Task.CompletedTask; });
+        var request = Upload("RESTORE", new string('a', 300) + ".mmbak", 40);
+
+        var started = await service.StartUploadRestoreAsync(request, 1, default);
+        try
+        {
+            Assert.Equal(32, started.RestoreId.Length);
+            Assert.Null(started.BackupId);
+            Assert.Null(started.BackupDateTime);
+            // Long names are shortened so they fit in the audit log.
+            Assert.Equal(new string('a', 100), started.FileName);
+            Assert.Equal(RestoreState.Running, started.State);
+            Assert.Equal(started.RestoreId, await ran.Task.WaitAsync(TimeSpan.FromSeconds(10)));
+            // The background restore finds the uploaded bytes in a temporary file.
+            Assert.Equal(Enumerable.Range(0, 40).Select(i => (byte)i), await File.ReadAllBytesAsync(state.UploadPath!));
+        }
+        finally { File.Delete(state.UploadPath!); }
+    }
+
+    private static RestoreUploadRequest Upload(string confirmation, string? fileName, long length, string password = "secret-password")
+        => new()
+        {
+            Confirmation = confirmation, Password = password,
+            File = fileName is null ? null : new FormFile(new MemoryStream(Enumerable.Range(0, 40).Select(i => (byte)i).ToArray()),
+                0, length, "file", fileName)
+        };
 
     private static DefaultHttpContext Request(string controller, string action)
     {

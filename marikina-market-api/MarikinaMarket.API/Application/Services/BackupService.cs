@@ -659,6 +659,7 @@ namespace MarikinaMarket.API.Application.Services
         // How long a restore waits for requests already running (for example a ticket being saved) to finish.
         private static readonly TimeSpan RestorePauseWait = TimeSpan.FromSeconds(30);
         private const int EnvelopeLength = 33; // header 5, nonce 12, tag 16
+        private const int MaxUploadNameLength = 100;
         private const string RestoredMessage = "The backup was restored. Everyone has been signed out and must sign in again.";
         private const string NotFoundMessage = "This backup is no longer available. Nothing was changed.";
         private const string DownloadMessage = "This backup could not be downloaded from storage. Nothing was changed.";
@@ -677,13 +678,8 @@ namespace MarikinaMarket.API.Application.Services
         public async Task<BackupRestoreResponse> StartRestoreAsync(int id, RestoreBackupRequest request, int adminId,
             CancellationToken cancellationToken)
         {
-            if (request.Confirmation != RestoreConfirmation) throw new ValidationException("Type RESTORE to confirm.");
-            if (string.IsNullOrEmpty(request.Password)) throw new ValidationException("Enter your password to confirm.");
             if (id <= 0) throw new ValidationException("Backup ID must be positive.");
-            var admin = await _users.GetUserAsync(adminId) ?? throw new UnauthorizedAccessException("Your account was not found.");
-            var password = await _users.CheckPasswordAsync(admin, request.Password);
-            if (password.IsLockedOut) throw new AccountLockedException("Too many attempts. Please try again later.");
-            if (!password.Succeeded) throw new InvalidCredentialsException("Password is incorrect.");
+            await CheckRestoreConfirmationAsync(request, adminId);
             var backup = await _repository.GetByIdAsync(id, cancellationToken)
                 ?? throw new RecordNotFoundException("Backup was not found.");
             if (!ToResponse(backup).CanDownload) throw new InvalidRequestException("This backup cannot be restored.");
@@ -691,23 +687,71 @@ namespace MarikinaMarket.API.Application.Services
                 throw new ConcurrencyConflictException("A backup or restore is already running.");
 
             var started = _restore.Begin(backup, adminId);
-            // The gate stays held until the restore ends, so no backup or clean-up runs in the meantime.
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    using var scope = _scopes.CreateScope();
-                    await scope.ServiceProvider.GetRequiredService<IBackupService>().RunRestoreAsync(started.RestoreId);
-                }
-                catch (Exception ex)
-                {
-                    _restore.Resume();
-                    _logger.LogWarning("Restore {RestoreId} could not run ({ExceptionType}).", started.RestoreId, ex.GetType().Name);
-                }
-                finally { ExecutionGate.Release(); }
-            });
+            RunRestoreInBackground(started.RestoreId);
             return started;
         }
+
+        // The uploaded file is kept only in the server's temporary folder, and only until its restore ends.
+        public async Task<BackupRestoreResponse> StartUploadRestoreAsync(RestoreUploadRequest request, int adminId,
+            CancellationToken cancellationToken)
+        {
+            await CheckRestoreConfirmationAsync(request, adminId);
+            var file = request.File;
+            if (file is null || file.Length == 0) throw new ValidationException("Choose a backup file to restore.");
+            if (!file.FileName.EndsWith(".mmbak", StringComparison.OrdinalIgnoreCase))
+                throw new ValidationException("Choose a .mmbak backup file.");
+            if (file.Length > MaxDumpSize + EnvelopeLength) throw new ValidationException("This file is too large to be a backup.");
+            if (!await ExecutionGate.WaitAsync(0, cancellationToken))
+                throw new ConcurrencyConflictException("A backup or restore is already running.");
+
+            string? path = null;
+            try
+            {
+                PrepareTempRoot();
+                path = Path.Combine(TempRoot, Guid.NewGuid().ToString("N") + ".restore-upload.tmp");
+                await using var output = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous);
+                await file.CopyToAsync(output, cancellationToken);
+            }
+            catch
+            {
+                if (path != null) DeleteTemporaryFile(path);
+                ExecutionGate.Release();
+                throw;
+            }
+            var name = Path.GetFileName(file.FileName);
+            // Short enough for the audit log entry that names it.
+            if (name.Length > MaxUploadNameLength) name = name[..MaxUploadNameLength];
+            var started = _restore.BeginUpload(name, file.Length, path, adminId);
+            RunRestoreInBackground(started.RestoreId);
+            return started;
+        }
+
+        private async Task CheckRestoreConfirmationAsync(RestoreBackupRequest request, int adminId)
+        {
+            if (request.Confirmation != RestoreConfirmation) throw new ValidationException("Type RESTORE to confirm.");
+            if (string.IsNullOrEmpty(request.Password)) throw new ValidationException("Enter your password to confirm.");
+            var admin = await _users.GetUserAsync(adminId) ?? throw new UnauthorizedAccessException("Your account was not found.");
+            var password = await _users.CheckPasswordAsync(admin, request.Password);
+            if (password.IsLockedOut) throw new AccountLockedException("Too many attempts. Please try again later.");
+            if (!password.Succeeded) throw new InvalidCredentialsException("Password is incorrect.");
+        }
+
+        // Called with the execution gate held. The gate stays held until the restore ends, so no backup
+        // or clean-up runs in the meantime.
+        private void RunRestoreInBackground(string restoreId) => _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var scope = _scopes.CreateScope();
+                await scope.ServiceProvider.GetRequiredService<IBackupService>().RunRestoreAsync(restoreId);
+            }
+            catch (Exception ex)
+            {
+                _restore.Resume();
+                _logger.LogWarning("Restore {RestoreId} could not run ({ExceptionType}).", restoreId, ex.GetType().Name);
+            }
+            finally { ExecutionGate.Release(); }
+        });
 
         public BackupRestoreResponse GetRestoreProgress(string restoreId)
             => _restore.Get(restoreId) ?? throw new RecordNotFoundException("Restore was not found.");
@@ -716,8 +760,11 @@ namespace MarikinaMarket.API.Application.Services
         {
             var progress = _restore.Get(restoreId) ?? throw new RecordNotFoundException("Restore was not found.");
             var adminId = _restore.AdminId;
+            var uploadPath = _restore.UploadPath;
+            var source = uploadPath is null ? $"backup {progress.BackupId}"
+                : $"uploaded backup file {progress.FileName} ({_restore.UploadSize.ToString("N0", CultureInfo.InvariantCulture)} bytes)";
             var tempId = Guid.NewGuid().ToString("N");
-            var encryptedPath = Path.Combine(TempRoot, tempId + ".restore-encrypted.tmp");
+            var encryptedPath = uploadPath ?? Path.Combine(TempRoot, tempId + ".restore-encrypted.tmp");
             var dumpPath = Path.Combine(TempRoot, tempId + ".restore-dump.tmp");
             var listPath = Path.Combine(TempRoot, tempId + ".restore-list.tmp");
             var scriptPath = Path.Combine(TempRoot, tempId + ".restore-script.tmp");
@@ -733,11 +780,15 @@ namespace MarikinaMarket.API.Application.Services
                 var cancellationToken = owned.Token;
 
                 SetStep(step, RestoreStepState.Running);
-                var backup = await _repository.GetByIdAsync(progress.BackupId, cancellationToken);
-                if (backup is null || !ToResponse(backup).CanDownload) throw new RestoreFailure(NotFoundMessage);
+                if (uploadPath is null)
+                {
+                    var backup = await _repository.GetByIdAsync(progress.BackupId!.Value, cancellationToken);
+                    if (backup is null || !ToResponse(backup).CanDownload) throw new RestoreFailure(NotFoundMessage);
+                    using var download = Timeout(cancellationToken);
+                    await DownloadBackupAsync(backup.B2Key, encryptedPath, download.Token);
+                }
                 using (var timeout = Timeout(cancellationToken))
                 {
-                    await DownloadBackupAsync(backup.B2Key, encryptedPath, timeout.Token);
                     await DecryptBackupAsync(encryptedPath, dumpPath, key, timeout.Token);
                     File.Delete(encryptedPath);
                     if (!await HasTodaysVersionAsync(dumpPath, listPath, timeout.Token)) throw new RestoreFailure(VersionMessage);
@@ -780,7 +831,7 @@ namespace MarikinaMarket.API.Application.Services
                 }
                 _restore.Resume();
                 await RecordRestoreAuditAsync(progress.BackupId, adminId, LogResult.Success,
-                    $"Backup {progress.BackupId} was restored. Safety backup {safety.Id} holds the data from before the restore.");
+                    $"{char.ToUpperInvariant(source[0])}{source[1..]} was restored. Safety backup {safety.Id} holds the data from before the restore.");
                 Finish(RestoreState.Finished, message);
             }
             catch (Exception ex)
@@ -790,7 +841,7 @@ namespace MarikinaMarket.API.Application.Services
                     _logger.LogWarning("Restore {RestoreId} failed during {Step} ({ExceptionType}).", restoreId, step, ex.GetType().Name);
                 SetStep(step, RestoreStepState.Failed);
                 _restore.Resume();
-                await RecordRestoreAuditAsync(progress.BackupId, adminId, LogResult.Failed, $"Restore of backup {progress.BackupId} failed: {message}");
+                await RecordRestoreAuditAsync(progress.BackupId, adminId, LogResult.Failed, $"Restore of {source} failed: {message}");
                 Finish(RestoreState.Failed, message);
             }
             finally
@@ -930,11 +981,11 @@ namespace MarikinaMarket.API.Application.Services
         });
 
         // Runs outside a request, so the Head Admin who started the restore is named explicitly.
-        private Task RecordRestoreAuditAsync(int backupId, int adminId, LogResult result, string details)
+        private Task RecordRestoreAuditAsync(int? backupId, int adminId, LogResult result, string details)
             => _auditService.RecordAsync(new AuditLog
             {
                 UserId = adminId, Role = Role.HeadAdmin, Action = "RestoreBackup", Module = Module.Backups,
-                TargetId = backupId.ToString(CultureInfo.InvariantCulture), Result = result, Details = details
+                TargetId = backupId?.ToString(CultureInfo.InvariantCulture), Result = result, Details = details
             });
 
         private static BackupResponse ToResponse(Backup backup)
