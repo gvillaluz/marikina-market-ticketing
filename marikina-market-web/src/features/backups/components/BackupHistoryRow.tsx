@@ -5,16 +5,18 @@ import styles from "./BackupHistoryRow.module.css";
 interface BackupHistoryRowProps {
   backup: BackupHistoryRowModel;
   onDownload: () => void;
+  onRestore: () => void;
 }
 
 export default function BackupHistoryRow({
   backup,
   onDownload,
+  onRestore,
 }: BackupHistoryRowProps) {
   return (
     <tr className={styles.row}>
       <td className={styles.date}>{backup.dateLabel}</td>
-      <td>{backup.type}</td>
+      <td>{backup.typeLabel}</td>
       <td>{backup.sizeLabel}</td>
       <td>
         <div className={styles.statusContent}>
@@ -50,8 +52,14 @@ export default function BackupHistoryRow({
           <button
             type="button"
             className={styles.restore}
-            disabled
-            title="Restores are currently unavailable"
+            disabled={backup.restoreDisabled}
+            aria-label={`Restore backup from ${backup.dateLabel}`}
+            title={
+              backup.restoreDisabled
+                ? "This backup can no longer be restored."
+                : "Replace today's data with this backup"
+            }
+            onClick={onRestore}
           >
             <RotateCcw size={12} aria-hidden="true" />
             Restore

@@ -3,7 +3,7 @@ import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
 } from "axios";
-import { useAuthStore } from "@/store/store";
+import { useAuthStore, useRestorePauseStore } from "@/store/store";
 import snakecaseKeys from "snakecase-keys";
 import camelcaseKeys from "camelcase-keys";
 import {
@@ -12,7 +12,11 @@ import {
   refreshAccessToken,
   RefreshSessionExpiredError,
 } from "@/features/auth/authSession";
-import { ApiRequestError, getApiResponseMessage } from "@/utils/apiErrors";
+import {
+  ApiRequestError,
+  getApiResponseMessage,
+  isRestorePauseAnswer,
+} from "@/utils/apiErrors";
 import env from "@/config/env";
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
@@ -83,6 +87,7 @@ client.interceptors.request.use(
 
 client.interceptors.response.use(
   (response) => {
+    useRestorePauseStore.getState().setPaused(false);
     const isBinaryData =
       (typeof Blob !== "undefined" && response.data instanceof Blob) ||
       response.data instanceof ArrayBuffer;
@@ -97,6 +102,13 @@ client.interceptors.response.use(
     const isAuthenticatedRequest = request && !isPublicAuthRequest(request.url);
     const apiMessage = getApiResponseMessage(error.response?.data);
     const apiError = new ApiRequestError(apiMessage, error.response?.status);
+    // Any answer from the server tells whether a restore still pauses it; no answer tells nothing.
+    if (error.response)
+      useRestorePauseStore
+        .getState()
+        .setPaused(
+          isRestorePauseAnswer(error.response.status, error.response.data),
+        );
 
     if (error.response?.status === 401 && isAuthenticatedRequest) {
       const requestVersion = request.authSessionVersion;

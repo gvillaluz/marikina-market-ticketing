@@ -1,6 +1,9 @@
 import { ApiRequestError } from "@/utils/apiErrors";
 import type {
   BackupHealthResponse,
+  BackupRestoreResponse,
+  BackupType,
+  RestoreStep,
   BackupScheduleResponse,
   BackupWeekday,
   UpdateBackupScheduleRequest,
@@ -28,6 +31,7 @@ export const backupKeys = {
   schedule: ["backups", "schedule"] as const,
   health: ["backups", "health"] as const,
   history: ["backups", "history"] as const,
+  restore: ["backups", "restore"] as const,
 };
 
 export function backupError(error: unknown, fallback: string): string {
@@ -173,3 +177,108 @@ export function getBackupHealthView(
     message: "The next scheduled backup time is currently unavailable.",
   };
 }
+
+export function backupTypeLabel(type: BackupType): string {
+  return type === "BeforeRestore" ? "Before restore" : type;
+}
+
+// The word the Head Admin types to confirm a restore; the server checks it again.
+export const RESTORE_CONFIRMATION = "RESTORE";
+
+export function canConfirmRestore(confirmation: string, password: string) {
+  return confirmation === RESTORE_CONFIRMATION && password.length > 0;
+}
+
+export function restoreConfirmHint(confirmation: string, password: string) {
+  const typed = confirmation === RESTORE_CONFIRMATION;
+  if (!typed && !password)
+    return "Type RESTORE in capital letters, then enter your password.";
+  if (!typed) return "Type RESTORE in capital letters.";
+  if (!password) return "Enter your password.";
+  return "";
+}
+
+const restoreStepLabels: Record<RestoreStep, string> = {
+  CheckBackup: "Checking the backup",
+  SafetyBackup: "Making a safety backup of today's data",
+  LoadBackup: "Loading the backup",
+  SignEveryoneOut: "Signing everyone out",
+  CountRecords: "Counting the records",
+};
+
+const countFormat = new Intl.NumberFormat("en-US");
+
+// "ok": the latest progress was read. "unreachable": the server did not answer this time.
+// "lost": the server no longer knows this restore (for example after a restart).
+export type RestoreConnection = "ok" | "unreachable" | "lost";
+
+export function getRestoreView(
+  progress: BackupRestoreResponse,
+  dateLabel: string,
+  connection: RestoreConnection,
+) {
+  const steps = progress.steps.map((step) => ({
+    step: step.step,
+    label: restoreStepLabels[step.step] ?? step.step,
+    state: step.state,
+  }));
+  const running = steps.findIndex((step) => step.state === "Running");
+  const base = {
+    dateLabel,
+    steps,
+    statusLine: "",
+    note: "",
+    counts: [] as [string, string, string][],
+  };
+  if (connection === "lost")
+    return {
+      ...base,
+      title: "Restore result unknown",
+      tone: "failed" as const,
+      message:
+        "The server no longer has this restore's progress. It may have restarted. Sign in again, then check the backup list and the audit log.",
+      action: "signIn" as const,
+    };
+  if (progress.state === "Running")
+    return {
+      ...base,
+      title: "Restoring a backup",
+      tone: "running" as const,
+      message:
+        "This takes a few minutes. Other staff are paused until it ends. Keep this page open to see the result.",
+      statusLine:
+        running < 0
+          ? "Starting…"
+          : `Step ${running + 1} of ${steps.length}: ${steps[running].label}`,
+      note:
+        connection === "unreachable"
+          ? "The server is not answering right now. Still checking…"
+          : "",
+      action: null,
+    };
+  const counts = progress.counts.map((count): [string, string, string] => [
+    count.records,
+    countFormat.format(count.before),
+    count.after == null ? "—" : countFormat.format(count.after),
+  ]);
+  if (progress.state === "Finished")
+    return {
+      ...base,
+      title: "Backup restored",
+      tone: "success" as const,
+      message: progress.message || "The backup was restored.",
+      counts,
+      action: "signIn" as const,
+    };
+  return {
+    ...base,
+    title: "Restore did not finish",
+    tone: "failed" as const,
+    message:
+      progress.message ||
+      "The restore did not finish. Today's data is unchanged.",
+    action: "back" as const,
+  };
+}
+
+export type RestoreView = ReturnType<typeof getRestoreView>;

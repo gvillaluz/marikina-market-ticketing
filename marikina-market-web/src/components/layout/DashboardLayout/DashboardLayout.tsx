@@ -2,6 +2,7 @@ import { FC, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
+import RestorePauseBanner from '@/components/layout/RestorePauseBanner';
 import styles from './DashboardLayout.module.css';
 
 const DashboardLayout: FC = () => {
@@ -27,6 +28,7 @@ const DashboardLayout: FC = () => {
           }}
           sidebarCollapsed={sidebarCollapsed}
         />
+        <RestorePauseBanner />
         <main className={styles.content}>
           <div key={location.pathname} className="route-motion">
             <Outlet />

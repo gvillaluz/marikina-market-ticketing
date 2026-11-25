@@ -1,0 +1,84 @@
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--backup-space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: var(--backup-space-xl) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--backup-space-md);
+  font-size: var(--backup-font-body);
+  line-height: 1.5;
+}
+
+.marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--backup-space-xl);
+  height: var(--backup-space-xl);
+  border: 2px solid var(--border-default);
+  border-radius: var(--backup-pill-radius);
+  color: var(--text-on-primary);
+}
+
+.label {
+  min-width: 0;
+  color: var(--text-heading);
+}
+
+.waiting .label {
+  color: var(--text-body);
+}
+
+.running .label {
+  font-weight: 600;
+}
+
+.running .marker {
+  border-color: var(--backup-action);
+  border-top-color: transparent;
+  animation: spin 900ms linear infinite;
+}
+
+.done .marker {
+  border-color: var(--backup-success);
+  background: var(--backup-success);
+}
+
+.failed .marker {
+  border-color: var(--danger);
+  background: var(--danger);
+}
+
+.failed .label {
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .running .marker {
+    border-top-color: var(--backup-action);
+    animation: none;
+  }
+}

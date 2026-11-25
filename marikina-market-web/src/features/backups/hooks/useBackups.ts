@@ -14,11 +14,14 @@ import {
 import { useBackupSchedule } from "./useBackupSchedule";
 import { useBackupHistory } from "./useBackupHistory";
 
-export function useBackups() {
+// While a restore runs (restoring), the page's cards stop asking the server: the system is paused,
+// and after the restore every sign-in ends, which must not sign the Head Admin out before the result shows.
+export function useBackups(restoring: boolean) {
   const client = useQueryClient();
   const { showToast } = useToast();
   const canManage = useAuthStore((state) => state.user?.role === "HeadAdmin");
-  const schedule = useBackupSchedule(canManage);
+  const canLoad = canManage && !restoring;
+  const schedule = useBackupSchedule(canLoad);
   const health = useQuery({
     queryKey: backupKeys.health,
     queryFn: async ({ signal }) => {
@@ -31,12 +34,12 @@ export function useBackups() {
         throw new ApiRequestError();
       return response;
     },
-    enabled: canManage,
+    enabled: canLoad,
     refetchInterval: (query) => (query.state.data?.isRunning ? 5000 : 30000),
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
   });
-  const history = useBackupHistory(canManage, health.data?.timeZone);
+  const history = useBackupHistory(canLoad, health.data?.timeZone);
   const wasRunning = useRef(false);
   const previousAttempt = useRef<string | null>(null);
   const hasHealthSample = useRef(false);

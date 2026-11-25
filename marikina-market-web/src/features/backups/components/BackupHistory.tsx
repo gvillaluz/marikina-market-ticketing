@@ -1,15 +1,22 @@
 import Pagination from "@/components/ui/Pagination";
 import RegistryTable from "@/components/ui/RegistryTable";
-import type { BackupHistoryModel } from "../hooks/useBackupHistory";
+import type {
+  BackupHistoryModel,
+  BackupHistoryRowModel,
+} from "../hooks/useBackupHistory";
 import BackupHistoryRow from "./BackupHistoryRow";
 import BackupMessage from "./BackupMessage";
 import styles from "./BackupHistory.module.css";
 
 interface BackupHistoryProps {
   history: BackupHistoryModel;
+  onRestore: (backup: BackupHistoryRowModel) => void;
 }
 
-export default function BackupHistory({ history }: BackupHistoryProps) {
+export default function BackupHistory({
+  history,
+  onRestore,
+}: BackupHistoryProps) {
   return (
     <section
       className={styles.card}
@@ -62,6 +69,7 @@ export default function BackupHistory({ history }: BackupHistoryProps) {
               key={backup.id}
               backup={backup}
               onDownload={() => history.download(backup)}
+              onRestore={() => onRestore(backup)}
             />
           ))
         )}

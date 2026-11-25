@@ -11,6 +11,7 @@ import { ApiRequestError } from "@/utils/apiErrors";
 import {
   backupError,
   backupKeys,
+  backupTypeLabel,
   formatBackupDate,
   formatBackupSize,
 } from "../backups.utils";
@@ -90,6 +91,9 @@ export function useBackupHistory(canManage: boolean, timeZone?: string) {
       ...item,
       dateLabel: formatBackupDate(item.dateTime, timeZone),
       sizeLabel: formatBackupSize(item.size),
+      typeLabel: backupTypeLabel(item.type),
+      // A backup can be restored exactly when its file can still be downloaded.
+      restoreDisabled: !canDownload(item),
       downloadDisabled: !canDownload(item) || download.isPending,
       isDownloading: download.isPending && download.variables?.id === item.id,
     })),

@@ -102,3 +102,15 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
 
   return fallback;
 }
+
+// The server's answer while a backup restore has paused the system (see BACKUPS.md).
+const RESTORE_PAUSE_TITLE = "System restore in progress";
+
+export function isRestorePauseAnswer(status?: number, data?: unknown): boolean {
+  return (
+    status === 503 &&
+    typeof data === "object" &&
+    data !== null &&
+    (data as Record<string, unknown>).title === RESTORE_PAUSE_TITLE
+  );
+}

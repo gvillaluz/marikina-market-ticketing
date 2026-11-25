@@ -81,9 +81,8 @@
   color: var(--backup-action);
 }
 .actions .restore {
-  border-color: var(--border-default);
-  color: var(--text-body);
-  background: var(--bg-page);
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--bg-surface));
+  color: var(--danger);
 }
 .actions button:disabled {
   border-color: var(--border-default);
@@ -99,4 +98,8 @@
 .actions button:hover:not(:disabled) {
   border-color: var(--backup-action);
   background: var(--backup-info-surface);
+}
+.actions .restore:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--backup-danger-surface);
 }
