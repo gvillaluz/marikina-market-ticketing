@@ -189,13 +189,62 @@ export function canConfirmRestore(confirmation: string, password: string) {
   return confirmation === RESTORE_CONFIRMATION && password.length > 0;
 }
 
-export function restoreConfirmHint(confirmation: string, password: string) {
+export function restoreConfirmHint(
+  confirmation: string,
+  password: string,
+  needsFile = false,
+) {
+  if (needsFile) return "Choose a backup file.";
   const typed = confirmation === RESTORE_CONFIRMATION;
   if (!typed && !password)
     return "Type RESTORE in capital letters, then enter your password.";
   if (!typed) return "Type RESTORE in capital letters.";
   if (!password) return "Enter your password.";
   return "";
+}
+
+// What a restore starts from: a backup in the list, or a .mmbak file from the Head Admin's computer.
+export type RestoreTarget =
+  { kind: "backup"; id: number; dateLabel: string } | { kind: "file" };
+
+export interface RestoreFile {
+  name: string;
+  size: number;
+}
+
+// The largest file the server accepts: 256 MB of backup data plus 33 bytes of lock information.
+const MAX_RESTORE_FILE_SIZE = 256 * 1024 * 1024 + 33;
+
+// Checked again by the server; this only spares sending a file that cannot be a backup.
+export function checkRestoreFile(file: RestoreFile | null): string {
+  if (!file) return "";
+  if (!file.name.toLowerCase().endsWith(".mmbak"))
+    return "Choose a .mmbak backup file.";
+  if (file.size === 0) return "This file is empty, so it cannot be a backup.";
+  if (file.size > MAX_RESTORE_FILE_SIZE)
+    return "This file is too large to be a backup.";
+  return "";
+}
+
+export function restoreWindowText(
+  target: RestoreTarget,
+  file?: RestoreFile | null,
+) {
+  if (target.kind === "backup")
+    return {
+      title: "Restore this backup?",
+      source: `Backup from ${target.dateLabel} (Philippine Time)`,
+      confirm: "Restore backup",
+      pending: "Starting…",
+    };
+  return {
+    title: "Restore from a backup file?",
+    source: file
+      ? `Backup file ${file.name} (${formatBackupSize(file.size)})`
+      : "The file is used once and is not added to the backup list.",
+    confirm: "Restore from file",
+    pending: "Sending…",
+  };
 }
 
 const restoreStepLabels: Record<RestoreStep, string> = {
@@ -212,9 +261,10 @@ const countFormat = new Intl.NumberFormat("en-US");
 // "lost": the server no longer knows this restore (for example after a restart).
 export type RestoreConnection = "ok" | "unreachable" | "lost";
 
+// sourceLabel names what is restored, for example "Backup from … (Philippine Time)".
 export function getRestoreView(
   progress: BackupRestoreResponse,
-  dateLabel: string,
+  sourceLabel: string,
   connection: RestoreConnection,
 ) {
   const steps = progress.steps.map((step) => ({
@@ -224,7 +274,7 @@ export function getRestoreView(
   }));
   const running = steps.findIndex((step) => step.state === "Running");
   const base = {
-    dateLabel,
+    sourceLabel,
     steps,
     statusLine: "",
     note: "",

@@ -75,8 +75,10 @@ export type RestoreCount = "Tickets" | "Businesses" | "People" | "Accounts";
 
 export interface BackupRestoreResponse {
   restoreId: string;
-  backupId: number;
-  backupDateTime: string;
+  // Both null when the backup is an uploaded file; fileName is then its name.
+  backupId: number | null;
+  backupDateTime: string | null;
+  fileName: string | null;
   state: RestoreState;
   steps: { step: RestoreStep; state: RestoreStepState }[];
   counts: { records: RestoreCount; before: number; after: number | null }[];

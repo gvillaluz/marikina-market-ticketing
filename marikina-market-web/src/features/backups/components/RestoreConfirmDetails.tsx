@@ -1,9 +1,13 @@
+import type { ReactNode } from "react";
 import { TriangleAlert } from "lucide-react";
 import RestoreConfirmField from "./RestoreConfirmField";
 import styles from "./RestoreConfirmDetails.module.css";
 
 interface RestoreConfirmDetailsProps {
-  dateLabel: string;
+  // Null for an uploaded file, whose date is not known until the server reads it.
+  dateLabel: string | null;
+  fileField?: ReactNode;
+  uploadProgress?: ReactNode;
   confirmation: string;
   password: string;
   passwordVisible: boolean;
@@ -17,6 +21,8 @@ interface RestoreConfirmDetailsProps {
 
 export default function RestoreConfirmDetails({
   dateLabel,
+  fileField,
+  uploadProgress,
   confirmation,
   password,
   passwordVisible,
@@ -29,12 +35,20 @@ export default function RestoreConfirmDetails({
 }: RestoreConfirmDetailsProps) {
   return (
     <div className={styles.details}>
+      {fileField}
       <p className={styles.warning}>
         <TriangleAlert size={16} aria-hidden="true" />
-        <span>
-          Everything recorded after <strong>{dateLabel}</strong> will be lost
-          for everyone.
-        </span>
+        {dateLabel ? (
+          <span>
+            Everything recorded after <strong>{dateLabel}</strong> will be lost
+            for everyone.
+          </span>
+        ) : (
+          <span>
+            Everything recorded after this backup was made will be lost for
+            everyone.
+          </span>
+        )}
       </p>
       <ul className={styles.facts}>
         <li>
@@ -64,6 +78,7 @@ export default function RestoreConfirmDetails({
       <p id="restore-confirm-hint" className={styles.hint} aria-live="polite">
         {hint}
       </p>
+      {uploadProgress}
       {error && (
         <p className={styles.error} role="alert">
           {error}

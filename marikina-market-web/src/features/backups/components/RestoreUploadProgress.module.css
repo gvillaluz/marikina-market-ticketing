@@ -1,0 +1,42 @@
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.label {
+  margin: 0;
+  font-size: var(--form-font-caption);
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-heading);
+}
+
+.bar {
+  width: 100%;
+  height: var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  appearance: none;
+  background: var(--backup-info-surface);
+}
+
+.bar::-webkit-progress-bar {
+  background: var(--backup-info-surface);
+}
+
+.bar::-webkit-progress-value {
+  background: var(--backup-action);
+  transition: width var(--form-motion-duration) var(--form-motion-ease);
+}
+
+.bar::-moz-progress-bar {
+  background: var(--backup-action);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar::-webkit-progress-value {
+    transition: none;
+  }
+}
