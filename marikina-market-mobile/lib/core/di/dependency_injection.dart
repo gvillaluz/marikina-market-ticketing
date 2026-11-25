@@ -8,6 +8,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/network/client.dart';
 import 'package:marikina_market_mobile/core/network/network_info.dart';
+import 'package:marikina_market_mobile/core/network/restore_pause_cubit.dart';
 import 'package:marikina_market_mobile/core/notification/notification_listener_service.dart';
 import 'package:marikina_market_mobile/core/router/app_router.dart';
 import 'package:marikina_market_mobile/core/storage/secure_storage_service.dart';
@@ -97,8 +98,10 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
       onAuthFailure: () async {
         sl<AuthBloc>().add(CheckAuthStatus());
       },
+      onRestorePause: (paused) => sl<RestorePauseCubit>().setPaused(paused),
     ),
   );
+  sl.registerLazySingleton(() => RestorePauseCubit());
   sl.registerLazySingleton<SecureStorageService>(
     () => SecureStorageServiceImpl(storage: FlutterSecureStorage()),
   );

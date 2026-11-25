@@ -149,6 +149,25 @@ class AppTheme {
   static const dashboardIconSize = 24.0;
   static const dashboardStatusDotSize = 10.0;
   static const dashboardOnlineColor = AppColors.primaryGreen;
+  // Notice above every screen while a backup restore pauses the system: the
+  // app's yellow warning colours, dark text that reads well over 4.5:1.
+  static const restorePauseNoticeColor = AppColors.yellowBackgroundColor;
+  static const restorePauseNoticeBorderColor = AppColors.yellowBorderColor;
+  static const restorePauseNoticeIconColor = AppColors.yellowTextColor;
+  // Dark clock and battery icons over the light notice.
+  static const restorePauseNoticeSystemBarStyle = authPageSystemBarStyle;
+  static const restorePauseNoticeIconSize = 18.0;
+  static const restorePauseNoticeGap = 8.0;
+  static const restorePauseNoticePadding = EdgeInsets.symmetric(
+    horizontal: 20,
+    vertical: 10,
+  );
+  static const restorePauseNoticeTextStyle = TextStyle(
+    fontSize: bodyFontSize,
+    height: 1.4,
+    fontWeight: FontWeight.w600,
+    color: AppColors.primaryBlack,
+  );
   static const notificationBadgeColor = AppColors.badgeRed;
   static const notificationBadgeHeight = 18.0;
   static const notificationBadgeRingWidth = 2.0;

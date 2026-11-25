@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:marikina_market_mobile/core/errors/failure.dart';
 import 'package:marikina_market_mobile/core/errors/result.dart';
+import 'package:marikina_market_mobile/core/network/restore_pause_answer.dart';
 import 'package:marikina_market_mobile/core/utils/unit.dart';
 
 class ApiClient {
@@ -15,6 +16,8 @@ class ApiClient {
   final Future<Result<Unit>> Function()? refreshAction;
   final Future<Result<Unit>> Function()? waitForRefresh;
   final Future<void> Function()? onAuthFailure;
+  // Told after every server answer whether a backup restore pauses the system.
+  final void Function(bool paused)? onRestorePause;
 
   Completer<Result<Unit>>? _refreshCompleter;
 
@@ -23,6 +26,7 @@ class ApiClient {
     this.refreshAction,
     this.waitForRefresh,
     this.onAuthFailure,
+    this.onRestorePause,
   }) : dio = dio ?? Dio() {
     _configure();
   }
@@ -110,7 +114,15 @@ class ApiClient {
 
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          onRestorePause?.call(false);
+          handler.next(response);
+        },
         onError: (DioException e, handler) async {
+          // No answer at all (offline) says nothing about a restore.
+          if (e.response case final response?) {
+            onRestorePause?.call(RestorePauseAnswer.matches(response));
+          }
           final isAlreadyRetried = e.requestOptions.extra['isRetry'] ?? false;
           final isRefreshCall = e.requestOptions.path.contains('/auth/refresh');
 
