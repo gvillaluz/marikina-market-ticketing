@@ -9,8 +9,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/di/dependency_injection.dart';
+import 'package:marikina_market_mobile/core/network/restore_pause_cubit.dart';
 import 'package:marikina_market_mobile/core/notification/notification_listener_service.dart';
 import 'package:marikina_market_mobile/core/router/app_router.dart';
+import 'package:marikina_market_mobile/core/shared/presentation/widgets/restore_pause_notice.dart';
 import 'package:marikina_market_mobile/core/theme/app_theme.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -81,9 +83,11 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider.value(value: sl<AuthBloc>()),
         BlocProvider(create: (_) => sl<ConnectivityCubit>()),
+        BlocProvider.value(value: sl<RestorePauseCubit>()),
       ],
       child: MaterialApp.router(
-        builder: (context, child) => LogoutProgressOverlay(child: child!),
+        builder: (context, child) =>
+            LogoutProgressOverlay(child: RestorePauseNotice(child: child!)),
         theme: AppTheme.light,
         restorationScopeId: 'app',
         routerConfig: sl<AppRouter>().router,

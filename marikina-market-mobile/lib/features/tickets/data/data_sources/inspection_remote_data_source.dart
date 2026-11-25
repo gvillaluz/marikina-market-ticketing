@@ -5,7 +5,9 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:marikina_market_mobile/core/errors/exceptions.dart';
+import 'package:marikina_market_mobile/core/errors/api_error_message.dart';
 import 'package:marikina_market_mobile/core/network/client.dart';
+import 'package:marikina_market_mobile/core/network/restore_pause_answer.dart';
 import 'package:marikina_market_mobile/core/utils/file_compressor_util.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/duplicate_info_model.dart';
 import 'package:marikina_market_mobile/features/tickets/data/models/fine_summary_model.dart';
@@ -360,6 +362,14 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
 
       return SaveInspectionResultModel.fromJson(response.data);
     } on DioException catch (e) {
+      // The server refuses during a restore before saving anything, so the
+      // ticket was not submitted; it is not an unconfirmed submission.
+      if (RestorePauseAnswer.matches(e.response)) {
+        throw ValidationException(
+          ApiErrorMessage.fromBody(e.response?.data) ??
+              RestorePauseAnswer.message,
+        );
+      }
       if (e.response?.statusCode == 400) {
         final data = e.response?.data;
         final message = data is Map<String, Object?> ? data['message'] : null;

@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marikina_market_mobile/core/connectivity/cubit/connectivity_cubit.dart';
 import 'package:marikina_market_mobile/core/di/dependency_injection.dart';
+import 'package:marikina_market_mobile/core/network/restore_pause_cubit.dart';
 import 'package:marikina_market_mobile/core/router/app_router.dart';
 import 'package:marikina_market_mobile/core/router/routes.dart';
 import 'package:marikina_market_mobile/features/auth/presentation/bloc/auth_bloc.dart';
@@ -36,7 +37,11 @@ void main() {
     sl.registerSingleton<AuthBloc>(auth);
     sl.registerFactory<ConnectivityCubit>(() => connectivity);
     sl.registerSingleton<AppRouter>(router);
+    final pause = RestorePauseCubit();
+    addTearDown(pause.close);
+    sl.registerSingleton<RestorePauseCubit>(pause);
     addTearDown(() async {
+      await sl.unregister<RestorePauseCubit>();
       await sl.unregister<AppRouter>();
       await sl.unregister<ConnectivityCubit>();
       await sl.unregister<AuthBloc>();
