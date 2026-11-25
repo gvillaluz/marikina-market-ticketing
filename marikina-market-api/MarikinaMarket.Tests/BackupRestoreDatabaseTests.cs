@@ -10,6 +10,7 @@ using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
 using MarikinaMarket.API.Infrastructure.Persistence;
 using MarikinaMarket.API.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,13 +21,14 @@ using Xunit;
 
 namespace MarikinaMarket.Tests;
 
-// Runs a real restore on the throwaway local database marikina_market_restore_test with the real
-// pg_dump, pg_restore and psql. Backup files are kept in memory instead of cloud storage.
-// Run with RESTORE_TEST_DATABASE=marikina_market_restore_test (and the usual BACKUP_TEST_TEMP_ROOT/TEMP/TMP).
+// Runs a real restore on a throwaway local database (marikina_market_restore_test or
+// marikina_market_restore_upload_test) with the real pg_dump, pg_restore and psql.
+// Backup files are kept in memory instead of cloud storage.
+// Run with RESTORE_TEST_DATABASE set to one of them (and the usual BACKUP_TEST_TEMP_ROOT/TEMP/TMP).
 [Collection("Backup scheduler")]
 public class BackupRestoreDatabaseTests
 {
-    private const string Database = "marikina_market_restore_test";
+    private static readonly string[] Databases = ["marikina_market_restore_test", "marikina_market_restore_upload_test"];
     private const string Password = "Restore-Test-Password-1";
 
     [RestoreDatabaseFact]
@@ -126,6 +128,67 @@ public class BackupRestoreDatabaseTests
         finally { await system.ExecuteAsync("DELETE FROM \"__EFMigrationsHistory\" WHERE migration_id = '29990101000000_RestoreTestOnly'"); }
     }
 
+    // A file downloaded from the Backups page earlier, uploaded again: no listed backup, nothing from cloud storage.
+    [RestoreDatabaseFact]
+    public async Task AnUploadedBackupFileIsRestoredAndNotKept()
+    {
+        await using var system = await TestSystem.StartAsync();
+        var adminId = await system.CreateHeadAdminAsync("restore-admin");
+        await system.AddStreetAsync("Street from before");
+        var backup = await system.BackupAsync();
+        var file = await system.DownloadAsync(backup.Id);
+
+        await system.AddStreetAsync("Street from after");
+        await system.CreateHeadAdminAsync("restore-admin-later");
+        await system.AddSignInAsync(adminId, "after");
+        var downloads = system.Downloads;
+
+        var result = await system.RestoreUploadAsync(file, "marikina-backup.mmbak", adminId);
+
+        Assert.Equal((RestoreState.Finished, "The backup was restored. Everyone has been signed out and must sign in again."),
+            (result.State, result.Message));
+        Assert.All(result.Steps, step => Assert.Equal(RestoreStepState.Done, step.State));
+        Assert.Equal((null, null, "marikina-backup.mmbak"), (result.BackupId, result.BackupDateTime, result.FileName));
+        Assert.Equal((2, 1), Count(result, RestoreCount.Accounts));
+        Assert.Equal(["Street from before"], await system.StreetsAsync());
+        Assert.Equal(0, await system.ScalarAsync<long>("SELECT count(*) FROM refresh_tokens"));
+        // Nothing was read from cloud storage, and the backup list only gained the safety backup.
+        Assert.Equal(downloads, system.Downloads);
+        Assert.Equal(2, await system.ScalarAsync<long>("SELECT count(*) FROM backups"));
+        Assert.Equal("BeforeRestore", await system.ScalarAsync<string>($"SELECT type FROM backups WHERE id = {result.SafetyBackupId}"));
+        Assert.Equal(1, await system.ScalarAsync<long>(
+            "SELECT count(*) FROM audit_logs WHERE action = 'RestoreBackup' AND result = 'Success' AND target_id IS NULL " +
+            $"AND details LIKE 'Uploaded backup file marikina-backup.mmbak (%) was restored.%' AND user_id = {adminId}"));
+        // The uploaded file was used once and is gone.
+        Assert.False(File.Exists(system.State.UploadPath));
+        Assert.False(system.State.IsPaused);
+    }
+
+    [RestoreDatabaseFact]
+    public async Task ADamagedUploadedFileIsRefusedBeforeAnythingIsPaused()
+    {
+        await using var system = await TestSystem.StartAsync();
+        var adminId = await system.CreateHeadAdminAsync("restore-admin");
+        await system.AddStreetAsync("Street from before");
+        var file = await system.DownloadAsync((await system.BackupAsync()).Id);
+        file[^1] ^= 0xFF; // one changed byte, as from a damaged copy or another system's key
+
+        var result = await system.RestoreUploadAsync(file, "damaged.mmbak", adminId);
+
+        Assert.Equal(RestoreState.Failed, result.State);
+        Assert.Equal("This backup could not be unlocked. It may be damaged, or it was made by another copy of the system. " +
+            "Nothing was changed.", result.Message);
+        Assert.Equal(RestoreStepState.Failed, result.Steps.Single(s => s.Step == RestoreStep.CheckBackup).State);
+        Assert.Null(result.SafetyBackupId);
+        Assert.Empty(result.Counts);
+        Assert.Equal(1, await system.ScalarAsync<long>("SELECT count(*) FROM backups"));
+        Assert.Equal(1, await system.ScalarAsync<long>(
+            "SELECT count(*) FROM audit_logs WHERE action = 'RestoreBackup' AND result = 'Failed' " +
+            "AND details LIKE 'Restore of uploaded backup file damaged.mmbak (%) failed: This backup could not be unlocked.%'"));
+        Assert.False(File.Exists(system.State.UploadPath));
+        Assert.False(system.State.IsPaused);
+    }
+
     private static (int Before, int? After) Count(BackupRestoreResponse result, RestoreCount records)
     {
         var count = result.Counts.Single(c => c.Records == records);
@@ -138,22 +201,26 @@ public class BackupRestoreDatabaseTests
         private readonly string _connection;
         public BackupRestoreState State { get; }
 
-        private TestSystem(ServiceProvider provider, string connection)
+        private readonly ConcurrentBag<string> _downloads;
+
+        private TestSystem(ServiceProvider provider, string connection, ConcurrentBag<string> downloads)
         {
             _provider = provider;
             _connection = connection;
+            _downloads = downloads;
             State = provider.GetRequiredService<BackupRestoreState>();
         }
 
         public static async Task<TestSystem> StartAsync()
         {
-            Assert.Equal(Database, Environment.GetEnvironmentVariable("RESTORE_TEST_DATABASE"));
+            var database = Environment.GetEnvironmentVariable("RESTORE_TEST_DATABASE");
+            Assert.Contains(database, Databases);
             var source = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "MarikinaMarket.API"));
             var secrets = new ConfigurationBuilder().AddJsonFile(Path.Combine(source, "appsettings.json"))
                 .AddUserSecrets("bfa5ed50-9a8a-49ec-954c-52201336ac24").Build();
             var connection = new NpgsqlConnectionStringBuilder(secrets.GetConnectionString("DefaultConnection"));
             Assert.Contains(connection.Host, new[] { "localhost", "127.0.0.1", "::1" });
-            connection.Database = Database;
+            connection.Database = database;
             var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = connection.ConnectionString,
@@ -173,7 +240,8 @@ public class BackupRestoreDatabaseTests
             services.AddAuthentication();
             services.AddHttpContextAccessor();
             services.AddSingleton(BackupTestBoundary.Create<IHostApplicationLifetime>((_, _) => CancellationToken.None));
-            services.AddSingleton(MemoryStorage());
+            var downloads = new ConcurrentBag<string>();
+            services.AddSingleton(MemoryStorage(downloads));
             services.AddSingleton<BackupRestoreState>();
             services.AddScoped<AuditLogContext>();
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
@@ -182,7 +250,7 @@ public class BackupRestoreDatabaseTests
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IBackupRepository, BackupRepository>();
             services.AddScoped<IBackupService, BackupService>();
-            var system = new TestSystem(services.BuildServiceProvider(), connection.ConnectionString);
+            var system = new TestSystem(services.BuildServiceProvider(), connection.ConnectionString, downloads);
 
             // Start from empty tables; the table layout and its version list stay.
             await system.ExecuteAsync("""
@@ -235,16 +303,38 @@ public class BackupRestoreDatabaseTests
             return backup;
         }
 
+        public int Downloads => _downloads.Count;
+
+        public async Task<byte[]> DownloadAsync(int backupId)
+        {
+            using var scope = _provider.CreateScope();
+            var file = await scope.ServiceProvider.GetRequiredService<IBackupService>().DownloadAsync(backupId, default);
+            using var owner = file.Owner;
+            using var copy = new MemoryStream();
+            await file.Stream.CopyToAsync(copy);
+            return copy.ToArray();
+        }
+
         public async Task<BackupRestoreResponse> RestoreAsync(int backupId, int adminId)
         {
-            IBackupService service;
-            BackupRestoreResponse started;
-            using (var scope = _provider.CreateScope())
-            {
-                service = scope.ServiceProvider.GetRequiredService<IBackupService>();
-                started = await service.StartRestoreAsync(backupId,
-                    new RestoreBackupRequest { Confirmation = "RESTORE", Password = Password }, adminId, default);
-            }
+            using var scope = _provider.CreateScope();
+            return await WaitAsync(await scope.ServiceProvider.GetRequiredService<IBackupService>().StartRestoreAsync(backupId,
+                new RestoreBackupRequest { Confirmation = "RESTORE", Password = Password }, adminId, default));
+        }
+
+        public async Task<BackupRestoreResponse> RestoreUploadAsync(byte[] file, string fileName, int adminId)
+        {
+            using var scope = _provider.CreateScope();
+            return await WaitAsync(await scope.ServiceProvider.GetRequiredService<IBackupService>().StartUploadRestoreAsync(
+                new RestoreUploadRequest
+                {
+                    Confirmation = "RESTORE", Password = Password,
+                    File = new FormFile(new MemoryStream(file), 0, file.Length, "file", fileName)
+                }, adminId, default));
+        }
+
+        private async Task<BackupRestoreResponse> WaitAsync(BackupRestoreResponse started)
+        {
             var waited = System.Diagnostics.Stopwatch.StartNew();
             while (true)
             {
@@ -298,7 +388,7 @@ public class BackupRestoreDatabaseTests
             NpgsqlConnection.ClearAllPools();
         }
 
-        private static IStorageService MemoryStorage()
+        private static IStorageService MemoryStorage(ConcurrentBag<string> downloads)
         {
             var files = new ConcurrentDictionary<string, byte[]>();
             return BackupTestBoundary.Create<IStorageService>((name, args) =>
@@ -313,6 +403,7 @@ public class BackupRestoreDatabaseTests
                         }
                         return Task.CompletedTask;
                     case "DownloadStreamAsync":
+                        downloads.Add((string)args![1]!);
                         var stream = new MemoryStream(files[(string)args![1]!]);
                         return Task.FromResult<(Stream, IDisposable)>((stream, stream));
                     case "DeleteAllVersionsAsync":
@@ -331,6 +422,6 @@ public sealed class RestoreDatabaseFactAttribute : FactAttribute
     public RestoreDatabaseFactAttribute()
     {
         if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RESTORE_TEST_DATABASE")))
-            Skip = "Set RESTORE_TEST_DATABASE=marikina_market_restore_test to run restores on the throwaway local database.";
+            Skip = "Set RESTORE_TEST_DATABASE=marikina_market_restore_test (or marikina_market_restore_upload_test) to run restores on a throwaway local database.";
     }
 }

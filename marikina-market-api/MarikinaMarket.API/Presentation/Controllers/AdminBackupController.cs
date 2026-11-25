@@ -49,6 +49,23 @@ namespace MarikinaMarket.API.Presentation.Controllers
             return Accepted(await _service.StartRestoreAsync(id, request, adminId, cancellationToken));
         }
 
+        // A backup file may hold up to 256 MB of data; the rest leaves room for the other form fields.
+        private const long UploadLimit = 257L * 1024 * 1024;
+
+        // Same as Restore, but the backup is a .mmbak file sent with the request instead of a listed backup.
+        [HttpPost("restore-upload")]
+        [Authorize(Roles = nameof(Role.HeadAdmin))]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(UploadLimit)]
+        [RequestFormLimits(MultipartBodyLengthLimit = UploadLimit)]
+        public async Task<ActionResult<BackupRestoreResponse>> RestoreUpload([FromForm] RestoreUploadRequest request,
+            CancellationToken cancellationToken)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var adminId) || adminId <= 0)
+                return Unauthorized();
+            return Accepted(await _service.StartUploadRestoreAsync(request, adminId, cancellationToken));
+        }
+
         // No sign-in: it must keep working while the accounts are being replaced and after everyone is
         // signed out. The restore ID is a random 128-bit value known only to whoever started the restore,
         // and the answer holds only progress and record counts.

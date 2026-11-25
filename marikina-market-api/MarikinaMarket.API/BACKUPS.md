@@ -320,7 +320,7 @@ Requirements:
 | GET `/api/admin/backups/restores/{restoreId}` | No sign-in; `restoreId` from the 202 answer | 200, restore progress |
 
 Restore progress: `restore_id` (32 hex characters, random), `backup_id`,
-`backup_date_time`, `state` (`Running`, `Finished`, `Failed`), `steps` (in order:
+`backup_date_time`, `file_name` (the last three: see "Restore from an uploaded file" below), `state` (`Running`, `Finished`, `Failed`), `steps` (in order:
 `CheckBackup`, `SafetyBackup`, `LoadBackup`, `SignEveryoneOut`, `CountRecords`, each
 with `state` `Waiting`, `Running`, `Done` or `Failed`), `counts` (`records` =
 `Tickets`, `Businesses`, `People`, `Accounts`, with `before` and `after`; empty until
@@ -342,3 +342,42 @@ as HTTP errors.
 While paused, every route except the progress route answers 503 with
 `Retry-After: 60` and `{ "title": "System restore in progress", "message": "The system
 is being restored. Try again in a few minutes." }`.
+
+## Restore from an uploaded file (2026-11-25, step 3a: server)
+
+A Head Admin restores a `.mmbak` file downloaded earlier from the Backups page, for example
+a backup older than the keep period that is no longer in storage. It works exactly like a
+restore of a listed backup (check, pause, safety backup, load and sign everyone out, count,
+audit), except that the file comes with the request instead of from storage.
+
+- The file is saved only in the server's temporary folder and deleted when its restore ends,
+  whether it worked or not. It is never uploaded to storage or added to the backup list.
+- It must unlock with this server's `Backups:EncryptionKey`. A file from another copy of the
+  system (another key) or a damaged file stops at the check with "This backup could not be
+  unlocked..." before anything is paused.
+- The route accepts requests up to 257 MB (a backup holds at most 256 MB of data). The server's
+  usual limit of about 28 MB does not apply to this route. A larger request is cut off by the
+  server (the connection is closed) before any restore starts, so the website should check the
+  size first.
+- **Not yet checked on the demo:** whether its host lets a request of the demo backup's size
+  through, and how long one request may take.
+
+| Method / route | Request | Response |
+|---|---|---|
+| POST `/api/admin/backups/restore-upload` | Multipart form: `file` (the `.mmbak` file), `confirmation` (`RESTORE`), `password` (own password); Head Admin only | 202, restore progress |
+
+For an uploaded file the progress has `backup_id` and `backup_date_time` null and `file_name`
+set to the file's name (at most 100 characters). For a listed backup `file_name` is null.
+Follow it with GET `/api/admin/backups/restores/{restoreId}` as before.
+
+The audit entry `RestoreBackup` has no target and names the file and its size, for example
+"Uploaded backup file backup-a.mmbak (52,311 bytes) was restored. Safety backup 12 holds the
+data from before the restore."
+
+Errors: 400 confirmation not exactly `RESTORE`, missing password, wrong password ("Password is
+incorrect."; counts toward lockout), no file or an empty file ("Choose a backup file to
+restore."), a name not ending in `.mmbak` ("Choose a .mmbak backup file."), or a file larger
+than a backup can be ("This file is too large to be a backup."); 401 not signed in; 403 not
+Head Admin; 409 a backup or restore already running; 423 account locked; 503 another restore
+is pausing the system. A file that cannot be unlocked, or is from another version, is
+reported in the progress `state` and `message`, as for a listed backup.

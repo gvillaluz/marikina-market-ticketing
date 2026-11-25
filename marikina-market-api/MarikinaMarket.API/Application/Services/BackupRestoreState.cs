@@ -12,21 +12,34 @@ namespace MarikinaMarket.API.Application.Services
         private readonly object _lock = new();
         private BackupRestoreResponse? _current;
         private int _adminId;
+        private string? _uploadPath;
+        private long _uploadSize;
         private bool _paused;
         private int _requests;
 
         public bool IsPaused { get { lock (_lock) return _paused; } }
 
         public BackupRestoreResponse Begin(Backup backup, int adminId)
+            => Start(backup.Id, backup.DateTime, null, null, 0, adminId);
+
+        // An uploaded file has no listed backup; its bytes wait in a temporary file until the restore reads them.
+        public BackupRestoreResponse BeginUpload(string fileName, long size, string path, int adminId)
+            => Start(null, null, fileName, path, size, adminId);
+
+        private BackupRestoreResponse Start(int? backupId, DateTime? backupDateTime, string? fileName,
+            string? uploadPath, long uploadSize, int adminId)
         {
             lock (_lock)
             {
                 _adminId = adminId;
+                _uploadPath = uploadPath;
+                _uploadSize = uploadSize;
                 _current = new BackupRestoreResponse
                 {
                     RestoreId = Guid.NewGuid().ToString("N"),
-                    BackupId = backup.Id,
-                    BackupDateTime = backup.DateTime,
+                    BackupId = backupId,
+                    BackupDateTime = backupDateTime,
+                    FileName = fileName,
                     State = RestoreState.Running,
                     Steps = Enum.GetValues<RestoreStep>()
                         .Select(step => new RestoreStepResponse { Step = step, State = RestoreStepState.Waiting }).ToList(),
@@ -42,6 +55,11 @@ namespace MarikinaMarket.API.Application.Services
         }
 
         public int AdminId { get { lock (_lock) return _adminId; } }
+
+        // Null when the latest restore is of a listed backup.
+        public string? UploadPath { get { lock (_lock) return _uploadPath; } }
+
+        public long UploadSize { get { lock (_lock) return _uploadSize; } }
 
         public void Update(Action<BackupRestoreResponse> change)
         {
