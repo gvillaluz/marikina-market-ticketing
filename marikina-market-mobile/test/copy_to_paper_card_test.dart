@@ -78,7 +78,7 @@ void main() {
   ) async {
     await pumpCard(tester);
 
-    expect(find.text('Copy these onto the paper ticket'), findsOneWidget);
+    expect(find.text('Copy to paper ticket'), findsOneWidget);
     expect(paperFields(tester).map((field) => field.label), [
       'NAME:',
       'ADDRESS:',
@@ -92,9 +92,9 @@ void main() {
     expect(valueOf(tester, 'ADDRESS:'), '31 Synthetic Market Lane');
     expect(
       valueOf(tester, 'ORDINANCE:'),
-      'tick OTHERS, write:\n011 series of 2014, Sec. 12 – Unsanitary stall',
+      '011 series of 2014, Sec. 12\nUnsanitary stall',
     );
-    expect(valueOf(tester, 'FINE/PENALTIES:'), 'tick Php 1,000.00');
+    expect(valueOf(tester, 'FINE/PENALTIES:'), 'Php 1,000.00');
     expect(valueOf(tester, 'PLACE:'), 'Section A, Stall A-12');
     expect(valueOf(tester, 'DATE / TIME:'), '9:05 AM 11/7/2026');
     expect(
@@ -103,17 +103,14 @@ void main() {
     );
   });
 
-  testWidgets('fine/penalties points to the matching printed box', (
-    tester,
-  ) async {
+  testWidgets('fine/penalties shows only the value to write', (tester) async {
     final cases = <(PenaltyType, double?, int?), String>{
-      (PenaltyType.cashFine, 1500, null): 'tick Php 1,500.00',
-      (PenaltyType.cashFine, 1000, null): 'tick Php 1,000.00',
-      (PenaltyType.cashFine, 500, null): 'tick OTHERS, write Php 500.00',
-      (PenaltyType.cashFine, 2500.5, null): 'tick OTHERS, write Php 2,500.50',
-      (PenaltyType.bloodDonation, 500, null): 'tick Blood Donation',
-      (PenaltyType.communityService, 500, 4):
-          'tick Community Service, write 4 hrs',
+      (PenaltyType.cashFine, 1500, null): 'Php 1,500.00',
+      (PenaltyType.cashFine, 1000, null): 'Php 1,000.00',
+      (PenaltyType.cashFine, 500, null): 'Php 500.00',
+      (PenaltyType.cashFine, 2500.5, null): 'Php 2,500.50',
+      (PenaltyType.bloodDonation, 500, null): 'Blood Donation',
+      (PenaltyType.communityService, 500, 4): 'Community Service, 4 hrs',
     };
     for (final MapEntry(key: (penalty, total, hours), value: expected)
         in cases.entries) {
@@ -127,7 +124,7 @@ void main() {
     }
   });
 
-  testWidgets('two ordinances are listed under OTHERS in the chosen order', (
+  testWidgets('several ordinances are listed in the chosen order', (
     tester,
   ) async {
     await pumpCard(
@@ -136,10 +133,9 @@ void main() {
     );
     expect(
       valueOf(tester, 'ORDINANCE:'),
-      'tick OTHERS, write:\n'
-      '011 series of 2014, Sec. 49 – Improper attire\n'
-      '011 series of 2014, Sec. 12 – Unsanitary stall\n'
-      '011 series of 2014 – Use of sidewalks',
+      '011 series of 2014, Sec. 49\nImproper attire\n'
+      '011 series of 2014, Sec. 12\nUnsanitary stall\n'
+      '011 series of 2014\nUse of sidewalks',
     );
   });
 
@@ -153,9 +149,9 @@ void main() {
     );
     expect(
       valueOf(tester, 'ORDINANCE:'),
-      'tick OTHERS, write:\n011 series of 2014, Sec. 49 – Improper attire',
+      '011 series of 2014, Sec. 49\nImproper attire',
     );
-    expect(valueOf(tester, 'FINE/PENALTIES:'), 'tick Blood Donation');
+    expect(valueOf(tester, 'FINE/PENALTIES:'), 'Blood Donation');
     expect(valueOf(tester, 'PLACE:'), 'Fish aisle near F-014');
   });
 
@@ -184,7 +180,11 @@ void main() {
     for (final MapEntry(key: reason, value: pump) in notReady.entries) {
       await pump();
       expect(find.byType(TicketPaperFieldGroup), findsNothing, reason: reason);
-      expect(find.textContaining('Copy these'), findsNothing, reason: reason);
+      expect(
+        find.textContaining('Copy to paper'),
+        findsNothing,
+        reason: reason,
+      );
     }
 
     await pumpCard(
@@ -192,10 +192,7 @@ void main() {
       penaltyType: PenaltyType.communityService,
       communityHours: 3,
     );
-    expect(
-      valueOf(tester, 'FINE/PENALTIES:'),
-      'tick Community Service, write 3 hrs',
-    );
+    expect(valueOf(tester, 'FINE/PENALTIES:'), 'Community Service, 3 hrs');
   });
 
   testWidgets('warning card shows the BABALA fields and no fine', (
@@ -210,7 +207,7 @@ void main() {
       fineTotal: null,
     );
 
-    expect(find.text('Copy these onto the paper warning'), findsOneWidget);
+    expect(find.text('Copy to paper warning'), findsOneWidget);
     expect(paperFields(tester).map((field) => field.label), [
       'Petsa:',
       'Pangalan:',
@@ -227,8 +224,8 @@ void main() {
           .where((field) => field.label == 'Ordinansa Blg.:')
           .map((field) => field.value),
       [
-        '011, Serye: 2014\nSec. 49 – Improper attire',
-        '011, Serye: 2014\nSec. 12 – Unsanitary stall',
+        '011, Serye: 2014, Sec. 49\nImproper attire',
+        '011, Serye: 2014, Sec. 12\nUnsanitary stall',
       ],
     );
     expect(valueOf(tester, 'Market Enforcer:'), 'Pedro Reyes');

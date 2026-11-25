@@ -201,6 +201,11 @@ class AppTheme {
   static const selectionSheetMinSize = 0.45;
   static const selectionSheetMaxSize = 0.95;
   static const selectionSheetPadding = EdgeInsets.all(16);
+  // Sides only: sheet sections set their own gaps, so two stacked sections
+  // never add their padding together.
+  static const selectionSheetSidePadding = EdgeInsets.symmetric(horizontal: 16);
+  // No top padding: the drag handle and the 48 px close button already leave air.
+  static const selectionSheetHeaderPadding = EdgeInsets.fromLTRB(16, 0, 16, 12);
   static const selectionSheetItemPadding = EdgeInsets.only(bottom: 10);
   static const selectionCardPadding = EdgeInsets.all(14);
   static const selectionCardSelectedBorderWidth = 2.0;
@@ -471,7 +476,8 @@ class AppTheme {
   static const datePickerItemExtent = 36.0;
   static const datePickerTextStyle = bodyTextStyle;
   static const profileAvatarSize = 92.0;
-  static const profilePhotoMenuPadding = EdgeInsets.all(20);
+  // No top padding: the sheet's drag handle already leaves air above the title.
+  static const profilePhotoMenuPadding = EdgeInsets.fromLTRB(20, 0, 20, 20);
   static const profilePhotoBorderWidth = 2.0;
   static const profileAvatarDecodeMaxWidth = 320;
   static const profileActionGap = 12.0;

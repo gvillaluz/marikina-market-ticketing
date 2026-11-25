@@ -63,7 +63,10 @@ class _SelectOrdinanceBottomSheetState
       );
 
   Widget _groupHeading(String text) => Padding(
-    padding: const EdgeInsets.only(top: AppTheme.inspectionSmallGap),
+    padding: const EdgeInsets.only(
+      top: AppTheme.inspectionSmallGap,
+      bottom: AppTheme.inspectionTinyGap,
+    ),
     child: Text(text, style: AppTheme.inspectionHeadingStyle),
   );
 
@@ -218,7 +221,7 @@ class _SelectOrdinanceBottomSheetState
         isBusy: _confirming,
         slivers: [
           SliverPadding(
-            padding: AppTheme.selectionSheetPadding,
+            padding: AppTheme.selectionSheetSidePadding,
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -271,7 +274,7 @@ class _SelectOrdinanceBottomSheetState
           else ...[
             if (groups.isNotEmpty)
               SliverPadding(
-                padding: AppTheme.selectionSheetPadding,
+                padding: AppTheme.selectionSheetSidePadding,
                 sliver: SliverList.list(
                   children: [
                     for (final (heading, items) in groups) ...[
@@ -284,7 +287,10 @@ class _SelectOrdinanceBottomSheetState
                 ),
               ),
             SliverPadding(
-              padding: AppTheme.selectionSheetPadding,
+              // The heading above already leaves the gap when groups show.
+              padding: AppTheme.selectionSheetSidePadding.copyWith(
+                top: groups.isEmpty ? AppTheme.inspectionSmallGap : 0,
+              ),
               sliver: SliverList.builder(
                 itemCount: ordinances.length,
                 itemBuilder: (context, index) =>

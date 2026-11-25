@@ -48,34 +48,27 @@ class CopyToPaperCard extends StatelessWidget {
               }));
 
   String get _finePenalty => switch (penaltyType) {
-    PenaltyType.cashFine when fineTotal == 1500 || fineTotal == 1000 =>
-      'tick Php ${_amount.format(fineTotal)}',
-    PenaltyType.cashFine =>
-      'tick OTHERS, write Php ${_amount.format(fineTotal)}',
-    PenaltyType.bloodDonation => 'tick Blood Donation',
-    PenaltyType.communityService =>
-      'tick Community Service, write $communityHours hrs',
+    PenaltyType.cashFine => 'Php ${_amount.format(fineTotal)}',
+    PenaltyType.bloodDonation => 'Blood Donation',
+    PenaltyType.communityService => 'Community Service, $communityHours hrs',
   };
 
-  String _sectionAndTitle(Ordinance ordinance) =>
+  String _sectionPart(Ordinance ordinance) =>
       ordinance.section == null || ordinance.section!.isEmpty
-      ? ordinance.title
-      : 'Sec. ${ordinance.section} – ${ordinance.title}';
+      ? ''
+      : ', Sec. ${ordinance.section}';
 
+  // Number, series and section on the first line, the title below it.
   String _ticketOrdinance(Ordinance ordinance) =>
-      ordinance.section == null || ordinance.section!.isEmpty
-      ? '${ordinance.ordinanceNo} series of ${ordinance.series} – ${ordinance.title}'
-      : '${ordinance.ordinanceNo} series of ${ordinance.series}, ${_sectionAndTitle(ordinance)}';
+      '${ordinance.ordinanceNo} series of ${ordinance.series}'
+      '${_sectionPart(ordinance)}\n${ordinance.title}';
 
   List<TicketPaperField> get _ticketFields => [
     TicketPaperField(label: 'NAME:', value: name),
     TicketPaperField(label: 'ADDRESS:', value: address),
     TicketPaperField(
       label: 'ORDINANCE:',
-      value: [
-        'tick OTHERS, write:',
-        ...ordinances.map(_ticketOrdinance),
-      ].join('\n'),
+      value: ordinances.map(_ticketOrdinance).join('\n'),
     ),
     TicketPaperField(label: 'FINE/PENALTIES:', value: _finePenalty),
     TicketPaperField(label: 'PLACE:', value: place.trim()),
@@ -97,8 +90,8 @@ class CopyToPaperCard extends StatelessWidget {
       TicketPaperField(
         label: 'Ordinansa Blg.:',
         value:
-            '${ordinance.ordinanceNo}, Serye: ${ordinance.series}\n'
-            '${_sectionAndTitle(ordinance)}',
+            '${ordinance.ordinanceNo}, Serye: ${ordinance.series}'
+            '${_sectionPart(ordinance)}\n${ordinance.title}',
       ),
     TicketPaperField(label: 'Market Enforcer:', value: officerName),
   ];
@@ -119,8 +112,8 @@ class CopyToPaperCard extends StatelessWidget {
             TicketPaperSectionTitle(
               icon: Icons.edit_note,
               title: isTicket
-                  ? 'Copy these onto the paper ticket'
-                  : 'Copy these onto the paper warning',
+                  ? 'Copy to paper ticket'
+                  : 'Copy to paper warning',
             ),
             TicketPaperFieldGroup(
               spacing: AppTheme.inspectionSmallGap,

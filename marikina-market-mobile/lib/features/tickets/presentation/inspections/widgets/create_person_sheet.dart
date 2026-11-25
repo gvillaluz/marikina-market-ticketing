@@ -53,7 +53,8 @@ class _CreatePersonSheetState extends State<CreatePersonSheet> {
           bottom: MediaQuery.viewInsetsOf(context).bottom,
         ),
         child: SingleChildScrollView(
-          padding: AppTheme.ticketDetailPadding,
+          // No top padding: the drag handle already leaves air above the title.
+          padding: AppTheme.ticketDetailPadding.copyWith(top: 0),
           child: Form(
             key: _form,
             child: Column(
@@ -64,6 +65,7 @@ class _CreatePersonSheetState extends State<CreatePersonSheet> {
                   'New person',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
+                const SizedBox(height: AppTheme.inspectionSmallGap),
                 TextFormField(
                   onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   controller: _name,

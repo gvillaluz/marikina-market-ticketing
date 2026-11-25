@@ -40,7 +40,7 @@ class InspectionSelectionSheet extends StatelessWidget {
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 slivers: [
                   SliverPadding(
-                    padding: AppTheme.selectionSheetPadding,
+                    padding: AppTheme.selectionSheetHeaderPadding,
                     sliver: SliverToBoxAdapter(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,

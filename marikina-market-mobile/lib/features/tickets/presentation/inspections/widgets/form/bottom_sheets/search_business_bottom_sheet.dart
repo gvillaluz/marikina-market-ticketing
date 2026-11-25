@@ -96,7 +96,7 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
         description: 'Search, then tap a business to select it.',
         slivers: [
           SliverPadding(
-            padding: AppTheme.selectionSheetPadding,
+            padding: AppTheme.selectionSheetSidePadding,
             sliver: SliverToBoxAdapter(
               child: TextField(
                 controller: _searchController,
@@ -128,7 +128,9 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
             SliverFillRemaining(hasScrollBody: false, child: message)
           else ...[
             SliverPadding(
-              padding: AppTheme.selectionSheetPadding.copyWith(bottom: 0),
+              padding: AppTheme.selectionSheetSidePadding.copyWith(
+                top: AppTheme.inspectionSmallGap,
+              ),
               sliver: SliverToBoxAdapter(
                 child: Text(
                   '${vendors.length} ${vendors.length == 1 ? 'business' : 'businesses'} ${results?.hasMore == true ? 'shown' : 'found'}',
@@ -139,8 +141,8 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
               ),
             ),
             SliverPadding(
-              padding: AppTheme.selectionSheetPadding.copyWith(
-                top: AppTheme.inspectionSmallGap,
+              padding: AppTheme.selectionSheetSidePadding.copyWith(
+                top: AppTheme.inspectionTinyGap,
               ),
               sliver: SliverList.builder(
                 itemCount: vendors.length,
@@ -158,7 +160,7 @@ class _SearchBusinessBottomSheetState extends State<SearchBusinessBottomSheet> {
             ),
             if (results?.hasMore == true)
               const SliverPadding(
-                padding: AppTheme.selectionSheetPadding,
+                padding: AppTheme.selectionSheetSidePadding,
                 sliver: SliverToBoxAdapter(
                   child: Text('Keep typing to narrow the results.'),
                 ),

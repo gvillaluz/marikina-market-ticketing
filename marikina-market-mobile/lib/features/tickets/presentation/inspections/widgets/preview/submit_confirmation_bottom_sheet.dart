@@ -47,25 +47,34 @@ class _SubmitConfirmationBottomSheetState
   Widget build(BuildContext context) => SafeArea(
     top: false,
     child: SingleChildScrollView(
-      padding: AppTheme.inspectionCardPadding.add(
-        EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      ),
+      // No top padding: the sheet's drag handle already leaves air above the title.
+      padding: AppTheme.inspectionCardPadding
+          .copyWith(top: 0)
+          .add(
+            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+          ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: AppTheme.inspectionSmallGap,
         children: [
-          Text(
-            widget.isTicket
-                ? 'Confirm ticket submission'
-                : 'Confirm warning submission',
-            style: AppTheme.inspectionHeadingStyle.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          Text(
-            'Review the details before issuing this inspection record.',
-            style: AppTheme.inspectionBodyStyle,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: AppTheme.inspectionTinyGap,
+            children: [
+              Text(
+                widget.isTicket
+                    ? 'Confirm ticket submission'
+                    : 'Confirm warning submission',
+                style: AppTheme.inspectionHeadingStyle.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Text(
+                'Review the details before issuing this inspection record.',
+                style: AppTheme.inspectionBodyStyle,
+              ),
+            ],
           ),
           if (widget.isTicket &&
               widget.fineSummary != null &&
@@ -102,7 +111,8 @@ class _SubmitConfirmationBottomSheetState
               value:
                   '${DateTimeFormatter.getDate(DateTime.now().add(const Duration(days: 5)))}\n (5 days from issuance)',
             ),
-            const Divider(),
+            // Just the line: the column's own gaps already space it.
+            const Divider(height: 1),
             Text(
               'This violation ticket will be issued and recorded.',
               style: AppTheme.inspectionBodyStyle,

@@ -507,10 +507,9 @@ void main() {
                     'NAME:': 'Juan Dela Cruz',
                     'ADDRESS:': '31 Synthetic Market Lane',
                     'ORDINANCE:':
-                        'tick OTHERS, write:\n'
                         'Ord. No. 123 Series of 2026 series of 2026, '
-                        'Sec. 69 – Proper Waste Disposal',
-                    'FINE/PENALTIES:': 'tick OTHERS, write Php 100.00',
+                        'Sec. 69\nProper Waste Disposal',
+                    'FINE/PENALTIES:': 'Php 100.00',
                     'PLACE:': 'Fish aisle near F-014',
                     'NAME & SIGNATURE OF APPREHENDING OFFICER:':
                         'Test Enforcer',
@@ -519,8 +518,8 @@ void main() {
                     'Pangalan:': 'Juan Dela Cruz',
                     'Lugar:': 'Fish aisle near F-014',
                     'Ordinansa Blg.:':
-                        'Ord. No. 123 Series of 2026, Serye: 2026\n'
-                        'Sec. 69 – Proper Waste Disposal',
+                        'Ord. No. 123 Series of 2026, Serye: 2026, Sec. 69\n'
+                        'Proper Waste Disposal',
                     'Market Enforcer:': 'Test Enforcer',
                   },
           );

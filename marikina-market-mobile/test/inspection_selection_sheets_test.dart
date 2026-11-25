@@ -289,6 +289,67 @@ void main() {
     },
   );
 
+  testWidgets('vendor sheet puts one gap between subtitle and search box', (
+    tester,
+  ) async {
+    final bloc = await tester.runAsync(
+      () => listBloc((options) async => reply(options, [])),
+    );
+    await tester.pumpWidget(
+      BlocProvider<InspectionBloc>.value(
+        value: bloc!,
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: const Scaffold(body: SearchBusinessBottomSheet()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final subtitle = find.text('Search, then tap a business to select it.');
+    expect(
+      tester.getTopLeft(find.byType(TextField)).dy -
+          tester.getBottomLeft(subtitle).dy,
+      closeTo(AppTheme.selectionSheetHeaderPadding.bottom, 0.01),
+    );
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('ordinance sheet puts one gap between search box and first row', (
+    tester,
+  ) async {
+    final bloc = await tester.runAsync(
+      () => listBloc(
+        withNoShortcuts((options) async => reply(options, [ordinanceResponse])),
+      ),
+    );
+    await tester.pumpWidget(
+      BlocProvider<InspectionBloc>.value(
+        value: bloc!,
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: SelectOrdinanceBottomSheet(
+              isWarningTicket: false,
+              ordinances: const [],
+              onChanged: (_) => fail('Draft selection must not commit'),
+              vendorId: 42,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.runAsync(
+      () => bloc.stream.firstWhere((s) => s is OrdinanceSelectionLoaded),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getTopLeft(find.byType(OrdinanceCard)).dy -
+          tester.getBottomLeft(find.byType(TextField)).dy,
+      closeTo(AppTheme.inspectionSmallGap, 0.01),
+    );
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets(
     'unselecting a draft ordinance does not mutate the parent selection',
     (tester) async {

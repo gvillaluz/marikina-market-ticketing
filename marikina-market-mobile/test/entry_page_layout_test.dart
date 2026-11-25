@@ -454,7 +454,7 @@ void main() {
         'Fish aisle near F-014',
       );
       await tester.pump();
-      expect(find.text('Copy these onto the paper warning'), findsOneWidget);
+      expect(find.text('Copy to paper warning'), findsOneWidget);
       final cardBottom = tester.getBottomLeft(find.byType(CopyToPaperCard)).dy;
       final labelTop = tester.getTopLeft(find.text('Paper warning photo')).dy;
       expect(
