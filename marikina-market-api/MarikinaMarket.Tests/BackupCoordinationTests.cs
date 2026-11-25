@@ -131,7 +131,9 @@ public class BackupCoordinationTests
             new ConfigurationBuilder().Build(),
             BackupTestBoundary.Create<IHostApplicationLifetime>((_, _) => CancellationToken.None),
             NullLogger<BackupService>.Instance,
-            BackupTestBoundary.Create<IAuditLogService>((_, _) => Task.CompletedTask), new AuditLogContext());
+            BackupTestBoundary.Create<IAuditLogService>((_, _) => Task.CompletedTask), new AuditLogContext(),
+            BackupTestBoundary.Create<IUserRepository>((name, _) => throw new InvalidOperationException(name)), new BackupRestoreState(),
+            BackupTestBoundary.Create<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>((name, _) => throw new InvalidOperationException(name)));
 }
 
 internal sealed class BackupTestLock(CancellationToken connectionLost = default) : IBackupOperationLock

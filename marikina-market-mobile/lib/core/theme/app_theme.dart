@@ -149,6 +149,17 @@ class AppTheme {
   static const dashboardIconSize = 24.0;
   static const dashboardStatusDotSize = 10.0;
   static const dashboardOnlineColor = AppColors.primaryGreen;
+  static const notificationBadgeColor = AppColors.badgeRed;
+  static const notificationBadgeHeight = 18.0;
+  static const notificationBadgeRingWidth = 2.0;
+  static const notificationBadgeMaxTextScale = 1.3;
+  static const notificationBadgePadding = EdgeInsets.symmetric(horizontal: 5);
+  static const notificationBadgeTextStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    height: 1,
+  );
 
   static const inspectionHeaderPadding = EdgeInsets.fromLTRB(20, 20, 20, 12);
   static const recordsListPadding = EdgeInsets.symmetric(horizontal: 12);

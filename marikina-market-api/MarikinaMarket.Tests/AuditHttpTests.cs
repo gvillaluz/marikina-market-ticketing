@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
 using MarikinaMarket.API.Domain.Enums;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Xunit;
@@ -16,6 +17,7 @@ public class AuditHttpTests
     [InlineData("missing", 401, "Someone who was not signed in tried to view Audit Logs. The server refused.")]
     [InlineData("invalid", 401, "A request to view Audit Logs was refused because its sign-in could not be trusted.")]
     [InlineData("expired", 401, null)]
+    [InlineData("ended", 401, null)]
     [InlineData("unsupported", 401, "A request to view Audit Logs was refused because it did not include a usable sign-in.")]
     [InlineData("forbidden", 403, "This account's role is not allowed to view Audit Logs. Allowed roles: Head Admin or Admin Officer.")]
     public async Task Authorization_details_describe_confirmed_authentication_failure_in_plain_words_without_credentials(
@@ -34,6 +36,16 @@ public class AuditHttpTests
                     ValidateIssuerSigningKey = true, IssuerSigningKey = key,
                     RoleClaimType = "role"
                 };
+                // Same refusal the real server gives a genuine sign-in after a password change.
+                if (scenario == "ended")
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = context =>
+                        {
+                            context.Fail("Session expired. Please log in again.");
+                            return Task.CompletedTask;
+                        }
+                    };
             }));
         var now = DateTime.UtcNow;
         var signingKey = scenario == "invalid"
@@ -50,7 +62,7 @@ public class AuditHttpTests
         Assert.Equal(status, (int)response.StatusCode);
         if (sentence is null)
         {
-            // An expired sign-in is renewed by the apps on their own; it is not recorded.
+            // Expired sign-ins are renewed by the apps and ended ones send the user back to log in; neither is recorded.
             Assert.Empty(host.Repository.Logs);
             return;
         }

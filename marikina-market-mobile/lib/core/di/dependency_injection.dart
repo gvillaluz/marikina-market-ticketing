@@ -44,6 +44,7 @@ import 'package:marikina_market_mobile/features/notification/domain/use_cases/lo
 import 'package:marikina_market_mobile/features/notification/domain/use_cases/mark_as_read_use_case.dart';
 import 'package:marikina_market_mobile/features/notification/domain/use_cases/load_unread_count_use_case.dart';
 import 'package:marikina_market_mobile/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:marikina_market_mobile/features/notification/presentation/bloc/unread_count_bloc.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/reset_password_use_case.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/send_otp_use_case.dart';
 import 'package:marikina_market_mobile/features/password_recovery/domain/use_cases/verify_code_use_case.dart';
@@ -278,6 +279,12 @@ Future<void> init(Box<OrdinanceHiveModel> ordinanceBox) async {
       loadNotificationsUseCase: sl(),
       markAsReadUseCase: sl(),
       loadUnreadCountUseCase: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => UnreadCountBloc(
+      loadUnreadCountUseCase: sl(),
+      notificationArrivals: sl<NotificationListenerService>().arrivals,
     ),
   );
 }

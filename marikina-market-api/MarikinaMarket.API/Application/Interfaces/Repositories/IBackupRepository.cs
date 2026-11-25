@@ -1,3 +1,4 @@
+using MarikinaMarket.API.Application.DTOs.Backups.Internal;
 using MarikinaMarket.API.Domain.Entities;
 
 namespace MarikinaMarket.API.Application.Interfaces.Repositories
@@ -19,5 +20,12 @@ namespace MarikinaMarket.API.Application.Interfaces.Repositories
         Task UpdateExpirationAsync(int retentionDays, CancellationToken cancellationToken);
         Task<List<Backup>> GetCleanupCandidatesAsync(DateTime now, CancellationToken cancellationToken);
         Task SaveChangesAsync(CancellationToken cancellationToken);
+        // The database changes (migrations) this database has.
+        Task<List<string>> GetAppliedMigrationsAsync(CancellationToken cancellationToken);
+        // Tables a restore keeps from today (audit log, backup list, backup schedule), with their indexes and sequences.
+        Task<HashSet<string>> GetRestoreKeptNamesAsync(CancellationToken cancellationToken);
+        Task<RestoreRecordCounts> CountRestoreRecordsAsync(CancellationToken cancellationToken);
+        // Run inside the restore's own transaction: ends every sign-in, phone registration and session check.
+        string SignOutEveryoneSql { get; }
     }
 }

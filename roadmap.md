@@ -108,6 +108,7 @@ Exit criteria:
 - ✅ 2026-11-18 API build/tests, web build/Node tests and mobile format/analyze/tests pass for affected work; target-device/browser E2E verifies identity, offense rules, edits/re-verification, duplicates/concurrency, persistence, permissions, retry and settlement. Closed with accepted limits; two problems found were fixed: see [system checks and live run](docs/closed-work/phases/phase-4-system-checks.md).
 - ✅ 2026-11-20 Setup/recovery instructions and beneficiary evaluation establish recording/retrieval time and practical usefulness. Closed with accepted limits: instructions written and followed to update the demo; usefulness from the System Evaluation form (29 answers, overall 4.79); recording/retrieval times not measured. See [setup, recovery and evaluation](docs/closed-work/phases/phase-4-setup-and-evaluation.md).
 - ✅ 2026-11-20 Docker hosting: the server package with `pg_dump` and the daily recommended-actions job on Azure. Closed: the demo runs the server package and its Backups page works; the daily job ran by its own schedule. See [Docker hosting](docs/closed-work/phases/phase-4-docker-hosting.md).
+- ☐ Restore from the website (Head Admin), 4 steps: 1 server, 2 website, 3 upload a backup file, 4 phone pause message. Approved 2026-11-25; one step at a time.
 
 Use commands in `feature-workflow.md`. Each gate names exact files/styles, contracts/errors, schema prerequisites, test expectations and time limit. Documentation-only edits require content/diff validation, not application builds.
 

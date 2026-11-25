@@ -23,6 +23,7 @@ class AppColors {
   static const redTextColor = Color(0xFFEF4444);
   static const redBackgroundColor = Color(0xFFFEF2F2);
   static const redBorderColor = Color(0xFFFABEBE);
+  static const badgeRed = Color(0xFFDC2626);
 
   static const primaryYellow = Color(0xFFFFDEA8);
   static const secondaryYellow = Color(0xFFEF8A0D);

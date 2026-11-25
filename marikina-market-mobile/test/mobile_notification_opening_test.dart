@@ -264,8 +264,11 @@ void main() {
       (tester) async {
         final auth = (await tester.runAsync(() async => authSession()))!;
         final router = notificationRouter();
+        var arrivals = 0;
         await tester.runAsync(() async {
-          listenerFor(router, auth);
+          final listener = listenerFor(router, auth);
+          final sub = listener.arrivals.listen((_) => arrivals++);
+          addTearDown(sub.cancel);
         });
         await tester.pumpWidget(MaterialApp.router(routerConfig: router));
         await tester.runAsync(() async {
@@ -277,6 +280,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Record updated'), findsOneWidget);
         expect(find.text('Home'), findsOneWidget);
+        // The bell badge refreshes on each signed-in foreground arrival.
+        expect(arrivals, 1);
         if (changeAccount) {
           await tester.runAsync(() async {
             final changed = auth.stream.firstWhere(

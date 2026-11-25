@@ -1,3 +1,4 @@
+using MarikinaMarket.API.Application.DTOs.Backups.Internal;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
@@ -241,6 +242,52 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
             using var linked = Link(cancellationToken);
             await _context.SaveChangesAsync(linked.Token);
         }
+
+        private static readonly string[] RestoreKeptTables = ["audit_logs", "backups", "backup_schedules"];
+
+        public async Task<List<string>> GetAppliedMigrationsAsync(CancellationToken cancellationToken)
+        {
+            using var linked = Link(cancellationToken);
+            return await _context.Database.SqlQueryRaw<string>(
+                "SELECT migration_id AS \"Value\" FROM \"__EFMigrationsHistory\"").ToListAsync(linked.Token);
+        }
+
+        public async Task<HashSet<string>> GetRestoreKeptNamesAsync(CancellationToken cancellationToken)
+        {
+            using var linked = Link(cancellationToken);
+            var parts = await _context.Database.SqlQueryRaw<string>("""
+                SELECT indexname AS "Value" FROM pg_indexes WHERE schemaname = 'public' AND tablename = ANY(@tables)
+                UNION
+                SELECT sequence.relname FROM pg_class sequence
+                JOIN pg_depend link ON link.objid = sequence.oid AND link.deptype IN ('a', 'i')
+                JOIN pg_class owner ON owner.oid = link.refobjid
+                JOIN pg_namespace space ON space.oid = owner.relnamespace
+                WHERE sequence.relkind = 'S' AND space.nspname = 'public' AND owner.relname = ANY(@tables)
+                """, new NpgsqlParameter("tables", RestoreKeptTables)).ToListAsync(linked.Token);
+            return [.. RestoreKeptTables, .. parts];
+        }
+
+        public async Task<RestoreRecordCounts> CountRestoreRecordsAsync(CancellationToken cancellationToken)
+        {
+            // A restore replaces every module's data at once, so it counts across modules.
+            using var linked = Link(cancellationToken);
+            var counts = await _context.Database.SqlQueryRaw<int>("""
+                SELECT "Value" FROM (VALUES
+                    (1, (SELECT count(*)::int FROM tickets)),
+                    (2, (SELECT count(*)::int FROM businesses)),
+                    (3, (SELECT count(*)::int FROM persons)),
+                    (4, (SELECT count(*)::int FROM "AspNetUsers"))) AS counts(position, "Value")
+                ORDER BY position
+                """).ToListAsync(linked.Token);
+            return new RestoreRecordCounts(counts[0], counts[1], counts[2], counts[3]);
+        }
+
+        // Fully qualified: the restore script empties the search path.
+        public string SignOutEveryoneSql => """
+            DELETE FROM public.refresh_tokens;
+            DELETE FROM public.user_device_tokens;
+            UPDATE public."AspNetUsers" SET security_stamp = upper(replace(pg_catalog.gen_random_uuid()::text, '-', ''));
+            """;
 
         public void Dispose()
         {
