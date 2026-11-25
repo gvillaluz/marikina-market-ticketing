@@ -5,6 +5,7 @@ using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace MarikinaMarket.API.Presentation.Controllers
 {
@@ -36,6 +37,25 @@ namespace MarikinaMarket.API.Presentation.Controllers
         [HttpGet("health")]
         public async Task<ActionResult<BackupHealthResponse>> Health(CancellationToken cancellationToken)
             => Ok(await _service.GetHealthAsync(cancellationToken));
+
+        // Starts replacing today's data with this backup. Its progress is read from RestoreProgress.
+        [HttpPost("{id}/restore")]
+        [Authorize(Roles = nameof(Role.HeadAdmin))]
+        public async Task<ActionResult<BackupRestoreResponse>> Restore([FromRoute] int id,
+            [FromBody] RestoreBackupRequest request, CancellationToken cancellationToken)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var adminId) || adminId <= 0)
+                return Unauthorized();
+            return Accepted(await _service.StartRestoreAsync(id, request, adminId, cancellationToken));
+        }
+
+        // No sign-in: it must keep working while the accounts are being replaced and after everyone is
+        // signed out. The restore ID is a random 128-bit value known only to whoever started the restore,
+        // and the answer holds only progress and record counts.
+        [HttpGet("restores/{restoreId}")]
+        [AllowAnonymous]
+        public ActionResult<BackupRestoreResponse> RestoreProgress([FromRoute] string restoreId)
+            => Ok(_service.GetRestoreProgress(restoreId));
 
         [HttpGet("{id}/download")]
         public async Task<IActionResult> Download([FromRoute] int id, CancellationToken cancellationToken)

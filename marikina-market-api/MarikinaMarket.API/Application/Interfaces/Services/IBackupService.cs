@@ -15,5 +15,9 @@ namespace MarikinaMarket.API.Application.Interfaces.Services
         Task InitializeAsync(CancellationToken cancellationToken);
         Task RunScheduledAsync(CancellationToken cancellationToken);
         Task CleanupAsync(CancellationToken cancellationToken);
+        Task<BackupRestoreResponse> StartRestoreAsync(int id, RestoreBackupRequest request, int adminId, CancellationToken cancellationToken);
+        BackupRestoreResponse GetRestoreProgress(string restoreId);
+        // The restore's background work; started only by StartRestoreAsync.
+        Task RunRestoreAsync(string restoreId);
     }
 }

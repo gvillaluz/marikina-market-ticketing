@@ -140,7 +140,9 @@ public class AutomaticBackupServiceTests
                     BackupTestBoundary.Create<IStorageService>((_, _) => throw new InvalidOperationException("Storage must not be used.")),
                     new ConfigurationBuilder().Build(),
                     BackupTestBoundary.Create<IHostApplicationLifetime>((_, _) => CancellationToken.None),
-                    NullLogger<BackupService>.Instance, provider.GetRequiredService<IAuditLogService>(), new AuditLogContext());
+                    NullLogger<BackupService>.Instance, provider.GetRequiredService<IAuditLogService>(), new AuditLogContext(),
+                    BackupTestBoundary.Create<IUserRepository>((name, _) => throw new InvalidOperationException(name)),
+                    new BackupRestoreState(), provider.GetRequiredService<IServiceScopeFactory>());
             });
             _provider = services.BuildServiceProvider();
         }

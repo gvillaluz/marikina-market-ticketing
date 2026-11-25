@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
+using MarikinaMarket.API.Application.DTOs.Backups.Internal;
 using MarikinaMarket.API.Application.DTOs.Backups.Request;
 using MarikinaMarket.API.Application.DTOs.Backups.Response;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
@@ -9,6 +10,7 @@ using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Application.Interfaces.Services;
 using MarikinaMarket.API.Domain.Entities;
 using MarikinaMarket.API.Domain.Enums;
+using Microsoft.AspNetCore.Identity;
 using Npgsql;
 using MarikinaMarket.API.Application.DTOs.Audits.Internal;
 
@@ -32,10 +34,14 @@ namespace MarikinaMarket.API.Application.Services
         private readonly ILogger<BackupService> _logger;
         private readonly IAuditLogService _auditService;
         private readonly AuditLogContext _audit;
+        private readonly IUserRepository _users;
+        private readonly BackupRestoreState _restore;
+        private readonly IServiceScopeFactory _scopes;
 
         public BackupService(IBackupRepository repository, IUnitOfWork unitOfWork,
             IStorageService storage, IConfiguration configuration, IHostApplicationLifetime lifetime,
-            ILogger<BackupService> logger, IAuditLogService auditService, AuditLogContext audit)
+            ILogger<BackupService> logger, IAuditLogService auditService, AuditLogContext audit,
+            IUserRepository users, BackupRestoreState restore, IServiceScopeFactory scopes)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
@@ -45,6 +51,9 @@ namespace MarikinaMarket.API.Application.Services
             _logger = logger;
             _auditService = auditService;
             _audit = audit;
+            _users = users;
+            _restore = restore;
+            _scopes = scopes;
         }
 
         public async Task<BackupResponse> CreateManualAsync(CancellationToken cancellationToken)
@@ -196,12 +205,8 @@ namespace MarikinaMarket.API.Application.Services
             try
             {
                 key = ReadEncryptionKey();
-                var timeoutMinutes = _configuration.GetValue<int?>("Backups:TimeoutMinutes") ?? 15;
-                if (timeoutMinutes is < 1 or > 120) throw new InvalidOperationException("Invalid backup timeout.");
-                timeout.CancelAfter(TimeSpan.FromMinutes(timeoutMinutes));
-                Directory.CreateDirectory(TempRoot);
-                if (!OperatingSystem.IsWindows())
-                    File.SetUnixFileMode(TempRoot, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                timeout.CancelAfter(ReadTimeout());
+                PrepareTempRoot();
 
                 stage = "database dump";
                 await CreateDumpAsync(dumpPath, timeout.Token);
@@ -271,6 +276,20 @@ namespace MarikinaMarket.API.Application.Services
             return ToResponse(backup);
         }
 
+        private TimeSpan ReadTimeout()
+        {
+            var timeoutMinutes = _configuration.GetValue<int?>("Backups:TimeoutMinutes") ?? 15;
+            if (timeoutMinutes is < 1 or > 120) throw new InvalidOperationException("Invalid backup timeout.");
+            return TimeSpan.FromMinutes(timeoutMinutes);
+        }
+
+        private static void PrepareTempRoot()
+        {
+            Directory.CreateDirectory(TempRoot);
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(TempRoot, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        }
+
         private byte[] ReadEncryptionKey()
         {
             var encoded = _configuration["Backups:EncryptionKey"];
@@ -283,19 +302,33 @@ namespace MarikinaMarket.API.Application.Services
 
         private async Task CreateDumpAsync(string path, CancellationToken cancellationToken)
         {
+            await RunPostgresToolAsync("pg_dump", ["--format=custom", "--no-password", "--file", path], cancellationToken);
+            var size = new FileInfo(path).Length;
+            if (size <= 0 || size > MaxDumpSize) throw new InvalidOperationException("Database dump is empty or exceeds 256 MiB.");
+        }
+
+        // pg_restore and psql are expected next to pg_dump (Backups:PgDumpPath), or on PATH like pg_dump.
+        private string ToolPath(string tool)
+        {
+            var dump = _configuration["Backups:PgDumpPath"] ?? "pg_dump";
+            if (tool == "pg_dump") return dump;
+            var folder = Path.GetDirectoryName(dump);
+            var name = tool + Path.GetExtension(dump);
+            return string.IsNullOrEmpty(folder) ? name : Path.Combine(folder, name);
+        }
+
+        private async Task RunPostgresToolAsync(string tool, IEnumerable<string> arguments, CancellationToken cancellationToken)
+        {
             var connection = new NpgsqlConnectionStringBuilder(_configuration.GetConnectionString("DefaultConnection"));
             var start = new ProcessStartInfo
             {
-                FileName = _configuration["Backups:PgDumpPath"] ?? "pg_dump",
+                FileName = ToolPath(tool),
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true
             };
-            start.ArgumentList.Add("--format=custom");
-            start.ArgumentList.Add("--no-password");
-            start.ArgumentList.Add("--file");
-            start.ArgumentList.Add(path);
+            foreach (var argument in arguments) start.ArgumentList.Add(argument);
             start.Environment["PGHOST"] = connection.Host;
             start.Environment["PGPORT"] = connection.Port.ToString(CultureInfo.InvariantCulture);
             start.Environment["PGDATABASE"] = connection.Database;
@@ -314,14 +347,14 @@ namespace MarikinaMarket.API.Application.Services
             Task? stdout = null;
             try
             {
-                if (!process.Start()) throw new InvalidOperationException("Database dump could not start.");
+                if (!process.Start()) throw new InvalidOperationException($"{tool} could not start.");
                 started = true;
                 // Drain without retaining diagnostics in memory or exposing them in logs.
                 stderr = process.StandardError.BaseStream.CopyToAsync(Stream.Null, cancellationToken);
                 stdout = process.StandardOutput.BaseStream.CopyToAsync(Stream.Null, cancellationToken);
                 await process.WaitForExitAsync(cancellationToken);
                 await Task.WhenAll(stderr, stdout);
-                if (process.ExitCode != 0) throw new InvalidOperationException("Database dump failed.");
+                if (process.ExitCode != 0) throw new InvalidOperationException($"{tool} failed.");
             }
             finally
             {
@@ -339,8 +372,6 @@ namespace MarikinaMarket.API.Application.Services
                 // Remove the password from the managed process configuration as soon as possible.
                 start.Environment.Remove("PGPASSWORD");
             }
-            var size = new FileInfo(path).Length;
-            if (size <= 0 || size > MaxDumpSize) throw new InvalidOperationException("Database dump is empty or exceeds 256 MiB.");
         }
 
         private static async Task EncryptDumpAsync(string dumpPath, string encryptedPath, byte[] key, CancellationToken cancellationToken)
@@ -623,6 +654,288 @@ namespace MarikinaMarket.API.Application.Services
             var file = await _storage.DownloadStreamAsync(B2BucketType.Backups, backup.B2Key, cancellationToken);
             return (file.Stream, $"marikina-market-{backup.Id}-{backup.DateTime:yyyyMMdd-HHmmss}.mmbak", file.Owner);
         }
+
+        private const string RestoreConfirmation = "RESTORE";
+        // How long a restore waits for requests already running (for example a ticket being saved) to finish.
+        private static readonly TimeSpan RestorePauseWait = TimeSpan.FromSeconds(30);
+        private const int EnvelopeLength = 33; // header 5, nonce 12, tag 16
+        private const string RestoredMessage = "The backup was restored. Everyone has been signed out and must sign in again.";
+        private const string NotFoundMessage = "This backup is no longer available. Nothing was changed.";
+        private const string DownloadMessage = "This backup could not be downloaded from storage. Nothing was changed.";
+        private const string UnlockMessage = "This backup could not be unlocked. It may be damaged, or it was made by another copy of the system. Nothing was changed.";
+        private const string VersionMessage = "This backup is from a different version of the system, so it cannot be restored here. " +
+            "Ask the technical person to restore it with the recovery guide.";
+        private const string BusyMessage = "Some work was still being saved, so the restore did not start. Nothing was changed. Try again in a moment.";
+        private const string SafetyMessage = "The safety backup of today's data could not be made, so nothing was restored.";
+        private const string LoadMessage = "The backup could not be loaded. Today's data is unchanged.";
+        private const string CountMessage = "The backup was restored and everyone has been signed out, but the records could not be counted.";
+        private const string UnexpectedMessage = "The restore stopped because of an unexpected problem. Today's data is unchanged.";
+
+        // A restore step that failed in a way the Head Admin is told about in plain words.
+        private sealed class RestoreFailure(string message) : Exception(message);
+
+        public async Task<BackupRestoreResponse> StartRestoreAsync(int id, RestoreBackupRequest request, int adminId,
+            CancellationToken cancellationToken)
+        {
+            if (request.Confirmation != RestoreConfirmation) throw new ValidationException("Type RESTORE to confirm.");
+            if (string.IsNullOrEmpty(request.Password)) throw new ValidationException("Enter your password to confirm.");
+            if (id <= 0) throw new ValidationException("Backup ID must be positive.");
+            var admin = await _users.GetUserAsync(adminId) ?? throw new UnauthorizedAccessException("Your account was not found.");
+            var password = await _users.CheckPasswordAsync(admin, request.Password);
+            if (password.IsLockedOut) throw new AccountLockedException("Too many attempts. Please try again later.");
+            if (!password.Succeeded) throw new InvalidCredentialsException("Password is incorrect.");
+            var backup = await _repository.GetByIdAsync(id, cancellationToken)
+                ?? throw new RecordNotFoundException("Backup was not found.");
+            if (!ToResponse(backup).CanDownload) throw new InvalidRequestException("This backup cannot be restored.");
+            if (!await ExecutionGate.WaitAsync(0, cancellationToken))
+                throw new ConcurrencyConflictException("A backup or restore is already running.");
+
+            var started = _restore.Begin(backup, adminId);
+            // The gate stays held until the restore ends, so no backup or clean-up runs in the meantime.
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = _scopes.CreateScope();
+                    await scope.ServiceProvider.GetRequiredService<IBackupService>().RunRestoreAsync(started.RestoreId);
+                }
+                catch (Exception ex)
+                {
+                    _restore.Resume();
+                    _logger.LogWarning("Restore {RestoreId} could not run ({ExceptionType}).", started.RestoreId, ex.GetType().Name);
+                }
+                finally { ExecutionGate.Release(); }
+            });
+            return started;
+        }
+
+        public BackupRestoreResponse GetRestoreProgress(string restoreId)
+            => _restore.Get(restoreId) ?? throw new RecordNotFoundException("Restore was not found.");
+
+        public async Task RunRestoreAsync(string restoreId)
+        {
+            var progress = _restore.Get(restoreId) ?? throw new RecordNotFoundException("Restore was not found.");
+            var adminId = _restore.AdminId;
+            var tempId = Guid.NewGuid().ToString("N");
+            var encryptedPath = Path.Combine(TempRoot, tempId + ".restore-encrypted.tmp");
+            var dumpPath = Path.Combine(TempRoot, tempId + ".restore-dump.tmp");
+            var listPath = Path.Combine(TempRoot, tempId + ".restore-list.tmp");
+            var scriptPath = Path.Combine(TempRoot, tempId + ".restore-script.tmp");
+            var step = RestoreStep.CheckBackup;
+            byte[]? key = null;
+            try
+            {
+                key = ReadEncryptionKey();
+                PrepareTempRoot();
+                await using var operation = await _repository.TryAcquireOperationLockAsync(_lifetime.ApplicationStopping)
+                    ?? throw new RestoreFailure("A backup is already running on another server. Nothing was changed.");
+                using var owned = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.ApplicationStopping, operation.ConnectionLost);
+                var cancellationToken = owned.Token;
+
+                SetStep(step, RestoreStepState.Running);
+                var backup = await _repository.GetByIdAsync(progress.BackupId, cancellationToken);
+                if (backup is null || !ToResponse(backup).CanDownload) throw new RestoreFailure(NotFoundMessage);
+                using (var timeout = Timeout(cancellationToken))
+                {
+                    await DownloadBackupAsync(backup.B2Key, encryptedPath, timeout.Token);
+                    await DecryptBackupAsync(encryptedPath, dumpPath, key, timeout.Token);
+                    File.Delete(encryptedPath);
+                    if (!await HasTodaysVersionAsync(dumpPath, listPath, timeout.Token)) throw new RestoreFailure(VersionMessage);
+                }
+                SetStep(step, RestoreStepState.Done);
+
+                if (!await _restore.PauseAsync(RestorePauseWait, cancellationToken)) throw new RestoreFailure(BusyMessage);
+                var before = await _repository.CountRestoreRecordsAsync(cancellationToken);
+                _restore.Update(restore => restore.Counts = Counts(before).Select(count =>
+                    new RestoreCountResponse { Records = count.Records, Before = count.Value }).ToList());
+
+                step = RestoreStep.SafetyBackup;
+                SetStep(step, RestoreStepState.Running);
+                var safety = await MakeSafetyBackupAsync(cancellationToken, operation.ConnectionLost);
+                _restore.Update(restore => restore.SafetyBackupId = safety.Id);
+                SetStep(step, RestoreStepState.Done);
+
+                step = RestoreStep.LoadBackup;
+                SetStep(step, RestoreStepState.Running);
+                SetStep(RestoreStep.SignEveryoneOut, RestoreStepState.Running);
+                using (var timeout = Timeout(cancellationToken))
+                    await LoadBackupAsync(dumpPath, listPath, scriptPath, timeout.Token);
+                SetStep(step, RestoreStepState.Done);
+                SetStep(RestoreStep.SignEveryoneOut, RestoreStepState.Done);
+
+                step = RestoreStep.CountRecords;
+                SetStep(step, RestoreStepState.Running);
+                var message = RestoredMessage;
+                try
+                {
+                    var after = Counts(await _repository.CountRestoreRecordsAsync(cancellationToken)).ToDictionary(c => c.Records, c => c.Value);
+                    _restore.Update(restore => restore.Counts.ForEach(count => count.After = after[count.Records]));
+                    SetStep(step, RestoreStepState.Done);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Restore {RestoreId} could not count records ({ExceptionType}).", restoreId, ex.GetType().Name);
+                    SetStep(step, RestoreStepState.Failed);
+                    message = CountMessage;
+                }
+                _restore.Resume();
+                await RecordRestoreAuditAsync(progress.BackupId, adminId, LogResult.Success,
+                    $"Backup {progress.BackupId} was restored. Safety backup {safety.Id} holds the data from before the restore.");
+                Finish(RestoreState.Finished, message);
+            }
+            catch (Exception ex)
+            {
+                var message = ex is RestoreFailure ? ex.Message : UnexpectedMessage;
+                if (ex is not RestoreFailure)
+                    _logger.LogWarning("Restore {RestoreId} failed during {Step} ({ExceptionType}).", restoreId, step, ex.GetType().Name);
+                SetStep(step, RestoreStepState.Failed);
+                _restore.Resume();
+                await RecordRestoreAuditAsync(progress.BackupId, adminId, LogResult.Failed, $"Restore of backup {progress.BackupId} failed: {message}");
+                Finish(RestoreState.Failed, message);
+            }
+            finally
+            {
+                _restore.Resume();
+                if (key != null) CryptographicOperations.ZeroMemory(key);
+                foreach (var path in new[] { encryptedPath, dumpPath, listPath, scriptPath }) DeleteTemporaryFile(path);
+            }
+        }
+
+        private CancellationTokenSource Timeout(CancellationToken cancellationToken)
+        {
+            var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeout.CancelAfter(ReadTimeout());
+            return timeout;
+        }
+
+        private async Task DownloadBackupAsync(string b2Key, string path, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var file = await _storage.DownloadStreamAsync(B2BucketType.Backups, b2Key, cancellationToken);
+                using var owner = file.Owner;
+                await using var stream = file.Stream;
+                await using var output = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous);
+                await stream.CopyToAsync(output, cancellationToken);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning("A backup could not be downloaded for a restore ({ExceptionType}).", ex.GetType().Name);
+                throw new RestoreFailure(DownloadMessage);
+            }
+        }
+
+        private static async Task DecryptBackupAsync(string encryptedPath, string dumpPath, byte[] key, CancellationToken cancellationToken)
+        {
+            var length = new FileInfo(encryptedPath).Length;
+            if (length <= EnvelopeLength || length > MaxDumpSize + EnvelopeLength) throw new RestoreFailure(UnlockMessage);
+            byte[]? file = null;
+            byte[]? plaintext = null;
+            try
+            {
+                file = await File.ReadAllBytesAsync(encryptedPath, cancellationToken);
+                if (!file.AsSpan(0, EnvelopeHeader.Length).SequenceEqual(EnvelopeHeader)) throw new RestoreFailure(UnlockMessage);
+                plaintext = new byte[file.Length - EnvelopeLength];
+                try
+                {
+                    using var aes = new AesGcm(key, 16);
+                    aes.Decrypt(file.AsSpan(5, 12), file.AsSpan(EnvelopeLength), file.AsSpan(17, 16), plaintext, EnvelopeHeader);
+                }
+                catch (CryptographicException) { throw new RestoreFailure(UnlockMessage); }
+                await using var output = new FileStream(dumpPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous);
+                await output.WriteAsync(plaintext, cancellationToken);
+            }
+            finally
+            {
+                if (file != null) CryptographicOperations.ZeroMemory(file);
+                if (plaintext != null) CryptographicOperations.ZeroMemory(plaintext);
+            }
+        }
+
+        // The backup must have exactly the database changes (migrations) today's database has.
+        private async Task<bool> HasTodaysVersionAsync(string dumpPath, string outputPath, CancellationToken cancellationToken)
+        {
+            await RunPostgresToolAsync("pg_restore",
+                ["--data-only", "--table=__EFMigrationsHistory", "--file", outputPath, dumpPath], cancellationToken);
+            var inBackup = (await File.ReadAllLinesAsync(outputPath, cancellationToken))
+                .SkipWhile(line => !line.StartsWith("COPY ", StringComparison.Ordinal)).Skip(1)
+                .TakeWhile(line => line != "\\.")
+                .Select(line => line.Split('\t')[0]).ToHashSet();
+            File.Delete(outputPath);
+            return inBackup.SetEquals(await _repository.GetAppliedMigrationsAsync(cancellationToken));
+        }
+
+        private async Task<BackupResponse> MakeSafetyBackupAsync(CancellationToken cancellationToken, CancellationToken connectionLost)
+        {
+            try
+            {
+                var attempt = (await StartAttemptAsync(BackupType.BeforeRestore, cancellationToken))!.Value;
+                return await ExecuteBackupAsync(attempt.Backup, null, attempt.ScheduleUpdatedAt, cancellationToken, connectionLost);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning("The safety backup before a restore failed ({ExceptionType}).", ex.GetType().Name);
+                throw new RestoreFailure(SafetyMessage);
+            }
+        }
+
+        // Replaces everything except the kept tables, and signs everyone out, in one transaction:
+        // if anything fails, PostgreSQL undoes all of it and today's data stays as it was.
+        private async Task LoadBackupAsync(string dumpPath, string listPath, string scriptPath, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await RunPostgresToolAsync("pg_restore", ["--list", "--file", listPath, dumpPath], cancellationToken);
+                var kept = await _repository.GetRestoreKeptNamesAsync(cancellationToken);
+                await File.WriteAllLinesAsync(listPath,
+                    RestoreListWithout(await File.ReadAllLinesAsync(listPath, cancellationToken), kept), cancellationToken);
+                await RunPostgresToolAsync("pg_restore", ["--clean", "--if-exists", "--no-owner", "--no-privileges",
+                    "--use-list", listPath, "--file", scriptPath, dumpPath], cancellationToken);
+                await File.AppendAllTextAsync(scriptPath, Environment.NewLine + _repository.SignOutEveryoneSql, cancellationToken);
+                await RunPostgresToolAsync("psql", ["--no-psqlrc", "--quiet", "--single-transaction",
+                    "--set", "ON_ERROR_STOP=1", "--file", scriptPath], cancellationToken);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning("A backup could not be loaded ({ExceptionType}).", ex.GetType().Name);
+                throw new RestoreFailure(LoadMessage);
+            }
+        }
+
+        // Drops every entry of the backup's contents list that belongs to a kept table: the table, its data,
+        // constraints, indexes and sequences. Entry lines read "id; oid oid TYPE schema name [name] owner".
+        public static List<string> RestoreListWithout(IEnumerable<string> list, IReadOnlySet<string> kept)
+            => list.Where(line =>
+            {
+                if (line.StartsWith(';')) return true;
+                var words = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var schema = Array.IndexOf(words, "public", Math.Min(3, words.Length));
+                return schema < 0 || schema + 1 >= words.Length || !kept.Contains(words[schema + 1]);
+            }).ToList();
+
+        private static IEnumerable<(RestoreCount Records, int Value)> Counts(RestoreRecordCounts counts) =>
+        [
+            (RestoreCount.Tickets, counts.Tickets), (RestoreCount.Businesses, counts.Businesses),
+            (RestoreCount.People, counts.People), (RestoreCount.Accounts, counts.Accounts)
+        ];
+
+        private void SetStep(RestoreStep step, RestoreStepState state)
+            => _restore.Update(restore => restore.Steps.Single(s => s.Step == step).State = state);
+
+        private void Finish(RestoreState state, string message) => _restore.Update(restore =>
+        {
+            restore.State = state;
+            restore.Message = message;
+            restore.FinishedAt = DateTime.UtcNow;
+        });
+
+        // Runs outside a request, so the Head Admin who started the restore is named explicitly.
+        private Task RecordRestoreAuditAsync(int backupId, int adminId, LogResult result, string details)
+            => _auditService.RecordAsync(new AuditLog
+            {
+                UserId = adminId, Role = Role.HeadAdmin, Action = "RestoreBackup", Module = Module.Backups,
+                TargetId = backupId.ToString(CultureInfo.InvariantCulture), Result = result, Details = details
+            });
 
         private static BackupResponse ToResponse(Backup backup)
         {
