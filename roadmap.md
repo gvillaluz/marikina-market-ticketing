@@ -26,14 +26,14 @@ This roadmap organizes work; it does not authorize implementation. Preserve exis
 
 ## Status
 
-| Phase | Status |
-| --- | --- |
-| **Revision Phase** | **First priority.** Rules → registry → ticket/verification (✅ closed 2026-11-11) → faster entry/warnings (✅ faster entry closed 2026-11-10) → settlement → web/reporting; separate slice approvals |
-| ✅ 0 Baseline | Closed with documented limits (2026-10-15) |
-| 1 Core enforcement and settlement lifecycle | ⏸ Waiting for Revision Phase; verify revised complete stories |
-| 2 Enforcer mobile experience | ⏸ Waiting for Revision Phase; verify revised device workflow |
-| 3 Administration and reporting | Historical closure retained; affected checks resume after Revision Phase |
-| 4 Operational readiness | Open; final revised-system readiness follows revision and lifecycle verification |
+| Phase                                       | Status                                                                                                                                                                                               |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Revision Phase**                          | **First priority.** Rules → registry → ticket/verification (✅ closed 2026-11-11) → faster entry/warnings (✅ faster entry closed 2026-11-10) → settlement → web/reporting; separate slice approvals |
+| ✅ 0 Baseline                               | Closed with documented limits (2026-10-15)                                                                                                                                                           |
+| 1 Core enforcement and settlement lifecycle | ⏸ Waiting for Revision Phase; verify revised complete stories                                                                                                                                        |
+| 2 Enforcer mobile experience                | ⏸ Waiting for Revision Phase; verify revised device workflow                                                                                                                                         |
+| 3 Administration and reporting              | Historical closure retained; affected checks resume after Revision Phase                                                                                                                             |
+| 4 Operational readiness                     | Open; final revised-system readiness follows revision and lifecycle verification                                                                                                                     |
 
 Previous Phase 1/2 verification was incomplete. Superseded requirements are removed, not marked passed. Historical evidence remains valid only for the original behavior and stated limits.
 
@@ -52,6 +52,7 @@ Exit: each approved slice passes its automated and live acceptance checks, unres
 Goal: Enter → Automatic check → Review/edit → Verify → Submit. The enforcer fills in the app, then copies to the paper ticket.
 
 Exit criteria:
+
 - ✅ OCR and handwritten business-name scanning dropped 2026-11-04 (not passed). Notes: [docs/closed-work/README.md](docs/closed-work/README.md).
 - ✅ Faster entry (replaces OCR), closed 2026-11-10: find a business by name, stall, owner, address or account number; place filled from the business record; a "copy to paper" summary card on the entry page, before the review page with Verify (A2b). The suggested next control number was dropped by user decision on 2026-11-06, and the timing test on 2026-11-10. Every business comes from office records; enforcers do not create them. Detailed criteria are in the [slice A plan](docs/closed-work/faster-entry/ticket-flow-slice-a-plan.md).
 - ✅ Automatic checks flag missing fields/duplicates and suggest business and individual vendor matches for confirmation. Retrieve account number/owner from the selected business, not from guessed ticket text. Unresolved identity requires manual confirmation/search, not automatic record creation. Closed 2026-11-10 (no app change; tests and live check on Android; iPhone not tested). Notes: [docs/closed-work/scanning/automatic-checks.md](docs/closed-work/scanning/automatic-checks.md).
@@ -70,6 +71,7 @@ Unsubmitted drafts are review state, not settlement status. Durable drafts/offli
 Goal: verify revised registration-independent enforcement-to-settlement stories.
 
 Exit criteria:
+
 - ✅ Enforcer login, confirmed business/person lookup, citation/warning recording and evidence retrieval pass against the real disposable API and affected clients. Closed 2026-11-17. Notes: [docs/closed-work/phases/phase-1-revised-verification.md](docs/closed-work/phases/phase-1-revised-verification.md)
 - ✅ Offense/fine rules, duplicate protection, authorization, persistence and retry behavior pass with independent expected results. Closed 2026-11-17. Notes: [docs/closed-work/phases/phase-1-revised-verification.md](docs/closed-work/phases/phase-1-revised-verification.md)
 - ✅ Authorized staff complete cash-fine, blood-donation and community-service settlement without mandatory vendor app use; status/history agree across clients. Closed 2026-11-17. Notes: [docs/closed-work/phases/phase-1-revised-verification.md](docs/closed-work/phases/phase-1-revised-verification.md)
@@ -81,6 +83,7 @@ Historical evidence is listed in [docs/closed-work/README.md](docs/closed-work/R
 Goal: verify the revised mobile workflow on the target device.
 
 Exit criteria:
+
 - ✅ Entry, automatic checks, identity selection, editable review, Verify and Submit work on-device; edits disable submission until re-verified. Progress: faster entry A1–B2 entry steps (search, identity selection, copy card, scanner, unregistered entry) checked live on Android V2529; Verify and Submit for an unregistered vendor not checked live; iPhone not tested. Closed 2026-11-17. Notes: [docs/closed-work/phases/phase-2-revised-verification.md](docs/closed-work/phases/phase-2-revised-verification.md)
 - ✅ Provisional/final calculations, unreadable images, cancellation, permissions, duplicate/concurrent attempts and failed submission/retry behave as specified in the Revision Phase. Closed 2026-11-17. Notes: [docs/closed-work/phases/phase-2-revised-verification.md](docs/closed-work/phases/phase-2-revised-verification.md)
 - ✅ Retained enforcer navigation/profile/notifications and narrow/enlarged-text layouts pass affected checks; verify real delivery separately when retained behavior requires it. Closed 2026-11-17 by user decision, with accepted limits. Notes: [docs/closed-work/phases/phase-2-revised-verification.md](docs/closed-work/phases/phase-2-revised-verification.md)
@@ -90,11 +93,11 @@ Exit criteria:
 Previously closed with documented limits (2026-10-24). Details: [docs/closed-work/README.md](docs/closed-work/README.md).
 
 Exit criteria for revised areas:
+
 - ✅ Staff business/person management and access match approved permissions without mandatory vendor registration. Progress: web and reporting slice 2 done (2026-11-07); Admin Officer not checked live; the website's vendor sign-up leftovers were removed (2026-11-11, PR #22). Closed 2026-11-17. Notes: [docs/closed-work/phases/phase-3-revised-criteria.md](docs/closed-work/phases/phase-3-revised-criteria.md)
 - ✅ Ticket tables show business name, registered owner and violator distinctly, plus reference, section, enforcer, date and status. Detail shows scan, evidence and change history; search supports agreed identifiers. Progress: tables done (step 7 slice 1); detail scan, evidence and change history done (step 7 slice 2, 2026-11-07); control number search done (Control number Part 2); unregistered-vendor label shown in the tables, ticket page and person history (faster entry B1, 2026-11-09, checked live on the website); any further agreed search identifiers still to be confirmed. Closed 2026-11-17; no further identifiers were agreed. Notes: [docs/closed-work/phases/phase-3-revised-criteria.md](docs/closed-work/phases/phase-3-revised-criteria.md)
 - ✅ Dashboard, reports/exports and mobile summaries use confirmed submitted records once, distinguish warnings/citations and reconcile with independent expected totals. Unsubmitted drafts do not contribute. Closed 2026-11-11 by user decision (step 7 slices 3a to 3d; Admin Officer and the real phone not checked live). Progress: dashboard counters done (step 7 slice 3a, 2026-11-11, live check on the website; Admin Officer not checked live); reports page and downloads checked against hand-worked totals (step 7 slice 3b, 2026-11-11, live check on the website; Admin Officer not checked live); analytics charts checked against hand-worked totals and now show warnings and tickets apart (step 7 slice 3c, 2026-11-11, live check on the website; Admin Officer not checked live); the enforcer's weekly phone summary checked against hand-worked totals and now uses the Manila calendar week (step 7 slice 3d, 2026-11-11, server test and live check against the server; not checked on a real phone).
 - ✅ Recommended actions show period, section, category and supporting counts, use confirmed data and require administrator review; recorded-ticket counts do not establish inspection-adjusted rates. Closed 2026-11-13 by user decision (step 4, administrator review, PR #49). Progress: Mark as reviewed and Dismiss, audit log entries and reviews carried over per run checked live (22 of 22) and by server and website tests; Admin Officer not checked live. Notes: [docs/closed-work/recommended-actions/step-4-administrator-review.md](docs/closed-work/recommended-actions/step-4-administrator-review.md)
-
 
 Revalidate only affected functionality; original closure does not prove changed behavior.
 
@@ -103,12 +106,13 @@ Revalidate only affected functionality; original closure does not prove changed 
 Goal: prove operation and recovery of the revised system.
 
 Exit criteria:
+
 - ✅ Backup scheduling/retry/encrypted download/retention and local multi-instance coordination passed within recorded limits. Recheck compatibility after schema/storage changes.
 - ✅ 2026-11-17 User-operated restore drill and required external-service outage/restart stories pass in a disposable environment; automated restore alone is insufficient. Closed with accepted limits: see [restore drill](docs/closed-work/phases/phase-4-restore-drill.md) and [outage and restart stories](docs/closed-work/phases/phase-4-outage-and-restart-stories.md).
 - ✅ 2026-11-18 API build/tests, web build/Node tests and mobile format/analyze/tests pass for affected work; target-device/browser E2E verifies identity, offense rules, edits/re-verification, duplicates/concurrency, persistence, permissions, retry and settlement. Closed with accepted limits; two problems found were fixed: see [system checks and live run](docs/closed-work/phases/phase-4-system-checks.md).
 - ✅ 2026-11-20 Setup/recovery instructions and beneficiary evaluation establish recording/retrieval time and practical usefulness. Closed with accepted limits: instructions written and followed to update the demo; usefulness from the System Evaluation form (29 answers, overall 4.79); recording/retrieval times not measured. See [setup, recovery and evaluation](docs/closed-work/phases/phase-4-setup-and-evaluation.md).
 - ✅ 2026-11-20 Docker hosting: the server package with `pg_dump` and the daily recommended-actions job on Azure. Closed: the demo runs the server package and its Backups page works; the daily job ran by its own schedule. See [Docker hosting](docs/closed-work/phases/phase-4-docker-hosting.md).
-- ☐ Restore from the website (Head Admin), 4 steps: 1 server, 2 website, 3 upload a backup file, 4 phone pause message. Approved 2026-11-25; one step at a time.
+- ✅ 2026-11-26 Restore from the website (Head Admin), 4 steps: 1 server, 2 website, 3 upload a backup file, 4 phone pause message. Closed with accepted limits: all steps merged (#150, #152, #153, #155, #154, plus fix #156); phone pause message not checked live.
 
 Use commands in `feature-workflow.md`. Each gate names exact files/styles, contracts/errors, schema prerequisites, test expectations and time limit. Documentation-only edits require content/diff validation, not application builds.
 
