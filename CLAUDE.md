@@ -10,13 +10,13 @@ If a layer file and this file conflict, the layer file wins for its own layer. L
 - React repository: `marikina-market-web`.
 - Flutter repository: `marikina-market-mobile`.
 - This is one Git repository with three application directories. Preserve each application's existing architecture, dependencies, and deployment boundaries. Do not initialize nested Git repositories.
-- Read this file, `roadmap.md`, `feature-workflow.md`, and each affected repository's `CLAUDE.md` before working.
+- Read this file, `feature-workflow.md`, and each affected repository's `CLAUDE.md` before working.
 - When starting inside a repository, explicitly read the workspace rules. Do not assume parent workspace instructions were loaded.
 - Claude Code automatically loads applicable parent and nested `CLAUDE.md` instructions according to its instruction-loading behavior. Still verify that the required workspace and layer instructions have been considered before working.
 
 ## Scope and Approval
 
-- Build only what is in the current phase. If a request is outside it, stop and ask.
+- Build only what I approved for the current task. If a request is outside it, stop and ask.
 - Follow `feature-workflow.md` for every feature. It defines the required Plan → Cut Scope → Gate → Build → End-to-end Verify process.- Give a plan and wait for my approval before coding a feature. Skip the plan only for trivial single-file edits.
 - Stay inside the files and areas I name. If something outside needs changing, stop and ask.
 - Unrelated bugs: list them at the end; do not fix them.
@@ -24,7 +24,6 @@ If a layer file and this file conflict, the layer file wins for its own layer. L
 - Write the simplest code that meets the approved acceptance criteria. Do not add speculative abstractions, configuration, flags, or generalization for unapproved requirements. Follow existing patterns before introducing new ones.
 - Approval applies to the named slice, repositories, files/areas, and acceptance criteria. Reopen the gate for material scope changes; do not request approval again for unchanged scope.
 - Preserve all existing uncommitted work. Never overwrite, reset, discard, or clean up someone else's changes.
-- Phase 0 is incremental: identify and report missing or unconfirmed prerequisites first, then propose one small task at a time. Do not attempt to establish the entire E2E environment at once.
 
 ## Keep Backend and Clients in Sync
 
@@ -45,6 +44,7 @@ If a layer file and this file conflict, the layer file wins for its own layer. L
 - Do not store sensitive data in the apps or in logs.
 - E2E verification uses an explicitly identified disposable local database, never production or the real operational database.
 - The user provisions or updates the disposable database schema separately. Agents must never execute migrations.
+- Use only the explicitly confirmed user-provisioned disposable `marikina_market_e2e` database; never run migrations or touch operational data. Prior 35-migration/four-role setup is historical, not a current schema guarantee. Recheck prerequisites per slice and reuse valid evidence without repeating unrelated checks. Details: `evidence/local-e2e-database/`.
 - Use sanitized captured data or realistic fixtures. Do not copy sensitive real records into source code, test artifacts, or logs.
 
 ## Dependencies and Secrets
@@ -93,8 +93,7 @@ If a layer file and this file conflict, the layer file wins for its own layer. L
 - Mark a feature slice complete only when its approved acceptance criteria and required verification pass.
 - Otherwise, report it as implemented/unverified or blocked, with the remaining steps.
 - Record pre-existing failures separately from failures introduced by the task.
-- Propose roadmap completion or advancement only with evidence.
-- Wait for my approval before starting the next slice or phase.
+- Wait for my approval before starting the next task.
 
 ## Learned Rules
 
@@ -119,7 +118,7 @@ When I correct you or reject your approach:
 
 3. [WORKFLOW] Always create a worktree beside the project, set up only the packages that slice needs, and ask before each install or secret copy, because a new worktree has no installed packages or git-ignored files, the main folder must stay clean, and the user approves installs per task. Steps for creating and cleaning up are in `docs/worktrees.md`.
 
-4. [DOCS] Always keep `roadmap.md` a short checklist (✅ closed with date, ☐ open, ⏸ waiting or decision for later, one line per task) and put notes, evidence and limits for each task in its own file inside a topic folder under `docs/closed-work/`, listed in `docs/closed-work/README.md`, because the long roadmap was too hard to read and closed-task notes are documents, not roadmap items. Move notes word for word; never reword them.
+4. [DOCS] Always put notes, evidence and limits for closed work in `docs/closed-work/` and keep parked or deferred work in `backlog.md`, because the roadmap was retired on 2026-11-26.
 
 5. [WORKFLOW] Always explain a step in plain language, then propose its plan and wait for my approval before starting it, including steps that only install or run something and change no code, because the user must understand each step before deciding, and "before coding a feature" did not clearly cover those steps.
 
