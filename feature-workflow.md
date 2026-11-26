@@ -6,16 +6,15 @@ Use the build, test, and format commands listed in the `AGENTS.md` of each repo 
 
 ## 1. Plan
 
-- Re-read this file, the product `AGENTS.md`, `roadmap.md`, and all applicable workspace and repository instructions when beginning each task or resuming in a new session.
+- Re-read this file, the product `AGENTS.md`, and all applicable workspace and repository instructions when beginning each task or resuming in a new session.
 - Name the repos affected: `marikina-market-api`, `marikina-market-web`, `marikina-market-mobile`, or a combination.
 - State whether the API contract changes. If it does, the backend goes first.
 - For each web or mobile repo, list the style files that will change.
-- If the feature is outside the current phase, stop and ask.
+- If the feature is outside what I approved, stop and ask.
 - Give a short plan: scope, files per repo, any API contract change, approach, and open questions.
 - Wait for my OK before coding.
 - Inspect actual execution paths, tests, documentation, and the existing working-tree changes. Distinguish known behavior from assumptions and missing evidence.
 - State the user story, acceptance criteria, independently derived expected outcomes, schema prerequisites, risks, and verification commands.
-- During Phase 0, first report missing or unconfirmed prerequisites. Treat each Phase 0 task as a separate plan-approve-execute cycle. Propose one small follow-up task for approval; do not provision an entire environment or silently resolve every prerequisite.
 
 ## 2. Cut Scope
 
@@ -78,7 +77,6 @@ Use the build, test, and format commands listed in the `AGENTS.md` of each repo 
 - Summarize changes per file.
 - List the manual steps I should test.
 - List unrelated bugs without fixing them.
-- If this completes the current phase, tell me and propose a roadmap update.
 - Stop. Don't start the next slice until I approve.
 - Include verification commands/results, limitations, remaining checks, API contract and schema prerequisites when relevant. Report implemented/unverified or blocked when required evidence is outstanding.
 

@@ -67,6 +67,7 @@ One file per task, grouped by topic. These are the notes that used to sit in `ro
 - [Phase 4 system checks and live run (line 3)](phases/phase-4-system-checks.md) — closed 2026-11-18 with accepted limits; two problems found were fixed; the roadmap criterion ticked
 - [Phase 4 setup, recovery and deployment instructions and beneficiary evaluation (line 4)](phases/phase-4-setup-and-evaluation.md) — closed 2026-11-20 with accepted limits (times not measured)
 - [Phase 4 Docker hosting](phases/phase-4-docker-hosting.md) — closed 2026-11-20; server package with pg_dump and the daily recommendations job on Azure
+- [Final roadmap](phases/final-roadmap.md) — retired 2026-11-26, word for word; all phases finished; parked and deferred work moved to `backlog.md`
 
 ## resolved-backlog
 - [Analytics severity-count mismatch](resolved-backlog/analytics-severity-count-mismatch.md) — 2026-11-03
