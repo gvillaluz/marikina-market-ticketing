@@ -7,19 +7,18 @@ These rules cover the whole system. Layer details live in `marikina-market-api/A
 - API repository: `marikina-market-api`; application: `MarikinaMarket.API`; tests: `MarikinaMarket.Tests`.
 - React repository: `marikina-market-web`. Flutter repository: `marikina-market-mobile`.
 - This is one Git repository with three application directories. Preserve each application's existing architecture, dependencies and deployment boundaries. Do not initialize nested Git repositories.
-- Read this file, `feature-workflow.md`, and each affected repository's `AGENTS.md` before working.
+- Read this file and each affected repository's `AGENTS.md` before working.
 - When starting inside a repository, explicitly read the workspace rules; do not assume the parent workspace instructions were loaded.
 
 ## Scope and approval
 
 - Build only what I approved for the current task. If a request is outside it, stop and ask.
-- Follow `feature-workflow.md` for every feature.
 - Give a plan and wait for my approval before coding a feature. Skip the plan only for trivial single-file edits.
 - Stay inside the files and areas I name. If something outside needs changing, stop and ask.
 - Unrelated bugs: list them at the end, don't fix them.
 - Don't refactor, clean up, or add features beyond the request.
 - Write the simplest code that meets the approved acceptance criteria; do not add speculative abstractions, configuration, flags, or generalization for unapproved requirements; follow existing patterns before introducing new ones.
-- Use Plan → Cut Scope → Gate → Build → End-to-end Verify. Present the final reduced plan and wait for approval before implementation.
+- Before asking for approval, explain the acceptance criteria and the tests in plain language, including what each test proves. I approve only when I can explain them myself.
 - Approval applies to the named slice, repositories, files/areas, and acceptance criteria. Reopen the gate for material scope changes; do not re-request unchanged approval.
 - Preserve all existing uncommitted work. Never overwrite, reset, discard, or clean up someone else's changes.
 
@@ -67,6 +66,18 @@ These rules cover the whole system. Layer details live in `marikina-market-api/A
 - Mark a feature slice complete only when its approved acceptance criteria and required verification pass. Otherwise report implemented/unverified or blocked, with the remaining steps.
 - Record pre-existing failures separately from failures introduced by the task.
 - Wait for approval before starting the next task.
+
+## Tests and Checks
+
+- A test that has never failed proves nothing. If a test still passes after I break the code on purpose, rewrite or delete it.
+- Use captured or realistic data, not arbitrary fixtures, when possible. Sanitize captured local data before use; never copy sensitive real records into source, artifacts, or logs. Use realistic synthetic fixtures when safe captures are unavailable.
+- Mock only at the outer boundary, such as external services. Don't mock the code under test.
+- Hand-derive every expected value. Don't copy the output into the expected value.
+- Don't weaken or delete a test just to make it pass.
+- Each application's build and test commands are in its own `AGENTS.md`.
+- Use existing installed dependencies. If restore/install or a missing SDK is required, report it and propose a small approved prerequisite task. Do not install packages automatically.
+- Workflow/documentation-only changes use file/content validation; application builds and live E2E are not applicable when application behavior is unchanged.
+- For live end-to-end checks, use the `live-check` skill.
 
 ## Learned rules
 

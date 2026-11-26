@@ -10,14 +10,15 @@ If a layer file and this file conflict, the layer file wins for its own layer. L
 - React repository: `marikina-market-web`.
 - Flutter repository: `marikina-market-mobile`.
 - This is one Git repository with three application directories. Preserve each application's existing architecture, dependencies, and deployment boundaries. Do not initialize nested Git repositories.
-- Read this file, `feature-workflow.md`, and each affected repository's `CLAUDE.md` before working.
+- Read this file and each affected repository's `CLAUDE.md` before working.
 - When starting inside a repository, explicitly read the workspace rules. Do not assume parent workspace instructions were loaded.
 - Claude Code automatically loads applicable parent and nested `CLAUDE.md` instructions according to its instruction-loading behavior. Still verify that the required workspace and layer instructions have been considered before working.
 
 ## Scope and Approval
 
 - Build only what I approved for the current task. If a request is outside it, stop and ask.
-- Follow `feature-workflow.md` for every feature. It defines the required Plan → Cut Scope → Gate → Build → End-to-end Verify process.- Give a plan and wait for my approval before coding a feature. Skip the plan only for trivial single-file edits.
+- Give a plan and wait for my approval before coding a feature. Skip the plan only for trivial single-file edits.
+- Before asking for approval, explain the acceptance criteria and the tests in plain language, including what each test proves. I approve only when I can explain them myself.
 - Stay inside the files and areas I name. If something outside needs changing, stop and ask.
 - Unrelated bugs: list them at the end; do not fix them.
 - Do not refactor, clean up, or add features beyond the request.
@@ -94,6 +95,18 @@ If a layer file and this file conflict, the layer file wins for its own layer. L
 - Otherwise, report it as implemented/unverified or blocked, with the remaining steps.
 - Record pre-existing failures separately from failures introduced by the task.
 - Wait for my approval before starting the next task.
+
+## Tests and Checks
+
+- A test that has never failed proves nothing. If a test still passes after I break the code on purpose, rewrite or delete it.
+- Use captured or realistic data, not arbitrary fixtures, when possible. Sanitize captured local data before use; never copy sensitive real records into source, artifacts, or logs. Use realistic synthetic fixtures when safe captures are unavailable.
+- Mock only at the outer boundary, such as external services. Don't mock the code under test.
+- Hand-derive every expected value. Don't copy the output into the expected value.
+- Don't weaken or delete a test just to make it pass.
+- Each application's build and test commands are in its own `CLAUDE.md`.
+- Use existing installed dependencies. If restore/install or a missing SDK is required, report it and propose a small approved prerequisite task. Do not install packages automatically.
+- Workflow/documentation-only changes use file/content validation; application builds and live E2E are not applicable when application behavior is unchanged.
+- For live end-to-end checks, use the `live-check` skill.
 
 ## Learned Rules
 

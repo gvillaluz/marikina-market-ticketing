@@ -69,6 +69,9 @@ One file per task, grouped by topic. These are the notes that used to sit in `ro
 - [Phase 4 Docker hosting](phases/phase-4-docker-hosting.md) — closed 2026-11-20; server package with pg_dump and the daily recommendations job on Azure
 - [Final roadmap](phases/final-roadmap.md) — retired 2026-11-26, word for word; all phases finished; parked and deferred work moved to `backlog.md`
 
+## workflow
+- [Feature workflow](workflow/feature-workflow.md) — retired 2026-11-26, word for word; replaced by skills (Matt Pocock skills, Ponytail, the project `live-check` skill); test rules and commands moved to `CLAUDE.md` and each app's `CLAUDE.md`
+
 ## resolved-backlog
 - [Analytics severity-count mismatch](resolved-backlog/analytics-severity-count-mismatch.md) — 2026-11-03
 - [Configuration page stat cards](resolved-backlog/configuration-page-stat-cards.md) — 2026-11-03
