@@ -2,8 +2,7 @@
 
 ## Workflow
 
-- Before any feature work, read `../feature-workflow.md` and follow it.
-- Commands for this repo: format `dart format` on changed files, analyze `flutter analyze`, tests `flutter test`.
+- Commands for this repo, from `marikina-market-mobile`: `dart format` on changed files, `flutter analyze --no-pub`, and `flutter test --no-pub`. Build the approved device target when required by the slice.
 - Don't add a package, state management library, or navigation library without asking first.
 - Run the app with `flutter run` only when I ask or when a visual check is needed. Stop it afterward. Never leave background processes running.
 

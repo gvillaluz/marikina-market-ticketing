@@ -8,7 +8,7 @@ One product repository containing independently built applications:
 | marikina-market-web | React and TypeScript web application |
 | marikina-market-mobile | Flutter mobile application |
 
-Read AGENTS.md, feature-workflow.md and the affected application's AGENTS.md before changing code. Deferred mobile work is in deferred-enforcer-slices.md.
+Read AGENTS.md and the affected application's AGENTS.md before changing code. Deferred mobile work is in deferred-enforcer-slices.md.
 
 Start with the [environment setup guide](environment-setup.md) for prerequisites, PostgreSQL, ASP.NET Core User Secrets, Firebase, SMTP, B2 storage, backups, and web/mobile local configuration. The [verification report](docs/environment-verification.md) distinguishes automated checks from services that still need manual setup. The [deployment guide](deployment-guide.md) is the step-by-step for updating the demo on Azure (database, server, website, phone app, daily recommendations). The [recovery guide](recovery-guide.md) covers restoring from a backup and what to do when a service is down.
 

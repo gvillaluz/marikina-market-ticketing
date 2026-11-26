@@ -2,8 +2,7 @@
 
 ## Workflow
 
-- Before any feature work, read `../feature-workflow.md` and follow it.
-- Commands for this repo: build `dotnet build`, tests `dotnet test`.
+- Commands for this repo, from `marikina-market-api`: `dotnet build MarikinaMarket.slnx --no-restore`, then `dotnet test MarikinaMarket.slnx --no-restore`.
 - Never run migrations or touch the real database. Describe schema changes instead.
 
 ## Architecture

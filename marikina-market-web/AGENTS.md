@@ -2,8 +2,7 @@
 
 ## Workflow
 
-- Before any feature work, read `../feature-workflow.md` and follow it.
-- Commands for this repo: build `npm run build`, tests `[add the test command once a runner exists]`.
+- Commands for this repo, from `marikina-market-web`: `npm run build`, and all existing `src/**/*.test.mjs` files through Node's built-in `node --test` runner. There is no `npm test` script. In PowerShell, enumerate the files with `rg --files src -g '*.test.mjs'` into an array and pass that array to `node --test`.
 - Dev server: `npm run dev`. Start it only when I ask or when a visual check is needed, and stop it afterward. Never leave background processes running.
 
 ## Architecture
