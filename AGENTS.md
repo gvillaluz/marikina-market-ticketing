@@ -79,6 +79,20 @@ These rules cover the whole system. Layer details live in `marikina-market-api/A
 - Workflow/documentation-only changes use file/content validation; application builds and live E2E are not applicable when application behavior is unchanged.
 - For live end-to-end checks, use the `live-check` skill.
 
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues in gvillaluz/marikina-market-ticketing (public repo: no secrets or personal data in issues). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default labels: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root, created only when needed. See `docs/agents/domain.md`.
+
 ## Learned rules
 
 When I correct you or reject your approach, fix it first, then propose

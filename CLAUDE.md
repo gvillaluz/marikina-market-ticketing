@@ -138,3 +138,17 @@ When I correct you or reject your approach:
 6. [ACCURACY] Always check the code before describing a risk or giving an example of something going wrong, because an unchecked example can push the user toward a decision built on a problem that does not exist.
 
 7. [DESIGN] Always use both installed design skills when planning, building or reviewing any change to how a screen looks or works — ui-ux-pro-max for usability, readability and accessibility, and impeccable for visual quality and removing generic AI-looking design — because matching the existing screens is not enough on its own and the user expects design best practice checked.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues in gvillaluz/marikina-market-ticketing (public repo: no secrets or personal data in issues). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default labels: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root, created only when needed. See `docs/agents/domain.md`.
