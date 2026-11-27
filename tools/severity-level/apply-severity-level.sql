@@ -63,7 +63,7 @@ END $$;
 DO $$
 BEGIN
     IF to_regclass('"__EFMigrationsHistory"') IS NOT NULL THEN
-        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion") VALUES ('20261128090000_SeverityLevel', '10.0.9');
+        INSERT INTO "__EFMigrationsHistory" (migration_id, product_version) VALUES ('20261128090000_SeverityLevel', '10.0.9');
     END IF;
 END $$;
 
