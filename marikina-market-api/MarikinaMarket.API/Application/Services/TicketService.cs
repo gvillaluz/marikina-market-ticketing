@@ -412,6 +412,7 @@ namespace MarikinaMarket.API.Application.Services
                     OffenseNumber = offenseNumber,
                     PaymentAmount = fineKind == FineKind.Fixed ? applicableTier?.PenaltyAmount : null,
                     Severity = ordinance.Severity,
+                    SeverityLevel = applicableTier?.SeverityLevel,
                     FineKind = fineKind,
                     MinimumFine = fineKind == FineKind.UpTo ? 100m : null,
                     MaximumFine = applicableTier?.MaximumFine,
@@ -429,6 +430,7 @@ namespace MarikinaMarket.API.Application.Services
                 TotalPaymentAmount = items.All(item => item.PaymentAmount.HasValue && item.Severity.HasValue)
                     ? items.Where(item => item.IsDuplicate != true).Sum(item => item.PaymentAmount!.Value) : null,
                 HighestSeverity = items.All(item => item.Severity.HasValue) ? items.Max(item => item.Severity) : null,
+                SeverityLevel = items.All(item => item.SeverityLevel.HasValue) ? items.Max(item => item.SeverityLevel) : null,
                 AllowBloodDonation = items.Count > 0 && items.All(item => item.AllowBloodDonation),
                 AllowCommunityService = items.Count > 0 && items.All(item => item.AllowCommunityService),
                 Breakdown = items
@@ -751,6 +753,7 @@ namespace MarikinaMarket.API.Application.Services
                     Description = request.Description,
                     TotalPaymentAmount = isCashFine ? ordinanceFineSummary.TotalPaymentAmount : null,
                     HighestSeverity = ordinanceFineSummary.HighestSeverity,
+                    SeverityLevel = ordinanceFineSummary.SeverityLevel,
                     PenaltyType = request.PenaltyType,
                     CommunityServiceHours = request.CommunityServiceHours,
                     ProofUrls = [],
@@ -845,6 +848,7 @@ namespace MarikinaMarket.API.Application.Services
                     EnforcerId = newTicket.EnforcerId,
                     Type = newTicket.Type,
                     Severity = newTicket.HighestSeverity,
+                    SeverityLevel = newTicket.SeverityLevel,
                     OrdinanceNames = ordinanceWithTiers.Select(o => $"Ord No. {o.OrdinanceNo}, Series of {o.Series}").ToList(),
                     Status = newTicket.Status,
                     IssuedAt = newTicket.IssuedAt,
@@ -989,6 +993,7 @@ namespace MarikinaMarket.API.Application.Services
                 Type = t.Type,
                 Status = t.Status,
                 Severity = t.Severity,
+                SeverityLevel = t.SeverityLevel,
                 OrdinanceNames = t.Ordinances,
                 IssuedAt = t.IssuedAt,
                 OverdueDate = t.Type == ViolationType.Ticket
@@ -1609,6 +1614,7 @@ namespace MarikinaMarket.API.Application.Services
                 MarketSectionName = t.MarketSectionName,
                 Status = t.Status,
                 Severity = t.Severity,
+                SeverityLevel = t.SeverityLevel,
                 PenaltyType = t.PenaltyType,
                 IssuedAt = t.IssuedAt
             }).ToList();

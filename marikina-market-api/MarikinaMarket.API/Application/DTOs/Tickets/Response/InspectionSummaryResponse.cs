@@ -27,6 +27,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
         public required ViolationType Type { get; init; }
         public required TicketStatus? Status { get; init; }
         public Severity? Severity { get; init; }
+        public int? SeverityLevel { get; init; }
         public required List<string> OrdinanceNames { get; init; } = [];
         public required DateTime IssuedAt { get; init; }
         public DateTime? OverdueDate { get; init; }

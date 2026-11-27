@@ -10,6 +10,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Internal
         public string? SpecificCategory { get; set; }
         public decimal? PaymentAmount { get; set; }
         public Severity? Severity { get; set; }
+        public int? SeverityLevel { get; set; }
         public FineKind FineKind { get; set; }
         public decimal? MinimumFine { get; set; }
         public decimal? MaximumFine { get; set; }
