@@ -240,6 +240,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     Categories = t.Categories.ToList(),
                     Description = t.Description,
                     Severity = t.HighestSeverity ?? null,
+                    SeverityLevel = t.SeverityLevel,
                     PenaltyType = t.PenaltyType ?? null,
                     Status = t.Status,
                     DueDate = t.Type == ViolationType.Ticket
@@ -547,6 +548,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     Type = t.Type,
                     Status = t.Status,
                     Severity = t.HighestSeverity,
+                    SeverityLevel = t.SeverityLevel,
                     Ordinances = t.TicketViolations.OrderBy(tv => tv.Id)
                         .Select(tv => "Ord No. " + tv.Ordinance!.OrdinanceNo + ", Series of " + tv.Ordinance.Series).ToList(),
                     IssuedAt = t.IssuedAt,
@@ -794,6 +796,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     MarketSectionName = t.MarketSection!.Name,
                     Status = t.Status ?? TicketStatus.Pending,
                     Severity = t.HighestSeverity ?? Severity.Minor,
+                    SeverityLevel = t.SeverityLevel,
                     PenaltyType = t.PenaltyType ?? PenaltyType.CashFine,
                     IssuedAt = t.IssuedAt,
                     Version = t.Version,
@@ -887,6 +890,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     Categories = t.Categories.ToList(),
                     Description = t.Description,
                     Severity = t.HighestSeverity ?? null,
+                    SeverityLevel = t.SeverityLevel,
                     PenaltyType = t.PenaltyType ?? null,
                     DueDate = t.Type == ViolationType.Ticket
                         ? t.IssuedAt.AddDays(5) : null,
@@ -1183,6 +1187,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     Type = t.Type,
                     Status = t.Status,
                     Severity = t.HighestSeverity,
+                    SeverityLevel = t.SeverityLevel,
                     Ordinances = t.TicketViolations.Select(tv => tv.Ordinance!.OrdinanceNo).ToList(),
                     IssuedAt = t.IssuedAt,
                     UpdatedAt = t.UpdatedAt

@@ -36,7 +36,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                             OffenseNumber = pt.OffenseNumber,
                             FineKind = pt.FineKind, PenaltyAmount = pt.PenaltyAmount,
                             MaximumFine = pt.MaximumFine, PenaltyTerms = pt.PenaltyTerms,
-                            AllowBloodDonation = pt.AllowBloodDonation, AllowCommunityService = pt.AllowCommunityService
+                            AllowBloodDonation = pt.AllowBloodDonation, AllowCommunityService = pt.AllowCommunityService,
+                            AdditionalPenalty = pt.AdditionalPenalty
                         }).ToList(),
                     OffenseCount = o.TicketViolations
                         .Count(tv => tv.Ticket!.VendorId == vendorId
@@ -67,7 +68,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                         OrdinanceId = pt.OrdinanceId, OffenseNumber = pt.OffenseNumber,
                         FineKind = pt.FineKind, PenaltyAmount = pt.PenaltyAmount,
                         MaximumFine = pt.MaximumFine, PenaltyTerms = pt.PenaltyTerms,
-                        AllowBloodDonation = pt.AllowBloodDonation, AllowCommunityService = pt.AllowCommunityService
+                        AllowBloodDonation = pt.AllowBloodDonation, AllowCommunityService = pt.AllowCommunityService,
+                        AdditionalPenalty = pt.AdditionalPenalty
                     }).ToList(),
                     OffenseCount = o.TicketViolations
                         .Where(tv => tv.Ticket!.PersonId == personId && tv.Ticket.Type == ViolationType.Ticket)
@@ -89,7 +91,8 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     OrdinanceId = pt.OrdinanceId, OffenseNumber = pt.OffenseNumber,
                     FineKind = pt.FineKind, PenaltyAmount = pt.PenaltyAmount,
                     MaximumFine = pt.MaximumFine, PenaltyTerms = pt.PenaltyTerms,
-                    AllowBloodDonation = pt.AllowBloodDonation, AllowCommunityService = pt.AllowCommunityService
+                    AllowBloodDonation = pt.AllowBloodDonation, AllowCommunityService = pt.AllowCommunityService,
+                    AdditionalPenalty = pt.AdditionalPenalty
                 }).ToListAsync();
 
         public async Task AddAsync(Ordinance ordinance)

@@ -688,6 +688,11 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AdditionalPenalty")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("additional_penalty");
+
                     b.Property<bool>("AllowBloodDonation")
                         .HasColumnType("boolean")
                         .HasColumnName("allow_blood_donation");
@@ -1247,6 +1252,10 @@ namespace MarikinaMarket.API.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("snapshot_business_account_number");
+
+                    b.Property<int?>("SeverityLevel")
+                        .HasColumnType("integer")
+                        .HasColumnName("severity_level");
 
                     b.Property<string>("SnapshotBusinessAddress")
                         .HasMaxLength(266)

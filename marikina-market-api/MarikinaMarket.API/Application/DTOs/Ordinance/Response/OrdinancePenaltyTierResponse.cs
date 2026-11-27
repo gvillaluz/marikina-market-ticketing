@@ -13,5 +13,7 @@ namespace MarikinaMarket.API.Application.DTOs.Ordinance.Response
         public string? PenaltyTerms { get; set; }
         public bool AllowBloodDonation { get; set; }
         public bool AllowCommunityService { get; set; }
+        public AdditionalPenalty AdditionalPenalty { get; set; }
+        public int? SeverityLevel { get; set; }
     }
 }

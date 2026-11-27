@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using MarikinaMarket.API.Application.DTOs.Tickets.Response;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -571,6 +571,9 @@ public class InspectionNotificationTests
         public int TierOffense = 1;
         public bool MissingSeverity;
         public bool AdditionalOrdinance;
+        public decimal FixedAmount = 500m;
+        public AdditionalPenalty AdditionalPenalty;
+        public List<PenaltyTierSummary>? Tiers;
         public bool PreviousWarning, PendingWarningCitation;
         public int? WarningLookupPersonId;
         public BusinessSnapshotResponse Snapshot { get; set; } = new()
@@ -699,9 +702,9 @@ public class InspectionNotificationTests
                 new() { OrdinanceId = 1, OrdinanceNo = "011", Series = "2014", Section = "12", Title = "Market ID",
                     Severity = MissingSeverity ? null : HighSeverity ? Severity.High : Severity.Minor,
                     WarningEligible = WarningEligible, OffenseCount = OffenseCount,
-                    Category = ViolationCategory.Licensing, PenaltyTiers = [new() { OffenseNumber = TierOffense,
-                        FineKind = FineKind, PenaltyAmount = FineKind == FineKind.Fixed ? 500m : null,
-                        MaximumFine = MaximumFine, PenaltyTerms = PenaltyTerms,
+                    Category = ViolationCategory.Licensing, PenaltyTiers = Tiers ?? [new() { OffenseNumber = TierOffense,
+                        FineKind = FineKind, PenaltyAmount = FineKind == FineKind.Fixed ? FixedAmount : null,
+                        MaximumFine = MaximumFine, PenaltyTerms = PenaltyTerms, AdditionalPenalty = AdditionalPenalty,
                         AllowBloodDonation = AllowBloodDonation, AllowCommunityService = AllowCommunityService }] }
             };
             if (AdditionalOrdinance) values.Add(new() { OrdinanceId = 2, OrdinanceNo = "011", Section = "13", Title = "Public places",

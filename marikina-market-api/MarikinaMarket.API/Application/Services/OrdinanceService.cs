@@ -254,7 +254,8 @@ namespace MarikinaMarket.API.Application.Services
             {
                 Id = t.Id, OffenseNumber = t.OffenseNumber, FineKind = t.FineKind, PenaltyAmount = t.PenaltyAmount,
                 MinimumFine = t.FineKind == FineKind.UpTo ? 100m : null, MaximumFine = t.MaximumFine,
-                PenaltyTerms = t.PenaltyTerms, AllowBloodDonation = t.AllowBloodDonation, AllowCommunityService = t.AllowCommunityService
+                PenaltyTerms = t.PenaltyTerms, AllowBloodDonation = t.AllowBloodDonation, AllowCommunityService = t.AllowCommunityService,
+                AdditionalPenalty = t.AdditionalPenalty, SeverityLevel = t.SeverityLevel
             }).ToList();
             response.PenaltyTierCount = ordinance.PenaltyTiers.Count;
             return response;

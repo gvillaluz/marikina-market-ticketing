@@ -1,4 +1,5 @@
-﻿using MarikinaMarket.API.Domain.Enums;
+﻿using MarikinaMarket.API.Domain.Entities;
+using MarikinaMarket.API.Domain.Enums;
 
 namespace MarikinaMarket.API.Application.DTOs.Ordinance.Internal
 {
@@ -12,5 +13,7 @@ namespace MarikinaMarket.API.Application.DTOs.Ordinance.Internal
         public string? PenaltyTerms { get; set; }
         public bool AllowBloodDonation { get; set; }
         public bool AllowCommunityService { get; set; }
+        public AdditionalPenalty AdditionalPenalty { get; set; }
+        public int? SeverityLevel => OrdinancePenaltyTier.SeverityLevelOf(FineKind, PenaltyAmount, MaximumFine, AdditionalPenalty);
     }
 }

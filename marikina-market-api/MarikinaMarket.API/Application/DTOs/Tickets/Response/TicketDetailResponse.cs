@@ -33,6 +33,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
         public List<ViolationCategory> Categories { get; set; } = [];
         public required string Description { get; set; }
         public Severity? Severity { get; set; }
+        public int? SeverityLevel { get; set; }
         public PenaltyType? PenaltyType { get; set; }
         public TicketStatus? Status { get; set; }
         public DateTime? DueDate { get; set; }

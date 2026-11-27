@@ -22,6 +22,9 @@ namespace MarikinaMarket.API.Infrastructure.Persistence.Configurations
             builder.Property(t => t.FineKind)
                 .HasConversion<string>();
 
+            builder.Property(t => t.AdditionalPenalty)
+                .HasConversion<string>();
+
             // Keep the old tier classification solely for guarded migration rollback.
             builder.Property<string>("LegacySeverity").HasColumnName("severity");
 
