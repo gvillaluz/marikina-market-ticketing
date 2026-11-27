@@ -1202,14 +1202,20 @@ namespace MarikinaMarket.API.Application.Services
                     throw new ConcurrencyConflictException("This ticket was updated by another user. Please refresh and try again.");
                 if (ticket.Type == ViolationType.Warning)
                     throw new InvalidRequestException("Warnings have no status and cannot be changed.");
+                var rejectsContest = request.NewStatus == TicketStatus.Pending && ticket.Status == TicketStatus.Contested;
+                if (!rejectsContest)
+                    ValidateStatusForPenalty(ticket, request.NewStatus);
                 ValidateTicketSettlement(ticket, request.NewStatus);
                 previousStatus = ticket.Status;
 
                 _ticketRepository.SetOriginalVersion(ticket, request.Version);
-                ticket.Status = request.NewStatus;
                 ticket.UpdatedAt = DateTime.UtcNow;
-                if (request.NewStatus is TicketStatus.Paid or TicketStatus.Cleared or TicketStatus.Waived)
-                    ticket.ResolvedAt = previousStatus == request.NewStatus && ticket.ResolvedAt.HasValue
+                // Reject contest: the daily Overdue job's rule, 5 days after issue.
+                ticket.Status = rejectsContest && ticket.IssuedAt <= ticket.UpdatedAt.AddDays(-5)
+                    ? TicketStatus.Overdue
+                    : request.NewStatus;
+                if (ticket.Status is TicketStatus.Paid or TicketStatus.Cleared or TicketStatus.Waived)
+                    ticket.ResolvedAt = previousStatus == ticket.Status && ticket.ResolvedAt.HasValue
                         ? ticket.ResolvedAt
                         : ticket.UpdatedAt;
                 else
@@ -1475,6 +1481,30 @@ namespace MarikinaMarket.API.Application.Services
             PenaltyChangeReason.WrongPenaltyAtIssue => "Wrong penalty chosen when issuing",
             _ => throw new ArgumentOutOfRangeException(nameof(reason))
         };
+
+        private static void ValidateStatusForPenalty(Ticket ticket, TicketStatus newStatus)
+        {
+            if (newStatus is TicketStatus.Pending or TicketStatus.Overdue)
+                throw new InvalidRequestException("Pending and Overdue are set by the system.");
+            TicketStatus[] allowed = ticket.PenaltyType switch
+            {
+                PenaltyType.CashFine => [TicketStatus.Contested, TicketStatus.Waived, TicketStatus.Paid],
+                PenaltyType.BloodDonation => [TicketStatus.Contested, TicketStatus.Waived, TicketStatus.Cleared],
+                PenaltyType.CommunityService => [TicketStatus.Contested, TicketStatus.Waived, TicketStatus.InProgress, TicketStatus.Cleared],
+                _ => throw new InvalidRequestException("This ticket has no penalty type, so its status cannot be changed.")
+            };
+            if (!allowed.Contains(newStatus))
+                throw new InvalidRequestException($"{PenaltyName(ticket.PenaltyType)} tickets cannot be marked {StatusName(newStatus)}.");
+        }
+
+        private static string PenaltyName(PenaltyType? penalty) => penalty switch
+        {
+            PenaltyType.CashFine => "Cash Fine",
+            PenaltyType.BloodDonation => "Blood Donation",
+            _ => "Community Service"
+        };
+
+        private static string StatusName(TicketStatus status) => status == TicketStatus.InProgress ? "In Progress" : status.ToString();
 
         private static void ValidateTicketSettlement(Ticket ticket, TicketStatus newStatus)
         {

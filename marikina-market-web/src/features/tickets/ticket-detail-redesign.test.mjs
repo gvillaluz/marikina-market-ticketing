@@ -65,7 +65,7 @@ test('control number shows a "#"; a missing number keeps the legacy text without
 
 const modal = props => renderToStaticMarkup(React.createElement(StatusChangeModal, {
   open: true, controlNumber: '000456', currentStatus: 'Pending', selectedStatus: 'Pending',
-  availableStatuses: ['Pending', 'Contested', 'Waived', 'Overdue', 'InProgress'], canUpdate: false, isPending: false,
+  availableStatuses: ['Contested', 'Waived', 'InProgress'], canUpdate: false, isPending: false,
   onSelect: () => {}, onConfirm: () => {}, onClose: () => {}, ...props,
 }));
 
@@ -73,14 +73,14 @@ test('status window never offers Paid or Cleared when they are not available, an
   const html = text(modal({}));
   assert.match(html, /Change status/);
   assert.match(html, /Ticket #000456/);
-  for (const offered of ['Pending', 'Contested', 'Waived', 'Overdue', 'In Progress']) assert.ok(html.includes(offered), offered);
+  for (const offered of ['Contested', 'Waived', 'In Progress']) assert.ok(html.includes(offered), offered);
   assert.ok(!html.includes('Paid'));
   assert.ok(!html.includes('Cleared'));
   assert.equal(modal({ open: false }), '');
 });
 
 test('status window offers Paid and Cleared once they are available', () => {
-  const html = text(modal({ availableStatuses: ['Pending', 'Paid', 'Cleared'] }));
+  const html = text(modal({ availableStatuses: ['Contested', 'Paid', 'Cleared'] }));
   assert.ok(html.includes('Paid'));
   assert.ok(html.includes('Cleared'));
 });
@@ -88,10 +88,13 @@ test('status window offers Paid and Cleared once they are available', () => {
 test('Confirm is off until another status is picked, then the summary says from and to', () => {
   const idle = modal({});
   assert.match(idle, /<button[^>]*disabled[^>]*>(?:(?!<\/button>)[\s\S])*Confirm/);
-  assert.match(text(idle), /Select a new status\./);
-  const picked = modal({ availableStatuses: ['Pending', 'Paid'], selectedStatus: 'Paid', canUpdate: true });
+  assert.match(text(idle), /Current status: Pending\. Select a new status\./);
+  const picked = modal({ availableStatuses: ['Contested', 'Paid'], selectedStatus: 'Paid', canUpdate: true });
   assert.doesNotMatch(picked, /<button[^>]*disabled[^>]*>(?:(?!<\/button>)[\s\S])*Confirm/);
   assert.match(text(picked), /Pending → Paid/);
+  const rejecting = modal({ currentStatus: 'Contested', availableStatuses: ['Pending', 'Contested'], selectedStatus: 'Pending', canUpdate: true });
+  assert.match(text(rejecting), /Contested → Reject contest\. This will be recorded in the audit log\./);
+  assert.match(text(modal({ currentStatus: 'InProgress', selectedStatus: 'InProgress' })), /Current status: In Progress\./);
 });
 
 test('change history is a table with Action, Details, By and When columns, newest first', () => {

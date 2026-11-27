@@ -3,21 +3,23 @@ import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button/Button";
 import { RecordStatus } from "@/api/types/common.types";
 import { formatControlNumberLabel } from "@/utils/formatters";
+import { recordStatusLabel } from "@/utils/constants";
 import StatusOptionCard from "./StatusOptionCard";
 import styles from "./StatusChangeModal.module.css";
 
 const STATUS_OPTIONS: { value: RecordStatus; title: string; description: string }[] = [
-  { value: "Pending", title: "Pending", description: "Ticket remains open and pending." },
+  // Offered only for a Contested ticket; the server stores Pending or Overdue.
+  { value: "Pending", title: "Reject contest", description: "The contest fails. The ticket returns to Pending, or Overdue if issued 5 or more days ago." },
   { value: "Paid", title: "Paid", description: "Fine has been fully settled." },
   { value: "Contested", title: "Contested", description: "Vendor disputed the ticket, under review." },
   { value: "Waived", title: "Waived", description: "Fine dismissed, no payment required." },
   { value: "Cleared", title: "Cleared", description: "Resolved via community service or blood donation." },
-  { value: "Overdue", title: "Overdue", description: "The settlement due date has passed." },
   { value: "InProgress", title: "In Progress", description: "Settlement is in progress." },
 ];
 
-const statusTitle = (status: RecordStatus | undefined) =>
-  STATUS_OPTIONS.find((option) => option.value === status)?.title ?? status ?? "";
+const optionTitle = (status: RecordStatus | undefined) =>
+  STATUS_OPTIONS.find((option) => option.value === status)?.title ?? "";
+const currentTitle = (status: RecordStatus | undefined) => (status ? recordStatusLabel(status) : "");
 
 interface StatusChangeModalProps {
   open: boolean;
@@ -76,8 +78,8 @@ const StatusChangeModal: FC<StatusChangeModalProps> = ({
       </div>
       <p className={styles.summary}>
         {canUpdate
-          ? `${statusTitle(currentStatus)} → ${statusTitle(selectedStatus)}. This will be recorded in the audit log.`
-          : "Select a new status."}
+          ? `${currentTitle(currentStatus)} → ${optionTitle(selectedStatus)}. This will be recorded in the audit log.`
+          : `Current status: ${currentTitle(currentStatus)}. Select a new status.`}
       </p>
     </div>
   </Modal>

@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { RecordStatus } from "@/api/types/common.types";
-import { TicketDetail } from "@/api/types/ticket.types";
+import { PenaltyType, TicketDetail } from "@/api/types/ticket.types";
 import { getTicketReceiptUrls } from "../tickets.utils";
+
+// Statuses an administrator may choose per Penalty Type (#161). The server enforces the same table.
+const PENALTY_STATUSES: Record<PenaltyType, RecordStatus[]> = {
+  CashFine: ["Contested", "Waived", "Paid"],
+  BloodDonation: ["Contested", "Waived", "Cleared"],
+  CommunityService: ["Contested", "Waived", "InProgress", "Cleared"],
+};
 
 export function useTicketStatusSelection(ticket: TicketDetail | undefined) {
   const [selectedStatus, setSelectedStatus] = useState<
@@ -30,14 +37,14 @@ export function useTicketStatusSelection(ticket: TicketDetail | undefined) {
       : (ticket?.penaltyType === "CashFine" ||
           ticket?.penaltyType === "BloodDonation") &&
         receiptUrls.length > 0;
-  const availableStatuses: RecordStatus[] = [
-    "Pending",
-    "Contested",
-    "Waived",
-    "Overdue",
-    "InProgress",
-  ];
-  if (canSettle) availableStatuses.push("Paid", "Cleared");
+  const penaltyStatuses: RecordStatus[] = ticket?.penaltyType
+    ? (PENALTY_STATUSES[ticket.penaltyType] ?? [])
+    : [];
+  const availableStatuses = penaltyStatuses.filter(
+    (status) => canSettle || (status !== "Paid" && status !== "Cleared"),
+  );
+  // Reject contest: the window sends Pending and the server picks Pending or Overdue.
+  if (ticket?.status === "Contested") availableStatuses.unshift("Pending");
   const validSelection =
     selectedStatus !== undefined && availableStatuses.includes(selectedStatus);
   const currentSelection = validSelection ? selectedStatus : ticket?.status;
