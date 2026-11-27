@@ -159,10 +159,87 @@ public class TicketStatusSettlementTests
         }
     }
 
+    // Status by Penalty Type (#161). Proof and hours are complete, so only the penalty rule can refuse.
+    private const string SystemSetMessage = "Pending and Overdue are set by the system.";
+
+    [Theory]
+    [InlineData(PenaltyType.CashFine, TicketStatus.Contested, null)]
+    [InlineData(PenaltyType.CashFine, TicketStatus.Waived, null)]
+    [InlineData(PenaltyType.CashFine, TicketStatus.Paid, null)]
+    [InlineData(PenaltyType.CashFine, TicketStatus.Cleared, "Cash Fine tickets cannot be marked Cleared.")]
+    [InlineData(PenaltyType.CashFine, TicketStatus.InProgress, "Cash Fine tickets cannot be marked In Progress.")]
+    [InlineData(PenaltyType.CashFine, TicketStatus.Pending, SystemSetMessage)]
+    [InlineData(PenaltyType.CashFine, TicketStatus.Overdue, SystemSetMessage)]
+    [InlineData(PenaltyType.BloodDonation, TicketStatus.Contested, null)]
+    [InlineData(PenaltyType.BloodDonation, TicketStatus.Waived, null)]
+    [InlineData(PenaltyType.BloodDonation, TicketStatus.Cleared, null)]
+    [InlineData(PenaltyType.BloodDonation, TicketStatus.Paid, "Blood Donation tickets cannot be marked Paid.")]
+    [InlineData(PenaltyType.BloodDonation, TicketStatus.InProgress, "Blood Donation tickets cannot be marked In Progress.")]
+    [InlineData(PenaltyType.BloodDonation, TicketStatus.Pending, SystemSetMessage)]
+    [InlineData(PenaltyType.BloodDonation, TicketStatus.Overdue, SystemSetMessage)]
+    [InlineData(PenaltyType.CommunityService, TicketStatus.Contested, null)]
+    [InlineData(PenaltyType.CommunityService, TicketStatus.Waived, null)]
+    [InlineData(PenaltyType.CommunityService, TicketStatus.InProgress, null)]
+    [InlineData(PenaltyType.CommunityService, TicketStatus.Cleared, null)]
+    [InlineData(PenaltyType.CommunityService, TicketStatus.Paid, "Community Service tickets cannot be marked Paid.")]
+    [InlineData(PenaltyType.CommunityService, TicketStatus.Pending, SystemSetMessage)]
+    [InlineData(PenaltyType.CommunityService, TicketStatus.Overdue, SystemSetMessage)]
+    public async Task Only_statuses_that_fit_the_penalty_type_can_be_chosen(PenaltyType penalty, TicketStatus status, string? refusal)
+    {
+        var fixture = new Fixture(penalty);
+        fixture.Ticket.ProofUrls = ["receipt.png"];
+        fixture.Ticket.CommunityServiceHours = 8;
+        fixture.Ticket.CommunityServiceLogs = [new CommunityServiceLog { HoursWorked = 8, ProofUrl = "log.png" }];
+
+        if (refusal is null)
+        {
+            Assert.Equal(status, (await fixture.UpdateAsync(status)).Status);
+            Assert.Equal(status, fixture.Ticket.Status);
+            return;
+        }
+        var error = await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.UpdateAsync(status));
+        Assert.Equal(refusal, error.Message);
+        fixture.AssertRejectedWithoutMutation();
+    }
+
+    // Reject contest: the website sends Pending; the daily job's rule (5 days after issue) picks Pending or Overdue.
+    [Theory]
+    [InlineData(0, TicketStatus.Pending, "#0B2D5B")]
+    [InlineData(4 * 24 + 23, TicketStatus.Pending, "#0B2D5B")]
+    [InlineData(5 * 24, TicketStatus.Overdue, "#C0392B")]
+    [InlineData(30 * 24, TicketStatus.Overdue, "#C0392B")]
+    public async Task Rejecting_a_contest_returns_the_ticket_to_Pending_or_Overdue(int hoursSinceIssue, TicketStatus stored, string accent)
+    {
+        var fixture = new Fixture(PenaltyType.CashFine);
+        fixture.Ticket.Status = TicketStatus.Contested;
+        fixture.Ticket.IssuedAt = DateTime.UtcNow.AddHours(-hoursSinceIssue);
+        fixture.Ticket.Vendor = VendorWithEmail();
+
+        var response = await fixture.UpdateAsync(TicketStatus.Pending);
+
+        Assert.Equal(stored, response.Status);
+        Assert.Equal(stored, fixture.Ticket.Status);
+        Assert.Null(fixture.Ticket.ResolvedAt);
+        Assert.Contains("CommitAsync", fixture.Calls);
+        Assert.Contains(nameof(INotificationService.SaveNotificationAsync), fixture.Calls);
+        Assert.Equal(accent, Assert.Single(fixture.EmailAccents));
+        Assert.Contains($"from <strong>Contested</strong> to <strong>{stored}</strong>", Assert.Single(fixture.EmailBodies));
+    }
+
+    [Fact]
+    public async Task A_Contested_ticket_cannot_be_set_to_Overdue_by_hand()
+    {
+        var fixture = new Fixture(PenaltyType.CashFine);
+        fixture.Ticket.Status = TicketStatus.Contested;
+
+        var error = await Assert.ThrowsAsync<InvalidRequestException>(() => fixture.UpdateAsync(TicketStatus.Overdue));
+
+        Assert.Equal(SystemSetMessage, error.Message);
+        fixture.AssertRejectedWithoutMutation(TicketStatus.Contested);
+    }
+
     [Theory]
     [InlineData(PenaltyType.CashFine, TicketStatus.Paid)]
-    [InlineData(PenaltyType.CashFine, TicketStatus.Cleared)]
-    [InlineData(PenaltyType.BloodDonation, TicketStatus.Paid)]
     [InlineData(PenaltyType.BloodDonation, TicketStatus.Cleared)]
     public async Task Receipt_settlement_requires_a_nonblank_proof(PenaltyType penalty, TicketStatus status)
     {
@@ -185,10 +262,6 @@ public class TicketStatusSettlementTests
     }
 
     [Theory]
-    [InlineData(TicketStatus.Paid, 0, false)]
-    [InlineData(TicketStatus.Paid, 7.5, false)]
-    [InlineData(TicketStatus.Paid, 8, true)]
-    [InlineData(TicketStatus.Paid, 8.5, true)]
     [InlineData(TicketStatus.Cleared, 0, false)]
     [InlineData(TicketStatus.Cleared, 7.5, false)]
     [InlineData(TicketStatus.Cleared, 8, true)]
@@ -274,14 +347,12 @@ public class TicketStatusSettlementTests
     }
 
     [Theory]
-    [InlineData(TicketStatus.Pending)]
-    [InlineData(TicketStatus.Contested)]
-    [InlineData(TicketStatus.Overdue)]
-    [InlineData(TicketStatus.InProgress)]
-    [InlineData(TicketStatus.Waived)]
-    public async Task Other_statuses_do_not_require_settlement(TicketStatus status)
+    [InlineData(PenaltyType.CashFine, TicketStatus.Contested)]
+    [InlineData(PenaltyType.CashFine, TicketStatus.Waived)]
+    [InlineData(PenaltyType.CommunityService, TicketStatus.InProgress)]
+    public async Task Other_statuses_do_not_require_settlement(PenaltyType penalty, TicketStatus status)
     {
-        var fixture = new Fixture(PenaltyType.CashFine);
+        var fixture = new Fixture(penalty);
         Assert.Equal(status, (await fixture.UpdateAsync(status)).Status);
     }
 
@@ -406,16 +477,14 @@ public class TicketStatusSettlementTests
     }
 
     [Theory]
-    [InlineData(TicketStatus.Paid, "#4C8B5A")]
-    [InlineData(TicketStatus.Cleared, "#4C8B5A")]
-    [InlineData(TicketStatus.Waived, "#4C8B5A")]
-    [InlineData(TicketStatus.Contested, "#B8792F")]
-    [InlineData(TicketStatus.Overdue, "#C0392B")]
-    [InlineData(TicketStatus.Pending, "#0B2D5B")]
-    [InlineData(TicketStatus.InProgress, "#0B2D5B")]
-    public async Task Status_email_accent_matches_the_new_status(TicketStatus status, string accent)
+    [InlineData(PenaltyType.CashFine, TicketStatus.Paid, "#4C8B5A")]
+    [InlineData(PenaltyType.BloodDonation, TicketStatus.Cleared, "#4C8B5A")]
+    [InlineData(PenaltyType.CashFine, TicketStatus.Waived, "#4C8B5A")]
+    [InlineData(PenaltyType.CashFine, TicketStatus.Contested, "#B8792F")]
+    [InlineData(PenaltyType.CommunityService, TicketStatus.InProgress, "#0B2D5B")]
+    public async Task Status_email_accent_matches_the_new_status(PenaltyType penalty, TicketStatus status, string accent)
     {
-        var fixture = new Fixture(PenaltyType.CashFine);
+        var fixture = new Fixture(penalty);
         fixture.Ticket.ProofUrls = ["receipt.png"];
         fixture.Ticket.Vendor = new Business
         {
