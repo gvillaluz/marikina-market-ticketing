@@ -43,7 +43,8 @@ export default function ViolationTrendChart({
     MONTHS.map((_, index) => yearData.find((point) => point.month === index + 1)?.[key] ?? 0),
   );
   const maxValue = Math.max(1, ...monthlyValues.flat());
-  const gridMax = Math.ceil(maxValue / 5) * 5 || 5;
+  // A multiple of 4 keeps the four grid steps whole numbers.
+  const gridMax = Math.ceil(maxValue / 4) * 4;
 
   function pointPosition(index: number, value: number) {
     return {
@@ -95,10 +96,10 @@ export default function ViolationTrendChart({
               <text key={month} x={x} y="166" textAnchor="middle" className={styles.monthLabel}>{month}</text>
             );
           })}
-          {SERIES.map((series) => {
-            const values = MONTHS.map((_, index) =>
-              yearData.find((point) => point.month === index + 1)?.[series.key] ?? 0,
-            );
+          {SERIES.map((series, seriesIndex) => {
+            const values = monthlyValues[seriesIndex];
+            // A level with no tickets all year would only draw over the baseline.
+            if (values.every((count) => count === 0)) return null;
             const points = values
               .map((count, index) => {
                 const position = pointPosition(index, count);

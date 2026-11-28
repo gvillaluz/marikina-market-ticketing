@@ -263,9 +263,11 @@ test("the trend chart draws one line per Severity Level with level wording", () 
     "Level 4 · Closure or revocation",
     "Level 5 · Imprisonment",
   ]);
-  // Grid top is 5, so January's 5 Level 5 tickets sit at the top (x 38, y 12) and Level 1's 0 at the bottom (y 12 + 130).
-  assert.match(html, /<g class="series level5"><polyline points="38,12 /);
-  assert.match(html, /<g class="series level1"><polyline points="38,142 /);
+  // Grid top rounds 5 up to 8 so its four steps are whole: 8, 6, 4, 2, 0. January's 5 sits at y 142 - 5/8 * 130 = 60.75.
+  assert.deepEqual([...html.matchAll(/text-anchor="end"[^>]*>(\d+)</g)].map((match) => match[1]), ["8", "6", "4", "2", "0"]);
+  assert.match(html, /<g class="series level5"><polyline points="38,60.75 /);
+  // Levels with no tickets all year draw no line, so they cannot paint over the baseline.
+  assert.equal([...html.matchAll(/<polyline/g)].length, 1);
   assert.doesNotMatch(html, /Low|Medium|High/);
 });
 
