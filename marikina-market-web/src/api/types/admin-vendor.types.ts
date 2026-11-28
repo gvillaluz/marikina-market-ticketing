@@ -98,8 +98,7 @@ export interface AdminVendorComplianceScore {
   recency: number;
   daysSinceLastTicket: number | null;
   categorySeverity: number;
-  averageSeverityPoints: number | null;
-  categorySeverityLevel: string;
+  averageSeverityLevel: number | null;
   penaltyPaymentHistory: number;
   paymentHistoryTickets: number;
   calculatedAt: string;

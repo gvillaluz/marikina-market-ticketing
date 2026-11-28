@@ -616,3 +616,19 @@ test("business inspection history labels every value for the phone card layout a
   // Two titles must sit in one block, or the card would put the second one under the label.
   assert.match(html, /data-label="ORDINANCE\(S\)"[^>]*><div[^>]*><span[^>]*>Stall Hours<\/span><span[^>]*>Fish Handling<\/span><\/div><\/td>/);
 });
+
+test("compliance score breakdown shows the Average Severity Level out of 5, or No record without tickets", () => {
+  const visibleText = (html) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+  const score = (averageSeverityLevel) => visibleText(renderComponent("AdminVendorComplianceScore", {
+    score: {
+      complianceScore: 67, standing: "At Risk", violationFrequency: 60, ticketsInWindow: 2,
+      violationFrequencyLevel: "Moderate", recency: 50, daysSinceLastTicket: 30,
+      categorySeverity: 62.5, averageSeverityLevel, penaltyPaymentHistory: 100,
+      paymentHistoryTickets: 2, calculatedAt: "2026-11-28T02:00:00Z",
+    },
+  }));
+  const withTickets = score(2.5);
+  assert.match(withTickets, /Average Severity Level 2\.5 of 5/);
+  assert.doesNotMatch(withTickets, /Category Severity|Low|High/);
+  assert.match(score(null), /Average Severity Level No record/);
+});

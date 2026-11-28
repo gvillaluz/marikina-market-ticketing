@@ -168,7 +168,7 @@ public class TicketChangeHistoryTests
                         ? Task.FromResult(true) : Task.CompletedTask),
                     Proxy<IVendorComplianceScoreService>((_, _) => Task.FromResult(new VendorComplianceScoreResponse
                     {
-                        Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low"
+                        Standing = "Good", ViolationFrequencyLevel = "Low"
                     })),
                     audit, provider.GetRequiredService<IAuditLogService>());
             }));

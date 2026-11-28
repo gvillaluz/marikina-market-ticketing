@@ -46,7 +46,9 @@ export default function AdminVendorComplianceScore({
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={animatedScore}
-          style={{ "--vendor-score-target": `${value * 3.6}deg` } as CSSProperties}
+          style={
+            { "--vendor-score-target": `${value * 3.6}deg` } as CSSProperties
+          }
         >
           <div className={styles.scoreInner}>
             <strong>{animatedScore}</strong>
@@ -70,9 +72,11 @@ export default function AdminVendorComplianceScore({
             </strong>
           </div>
           <div>
-            <span>Category Severity</span>
-            <strong className={levelTone(score.categorySeverityLevel)}>
-              {score.categorySeverityLevel}
+            <span>Average Severity Level</span>
+            <strong className={styles.metricGood}>
+              {score.averageSeverityLevel == null
+                ? "No record"
+                : `${score.averageSeverityLevel} of 5`}
             </strong>
           </div>
           <div>

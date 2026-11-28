@@ -158,7 +158,7 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 {
                     VendorId = t.VendorId!.Value,
                     IssuedAt = t.IssuedAt,
-                    HighestSeverity = t.HighestSeverity,
+                    SeverityLevel = t.SeverityLevel,
                     PenaltyType = t.PenaltyType,
                     TotalPaymentAmount = t.TotalPaymentAmount,
                     Status = t.Status,

@@ -598,7 +598,7 @@ public class TicketStatusSettlementTests
                     return Task.FromException<VendorComplianceScoreResponse>(RefreshFailure);
                 return Task.FromResult(new VendorComplianceScoreResponse
                 {
-                    Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low"
+                    Standing = "Good", ViolationFrequencyLevel = "Low"
                 });
             });
             Service = new TicketService(repository, null!, null!, unitOfWork, null!, notification, compliance);

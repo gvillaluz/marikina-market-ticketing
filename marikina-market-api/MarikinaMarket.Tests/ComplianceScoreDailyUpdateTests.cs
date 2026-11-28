@@ -20,9 +20,9 @@ public class ComplianceScoreDailyUpdateTests
     private static readonly DateTime StartOfManilaToday = new(2026, 11, 22, 16, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime Yesterday = new(2026, 11, 22, 3, 0, 0, DateTimeKind.Utc);
 
-    // Hand-derived: 1 ticket gives frequency 80 (24 points), Moderate gives severity 66.67 (20 points),
+    // Hand-derived: 1 ticket gives frequency 80 (24 points), Level 3 gives severity 100 x (1 - 2/4) = 50 (15 points),
     // 30 days gives recency 50 (10 points), and an unpaid fine past 15 days gives payment 0 (0 points).
-    private const int OneModerateUnpaidFineThirtyDaysOld = 54;
+    private const int OneLevelThreeUnpaidFineThirtyDaysOld = 49;
 
     [Fact]
     public async Task Registry_view_only_reads_saved_scores()
@@ -54,7 +54,7 @@ public class ComplianceScoreDailyUpdateTests
 
         var score = await service.GetVendorComplianceScoreAsync(1);
 
-        Assert.Equal(OneModerateUnpaidFineThirtyDaysOld, score.ComplianceScore);
+        Assert.Equal(OneLevelThreeUnpaidFineThirtyDaysOld, score.ComplianceScore);
         Assert.Equal(30, score.DaysSinceLastTicket);
         Assert.Equal(savedAt, score.CalculatedAt);
         Assert.Empty(boundary.Saves);
@@ -80,7 +80,7 @@ public class ComplianceScoreDailyUpdateTests
 
         Assert.Equal(StartOfManilaToday, boundary.DueBefore);
         Assert.Equal(
-            [(1, Yesterday, OneModerateUnpaidFineThirtyDaysOld, Now), (2, Yesterday.AddHours(-1), 100, Now)],
+            [(1, Yesterday, OneLevelThreeUnpaidFineThirtyDaysOld, Now), (2, Yesterday.AddHours(-1), 100, Now)],
             boundary.Saves);
     }
 
@@ -136,12 +136,60 @@ public class ComplianceScoreDailyUpdateTests
         Assert.Single(logs);
     }
 
+    [Theory]
+    [InlineData(1, 1, 100.0, 1.0)] // all Level 1: no harm
+    [InlineData(5, 5, 0.0, 5.0)] // all Level 5: full harm
+    [InlineData(1, 4, 62.5, 2.5)] // 100 x (1 - 1.5/4)
+    public void Severity_part_counts_Severity_Levels_evenly(int first, int second, double severityPart, double averageLevel)
+    {
+        var score = new Boundary().Scores.Calculate(
+            [Fine(1, Now.AddDays(-30), first), Fine(1, Now.AddDays(-60), second)], Now);
+
+        Assert.Equal(severityPart, score.CategorySeverity);
+        Assert.Equal(averageLevel, score.AverageSeverityLevel);
+    }
+
+    [Fact]
+    public void Full_score_keeps_the_weights_with_Severity_Levels()
+    {
+        // Hand-derived: 2 tickets give frequency 60 (18 points), 30 days gives recency 50 (10 points),
+        // Levels 1 and 4 give severity 62.5 (18.75 points), both paid within 15 days give payment 100 (20 points).
+        // 66.75 rounds to 67.
+        VendorComplianceTicket Paid(DateTime issuedAt, int level)
+        {
+            var ticket = Fine(1, issuedAt, level);
+            ticket.Status = TicketStatus.Paid;
+            ticket.ResolvedAt = issuedAt.AddDays(5);
+            return ticket;
+        }
+        var score = new Boundary().Scores.Calculate([Paid(Now.AddDays(-30), 1), Paid(Now.AddDays(-60), 4)], Now);
+
+        Assert.Equal(67, score.ComplianceScore);
+    }
+
+    [Fact]
+    public void Ticket_without_a_Severity_Level_counts_as_Level_1()
+    {
+        var score = new Boundary().Scores.Calculate([Fine(1, Now.AddDays(-30), null), Fine(1, Now.AddDays(-60), 4)], Now);
+
+        Assert.Equal(2.5, score.AverageSeverityLevel);
+    }
+
+    [Fact]
+    public void Business_without_tickets_has_no_average_level()
+    {
+        var score = new Boundary().Scores.Calculate([], Now);
+
+        Assert.Equal(100.0, score.CategorySeverity);
+        Assert.Null(score.AverageSeverityLevel);
+    }
+
     private static DateTime Utc(string value)
         => DateTime.Parse(value, null, System.Globalization.DateTimeStyles.AdjustToUniversal);
 
-    private static VendorComplianceTicket Fine(int vendorId, DateTime issuedAt) => new()
+    private static VendorComplianceTicket Fine(int vendorId, DateTime issuedAt, int? level = 3) => new()
     {
-        VendorId = vendorId, IssuedAt = issuedAt, HighestSeverity = Severity.Moderate,
+        VendorId = vendorId, IssuedAt = issuedAt, SeverityLevel = level,
         PenaltyType = PenaltyType.CashFine, TotalPaymentAmount = 500m, Status = TicketStatus.Pending
     };
 

@@ -98,11 +98,12 @@ namespace MarikinaMarket.API.Application.Services
                 ? 100 * (1 - Math.Pow(2, -(double)daysSinceLastTicket.Value / RecencyHalfLifeDays))
                 : 100;
 
-            var averageSeverityPoints = count == 0
+            // A ticket without a Severity Level counts as Level 1, the lightest, as a missing severity did before.
+            var averageSeverityLevel = count == 0
                 ? (double?)null
-                : violationTickets.Average(GetSeverityPoints);
-            var severityScore = averageSeverityPoints.HasValue
-                ? 100 * (1 - (averageSeverityPoints.Value - 1) / 3)
+                : violationTickets.Average(t => t.SeverityLevel ?? 1);
+            var severityScore = averageSeverityLevel.HasValue
+                ? 100 * (1 - (averageSeverityLevel.Value - 1) / 4)
                 : 100;
 
             var countedPaymentTickets = violationTickets
@@ -138,10 +139,9 @@ namespace MarikinaMarket.API.Application.Services
                 Recency = Math.Round(recency, 1),
                 DaysSinceLastTicket = daysSinceLastTicket,
                 CategorySeverity = Math.Round(severityScore, 1),
-                AverageSeverityPoints = averageSeverityPoints.HasValue
-                    ? Math.Round(averageSeverityPoints.Value, 2)
+                AverageSeverityLevel = averageSeverityLevel.HasValue
+                    ? Math.Round(averageSeverityLevel.Value, 1)
                     : null,
-                CategorySeverityLevel = GetSeverityLevel(averageSeverityPoints),
                 PenaltyPaymentHistory = Math.Round(paymentHistory, 1),
                 PaymentHistoryTickets = countedPaymentTickets.Count,
                 CalculatedAt = calculatedAt
@@ -162,33 +162,12 @@ namespace MarikinaMarket.API.Application.Services
             return ticket.IssuedAt.AddDays(MonetaryDueDays) <= calculatedAt;
         }
 
-        private static int GetSeverityPoints(VendorComplianceTicket ticket)
-        {
-            return ticket.HighestSeverity switch
-            {
-                Severity.Moderate => 2,
-                Severity.High => 3,
-                _ => 1
-            };
-        }
-
         private static string GetFrequencyLevel(int ticketCount)
         {
             if (ticketCount <= 1)
                 return "Low";
 
             if (ticketCount <= 3)
-                return "Moderate";
-
-            return "High";
-        }
-
-        private static string GetSeverityLevel(double? averageSeverityPoints)
-        {
-            if (!averageSeverityPoints.HasValue || averageSeverityPoints.Value < 1.67)
-                return "Low";
-
-            if (averageSeverityPoints.Value <= 2.33)
                 return "Moderate";
 
             return "High";

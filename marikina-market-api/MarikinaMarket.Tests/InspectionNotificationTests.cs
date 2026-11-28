@@ -672,7 +672,7 @@ public class InspectionNotificationTests
                 ComplianceCalls++;
                 return Task.FromResult(new VendorComplianceScoreResponse
                 {
-                    Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low"
+                    Standing = "Good", ViolationFrequencyLevel = "Low"
                 });
             });
             // Section 3 is active, section 9 is switched off, anything else does not exist.

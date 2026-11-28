@@ -93,7 +93,7 @@ internal sealed class VendorAdministrationAccessHost : IAsyncDisposable
                 "GetBusinessAsync" or "SaveBusinessAsync" => Task.FromResult(BusinessRecordResponse.FromEntity(new Business
                     { Id = 70, BusinessAccountNumber = "0001842", BusinessName = "Reyes Fish Store", QrCodeValue = "test-business" })),
                 "GetVendorProfileAsync" => Task.FromResult(new VendorProfileResponse { Name = "Juan Reyes" }),
-                "GetVendorComplianceScoreAsync" => Task.FromResult(new VendorComplianceScoreResponse { Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low" }),
+                "GetVendorComplianceScoreAsync" => Task.FromResult(new VendorComplianceScoreResponse { Standing = "Good", ViolationFrequencyLevel = "Low" }),
                 _ => throw new InvalidOperationException(method.Name)
             };
         }));
