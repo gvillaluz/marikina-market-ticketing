@@ -19,6 +19,12 @@ export interface OrdinanceSummaryResponse {
 
 export type FineKind = "Fixed" | "UpTo" | "Unconfirmed";
 
+export type AdditionalPenalty =
+  | "None"
+  | "ConfiscationSuspensionImpounding"
+  | "ClosureRevocation"
+  | "Imprisonment";
+
 export interface OrdinancePenaltyTierResponse {
   id: number;
   offenseNumber: number;
@@ -29,6 +35,8 @@ export interface OrdinancePenaltyTierResponse {
   penaltyTerms: string | null;
   allowBloodDonation: boolean;
   allowCommunityService: boolean;
+  additionalPenalty: AdditionalPenalty | number;
+  severityLevel: number | null;
 }
 
 export interface OrdinanceDetailResponse extends OrdinanceSummaryResponse {
@@ -43,6 +51,7 @@ export interface SavePenaltyTierRequest {
   penaltyTerms: string | null;
   allowBloodDonation: boolean;
   allowCommunityService: boolean;
+  additionalPenalty: AdditionalPenalty;
 }
 
 export interface SaveOrdinanceRequest {

@@ -43,7 +43,54 @@ public class OrdinancePenaltyConfigurationTests
         Assert.Single(item.GetProperty("penalty_tiers").EnumerateArray());
     }
 
+    [Fact]
+    public async Task Additional_penalty_is_saved_on_create_and_edit_and_sets_the_level()
+    {
+        await using var host = await OrdinanceManagementAccessHost.Create();
+        object Body(string penalty) => new
+        {
+            ordinance_number = "11", series = "2014", section = "44", title = "Stall award",
+            category = "Obstruction", severity = "High",
+            penalty_tiers = new[] { new { offense_number = 1, fine_kind = "Fixed", penalty_amount = 1000, additional_penalty = penalty } }
+        };
+        async Task<JsonElement> Tier(int id)
+        {
+            using var detail = await host.Send(HttpMethod.Get, $"/api/ordinance/{id}", "AdminOfficer");
+            return (await detail.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("penalty_tiers")[0];
+        }
+
+        using var create = await host.Send(HttpMethod.Post, "/api/ordinance", "AdminOfficer", Body("ClosureRevocation"));
+        Assert.Equal(HttpStatusCode.Created, create.StatusCode);
+        var id = (await create.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
+        var created = await Tier(id);
+        Assert.Equal("ClosureRevocation", created.GetProperty("additional_penalty").GetString());
+        Assert.Equal(4, created.GetProperty("severity_level").GetInt32()); // closure or revocation → Level 4
+
+        using var edit = await host.Send(HttpMethod.Put, $"/api/ordinance/{id}", "AdminOfficer", Body("None"));
+        Assert.Equal(HttpStatusCode.OK, edit.StatusCode);
+        var edited = await Tier(id);
+        Assert.Equal("None", edited.GetProperty("additional_penalty").GetString());
+        Assert.Equal(1, edited.GetProperty("severity_level").GetInt32()); // fine only, ₱1,000 → Level 1
+    }
+
+    [Fact]
+    public async Task Unknown_additional_penalty_name_is_refused_and_nothing_is_saved()
+    {
+        await using var host = await OrdinanceManagementAccessHost.Create();
+        using var create = await host.Send(HttpMethod.Post, "/api/ordinance", "AdminOfficer", new
+        {
+            ordinance_number = "11", series = "2014", section = "44", title = "Stall award",
+            category = "Obstruction", severity = "High",
+            penalty_tiers = new[] { new { offense_number = 1, fine_kind = "Fixed", penalty_amount = 1000, additional_penalty = "Death" } }
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, create.StatusCode);
+        Assert.Contains("additional_penalty", await create.Content.ReadAsStringAsync());
+        Assert.Single(host.Items);
+        Assert.Equal(0, host.Commits);
+    }
+
     [Theory]
+    [InlineData("unknown-additional-penalty")]
     [InlineData("missing-severity")]
     [InlineData("unknown-severity")]
     [InlineData("small-cap")]
@@ -65,6 +112,7 @@ public class OrdinancePenaltyConfigurationTests
             Category = ViolationCategory.Obstruction, Severity = Severity.High, PenaltyTiers = [tier] };
         switch (invalid)
         {
+            case "unknown-additional-penalty": tier.AdditionalPenalty = (AdditionalPenalty)99; break;
             case "missing-severity": request.Severity = null; break;
             case "unknown-severity": request.Severity = (Severity)999; break;
             case "small-cap": tier.MaximumFine = 99.99m; break;

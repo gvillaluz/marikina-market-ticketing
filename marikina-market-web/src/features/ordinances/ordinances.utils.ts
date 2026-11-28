@@ -6,12 +6,14 @@ import {
   CATEGORY_VALUES,
   SEVERITY_OPTIONS,
   FINE_KIND_OPTIONS,
+  ADDITIONAL_PENALTY_OPTIONS,
 } from "./ordinances.constants";
 import type {
   OrdinanceDetailResponse,
   OrdinanceSummaryResponse,
   SaveOrdinanceRequest,
   FineKind,
+  AdditionalPenalty,
 } from "@/api/types/ordinance.types";
 import type {
   DraftPenaltyTier,
@@ -39,6 +41,28 @@ export function normalizeFineKind(value: unknown): FineKind {
     ? FINE_KIND_OPTIONS[value]?.value : value;
   if (!isFineKind(kind)) throw new ApiRequestError();
   return kind;
+}
+
+export function isAdditionalPenalty(value: unknown): value is AdditionalPenalty {
+  return ADDITIONAL_PENALTY_OPTIONS.some((option) => option.value === value);
+}
+
+export function normalizeAdditionalPenalty(value: unknown): AdditionalPenalty {
+  const penalty = typeof value === "number" && Number.isInteger(value)
+    ? ADDITIONAL_PENALTY_OPTIONS[value]?.value : value;
+  if (!isAdditionalPenalty(penalty)) throw new ApiRequestError();
+  return penalty;
+}
+
+// Mirrors OrdinancePenaltyTier.SeverityLevelOf on the server (ADR 0001): the choices after None are Levels 3, 4 and 5.
+export function severityLevelText(tier: DraftPenaltyTier): string {
+  const rank = ADDITIONAL_PENALTY_OPTIONS.findIndex((option) => option.value === tier.additionalPenalty);
+  if (rank > 0) return `Level ${rank + 2} · ${ADDITIONAL_PENALTY_OPTIONS[rank].label}`;
+  const fine = parsePenaltyAmount(
+    tier.fineKind === "Fixed" ? tier.amount : tier.fineKind === "UpTo" ? tier.maximumFine : "",
+  );
+  if (fine === null) return "No level yet: enter a confirmed fine or choose an additional penalty.";
+  return fine > 1000 ? "Level 2 · Fine over ₱1,000" : "Level 1 · Fine up to ₱1,000";
 }
 
 export function normalizeCategory(value: unknown): TicketCategories {
@@ -81,6 +105,7 @@ export function normalizeOrdinanceDetails(item: OrdinanceDetailResponse) {
     penaltyTiers: item.penaltyTiers.map((tier) => ({
       ...tier,
       fineKind: normalizeFineKind(tier.fineKind),
+      additionalPenalty: normalizeAdditionalPenalty(tier.additionalPenalty),
     })),
   };
 }
@@ -119,6 +144,7 @@ export function hasDraftChanges(
       penaltyTerms: text(tier.penaltyTerms),
       allowBloodDonation: tier.allowBloodDonation,
       allowCommunityService: tier.allowCommunityService,
+      additionalPenalty: tier.additionalPenalty,
     })),
   });
   return (
@@ -238,6 +264,7 @@ export function buildOrdinanceRequest(
       penaltyTerms: tier.penaltyTerms.trim() || null,
       allowBloodDonation: tier.allowBloodDonation,
       allowCommunityService: tier.allowCommunityService,
+      additionalPenalty: tier.additionalPenalty,
     });
   }
   return {

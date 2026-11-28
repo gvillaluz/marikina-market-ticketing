@@ -1,7 +1,7 @@
 import type { Severity } from '@/api/types/common.types';
 import type { TicketCategories } from '@/api/types/ticket.types';
 
-import type { FineKind, OrdinanceSummaryResponse } from '@/api/types/ordinance.types';
+import type { AdditionalPenalty, FineKind, OrdinanceSummaryResponse } from '@/api/types/ordinance.types';
 
 export interface OrdinanceSummary extends Omit<OrdinanceSummaryResponse, 'category' | 'severity'> {
   category: TicketCategories;
@@ -27,6 +27,7 @@ export interface DraftPenaltyTier {
   penaltyTerms: string;
   allowBloodDonation: boolean;
   allowCommunityService: boolean;
+  additionalPenalty: AdditionalPenalty;
 }
 
 export interface OrdinanceDraft {

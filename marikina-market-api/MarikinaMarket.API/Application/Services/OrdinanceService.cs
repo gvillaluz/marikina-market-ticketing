@@ -138,6 +138,7 @@ namespace MarikinaMarket.API.Application.Services
                     tier.PenaltyTerms = request.PenaltyTerms?.Trim();
                     tier.AllowBloodDonation = request.AllowBloodDonation;
                     tier.AllowCommunityService = request.AllowCommunityService;
+                    tier.AdditionalPenalty = request.AdditionalPenalty;
                 }
                 else
                 {
@@ -183,6 +184,8 @@ namespace MarikinaMarket.API.Application.Services
                     throw new InvalidRequestException("Offense numbers must be unique; base and first offense both use 1.");
                 if (!Enum.IsDefined(tier.FineKind))
                     throw new InvalidRequestException("Invalid fine kind.");
+                if (!Enum.IsDefined(tier.AdditionalPenalty))
+                    throw new InvalidRequestException("Invalid additional penalty.");
                 if (Math.Max(1, tier.OffenseNumber) != 1 && (tier.AllowBloodDonation || tier.AllowCommunityService))
                     throw new InvalidRequestException("Blood donation and community service eligibility are only configurable for first offense.");
                 if (tier.PenaltyTerms?.Trim().Length > 1000)
@@ -228,7 +231,8 @@ namespace MarikinaMarket.API.Application.Services
             OffenseNumber = Math.Max(1, request.OffenseNumber),
             FineKind = request.FineKind, PenaltyAmount = request.PenaltyAmount,
             MaximumFine = request.MaximumFine, PenaltyTerms = request.PenaltyTerms?.Trim(),
-            AllowBloodDonation = request.AllowBloodDonation, AllowCommunityService = request.AllowCommunityService
+            AllowBloodDonation = request.AllowBloodDonation, AllowCommunityService = request.AllowCommunityService,
+            AdditionalPenalty = request.AdditionalPenalty
         };
 
         private static OrdinanceSummaryResponse Summary(Ordinance ordinance) =>

@@ -1,0 +1,22 @@
+.readout {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.label {
+  color: var(--text-heading);
+  font-size: var(--form-font-body);
+  font-weight: 500;
+}
+
+/* Worked out, not typed: plain text at control height, no field border. */
+.value {
+  display: flex;
+  min-height: var(--form-control-height);
+  align-items: center;
+  color: var(--text-heading);
+  font-size: var(--form-font-body);
+  font-weight: 600;
+}
