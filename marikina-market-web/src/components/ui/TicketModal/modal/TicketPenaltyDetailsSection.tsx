@@ -3,6 +3,7 @@ import TicketSectionHeader from "./TicketSectionHeader";
 import TicketInfoRow from "./TicketInfoRow";
 import styles from "./TicketPenaltyDetailsSection.module.css";
 import { TicketDetail } from "@/api/types/ticket.types";
+import { SeverityLevelBadge } from "@/components/ui/SeverityLevelBadge/SeverityLevelBadge";
 import { formatCurrency, formatDateTime } from "@/utils/formatters";
 import {
   getTicketTotalFineAmount,
@@ -10,7 +11,6 @@ import {
 } from "@/features/tickets";
 
 function TicketPenaltyDetailsSection({ detail }: { detail?: TicketDetail }) {
-  const severity = (detail?.severity || "").toLowerCase();
   const totalFine = getTicketTotalFineAmount(detail);
 
   return (
@@ -19,11 +19,7 @@ function TicketPenaltyDetailsSection({ detail }: { detail?: TicketDetail }) {
       <section className={styles.penaltySection}>
         <TicketInfoRow
           label="SEVERITY:"
-          value={
-            <span className={`${styles.severityBadge} ${styles[severity]}`}>
-              {detail?.severity}
-            </span>
-          }
+          value={<SeverityLevelBadge level={detail?.severityLevel} />}
         />
         <TicketInfoRow
           label="PENALTY TYPE:"

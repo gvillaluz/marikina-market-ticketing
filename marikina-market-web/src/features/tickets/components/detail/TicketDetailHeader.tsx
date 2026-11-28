@@ -16,7 +16,7 @@ const TicketDetailHeader: FC<TicketDetailHeaderProps> = ({ title, status, lastUp
     <div className={styles.header}>
       <div className={styles.titleRow}>
         <h2 className={styles.title}>{title}</h2>
-        {status && <StatusPill variant={status} dot>{recordStatusLabel(status)}</StatusPill>}
+        {status && <StatusPill variant={status}>{recordStatusLabel(status)}</StatusPill>}
       </div>
       <span className={styles.lastUpdated}>Last updated {lastUpdated}</span>
     </div>

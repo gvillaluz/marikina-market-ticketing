@@ -33,7 +33,7 @@ export default function TicketsPage() {
     <div className={styles.page}>
       <PageHeader
         title="Tickets"
-        subtitle="Review issued tickets, payment status, and violation severity."
+        subtitle="Review issued tickets, payment status, and Severity Level."
       />
       {page.analyticsError && !stats ? (
         <RecordsState
@@ -66,11 +66,11 @@ export default function TicketsPage() {
             isLoading={page.analytics.isLoading}
           />
           <TicketAnalyticsCard
-            label="High severity tickets"
+            label="Level 4–5 tickets"
             value={
-              stats ? formatNumber(stats.highSeveritiesThisMonth) : "\u2014"
+              stats ? formatNumber(stats.levelFourToFiveThisMonth) : "\u2014"
             }
-            change={stats?.highSeveritiesChangePercentage}
+            change={stats?.levelFourToFiveChangePercentage}
             isLoading={page.analytics.isLoading}
           />
         </div>

@@ -8,7 +8,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Response
         public double PaymentsChangePercentage { get; set; }
         public int ResolvedViolationsThisMonth { get; set; }
         public double ResolutionRate { get; set; }
-        public int HighSeveritiesThisMonth { get; set; }
-        public double HighSeveritiesChangePercentage { get; set; }
+        public int LevelFourToFiveThisMonth { get; set; }
+        public double LevelFourToFiveChangePercentage { get; set; }
     }
 }

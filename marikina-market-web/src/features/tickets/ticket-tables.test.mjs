@@ -159,3 +159,23 @@ test('export and print columns stay plain text with no highlight', () => {
   for (const column of TICKET_COLUMNS) assert.ok(!String(column.value(ticket)).includes('<mark'), column.key);
   for (const column of INSPECTION_COLUMNS) assert.ok(!String(column.value({ ...ticket, ticketId: 41, type: 'Ticket' })).includes('<mark'), column.key);
 });
+
+test('ticket table and export show the Severity Level with its short name, and a dash when there is none', () => {
+  // Wording from the spec (#163): Level N · short name; old tickets have no level yet.
+  const expected = [
+    [1, 'Level 1 · Fine up to ₱1,000'],
+    [2, 'Level 2 · Fine over ₱1,000'],
+    [3, 'Level 3 · Confiscation or suspension'],
+    [4, 'Level 4 · Closure or revocation'],
+    [5, 'Level 5 · Imprisonment'],
+    [null, '—'],
+  ];
+  const rows = expected.map(([severityLevel], i) => ({ ...ticket, id: 100 + i, severityLevel }));
+  const html = renderToStaticMarkup(React.createElement(MemoryRouter, null,
+    React.createElement(TicketList, { tickets: rows, search: '', onView: () => {} })));
+  const exported = TICKET_COLUMNS.find(column => column.key === 'severityLevel');
+  assert.equal(exported.header, 'Severity Level');
+  assert.deepEqual(rows.map(exported.value), expected.map(([, text]) => text));
+  assert.deepEqual(cells(html, 'Severity Level').map(cell => cell.replace(/&#x27;/g, "'")), expected.map(([, text]) => text));
+  assert.ok(!/Minor|Moderate|High/.test(html));
+});

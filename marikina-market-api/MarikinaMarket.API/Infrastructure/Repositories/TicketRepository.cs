@@ -832,10 +832,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                                          && t.IssuedAt >= startOfLastMonth && t.IssuedAt < startOfThisMonth)
                                          .Sum(t => (decimal?)t.TotalPaymentAmount) ?? 0,
 
-                    ResolvedViolationsThisMonth = g.Count(t => t.Status == TicketStatus.Paid || t.Status == TicketStatus.Waived && t.IssuedAt >= startOfThisMonth),
+                    ResolvedViolationsThisMonth = g.Count(t => (t.Status == TicketStatus.Paid || t.Status == TicketStatus.Waived) && t.IssuedAt >= startOfThisMonth),
                     
-                    HighSeveritiesThisMonth = g.Count(t => t.HighestSeverity == Severity.High && t.IssuedAt >= startOfThisMonth),
-                    HighSeveritiesLastMonth = g.Count(t => t.HighestSeverity == Severity.High
+                    LevelFourToFiveThisMonth = g.Count(t => t.SeverityLevel >= 4 && t.IssuedAt >= startOfThisMonth),
+                    LevelFourToFiveLastMonth = g.Count(t => t.SeverityLevel >= 4
                                          && t.IssuedAt >= startOfLastMonth && t.IssuedAt < startOfThisMonth),
                 })
                 .FirstOrDefaultAsync() ?? new TicketAnalyticsRaw();

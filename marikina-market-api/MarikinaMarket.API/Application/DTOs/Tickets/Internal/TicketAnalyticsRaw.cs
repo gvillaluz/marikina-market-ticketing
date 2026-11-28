@@ -7,7 +7,7 @@ namespace MarikinaMarket.API.Application.DTOs.Tickets.Internal
         public decimal PaymentsThisMonth { get; set; }
         public decimal PaymentsLastMonth { get; set; }
         public int ResolvedViolationsThisMonth { get; set; }
-        public int HighSeveritiesThisMonth { get; set; }
-        public int HighSeveritiesLastMonth { get; set; }
+        public int LevelFourToFiveThisMonth { get; set; }
+        public int LevelFourToFiveLastMonth { get; set; }
     }
 }
