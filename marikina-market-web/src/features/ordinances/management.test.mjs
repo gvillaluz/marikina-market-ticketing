@@ -93,11 +93,11 @@ const detail = {
   penaltyTiers: [
     {
       id: 71, offenseNumber: 1, fineKind: "Fixed", penaltyAmount: 500, minimumFine: null, maximumFine: null,
-      penaltyTerms: null, allowBloodDonation: true, allowCommunityService: false
+      penaltyTerms: null, allowBloodDonation: true, allowCommunityService: false, additionalPenalty: "None"
     },
     {
       id: 72, offenseNumber: 2, fineKind: "Fixed", penaltyAmount: 1000, minimumFine: null, maximumFine: null,
-      penaltyTerms: null, allowBloodDonation: false, allowCommunityService: false
+      penaltyTerms: null, allowBloodDonation: false, allowCommunityService: false, additionalPenalty: "ClosureRevocation"
     },
   ],
 };
@@ -655,7 +655,7 @@ const scoringFields = {
 };
 const fixedTier = (changes = {}) => ({
   key: "first", fineKind: "Fixed", amount: "500", maximumFine: "", penaltyTerms: "",
-  allowBloodDonation: false, allowCommunityService: false, ...changes,
+  allowBloodDonation: false, allowCommunityService: false, additionalPenalty: "None", ...changes,
 });
 
 test("slice 2 saves ordinance scoring and warning settings without tier severity", () => {
@@ -713,7 +713,7 @@ test("slice 2 normalizes fine kinds without requiring removed tier severity", ()
     ...summary, severity: 2, warningEligible: true,
     penaltyTiers: [{
       id: 71, offenseNumber: 1, fineKind: 1, penaltyAmount: null, minimumFine: 100,
-      maximumFine: 1000, penaltyTerms: "Up to PHP 1,000", allowBloodDonation: false, allowCommunityService: true
+      maximumFine: 1000, penaltyTerms: "Up to PHP 1,000", allowBloodDonation: false, allowCommunityService: true, additionalPenalty: 2
     }]
   });
   assert.equal(normalized.severity, "High");
@@ -721,6 +721,7 @@ test("slice 2 normalizes fine kinds without requiring removed tier severity", ()
   assert.equal(normalized.penaltyTiers[0].fineKind, "UpTo");
   assert.equal(normalized.penaltyTiers[0].penaltyAmount, null);
   assert.equal(normalized.penaltyTiers[0].allowCommunityService, true);
+  assert.equal(normalized.penaltyTiers[0].additionalPenalty, "ClosureRevocation");
 });
 
 test("slice 2 tier controls show fine rules and first-offense alternatives without severity", () => {
@@ -733,7 +734,7 @@ test("slice 2 tier controls show fine rules and first-offense alternatives witho
   assert.match(html, /100/);
   assert.match(html, /Blood donation/);
   assert.match(html, /Community service/);
-  assert.doesNotMatch(html, /Severity/);
+  assert.doesNotMatch(html, /Scoring severity|Minor|Moderate/);
   html = render(2, fixedTier());
   assert.doesNotMatch(html, /type="checkbox"/);
   html = render(1, fixedTier({ fineKind: "Unconfirmed", amount: "" }));
@@ -807,4 +808,54 @@ test("slice 2 optional terms and missing values are represented honestly", () =>
   assert.match(fieldsHtml, /Scoring severity/);
   assert.match(fieldsHtml, /Severity affects compliance scoring only/);
   assert.match(fieldsHtml, /Include in the warning ordinance list/);
+});
+
+test("the Severity Level is worked out from the fine and the Additional Penalty", () => {
+  const { severityLevelText } = load("features/ordinances/ordinances.utils.ts");
+  const cases = [
+    [fixedTier({ amount: "1000" }), "Level 1 · Fine up to ₱1,000"],
+    [fixedTier({ amount: "1000.01" }), "Level 2 · Fine over ₱1,000"],
+    [fixedTier({ fineKind: "UpTo", amount: "", maximumFine: "5000" }), "Level 2 · Fine over ₱1,000"],
+    [fixedTier({ amount: "200", additionalPenalty: "ConfiscationSuspensionImpounding" }), "Level 3 · Confiscation, suspension or impounding"],
+    [fixedTier({ amount: "1000", additionalPenalty: "ClosureRevocation" }), "Level 4 · Closure or revocation"],
+    [fixedTier({ fineKind: "Unconfirmed", amount: "", additionalPenalty: "Imprisonment" }), "Level 5 · Imprisonment"],
+    [fixedTier({ fineKind: "Unconfirmed", amount: "" }), "No level yet: enter a confirmed fine or choose an additional penalty."],
+    [fixedTier({ amount: "" }), "No level yet: enter a confirmed fine or choose an additional penalty."],
+  ];
+  for (const [tier, expected] of cases) assert.equal(severityLevelText(tier), expected);
+});
+
+test("the editor loads, sends, detects and undoes the Additional Penalty", () => {
+  const { buildOrdinanceRequest, normalizeOrdinanceDetails } = load("features/ordinances/ordinances.utils.ts");
+  const request = buildOrdinanceRequest(scoringFields, [fixedTier({ additionalPenalty: "Imprisonment" })]);
+  assert.equal(request.penaltyTiers[0].additionalPenalty, "Imprisonment");
+  assert.throws(() => normalizeOrdinanceDetails({ ...detail, penaltyTiers: [{ ...detail.penaltyTiers[0], additionalPenalty: "Death" }] }));
+  const h = editorHarness();
+  h.render().launch(summary);
+  h.render();
+  h.flush();
+  assert.equal(h.render().tiers[0].additionalPenalty, "None");
+  assert.equal(h.render().tiers[1].additionalPenalty, "ClosureRevocation");
+  const key = h.render().tiers[1].key;
+  h.render().changeTier(key, "additionalPenalty", "Death");
+  assert.equal(h.render().tiers[1].additionalPenalty, "ClosureRevocation");
+  h.render().changeTier(key, "additionalPenalty", "None");
+  assert.equal(h.render().hasChanges, true);
+  h.render().undo();
+  assert.equal(h.render().tiers[1].additionalPenalty, "ClosureRevocation");
+  assert.equal(h.render().hasChanges, false);
+  h.render().addTier();
+  assert.equal(h.render().tiers[2].additionalPenalty, "None");
+});
+
+test("each offence row has an Additional penalty choice and a Severity Level that cannot be typed in", () => {
+  const Tier = load("features/ordinances/components/PenaltyTierRow.tsx").default;
+  const html = renderToStaticMarkup(React.createElement(Tier, {
+    tier: fixedTier({ amount: "1000", additionalPenalty: "ClosureRevocation" }), number: 1,
+    disabled: false, errors: {}, touched: {}, onChange() { }, onBlur() { }, onRemove() { },
+  }));
+  assert.match(html, /aria-label="1st Offense additional penalty"/);
+  assert.match(html, /<output[^>]*>.*Level 4 · Closure or revocation.*<\/output>/s);
+  assert.doesNotMatch(html, /<input[^>]*Level 4/);
+  assert.match(html, /Recommended penalties and surcharges go in Penalty terms/);
 });

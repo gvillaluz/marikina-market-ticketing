@@ -1,6 +1,6 @@
 import type { Severity } from '@/api/types/common.types';
 import type { TicketCategories } from '@/api/types/ticket.types';
-import type { FineKind } from '@/api/types/ordinance.types';
+import type { AdditionalPenalty, FineKind } from '@/api/types/ordinance.types';
 
 export const CATEGORY_OPTIONS: readonly { value: TicketCategories; label: string; }[] = [
   { value: 'Traffic', label: 'Traffic' },
@@ -29,6 +29,14 @@ export const FINE_KIND_OPTIONS: readonly { value: FineKind; label: string; }[] =
   { value: 'Fixed', label: 'Fixed fine' },
   { value: 'UpTo', label: 'Up to a maximum' },
   { value: 'Unconfirmed', label: 'Unconfirmed rule' },
+];
+
+// Order matches the server enum so numeric values can be read back.
+export const ADDITIONAL_PENALTY_OPTIONS: readonly { value: AdditionalPenalty; label: string; }[] = [
+  { value: 'None', label: 'None' },
+  { value: 'ConfiscationSuspensionImpounding', label: 'Confiscation, suspension or impounding' },
+  { value: 'ClosureRevocation', label: 'Closure or revocation' },
+  { value: 'Imprisonment', label: 'Imprisonment' },
 ];
 
 export const ordinancesListKey = ['ordinances', 'list'] as const;

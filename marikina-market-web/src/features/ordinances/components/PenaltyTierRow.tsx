@@ -1,6 +1,9 @@
 import { Trash2 } from "lucide-react";
-import { FINE_KIND_OPTIONS } from "../ordinances.constants";
-import { offenseLabel } from "../ordinances.utils";
+import {
+  ADDITIONAL_PENALTY_OPTIONS,
+  FINE_KIND_OPTIONS,
+} from "../ordinances.constants";
+import { offenseLabel, severityLevelText } from "../ordinances.utils";
 import type {
   DraftPenaltyTier,
   TierFieldErrors,
@@ -8,6 +11,7 @@ import type {
 } from "../ordinances.types";
 import OrdinanceField from "./OrdinanceField";
 import OrdinanceOption from "./OrdinanceOption";
+import SeverityLevelReadout from "./SeverityLevelReadout";
 import styles from "./PenaltyTierRow.module.css";
 
 interface Props {
@@ -87,7 +91,21 @@ export default function PenaltyTierRow({
             error={touched.maximumFine ? errors.maximumFine : undefined}
           />
         )}
+        <OrdinanceField
+          label="Additional penalty"
+          ariaLabel={`${offenseLabel(number)} additional penalty`}
+          value={tier.additionalPenalty}
+          options={ADDITIONAL_PENALTY_OPTIONS}
+          disabled={disabled}
+          onChange={(value) => onChange("additionalPenalty", value)}
+          onBlur={() => onBlur("additionalPenalty")}
+        />
+        <SeverityLevelReadout text={severityLevelText(tier)} />
       </div>
+      <p className={styles.note}>
+        Only penalties the Market Code prescribes. Recommended penalties and
+        surcharges go in Penalty terms.
+      </p>
       {tier.fineKind === "UpTo" && (
         <p className={styles.note}>
           Minimum fine: ₱100. The enforcer enters the amount assessed on paper.

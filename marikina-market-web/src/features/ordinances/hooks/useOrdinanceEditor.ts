@@ -18,6 +18,7 @@ import {
   isCategory,
   isSeverity,
   isFineKind,
+  isAdditionalPenalty,
   normalizeOrdinance,
   normalizeOrdinanceDetails,
   ordinanceError,
@@ -107,6 +108,7 @@ export function useOrdinanceEditor() {
           penaltyTerms: item.penaltyTerms ?? "",
           allowBloodDonation: item.allowBloodDonation,
           allowCommunityService: item.allowCommunityService,
+          additionalPenalty: item.additionalPenalty,
         })),
     };
     baseline.current = cloneDraft(loaded);
@@ -298,6 +300,7 @@ export function useOrdinanceEditor() {
           penaltyTerms: "",
           allowBloodDonation: false,
           allowCommunityService: false,
+          additionalPenalty: "None",
         },
       ]);
       setError("");
@@ -320,6 +323,8 @@ export function useOrdinanceEditor() {
           if (name === "allowBloodDonation" || name === "allowCommunityService")
             return { ...item, [name]: index === 0 && value === true };
           if (typeof value !== "string") return item;
+          if (name === "additionalPenalty")
+            return isAdditionalPenalty(value) ? { ...item, additionalPenalty: value } : item;
           if (name === "fineKind")
             return {
               ...item,
