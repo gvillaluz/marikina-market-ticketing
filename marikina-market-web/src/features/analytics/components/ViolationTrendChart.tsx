@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ViolationTrendPoint } from "@/api/types/admin-analytics.types";
+import { formatSeverityLevel } from "@/utils/formatters";
 import AnalyticsPanel from "./AnalyticsPanel";
 import styles from "./ViolationTrendChart.module.css";
 
@@ -14,13 +15,13 @@ interface ViolationTrendChartProps {
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const CHART = { left: 38, top: 12, width: 550, height: 130 };
 
-type SeverityKey = "highSeverityCount" | "mediumSeverityCount" | "lowSeverityCount";
+type LevelKey = "level1Count" | "level2Count" | "level3Count" | "level4Count" | "level5Count";
 
-const SERIES: { key: SeverityKey; label: string; className: string }[] = [
-  { key: "highSeverityCount", label: "High Severity", className: styles.high },
-  { key: "mediumSeverityCount", label: "Medium Severity", className: styles.medium },
-  { key: "lowSeverityCount", label: "Low Severity", className: styles.low },
-];
+const SERIES = ([1, 2, 3, 4, 5] as const).map((level) => ({
+  key: `level${level}Count` as LevelKey,
+  label: formatSeverityLevel(level),
+  className: styles[`level${level}`],
+}));
 
 export default function ViolationTrendChart({
   data,
@@ -42,7 +43,8 @@ export default function ViolationTrendChart({
     MONTHS.map((_, index) => yearData.find((point) => point.month === index + 1)?.[key] ?? 0),
   );
   const maxValue = Math.max(1, ...monthlyValues.flat());
-  const gridMax = Math.ceil(maxValue / 5) * 5 || 5;
+  // A multiple of 4 keeps the four grid steps whole numbers.
+  const gridMax = Math.ceil(maxValue / 4) * 4;
 
   function pointPosition(index: number, value: number) {
     return {
@@ -54,7 +56,7 @@ export default function ViolationTrendChart({
   return (
     <AnalyticsPanel
       title="Violation Trend Over Time"
-      subtitle="Monthly ticket counts by severity level. Tickets only; warnings are not included."
+      subtitle="Monthly ticket counts by Severity Level. Tickets only; warnings are not included."
       skeletonVariant="chart"
       isLoading={isLoading}
       isError={isError}
@@ -94,10 +96,10 @@ export default function ViolationTrendChart({
               <text key={month} x={x} y="166" textAnchor="middle" className={styles.monthLabel}>{month}</text>
             );
           })}
-          {SERIES.map((series) => {
-            const values = MONTHS.map((_, index) =>
-              yearData.find((point) => point.month === index + 1)?.[series.key] ?? 0,
-            );
+          {SERIES.map((series, seriesIndex) => {
+            const values = monthlyValues[seriesIndex];
+            // A level with no tickets all year would only draw over the baseline.
+            if (values.every((count) => count === 0)) return null;
             const points = values
               .map((count, index) => {
                 const position = pointPosition(index, count);
@@ -105,7 +107,7 @@ export default function ViolationTrendChart({
               })
               .join(" ");
             return (
-              <g key={series.key} className={series.className}>
+              <g key={series.key} className={`${styles.series} ${series.className}`}>
                 <polyline points={points} className={styles.trendLine} />
                 {values.map((count, index) => {
                   const position = pointPosition(index, count);

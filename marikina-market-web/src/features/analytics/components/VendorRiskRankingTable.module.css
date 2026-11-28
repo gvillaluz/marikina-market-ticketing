@@ -61,21 +61,29 @@
   font-size: 0.7rem;
   font-weight: 700;
   text-align: center;
+  white-space: nowrap;
 }
 
-.high {
-  background: #fff0ee;
-  color: #d44239;
-}
-
-.moderate {
-  background: #fff4e6;
-  color: #c47b11;
-}
-
-.low {
+/* Badge text is at least 4.5:1 on its tint. */
+.level1,
+.level2 {
   background: #eaf6ec;
-  color: #34854a;
+  color: #2b7340;
+}
+
+.level3 {
+  background: #fff4e6;
+  color: #94590a;
+}
+
+.level4 {
+  background: #fff0ee;
+  color: #b8342c;
+}
+
+.level5 {
+  background: #fde9e8;
+  color: #8f1d2c;
 }
 
 .neutral {

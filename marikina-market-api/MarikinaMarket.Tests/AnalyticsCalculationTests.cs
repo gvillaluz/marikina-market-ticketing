@@ -24,7 +24,7 @@ public class AnalyticsCalculationTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.All(json.RootElement.EnumerateArray(), point => Assert.Equal(2025, point.GetProperty("year").GetInt32()));
-        Assert.Equal(1, json.RootElement[11].GetProperty("low_severity_count").GetInt32());
+        Assert.Equal(1, json.RootElement[11].GetProperty("level1_count").GetInt32());
     }
 
     [Theory]
@@ -53,15 +53,15 @@ public class AnalyticsCalculationTests
         var end = Utc(2025, 12, 31, 16);
         await using var context = Context([
             Record(1, start.AddTicks(-10)), Record(2, start),
-            Record(3, Utc(2025, 10, 24), severity: Severity.Moderate),
-            Record(4, end.AddTicks(-10), severity: Severity.High), Record(5, end)]);
+            Record(3, Utc(2025, 10, 24), level: 3),
+            Record(4, end.AddTicks(-10), level: 4), Record(5, end)]);
         var service = new AdminAnalyticsService(new TicketRepository(context), new AnalyticsClock(Utc(2026, 2, 20)));
         Assert.Equal(3, (await service.GetInspectionRatioAsync(2025)).TicketCount);
         var trend = await service.GetViolationTrendAsync(2025);
         Assert.All(trend, row => Assert.Equal(2025, row.Year));
-        Assert.Equal(1, trend[0].LowSeverityCount);
-        Assert.Equal(1, trend[9].MediumSeverityCount);
-        Assert.Equal(1, trend[11].HighSeverityCount);
+        Assert.Equal(1, trend[0].Level1Count);
+        Assert.Equal(1, trend[9].Level3Count);
+        Assert.Equal(1, trend[11].Level4Count);
         Assert.Equal(3, (await service.GetViolationResolutionRateAsync(2025)).TicketCount);
         Assert.Equal(3, (await service.GetPeakViolationTimesAsync(2025)).Sum(row => row.TicketCount));
         Assert.Equal(3, Assert.Single(await service.GetMarketSectionAggregationAsync(2025)).TicketCount);
@@ -76,10 +76,10 @@ public class AnalyticsCalculationTests
     public async Task Every_chart_counts_each_saved_record_once_with_unregistered_vendors_and_several_violations()
     {
         // "Today" is 7 Nov 2026 (Manila). Records worked out by hand, all times Manila unless stated:
-        //  T1 ticket, Produce, registered Shop A, Mon 2 Feb 10:30, High, Paid after 3 days. Violations: Sanitation, Sanitation, Licensing.
-        //  T2 ticket, Produce, unregistered vendor, Tue 10 Feb 02:30 (Mon 9 Feb 18:30 UTC), Moderate, still Pending. Violation: Licensing. Blood donation.
-        //  T3 ticket, Meat, unregistered vendor, Sun 15 Mar 12:00, Minor, Waived after 8 days. Violation: Noise. Community service.
-        //  T4 ticket, Produce, registered Shop A, Wed 1 Apr 00:30 (Tue 31 Mar 16:30 UTC), Minor, Waived after 1 day. Violation: Noise. Blood donation.
+        //  T1 ticket, Produce, registered Shop A, Mon 2 Feb 10:30, Level 4, Paid after 3 days. Violations: Sanitation, Sanitation, Licensing.
+        //  T2 ticket, Produce, unregistered vendor, Tue 10 Feb 02:30 (Mon 9 Feb 18:30 UTC), Level 3, still Pending. Violation: Licensing. Blood donation.
+        //  T3 ticket, Meat, unregistered vendor, Sun 15 Mar 12:00, Level 1, Waived after 8 days. Violation: Noise. Community service.
+        //  T4 ticket, Produce, registered Shop A, Wed 1 Apr 00:30 (Tue 31 Mar 16:30 UTC), Level 1, Waived after 1 day. Violation: Noise. Blood donation.
         //  W1 warning, Produce, unregistered vendor, 3 Feb.   W2 warning, Produce, registered Shop A, 4 May.
         //  Last year: a Meat ticket (1 Jun 2025), a Meat warning (1 Sep 2025), and a Produce ticket one minute before 2026 starts (31 Dec 2025 23:59).
         var produce = new MarketSection { Id = 2, Name = "Produce" };
@@ -89,20 +89,20 @@ public class AnalyticsCalculationTests
             Id = 1, BusinessAccountNumber = "BA-0001", BusinessName = "Synthetic Shop A", QrCodeValue = "synthetic-1",
             ComplianceScore = 70, MarketSectionId = 2
         };
-        var t1 = Record(1, Utc(2026, 2, 2, 2, 30), severity: Severity.High);
+        var t1 = Record(1, Utc(2026, 2, 2, 2, 30), level: 4);
         t1.Status = TicketStatus.Paid; t1.ResolvedAt = t1.IssuedAt.AddDays(3); t1.VendorId = 1;
-        var t2 = Record(2, Utc(2026, 2, 9, 18, 30), severity: Severity.Moderate);
+        var t2 = Record(2, Utc(2026, 2, 9, 18, 30), level: 3);
         t2.PersonId = 1; t2.PenaltyType = PenaltyType.BloodDonation;
-        var t3 = Record(3, Utc(2026, 3, 15, 4), severity: Severity.Minor);
+        var t3 = Record(3, Utc(2026, 3, 15, 4), level: 1);
         t3.PersonId = 1; t3.PenaltyType = PenaltyType.CommunityService;
         t3.Status = TicketStatus.Waived; t3.ResolvedAt = t3.IssuedAt.AddDays(8);
-        var t4 = Record(4, Utc(2026, 3, 31, 16, 30), severity: Severity.Minor);
+        var t4 = Record(4, Utc(2026, 3, 31, 16, 30), level: 1);
         t4.Status = TicketStatus.Waived; t4.ResolvedAt = t4.IssuedAt.AddDays(1); t4.VendorId = 1;
         t4.PenaltyType = PenaltyType.BloodDonation;
-        var w1 = Record(5, Utc(2026, 2, 3, 1), ViolationType.Warning); w1.HighestSeverity = null; w1.PersonId = 1;
-        var w2 = Record(6, Utc(2026, 5, 4), ViolationType.Warning); w2.HighestSeverity = null; w2.VendorId = 1;
+        var w1 = Record(5, Utc(2026, 2, 3, 1), ViolationType.Warning); w1.PersonId = 1;
+        var w2 = Record(6, Utc(2026, 5, 4), ViolationType.Warning); w2.VendorId = 1;
         var lastYearMeatTicket = Record(7, Utc(2025, 6, 1));
-        var lastYearMeatWarning = Record(8, Utc(2025, 9, 1), ViolationType.Warning); lastYearMeatWarning.HighestSeverity = null;
+        var lastYearMeatWarning = Record(8, Utc(2025, 9, 1), ViolationType.Warning);
         var lastYearProduceTicket = Record(9, Utc(2025, 12, 31, 15, 59));
         foreach (var record in new[] { t3, lastYearMeatTicket, lastYearMeatWarning }) record.MarketSectionId = 3;
         var records = new List<Ticket> { t1, t2, t3, t4, w1, w2, lastYearMeatTicket, lastYearMeatWarning, lastYearProduceTicket };
@@ -135,13 +135,13 @@ public class AnalyticsCalculationTests
         var resolution = await service.GetViolationResolutionRateAsync();
         Assert.Equal(4, resolution.TicketCount); Assert.Equal(2, resolution.ResolvedWithinSevenDays); Assert.Equal(50, resolution.ResolutionRate);
 
-        // Tickets only, by Manila month and highest severity: Feb High 1 (T1) and Moderate 1 (T2), Mar Minor 1 (T3), Apr Minor 1 (T4). May's warning adds nothing.
+        // Tickets only, by Manila month and Severity Level: Feb Level 4 1 (T1) and Level 3 1 (T2), Mar Level 1 1 (T3), Apr Level 1 1 (T4). May's warning adds nothing.
         var trend = await service.GetViolationTrendAsync();
-        Assert.Equal((1, 1, 0), (trend[1].HighSeverityCount, trend[1].MediumSeverityCount, trend[1].LowSeverityCount));
-        Assert.Equal((0, 0, 1), (trend[2].HighSeverityCount, trend[2].MediumSeverityCount, trend[2].LowSeverityCount));
-        Assert.Equal((0, 0, 1), (trend[3].HighSeverityCount, trend[3].MediumSeverityCount, trend[3].LowSeverityCount));
-        Assert.Equal(0, trend[4].HighSeverityCount + trend[4].MediumSeverityCount + trend[4].LowSeverityCount);
-        Assert.Equal(4, trend.Sum(point => point.HighSeverityCount + point.MediumSeverityCount + point.LowSeverityCount));
+        Assert.Equal((1, 1, 0), (trend[1].Level4Count, trend[1].Level3Count, trend[1].Level1Count));
+        Assert.Equal((0, 0, 1), (trend[2].Level4Count, trend[2].Level3Count, trend[2].Level1Count));
+        Assert.Equal((0, 0, 1), (trend[3].Level4Count, trend[3].Level3Count, trend[3].Level1Count));
+        Assert.Equal(0, trend[4].Level1Count + trend[4].Level2Count + trend[4].Level3Count + trend[4].Level4Count + trend[4].Level5Count);
+        Assert.Equal(4, trend.Sum(point => point.Level1Count + point.Level2Count + point.Level3Count + point.Level4Count + point.Level5Count));
 
         // Tickets only, by Manila weekday and 4-hour block: Mon 8AM-12PM (T1), Tue 12AM-4AM (T2), Sun 12PM-4PM (T3), Wed 12AM-4AM (T4).
         var peaks = await service.GetPeakViolationTimesAsync();
@@ -171,22 +171,59 @@ public class AnalyticsCalculationTests
         Assert.Equal((1, 2, 3, 5, 0, "Rising"), (hotspots[0].Rank, hotspots[0].WarningCount, hotspots[0].TicketCount, hotspots[0].TotalInspectionCount, hotspots[0].PreviousPeriodCount, hotspots[0].Trend));
         Assert.Equal((2, 0, 1, 1, 2, "Falling"), (hotspots[1].Rank, hotspots[1].WarningCount, hotspots[1].TicketCount, hotspots[1].TotalInspectionCount, hotspots[1].PreviousPeriodCount, hotspots[1].Trend));
 
-        // Only the registered business is ranked: 2 offenses (T1, T4, not W2, not the unregistered tickets), highest severity High, risk 100 - 70 = 30.
+        // Only the registered business is ranked: 2 offenses (T1, T4, not W2, not the unregistered tickets), highest Level 4, risk 100 - 70 = 30.
         var risk = Assert.Single(await service.GetVendorRiskRankingAsync());
-        Assert.Equal(("BA-0001", 2, Severity.High, 30), (risk.BusinessAccountNumber, risk.OffenseCount, risk.HighestSeverity, risk.RiskScore));
+        Assert.Equal(("BA-0001", 2, (int?)4, 30), (risk.BusinessAccountNumber, risk.OffenseCount, risk.HighestSeverityLevel, risk.RiskScore));
+    }
+
+    [Fact]
+    public async Task Trend_counts_tickets_by_Severity_Level_and_ranking_shows_each_business_highest_level()
+    {
+        // "Today" is 20 Feb 2026 (Manila). All times are noon Manila (04:00 UTC).
+        //  Shop A (score 40): 10 Jan Level 2, 5 Feb Level 4, and last year 1 Jun 2025 Level 5.
+        //  Shop B (score 80): 15 Jan ticket with no level yet (issued before levels existed).
+        //  Unregistered vendors: 20 Jan Level 1, 10 Feb Level 3, 11 Feb Level 3, 12 Feb Level 5; a 13 Feb warning.
+        var a1 = Record(1, Utc(2026, 1, 10, 4), level: 2);
+        var a2 = Record(2, Utc(2026, 2, 5, 4), level: 4);
+        var aLastYear = Record(3, Utc(2025, 6, 1, 4), level: 5);
+        var b1 = Record(4, Utc(2026, 1, 15, 4), level: null);
+        var records = new List<Ticket> {
+            a1, a2, aLastYear, b1,
+            Record(5, Utc(2026, 1, 20, 4), level: 1), Record(6, Utc(2026, 2, 10, 4), level: 3),
+            Record(7, Utc(2026, 2, 11, 4), level: 3), Record(8, Utc(2026, 2, 12, 4), level: 5),
+            Record(9, Utc(2026, 2, 13, 4), ViolationType.Warning, level: null)
+        };
+        var shopA = new Business { Id = 1, BusinessAccountNumber = "BA-0001", BusinessName = "Synthetic Shop A", QrCodeValue = "synthetic-1", ComplianceScore = 40, MarketSectionId = 2, Tickets = [a1, a2, aLastYear] };
+        var shopB = new Business { Id = 2, BusinessAccountNumber = "BA-0002", BusinessName = "Synthetic Shop B", QrCodeValue = "synthetic-2", ComplianceScore = 80, MarketSectionId = 2, Tickets = [b1] };
+        await using var context = Context(records);
+        context.Businesses = new AccountDatabaseSet<Business>([shopA, shopB]);
+        var service = new AdminAnalyticsService(new TicketRepository(context), new AnalyticsClock(Utc(2026, 2, 20)));
+
+        // Jan: Level 1 one, Level 2 one (the no-level ticket is not counted). Feb: Level 3 two, Level 4 one, Level 5 one (the warning is not counted).
+        var trend = await service.GetViolationTrendAsync();
+        Assert.Equal((1, 1, 0, 0, 0), (trend[0].Level1Count, trend[0].Level2Count, trend[0].Level3Count, trend[0].Level4Count, trend[0].Level5Count));
+        Assert.Equal((0, 0, 2, 1, 1), (trend[1].Level1Count, trend[1].Level2Count, trend[1].Level3Count, trend[1].Level4Count, trend[1].Level5Count));
+        Assert.Equal(6, trend.Sum(point => point.Level1Count + point.Level2Count + point.Level3Count + point.Level4Count + point.Level5Count));
+
+        // Lowest score first. Shop A: 2 offenses this year, highest Level 4 (last year's Level 5 is outside the year), risk 100 - 40 = 60.
+        // Shop B: 1 offense with no level, so no highest level, risk 100 - 80 = 20.
+        var ranking = await service.GetVendorRiskRankingAsync();
+        Assert.Equal(2, ranking.Count);
+        Assert.Equal(("BA-0001", 2, (int?)4, 60), (ranking[0].BusinessAccountNumber, ranking[0].OffenseCount, ranking[0].HighestSeverityLevel, ranking[0].RiskScore));
+        Assert.Equal(("BA-0002", 1, (int?)null, 20), (ranking[1].BusinessAccountNumber, ranking[1].OffenseCount, ranking[1].HighestSeverityLevel, ranking[1].RiskScore));
     }
 
     private static DateTime Utc(int year, int month, int day, int hour = 0, int minute = 0) => new(year, month, day, hour, minute, 0, DateTimeKind.Utc);
-    private static Ticket Record(int id, DateTime date, ViolationType type = ViolationType.Ticket, Severity severity = Severity.Minor) => new()
-    { Id = id, IssuedAt = date, UpdatedAt = date, Type = type, HighestSeverity = severity, Status = type == ViolationType.Warning ? null : TicketStatus.Pending, Description = "Synthetic analytics record", MarketSectionId = 2 };
+    private static Ticket Record(int id, DateTime date, ViolationType type = ViolationType.Ticket, int? level = 1) => new()
+    { Id = id, IssuedAt = date, UpdatedAt = date, Type = type, SeverityLevel = type == ViolationType.Warning ? null : level, Status = type == ViolationType.Warning ? null : TicketStatus.Pending, Description = "Synthetic analytics record", MarketSectionId = 2 };
 
     private static List<Ticket> Records()
     {
         var records = new List<Ticket> {
             Record(1, Utc(2025, 12, 31, 15, 59)), // Prior Manila year.
             Record(2, Utc(2025, 12, 31, 16)), // Jan 1, Thu 00:00 Manila.
-            Record(3, Utc(2026, 1, 31, 15, 59), severity: Severity.Moderate), // Jan 31, Sat 23:59.
-            Record(4, Utc(2026, 1, 31, 16), severity: Severity.High), // Feb 1, Sun 00:00.
+            Record(3, Utc(2026, 1, 31, 15, 59), level: 3), // Jan 31, Sat 23:59.
+            Record(4, Utc(2026, 1, 31, 16), level: 4), // Feb 1, Sun 00:00.
             Record(5, Utc(2026, 2, 1), ViolationType.Warning)
         };
         records[0].Status = TicketStatus.Overdue;
@@ -226,7 +263,7 @@ public class AnalyticsCalculationTests
         var trend = await service.GetViolationTrendAsync();
         Assert.Equal(12, trend.Count);
         Assert.All(trend, point => Assert.Equal(2026, point.Year));
-        Assert.Equal(1, trend[0].LowSeverityCount);
+        Assert.Equal(1, trend[0].Level1Count);
     }
 
     [Fact]
@@ -235,9 +272,9 @@ public class AnalyticsCalculationTests
         await using var context = Context(Records());
         var repository = new TicketRepository(context);
         var trend = await repository.GetViolationTrendAsync(Utc(2025, 12, 31, 16), Utc(2026, 2, 20));
-        Assert.Equal(1, trend.Single(bucket => bucket.Month == 1 && bucket.Severity == Severity.Minor).Count);
-        Assert.Equal(1, trend.Single(bucket => bucket.Month == 1 && bucket.Severity == Severity.Moderate).Count);
-        Assert.Equal(1, trend.Single(bucket => bucket.Month == 2 && bucket.Severity == Severity.High).Count);
+        Assert.Equal(1, trend.Single(bucket => bucket.Month == 1 && bucket.SeverityLevel == 1).Count);
+        Assert.Equal(1, trend.Single(bucket => bucket.Month == 1 && bucket.SeverityLevel == 3).Count);
+        Assert.Equal(1, trend.Single(bucket => bucket.Month == 2 && bucket.SeverityLevel == 4).Count);
         Assert.All(trend, bucket => Assert.Equal(2026, bucket.Year));
         var peak = await repository.GetPeakViolationTimesAsync(Utc(2025, 12, 31, 16), Utc(2026, 2, 20));
         Assert.Equal(1, peak.Single(bucket => bucket.DayOfWeek == (int)DayOfWeek.Thursday && bucket.TimeBlock == 0).Count);

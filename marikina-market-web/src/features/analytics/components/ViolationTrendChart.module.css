@@ -35,15 +35,17 @@
   overflow: visible;
 }
 
-.trendLine {
-  stroke-dasharray: 900;
-  stroke-dashoffset: 900;
-  animation: draw-trend 900ms ease-out forwards;
+/* Revealed by clipping, so each level keeps its own dash pattern. */
+.series {
+  animation: reveal-trend 900ms ease-out both;
 }
 
-@keyframes draw-trend {
+@keyframes reveal-trend {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
   to {
-    stroke-dashoffset: 0;
+    clip-path: inset(0 0 0 0);
   }
 }
 
@@ -60,6 +62,8 @@
 
 .trendLine {
   fill: none;
+  stroke: var(--level-color);
+  stroke-dasharray: var(--level-dash);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -67,48 +71,36 @@
 }
 
 .point {
+  fill: var(--level-color);
   stroke: #fff;
   stroke-width: 1.2;
   vector-effect: non-scaling-stroke;
 }
 
-.high {
-  color: #ed3e35;
+/* Ordinal scale, low to high; every colour is at least 3:1 on white. */
+.level1 {
+  --level-color: #2f8f57;
+  --level-dash: 2 4;
 }
 
-.medium {
-  color: #ff9e21;
+.level2 {
+  --level-color: #7f8a1a;
+  --level-dash: 7 4;
 }
 
-.low {
-  color: #3b9b60;
+.level3 {
+  --level-color: #c47b11;
+  --level-dash: none;
 }
 
-.high .trendLine,
-.high .point {
-  stroke: #ed3e35;
+.level4 {
+  --level-color: #d44239;
+  --level-dash: 12 4 3 4;
 }
 
-.medium .trendLine,
-.medium .point {
-  stroke: #ff9e21;
-}
-
-.low .trendLine,
-.low .point {
-  stroke: #3b9b60;
-}
-
-.high .point {
-  fill: #ed3e35;
-}
-
-.medium .point {
-  fill: #ff9e21;
-}
-
-.low .point {
-  fill: #3b9b60;
+.level5 {
+  --level-color: #8f1d2c;
+  --level-dash: none;
 }
 
 .legend {
@@ -127,24 +119,20 @@
   font-size: 0.68rem;
 }
 
-.legend .high {
-  color: #ed3e35;
-}
-
-.legend .medium {
-  color: #ff9e21;
-}
-
-.legend .low {
-  color: #3b9b60;
-}
-
 .legend i {
   display: inline-block;
-  width: 10px;
-  height: 4px;
-  border-radius: 2px;
-  background: currentColor;
+  width: 16px;
+  height: 0;
+  border-top: 2px dashed var(--level-color);
+}
+
+.legend .level1 i {
+  border-top-style: dotted;
+}
+
+.legend .level3 i,
+.legend .level5 i {
+  border-top-style: solid;
 }
 
 @media (max-width: 850px) {
@@ -154,8 +142,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .trendLine {
+  .series {
     animation: none;
-    stroke-dashoffset: 0;
   }
 }

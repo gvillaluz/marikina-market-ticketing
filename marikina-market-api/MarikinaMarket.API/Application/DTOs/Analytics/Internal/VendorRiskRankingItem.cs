@@ -1,5 +1,3 @@
-using MarikinaMarket.API.Domain.Enums;
-
 namespace MarikinaMarket.API.Application.DTOs.Analytics.Internal
 {
     public class VendorRiskRankingItem
@@ -7,7 +5,7 @@ namespace MarikinaMarket.API.Application.DTOs.Analytics.Internal
         public required string BusinessAccountNumber { get; set; }
         public required string BusinessName { get; set; }
         public int OffenseCount { get; set; }
-        public Severity? HighestSeverity { get; set; }
+        public int? HighestSeverityLevel { get; set; }
         public int ComplianceScore { get; set; }
     }
 }

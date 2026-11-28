@@ -1,4 +1,5 @@
 import type { VendorRiskRanking } from "@/api/types/admin-analytics.types";
+import { formatSeverityLevel } from "@/utils/formatters";
 import AnalyticsPanel from "./AnalyticsPanel";
 import styles from "./VendorRiskRankingTable.module.css";
 
@@ -10,21 +11,8 @@ interface VendorRiskRankingTableProps {
   onRetry: () => void;
 }
 
-function severityLabel(value: string | number | null): string {
-  if (value == null) return "N/A";
-  if (typeof value === "number") {
-    return ["Minor", "Moderate", "High"][value] ?? String(value);
-  }
-  return value.replace(/([a-z])([A-Z])/g, "$1 $2");
-}
-
-function severityClass(value: string | number | null): string {
-  const severity = severityLabel(value).toLowerCase();
-  if (severity.includes("high")) return styles.high;
-  if (severity.includes("moderate") || severity.includes("medium"))
-    return styles.moderate;
-  if (severity.includes("low") || severity.includes("minor")) return styles.low;
-  return styles.neutral;
+function severityLevelClass(level: number | null): string {
+  return level == null ? styles.neutral : styles[`level${level}`];
 }
 
 function riskClass(score: number): string {
@@ -49,7 +37,7 @@ export default function VendorRiskRankingTable({
   return (
     <AnalyticsPanel
       title="Business Risk Ranking"
-      subtitle="Offenses and severity are for the selected year. Risk scores and ranking use current compliance."
+      subtitle="Offenses and Severity Levels are for the selected year. Risk scores and ranking use current compliance."
       skeletonVariant="table"
       isLoading={isLoading}
       isError={isError}
@@ -65,7 +53,7 @@ export default function VendorRiskRankingTable({
               <th scope="col">Business Name</th>
               <th scope="col">Business Account Number</th>
               <th scope="col">Offense Count</th>
-              <th scope="col">Highest Severity</th>
+              <th scope="col">Highest Severity Level</th>
               <th scope="col">Risk Score</th>
             </tr>
           </thead>
@@ -78,9 +66,11 @@ export default function VendorRiskRankingTable({
                 <td>{vendor.offenseCount}</td>
                 <td>
                   <span
-                    className={`${styles.severity} ${severityClass(vendor.highestSeverity)}`}
+                    className={`${styles.severity} ${severityLevelClass(vendor.highestSeverityLevel)}`}
                   >
-                    {severityLabel(vendor.highestSeverity)}
+                    {vendor.highestSeverityLevel == null
+                      ? "N/A"
+                      : formatSeverityLevel(vendor.highestSeverityLevel)}
                   </span>
                 </td>
                 <td>

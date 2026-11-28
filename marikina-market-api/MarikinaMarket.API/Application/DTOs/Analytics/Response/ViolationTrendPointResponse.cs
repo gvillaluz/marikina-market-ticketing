@@ -5,8 +5,10 @@ namespace MarikinaMarket.API.Application.DTOs.Analytics.Response
         public int Year { get; set; }
         public int Month { get; set; }
         public required string MonthName { get; set; }
-        public int LowSeverityCount { get; set; }
-        public int MediumSeverityCount { get; set; }
-        public int HighSeverityCount { get; set; }
+        public int Level1Count { get; set; }
+        public int Level2Count { get; set; }
+        public int Level3Count { get; set; }
+        public int Level4Count { get; set; }
+        public int Level5Count { get; set; }
     }
 }

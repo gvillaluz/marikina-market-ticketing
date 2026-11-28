@@ -2,9 +2,11 @@ export interface ViolationTrendPoint {
   year: number;
   month: number;
   monthName: string;
-  lowSeverityCount: number;
-  mediumSeverityCount: number;
-  highSeverityCount: number;
+  level1Count: number;
+  level2Count: number;
+  level3Count: number;
+  level4Count: number;
+  level5Count: number;
 }
 
 export interface PeakViolationTime {
@@ -59,6 +61,6 @@ export interface VendorRiskRanking {
   businessAccountNumber: string;
   businessName: string;
   offenseCount: number;
-  highestSeverity: string | number | null;
+  highestSeverityLevel: number | null;
   riskScore: number;
 }
