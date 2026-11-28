@@ -822,7 +822,7 @@ public class TicketPenaltyChangeTests
                     return Task.FromException<VendorComplianceScoreResponse>(RefreshFailure);
                 return Task.FromResult(new VendorComplianceScoreResponse
                 {
-                    Standing = "Good", ViolationFrequencyLevel = "Low", CategorySeverityLevel = "Low"
+                    Standing = "Good", ViolationFrequencyLevel = "Low"
                 });
             });
             return new TicketService(repository, ordinances, null!, unitOfWork, null!, notification, compliance,

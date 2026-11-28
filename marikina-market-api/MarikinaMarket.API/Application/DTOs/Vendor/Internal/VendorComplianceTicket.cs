@@ -6,7 +6,7 @@ namespace MarikinaMarket.API.Application.DTOs.Vendor.Internal
     {
         public int VendorId { get; set; }
         public DateTime IssuedAt { get; set; }
-        public Severity? HighestSeverity { get; set; }
+        public int? SeverityLevel { get; set; }
         public PenaltyType? PenaltyType { get; set; }
         public decimal? TotalPaymentAmount { get; set; }
         public TicketStatus? Status { get; set; }
