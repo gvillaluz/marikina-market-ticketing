@@ -137,3 +137,11 @@ export function daysLeft(value: string | Date): string {
   if (diffDays === -1) return 'Overdue by 1 day';
   return `Overdue by ${Math.abs(diffDays)} days`;
 }
+// Severity Level from the Market Code (ADR 0001); old tickets have none until they are recalculated.
+const SEVERITY_LEVEL_NAMES = ['Fine up to ₱1,000', 'Fine over ₱1,000', 'Confiscation or suspension', 'Closure or revocation', 'Imprisonment'];
+
+/** Format a Severity Level as "Level 4 · Closure or revocation". */
+export function formatSeverityLevel(level: number | null | undefined): string {
+  const name = level == null ? undefined : SEVERITY_LEVEL_NAMES[level - 1];
+  return name ? `Level ${level} · ${name}` : '—';
+}

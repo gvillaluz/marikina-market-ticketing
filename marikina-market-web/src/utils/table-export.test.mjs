@@ -419,7 +419,7 @@ test("ticket and inspection exports keep name and owner apart, while the screen 
   }));
   assert.deepEqual(plain(TICKET_COLUMNS.map((c) => c.header)), [
     "Control number", "Enforcer", "Business name", "Registered owner", "Violator",
-    "Market street", "Status", "Penalty", "Severity", "Issued at",
+    "Market street", "Status", "Penalty", "Severity Level", "Issued at",
   ]);
   assert.deepEqual(plain(INSPECTION_COLUMNS.map((c) => c.header)), [
     "Control number", "Violator", "Enforcer", "Business name", "Registered owner",
@@ -427,7 +427,7 @@ test("ticket and inspection exports keep name and owner apart, while the screen 
   ]);
   assert.deepEqual(headers(ticketHtml), [
     "Control number", "Enforcer", "Business", "Violator",
-    "Market street", "Status", "Penalty", "Severity", "Issued at", "Actions",
+    "Market street", "Status", "Penalty", "Severity Level", "Issued at", "Actions",
   ]);
   assert.deepEqual(headers(inspectionHtml), [
     "Violator", "Enforcer", "Business",

@@ -189,7 +189,7 @@ export interface TicketSummary {
   marketSectionId: number;
   marketSectionName: string;
   status: RecordStatus;
-  severity: Severity;
+  severityLevel: number | null;
   penaltyType: PenaltyType;
   issuedAt: Date;
 }
@@ -201,8 +201,8 @@ export interface TicketStats {
   paymentsChangePercentage: number;
   resolvedViolationsThisMonth: number;
   resolutionRate: number;
-  highSeveritiesThisMonth: number;
-  highSeveritiesChangePercentage: number;
+  levelFourToFiveThisMonth: number;
+  levelFourToFiveChangePercentage: number;
 }
 
 export interface Violation {
@@ -267,7 +267,7 @@ export interface TicketDetail {
   marketSectionName: string;
   categories: TicketCategories[];
   description: string;
-  severity?: Severity;
+  severityLevel: number | null;
   status?: RecordStatus;
   penaltyType?: PenaltyType;
   dueDate?: Date;

@@ -12,7 +12,7 @@ import {
 import TicketDetailHeader from "../components/detail/TicketDetailHeader";
 import DetailCard from "../components/detail/DetailCard";
 import InfoField from "../components/detail/InfoField";
-import StatusPill from "../components/detail/StatusPill";
+import { SeverityLevelBadge } from "@/components/ui/SeverityLevelBadge/SeverityLevelBadge";
 import EvidenceThumbnail from "../components/detail/EvidenceThumbnail";
 import FineSummaryBox from "../components/detail/FineSummaryBox";
 import StatusChangeModal from "../components/detail/StatusChangeModal";
@@ -202,11 +202,7 @@ const TicketDetailPage: FC = () => {
             />
             <InfoField
               label="SEVERITY LEVEL"
-              value={
-                <StatusPill variant={ticket?.severity?.toString() || ""}>
-                  {ticket?.severity}
-                </StatusPill>
-              }
+              value={<SeverityLevelBadge level={ticket?.severityLevel} />}
             />
             <InfoField label="PENALTY TYPE" value={ticket?.penaltyType} />
           </div>

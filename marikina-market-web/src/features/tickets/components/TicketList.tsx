@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import BusinessCell from "@/components/ui/BusinessCell";
 import SearchHighlight from "@/components/ui/SearchHighlight";
+import { SeverityLevelBadge } from "@/components/ui/SeverityLevelBadge/SeverityLevelBadge";
 import Table from "@/components/ui/Table";
 import {
   RecordBadge,
@@ -12,14 +13,9 @@ import { formatControlNumber } from "@/utils/formatters";
 import styles from "./TicketList.module.css";
 import { TICKET_COLUMNS } from "../ticketColumns";
 
-const BADGE_COLUMNS = new Set(["status", "severity"]);
-const CENTERED_COLUMNS = new Set(["status", "penaltyType", "severity"]);
+const CENTERED_COLUMNS = new Set(["status", "penaltyType", "severityLevel"]);
 // The columns the ticket search looks at; the search text is highlighted in these.
-const SEARCHED_COLUMNS = new Set([
-  "controlNumber",
-  "violator",
-  "enforcer",
-]);
+const SEARCHED_COLUMNS = new Set(["controlNumber", "violator", "enforcer"]);
 // On screen the owner sits inside the Business column; Export and Print keep it separate.
 const TABLE_COLUMNS = TICKET_COLUMNS.filter(
   (column) => column.key !== "registeredOwner",
@@ -65,8 +61,10 @@ export default function TicketList({
                 owner={OWNER_COLUMN.value(ticket)}
                 search={search}
               />
-            ) : BADGE_COLUMNS.has(column.key) ? (
+            ) : column.key === "status" ? (
               <RecordBadge value={column.value(ticket)} />
+            ) : column.key === "severityLevel" ? (
+              <SeverityLevelBadge level={ticket.severityLevel} />
             ) : column.key === "issuedAt" ? (
               <RecordDateTime value={ticket.issuedAt} />
             ) : SEARCHED_COLUMNS.has(column.key) ? (

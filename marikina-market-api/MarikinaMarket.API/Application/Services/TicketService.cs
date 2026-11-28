@@ -1651,8 +1651,8 @@ namespace MarikinaMarket.API.Application.Services
                     ? 0
                     : Math.Round((double)rawAnalytics.ResolvedViolationsThisMonth / rawAnalytics.TotalTicketsThisMonth * 100, 1),
 
-                HighSeveritiesThisMonth = rawAnalytics.HighSeveritiesThisMonth,
-                HighSeveritiesChangePercentage = CalculatePercentChange(rawAnalytics.HighSeveritiesLastMonth, rawAnalytics.HighSeveritiesThisMonth) ?? 0
+                LevelFourToFiveThisMonth = rawAnalytics.LevelFourToFiveThisMonth,
+                LevelFourToFiveChangePercentage = CalculatePercentChange(rawAnalytics.LevelFourToFiveLastMonth, rawAnalytics.LevelFourToFiveThisMonth) ?? 0
             };
         }
 

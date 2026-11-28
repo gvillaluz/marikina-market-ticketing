@@ -1,6 +1,10 @@
 import type { TicketSummary } from "@/api/types/ticket.types";
 import type { ExportColumn } from "@/utils/tableExport";
-import { formatControlNumber, formatDateTime } from "@/utils/formatters";
+import {
+  formatControlNumber,
+  formatDateTime,
+  formatSeverityLevel,
+} from "@/utils/formatters";
 import { formatPenaltyType } from "./tickets.utils";
 
 const UNAVAILABLE = "Historical business details unavailable.";
@@ -56,9 +60,9 @@ export const TICKET_COLUMNS: ExportColumn<TicketSummary>[] = [
     value: (ticket) => formatPenaltyType(ticket.penaltyType),
   },
   {
-    key: "severity",
-    header: "Severity",
-    value: (ticket) => ticket.severity || "—",
+    key: "severityLevel",
+    header: "Severity Level",
+    value: (ticket) => formatSeverityLevel(ticket.severityLevel),
   },
   {
     key: "issuedAt",
