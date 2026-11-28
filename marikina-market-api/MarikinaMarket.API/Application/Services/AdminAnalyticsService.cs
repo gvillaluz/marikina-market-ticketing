@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.ComponentModel.DataAnnotations;
+using MarikinaMarket.API.Application.DTOs.Analytics.Internal;
 using MarikinaMarket.API.Application.DTOs.Analytics.Response;
 using MarikinaMarket.API.Application.Interfaces.Repositories;
 using MarikinaMarket.API.Application.Interfaces.Services;
@@ -33,15 +34,11 @@ namespace MarikinaMarket.API.Application.Services
                     Year = selectedYear,
                     Month = month,
                     MonthName = CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(month),
-                    LowSeverityCount = monthBuckets
-                        .Where(bucket => bucket.Severity == Severity.Minor)
-                        .Sum(bucket => bucket.Count),
-                    MediumSeverityCount = monthBuckets
-                        .Where(bucket => bucket.Severity == Severity.Moderate)
-                        .Sum(bucket => bucket.Count),
-                    HighSeverityCount = monthBuckets
-                        .Where(bucket => bucket.Severity == Severity.High)
-                        .Sum(bucket => bucket.Count)
+                    Level1Count = CountLevel(monthBuckets, 1),
+                    Level2Count = CountLevel(monthBuckets, 2),
+                    Level3Count = CountLevel(monthBuckets, 3),
+                    Level4Count = CountLevel(monthBuckets, 4),
+                    Level5Count = CountLevel(monthBuckets, 5)
                 });
             }
 
@@ -213,7 +210,7 @@ namespace MarikinaMarket.API.Application.Services
                     BusinessAccountNumber = vendor.BusinessAccountNumber,
                     BusinessName = vendor.BusinessName,
                     OffenseCount = vendor.OffenseCount,
-                    HighestSeverity = vendor.HighestSeverity,
+                    HighestSeverityLevel = vendor.HighestSeverityLevel,
                     RiskScore = Math.Clamp(100 - vendor.ComplianceScore, 0, 100)
                 })
                 .ToList();
@@ -233,6 +230,9 @@ namespace MarikinaMarket.API.Application.Services
                 : TimeZoneInfo.ConvertTimeToUtc(localYearStart.AddYears(1), manilaTimeZone).AddTicks(-1);
             return (TimeZoneInfo.ConvertTimeToUtc(localYearStart, manilaTimeZone), end);
         }
+
+        private static int CountLevel(List<ViolationTrendBucket> buckets, int level)
+            => buckets.Where(bucket => bucket.SeverityLevel == level).Sum(bucket => bucket.Count);
 
         private static string FormatCategory(ViolationCategory category)
         {

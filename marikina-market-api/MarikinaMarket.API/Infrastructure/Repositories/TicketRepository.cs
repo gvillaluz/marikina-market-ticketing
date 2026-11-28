@@ -1279,19 +1279,19 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                 .Select(t => new
                 {
                     IssuedAt = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(t.IssuedAt, "Asia/Manila"),
-                    t.HighestSeverity
+                    t.SeverityLevel
                 })
                 .GroupBy(t => new
                 {
                     t.IssuedAt.Year,
                     t.IssuedAt.Month,
-                    t.HighestSeverity
+                    t.SeverityLevel
                 })
                 .Select(group => new ViolationTrendBucket
                 {
                     Year = group.Key.Year,
                     Month = group.Key.Month,
-                    Severity = group.Key.HighestSeverity,
+                    SeverityLevel = group.Key.SeverityLevel,
                     Count = group.Count()
                 })
                 .ToListAsync();
@@ -1440,15 +1440,10 @@ namespace MarikinaMarket.API.Infrastructure.Repositories
                     OffenseCount = v.Tickets.Count(t =>
                         t.Type == ViolationType.Ticket &&
                         t.IssuedAt >= start && t.IssuedAt <= end),
-                    HighestSeverity = v.Tickets.Any(t => t.Type == ViolationType.Ticket &&
-                            t.IssuedAt >= start && t.IssuedAt <= end && t.HighestSeverity == Severity.High)
-                            ? Severity.High
-                        : v.Tickets.Any(t => t.Type == ViolationType.Ticket &&
-                            t.IssuedAt >= start && t.IssuedAt <= end && t.HighestSeverity == Severity.Moderate)
-                            ? Severity.Moderate
-                        : v.Tickets.Any(t => t.Type == ViolationType.Ticket &&
-                            t.IssuedAt >= start && t.IssuedAt <= end && t.HighestSeverity == Severity.Minor)
-                            ? Severity.Minor : null,
+                    HighestSeverityLevel = v.Tickets
+                        .Where(t => t.Type == ViolationType.Ticket &&
+                            t.IssuedAt >= start && t.IssuedAt <= end)
+                        .Max(t => t.SeverityLevel),
                     ComplianceScore = v.ComplianceScore
                 });
 

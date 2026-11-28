@@ -250,3 +250,34 @@ test("the trend and time charts say they count tickets only", () => {
     assert.match(render(name, { data: [] }), /Tickets only; warnings are not included\./);
   }
 });
+
+test("the trend chart draws one line per Severity Level with level wording", () => {
+  const html = render("ViolationTrendChart", {
+    data: [{ year: 2026, month: 1, monthName: "Jan", level1Count: 0, level2Count: 0, level3Count: 0, level4Count: 0, level5Count: 5 }],
+  });
+  const legend = [...html.matchAll(/<i aria-hidden="true"><\/i>([^<]+)<\/span>/g)].map((match) => match[1]);
+  assert.deepEqual(legend, [
+    "Level 1 · Fine up to ₱1,000",
+    "Level 2 · Fine over ₱1,000",
+    "Level 3 · Confiscation or suspension",
+    "Level 4 · Closure or revocation",
+    "Level 5 · Imprisonment",
+  ]);
+  // Grid top is 5, so January's 5 Level 5 tickets sit at the top (x 38, y 12) and Level 1's 0 at the bottom (y 12 + 130).
+  assert.match(html, /<g class="series level5"><polyline points="38,12 /);
+  assert.match(html, /<g class="series level1"><polyline points="38,142 /);
+  assert.doesNotMatch(html, /Low|Medium|High/);
+});
+
+test("the risk ranking shows each business's highest Severity Level", () => {
+  const row = { businessName: "Synthetic Shop", offenseCount: 2, riskScore: 60 };
+  const html = render("VendorRiskRankingTable", {
+    data: [
+      { ...row, rank: 1, businessAccountNumber: "BA-0001", highestSeverityLevel: 4 },
+      { ...row, rank: 2, businessAccountNumber: "BA-0002", highestSeverityLevel: null },
+    ],
+  });
+  assert.match(html, /<th scope="col">Highest Severity Level<\/th>/);
+  assert.match(html, /<span class="severity level4">Level 4 · Closure or revocation<\/span>/);
+  assert.match(html, /<span class="severity neutral">N\/A<\/span>/);
+});

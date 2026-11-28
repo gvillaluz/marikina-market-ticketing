@@ -83,6 +83,19 @@ export function timeAgo(value: string | Date): string {
   return 'just now';
 }
 
+const SEVERITY_LEVEL_NAMES = [
+  `Fine up to ${APP_CONSTANTS.currency}1,000`,
+  `Fine over ${APP_CONSTANTS.currency}1,000`,
+  'Confiscation or suspension',
+  'Closure or revocation',
+  'Imprisonment',
+];
+
+/** Severity Level wording (1-5), e.g. "Level 4 · Closure or revocation". */
+export function formatSeverityLevel(level: number): string {
+  return `Level ${level} · ${SEVERITY_LEVEL_NAMES[level - 1]}`;
+}
+
 /** Returns the currency symbol. */
 export function currencySymbol(): string {
   return APP_CONSTANTS.currency;
